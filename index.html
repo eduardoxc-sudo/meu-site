@@ -546,7 +546,6 @@
         </div>
 
         <div class="controls-top">
-          <!-- Navegador de Semanas com Datas -->
           <div class="week-navigator">
             <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(-1)">◀</button>
             <span class="week-label" id="labelIntervaloSemana">Carregando...</span>
@@ -562,15 +561,19 @@
   </div>
 
   <script>
+    // Usuários cadastrados no sistema
     const USUARIOS_VALIDOS = {
       "Cristiano": "333435",
-      "Kelvin": "bk9bk9@@"
+      "Kelvin": "bk9bk9@@",
+      "Robson": "333435",
+      "Eduardo": "333435",
+      "Gabi": "333435"
     };
 
     const DIAS = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
 
     let usuarioAtivo = null;
-    let dataReferencia = new Date(); // Data usada para calcular a semana
+    let dataReferencia = new Date();
     let chaveSemanaAtiva = '';
     let estado = {};
 
@@ -594,11 +597,10 @@
       };
     }
 
-    /* Cálculo de Datas da Semana */
     function obterSegundaFeira(data) {
       const d = new Date(data);
       const diaSemana = d.getDay();
-      const diff = (diaSemana === 0 ? -6 : 1) - diaSemana; // Segunda = 1, Domingo = 0
+      const diff = (diaSemana === 0 ? -6 : 1) - diaSemana;
       d.setDate(d.getDate() + diff);
       d.setHours(0, 0, 0, 0);
       return d;
@@ -631,7 +633,6 @@
       const fDom = `${String(domingo.getDate()).padStart(2, '0')}/${String(domingo.getMonth() + 1).padStart(2, '0')}/${domingo.getFullYear()}`;
       document.getElementById('labelIntervaloSemana').innerText = `${fSeg} - ${fDom}`;
 
-      // Se a semana ainda não existir, cria-a automaticamente
       if (!estado.semanas[chaveSemanaAtiva]) {
         gerarSemanaAutomatica(chaveSemanaAtiva);
       }
@@ -649,14 +650,18 @@
       atualizarSemanaAtiva();
     }
 
-    /* Autenticação */
     function autenticar() {
-      const u = document.getElementById('usuario').value.trim();
-      const s = document.getElementById('senha').value.trim();
+      const uInput = document.getElementById('usuario').value.trim();
+      const sInput = document.getElementById('senha').value.trim();
       const erro = document.getElementById('msgErro');
 
-      if (USUARIOS_VALIDOS[u] && USUARIOS_VALIDOS[u] === s) {
-        usuarioAtivo = u;
+      // Busca sem diferenciar maiúsculas/minúsculas no nome
+      const usuarioEncontrado = Object.keys(USUARIOS_VALIDOS).find(
+        key => key.toLowerCase() === uInput.toLowerCase()
+      );
+
+      if (usuarioEncontrado && USUARIOS_VALIDOS[usuarioEncontrado] === sInput) {
+        usuarioAtivo = usuarioEncontrado;
         sessionStorage.setItem('usuario_ativo', usuarioAtivo);
         abrirApp();
       } else {
@@ -765,7 +770,6 @@
       salvarEstado();
     }
 
-    /* Geração Contínua e Automática */
     function gerarSemanaAutomatica(chaveSemana) {
       if (!estado.disciplinas || estado.disciplinas.length === 0) return;
 
@@ -800,7 +804,6 @@
       renderizarGrade();
     }
 
-    /* Drag and Drop */
     let itemArrastado = null;
 
     function handleDragStart(e, diaOrigem, indexOrigem) {
@@ -845,7 +848,6 @@
       renderizarGrade();
     }
 
-    /* Interface Principal */
     function renderizarGrade() {
       const grade = document.getElementById('gradeSemana');
       grade.innerHTML = '';
@@ -861,7 +863,6 @@
         const coluna = document.createElement('div');
         coluna.className = 'day-column';
 
-        // Destaca se o cartão for o dia de hoje
         if (d.data === hojeFormatado && hoje.getFullYear() === d.dataCompleta.getFullYear()) {
           coluna.classList.add('today');
         }
@@ -926,7 +927,6 @@
       renderizarGrade();
     }
 
-    /* Cronómetro */
     let timerInterval = null;
     let timerSegundos = 0;
     let tempoTotalSessao = 0;

@@ -1453,7 +1453,7 @@
         historicoHoras: [],
         historicoQuestoes: [],
         editalVerticalizado: {},
-        diasCompletosLog: [],
+        diasCompletosLog: [], // Armazena estritamente as datas reais cumpridas (ex: '2026-09-25')
         planejamento: { inicio: '', prova: '' },
         collapseEdital: {},
         materiaFiltroEdital: 'TODAS',
@@ -1638,6 +1638,7 @@
         estado.indicesTopicos = {};
         estado.ponteiroGeral = 0;
         estado.agendaRevisoes = [];
+        estado.diasCompletosLog = []; // Zera a presença real
 
         salvarEstado();
         renderizarPesos();
@@ -1648,11 +1649,12 @@
         forcarSincronizacaoHoje();
         renderizarVisaoGeral();
         atualizarPainelPlanejamento();
+        atualizarIndicadorPresenca();
 
         document.getElementById('statusIA').style.display = 'block';
         document.getElementById('statusIA').style.color = '#ef4444';
         document.getElementById('statusIA').style.background = 'rgba(239, 68, 68, 0.1)';
-        document.getElementById('statusIA').innerText = 'Edital e ciclo de matérias limpos com sucesso!';
+        document.getElementById('statusIA').innerText = 'Edital limpo e dias de presença reiniciados com sucesso!';
       }
     }
 
@@ -1680,13 +1682,11 @@
       document.getElementById('txtOfensiva').innerText = `${totalDias} ${totalDias === 1 ? 'dia' : 'dias'}`;
     }
 
-    /* SISTEMA DE REVISÃO: AGENDA APENAS O CICLO QUE FOR MARCADO (TEORIA NÃO AGENDA NADA) */
     function agendarRevisaoIndividual(materia, idTopico, campoMarcado, deveAgendar) {
       if (!estado.agendaRevisoes) estado.agendaRevisoes = [];
       const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === idTopico);
       if (!topico) return;
 
-      // Dicionário de configuração de dias
       const mapaCiclos = {
         'r1': { tipo: 'D1', dias: 1 },
         'r7': { tipo: 'D7', dias: 7 },
@@ -1695,10 +1695,9 @@
       };
 
       const config = mapaCiclos[campoMarcado];
-      if (!config) return; // Se for 't' (teoria), não agenda nada
+      if (!config) return;
 
       if (deveAgendar) {
-        // Verifica se já existe para não duplicar
         const jaExiste = estado.agendaRevisoes.find(r => r.idTopico === idTopico && r.chaveCheck === campoMarcado);
         if (!jaExiste) {
           const hoje = new Date();
@@ -1720,7 +1719,6 @@
           });
         }
       } else {
-        // Se desmarcou no edital, remove da agenda de revisões
         estado.agendaRevisoes = estado.agendaRevisoes.filter(r => !(r.idTopico === idTopico && r.chaveCheck === campoMarcado));
       }
 
@@ -1830,8 +1828,7 @@
     function excluirItemRevisao(idRev) {
       const item = (estado.agendaRevisoes || []).find(r => r.idRev === idRev);
       if (item) {
-        // Desmarca também no edital verticalizado
-        const topico = (estado.editalVerticalizado[item.materia] || []).find(t => t.id === item.idTopico);
+        const topico = (estado.editalVerticalizado[item.materia] || []).find(t => t.id === idTopico);
         if (topico && item.chaveCheck) {
           topico[item.chaveCheck] = false;
         }
@@ -1842,7 +1839,6 @@
       renderizarEditalVerticalizado();
     }
 
-    /* GERAÇÃO DO QUADRO GERAL COM TODAS AS DATAS EM PDF */
     function baixarQuadroGeralDatasPDF() {
       if (!estado.disciplinas || estado.disciplinas.length === 0) {
         alert('Não há disciplinas ou tópicos cadastrados para gerar o cronograma!');
@@ -2448,7 +2444,7 @@
 
           card.innerHTML = `
             <div class="slot-left">
-              <input type="checkbox" ${item.feito ? 'checked' : ''} onchange="toggleConclusao('${d.nome}', ${idx}, '${d.data}')">
+              <input type="checkbox" ${item.feito ? 'checked' : ''} onchange="toggleConclusao('${d.nome}', ${idx}, '${formatarDataChave(d.dataCompleta)}')">
               <div class="slot-texts">
                 <span class="slot-materia-title">${item.materia}</span>
                 <span class="slot-assunto-sub" title="${item.assunto}">${item.assunto || 'Assunto do edital'}</span>
@@ -2465,7 +2461,8 @@
       });
     }
 
-    function toggleConclusao(dia, idx, dataTexto) {
+    /* CONDIÇÃO DIÁRIA REAL: REGISTA O DIA EXATO (YYYY-MM-DD) SE TODAS AS METAS ESTIVEREM CONCLUÍDAS */
+    function toggleConclusao(dia, idx, dataChaveReal) {
       const slot = estado.semanas[chaveSemanaAtiva][dia][idx];
       slot.feito = !slot.feito;
 
@@ -2478,14 +2475,16 @@
 
       const todosFeitosAgora = estado.semanas[chaveSemanaAtiva][dia].every(s => s.feito);
 
-      if (slot.feito && todosFeitosAgora) {
-        dispararCelebracao();
+      if (!estado.diasCompletosLog) estado.diasCompletosLog = [];
 
-        if (!estado.diasCompletosLog) estado.diasCompletosLog = [];
-        const chaveDiaLog = `${chaveSemanaAtiva}_${dia}`;
-        if (!estado.diasCompletosLog.includes(chaveDiaLog)) {
-          estado.diasCompletosLog.push(chaveDiaLog);
+      if (todosFeitosAgora) {
+        if (!estado.diasCompletosLog.includes(dataChaveReal)) {
+          estado.diasCompletosLog.push(dataChaveReal);
         }
+        dispararCelebracao();
+      } else {
+        // Se desmarcou uma matéria desse dia, remove da contagem de presença
+        estado.diasCompletosLog = estado.diasCompletosLog.filter(data => data !== dataChaveReal);
       }
 
       salvarEstado();
@@ -2496,12 +2495,22 @@
     }
 
     function reiniciarProgressoSemana() {
-      DIAS.forEach(dia => {
-        if (estado.semanas[chaveSemanaAtiva] && estado.semanas[chaveSemanaAtiva][dia]) {
-          estado.semanas[chaveSemanaAtiva][dia].forEach(item => item.feito = false);
+      const segunda = obterSegundaFeira(dataReferencia);
+      const diasComData = obterDiasDaSemana(segunda);
+
+      diasComData.forEach(d => {
+        const dataChaveReal = formatarDataChave(d.dataCompleta);
+        if (estado.semanas[chaveSemanaAtiva] && estado.semanas[chaveSemanaAtiva][d.nome]) {
+          estado.semanas[chaveSemanaAtiva][d.nome].forEach(item => item.feito = false);
+        }
+        // Remove os dias da semana limpa do registo de presença
+        if (estado.diasCompletosLog) {
+          estado.diasCompletosLog = estado.diasCompletosLog.filter(data => data !== dataChaveReal);
         }
       });
+
       salvarEstado();
+      atualizarIndicadorPresenca();
       renderizarGrade();
       renderizarVisaoGeral();
     }
@@ -2929,7 +2938,6 @@
       if (topico) {
         topico[campo] = !topico[campo];
 
-        // Se marcou 1D, 7D, 15D ou 30D, agenda APENAS esse ciclo. Teoria ('t') NÃO agenda nada.
         if (campo !== 't') {
           agendarRevisaoIndividual(materia, idTopico, campo, topico[campo]);
         }
@@ -2974,7 +2982,6 @@
 
     function removerTopicoEdital(materia, idTopico) {
       estado.editalVerticalizado[materia] = estado.editalVerticalizado[materia].filter(t => t.id !== idTopico);
-      // Remove eventuais revisões desse tópico
       if (estado.agendaRevisoes) {
         estado.agendaRevisoes = estado.agendaRevisoes.filter(r => r.idTopico !== idTopico);
       }
@@ -3014,16 +3021,16 @@
       const dadosExtraidos = extrairDisciplinasETopicosUniversal(texto);
 
       if (dadosExtraidos && dadosExtraidos.length > 0) {
-        if (substituirTudo) {
-          estado.disciplinas = [];
-          estado.editalVerticalizado = {};
-          estado.semanas = {};
-          estado.indicesTopicos = {};
-          estado.ponteiroGeral = 0;
-          estado.materiaFiltroEdital = 'TODAS';
-          estado.filtroPrioridadesMateria = 'TODAS';
-          estado.agendaRevisoes = [];
-        }
+        // Ao carregar um edital novo, zera todo o progresso antigo para começar do zero
+        estado.disciplinas = [];
+        estado.editalVerticalizado = {};
+        estado.semanas = {};
+        estado.indicesTopicos = {};
+        estado.ponteiroGeral = 0;
+        estado.materiaFiltroEdital = 'TODAS';
+        estado.filtroPrioridadesMateria = 'TODAS';
+        estado.agendaRevisoes = [];
+        estado.diasCompletosLog = []; // ZERA A PRESENÇA AUTOMATICAMENTE
 
         estado.disciplinas = dadosExtraidos.map(d => ({ nome: d.nome, peso: d.peso || 3 }));
 
@@ -3048,10 +3055,11 @@
         forcarSincronizacaoHoje();
         renderizarVisaoGeral();
         atualizarPainelPlanejamento();
+        atualizarIndicadorPresenca();
 
         status.style.color = '#10b981';
         status.style.background = 'rgba(16, 185, 129, 0.1)';
-        status.innerText = `✅ Sucesso! ${dadosExtraidos.length} matéria(s) cadastrada(s) exatamente como digitado!`;
+        status.innerText = `✅ Sucesso! ${dadosExtraidos.length} matéria(s) cadastrada(s) e dias de presença reiniciados com sucesso!`;
       } else {
         status.style.color = '#ef4444';
         status.style.background = 'rgba(239, 68, 68, 0.1)';

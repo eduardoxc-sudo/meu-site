@@ -7,6 +7,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- PDF.js para renderizar páginas do PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
+
+  <!-- Tesseract.js para leitura OCR -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+
   <style>
     :root {
       --bg: #0b0f19;
@@ -97,7 +107,7 @@
     }
 
     aside {
-      width: 340px;
+      width: 380px;
       background: var(--surface);
       border-right: 1px solid var(--border);
       display: flex;
@@ -106,7 +116,7 @@
     }
 
     .sidebar-header {
-      padding: 24px 20px 16px;
+      padding: 20px 18px 14px;
       border-bottom: 1px solid var(--border);
     }
 
@@ -141,18 +151,20 @@
       display: flex;
       border-bottom: 1px solid var(--border);
       background: var(--bg);
+      overflow-x: auto;
     }
 
     .tab-btn {
       flex: 1;
-      padding: 12px 4px;
+      padding: 12px 6px;
       background: transparent;
       border: none;
       border-bottom: 2px solid transparent;
       color: var(--text-muted);
-      font-size: 0.78rem;
+      font-size: 0.72rem;
       font-weight: 600;
       cursor: pointer;
+      white-space: nowrap;
       transition: all 0.2s;
     }
 
@@ -164,9 +176,9 @@
 
     .tab-content {
       display: none;
-      padding: 20px;
+      padding: 18px;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
       overflow-y: auto;
       flex: 1;
     }
@@ -189,8 +201,8 @@
       color: var(--text-muted);
     }
 
-    input, select {
-      padding: 10px 12px;
+    input, select, textarea {
+      padding: 9px 12px;
       border-radius: 8px;
       border: 1px solid var(--border);
       background: var(--bg);
@@ -199,7 +211,13 @@
       outline: none;
     }
 
-    input:focus, select:focus {
+    textarea {
+      resize: vertical;
+      font-family: inherit;
+      line-height: 1.4;
+    }
+
+    input:focus, select:focus, textarea:focus {
       border-color: var(--primary);
     }
 
@@ -208,9 +226,9 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      padding: 10px 16px;
+      padding: 9px 14px;
       border-radius: 8px;
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
       border: none;
@@ -244,12 +262,30 @@
       color: var(--danger);
     }
 
+    .pdf-upload-box {
+      border: 2px dashed var(--primary);
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+      background: rgba(56, 189, 248, 0.04);
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .pdf-upload-box:hover {
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .pdf-upload-box input[type="file"] {
+      display: none;
+    }
+
     .item-list {
       list-style: none;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      max-height: 240px;
+      max-height: 220px;
       overflow-y: auto;
     }
 
@@ -257,27 +293,28 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 12px;
+      padding: 8px 10px;
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      font-size: 0.88rem;
+      font-size: 0.85rem;
     }
 
+    /* Módulo Timer */
     .timer-card {
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 24px 16px;
+      padding: 18px 14px;
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
     }
 
     .timer-display {
-      font-size: 2.8rem;
+      font-size: 2.6rem;
       font-weight: 700;
       letter-spacing: 2px;
       font-variant-numeric: tabular-nums;
@@ -286,12 +323,152 @@
 
     .timer-controls {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       width: 100%;
     }
 
     .timer-controls .btn {
       flex: 1;
+    }
+
+    .card-total-horas {
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid var(--primary);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-total-horas .label-tot {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .card-total-horas .val-tot {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .historico-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      margin-top: 4px;
+    }
+
+    .registro-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.82rem;
+    }
+
+    .reg-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .reg-materia {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .reg-data-tempo {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .btn-mini-acao {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    .btn-mini-acao:hover {
+      background: var(--surface-hover);
+    }
+
+    /* Tabela do Edital Verticalizado */
+    .subject-block {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .subject-header-ev {
+      background: var(--primary-glow);
+      color: var(--primary);
+      font-weight: 700;
+      padding: 10px 12px;
+      font-size: 0.88rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ev-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+
+    .ev-table th, .ev-table td {
+      border: 1px solid var(--border);
+      padding: 6px 4px;
+      text-align: center;
+    }
+
+    .ev-table th {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-muted);
+    }
+
+    .ev-table td.topic-cell {
+      text-align: left;
+      padding-left: 8px;
+      font-weight: 500;
+    }
+
+    .ev-table input[type="checkbox"] {
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+
+    /* Módulo Questões */
+    .metric-grid-questoes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .metric-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 6px;
+      text-align: center;
+    }
+
+    .metric-box .num {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-top: 2px;
     }
 
     main {
@@ -341,7 +518,7 @@
 
     .week-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 16px;
     }
 
@@ -398,8 +575,8 @@
     .slot-card {
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px;
+      border-radius: 10px;
+      padding: 10px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -420,9 +597,28 @@
 
     .slot-left {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 10px;
       font-size: 0.88rem;
+      flex: 1;
+    }
+
+    .slot-texts {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .slot-materia-title {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 0.85rem;
+    }
+
+    .slot-assunto-sub {
+      font-size: 0.76rem;
+      color: var(--text);
+      line-height: 1.3;
     }
 
     .slot-card.done {
@@ -430,7 +626,8 @@
       opacity: 0.65;
     }
 
-    .slot-card.done span {
+    .slot-card.done .slot-materia-title,
+    .slot-card.done .slot-assunto-sub {
       text-decoration: line-through;
       color: var(--text-muted);
     }
@@ -450,11 +647,22 @@
       border-top: 1px solid var(--border);
       margin-top: auto;
     }
+
+    .ai-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      background: linear-gradient(135deg, #a855f7, #6366f1);
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      margin-left: 4px;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Início de Sessão -->
+  <!-- Tela de Login -->
   <div id="tela-login">
     <div class="login-box">
       <h2>Plano de Estudos</h2>
@@ -480,11 +688,13 @@
         <div class="user-tag">Perfil: <span id="labelNomeUsuario" class="user-badge">-</span></div>
       </div>
 
-      <!-- Separadores -->
       <nav class="tab-nav">
         <button class="tab-btn active" onclick="trocarAba('aba-ciclo', this)">Ciclo</button>
         <button class="tab-btn" onclick="trocarAba('aba-pesos', this)">Pesos</button>
         <button class="tab-btn" onclick="trocarAba('aba-timer', this)">Timer</button>
+        <button class="tab-btn" onclick="trocarAba('aba-questoes', this)">Questões</button>
+        <button class="tab-btn" onclick="trocarAba('aba-edital-vert', this)">Edital</button>
+        <button class="tab-btn" onclick="trocarAba('aba-edital', this)">IA <span class="ai-badge">IA</span></button>
         <button class="tab-btn" onclick="trocarAba('aba-senha', this)">Segurança</button>
       </nav>
 
@@ -500,7 +710,7 @@
 
         <div class="field">
           <label>Disciplinas por dia</label>
-          <input type="number" id="materiasPorDia" min="1" max="6" value="2">
+          <input type="number" id="materiasPorDia" min="1" max="6" value="3">
         </div>
 
         <button class="btn btn-primary" onclick="gerarCronogramaSemanaAtual()">⚡ Regenerar Esta Semana</button>
@@ -515,7 +725,7 @@
         <ul class="item-list" id="listaPesos"></ul>
       </div>
 
-      <!-- Aba 3: Cronómetro -->
+      <!-- Aba 3: Timer & Horas Líquidas -->
       <div id="aba-timer" class="tab-content">
         <div class="field">
           <label>Disciplina em Foco</label>
@@ -528,36 +738,142 @@
             <button class="btn btn-primary" id="btnIniciarTimer" onclick="toggleTimer()">Iniciar</button>
             <button class="btn btn-outline" onclick="resetarTimer()">Zerar</button>
           </div>
+          <button class="btn btn-outline" style="width:100%; border-color:var(--primary); color:var(--primary);" onclick="salvarTempoCronometrado()">💾 Salvar Tempo Estudado</button>
         </div>
 
-        <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">
-          Tempo total nesta sessão: <span id="sessaoTempoTotal" style="color: var(--primary); font-weight: 600;">0h 0m</span>
+        <div class="field" style="margin-top: 4px;">
+          <label>Filtrar Total por Disciplina</label>
+          <select id="filtroMateriaHoras" onchange="atualizarVisualizacaoHoras()"></select>
         </div>
+
+        <div class="card-total-horas">
+          <div>
+            <div class="label-tot" id="labelFiltroNome">Todas as Disciplinas</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Horas Líquidas Acumuladas</div>
+          </div>
+          <div class="val-tot" id="displayTotalHorasLiquidas">0h 00m</div>
+        </div>
+
+        <label style="margin-top: 4px;">Histórico de Sessões</label>
+        <div class="historico-container" id="listaHistoricoHoras"></div>
       </div>
 
-      <!-- Aba 4: Segurança / Alterar Palavra-passe -->
-      <div id="aba-senha" class="tab-content">
+      <!-- Aba 4: Registo de Questões -->
+      <div id="aba-questoes" class="tab-content">
+        <div class="metric-grid-questoes">
+          <div class="metric-box">
+            <div style="font-size:0.72rem; color:var(--text-muted);">Total Feitas</div>
+            <div class="num" id="statQuestoesTotal" style="color:var(--primary);">0</div>
+          </div>
+          <div class="metric-box">
+            <div style="font-size:0.72rem; color:var(--text-muted);">Acertos</div>
+            <div class="num" id="statQuestoesAcertos" style="color:var(--success);">0</div>
+          </div>
+          <div class="metric-box">
+            <div style="font-size:0.72rem; color:var(--text-muted);">Taxa Acerto</div>
+            <div class="num" id="statQuestoesTaxa" style="color:var(--accent);">0%</div>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top: 4px;">
+          <label>Filtrar Desempenho por Matéria</label>
+          <select id="filtroQuestoesMateria" onchange="atualizarVisualizacaoQuestoes()"></select>
+        </div>
+
+        <div class="field">
+          <label>Disciplina da Questão</label>
+          <select id="questoesSelectMateria"></select>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+          <div class="field" style="flex:1;">
+            <label>Acertos</label>
+            <input type="number" id="inputQuestoesAcertos" min="0" value="10">
+          </div>
+          <div class="field" style="flex:1;">
+            <label>Erros</label>
+            <input type="number" id="inputQuestoesErros" min="0" value="2">
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="salvarRegistroQuestao()">➕ Registar Questões</button>
+
+        <label style="margin-top: 4px;">Histórico de Resoluções</label>
+        <div class="historico-container" id="listaHistoricoQuestoes"></div>
+      </div>
+
+      <!-- Aba 5: Edital Verticalizado -->
+      <div id="aba-edital-vert" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Altere a palavra-passe da sua conta. A nova senha será solicitada no seu próximo acesso.
+          Acompanhe todos os assuntos do edital com <strong>Teoria</strong> e ciclo de <strong>Revisão Espaçada</strong> (1D, 7D, 15D, 30D).
         </p>
 
         <div class="field">
-          <label for="senhaAtual">Palavra-passe Atual</label>
-          <input type="password" id="senhaAtual" placeholder="Digite a senha atual">
+          <label>Adicionar Tópico/Assunto</label>
+          <div style="display: flex; gap: 6px;">
+            <select id="selectMateriaNovoTopico" style="flex: 1;"></select>
+            <input type="text" id="inputNovoTopico" placeholder="Ex: Crase" style="flex: 1.4;">
+            <button class="btn btn-primary" onclick="adicionarTopicoAoEdital()">+</button>
+          </div>
         </div>
 
+        <div id="containerEditalVerticalizado" style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;"></div>
+      </div>
+
+      <!-- Aba 6: IA Edital / Leitura de Arquivo & Troca de Edital -->
+      <div id="aba-edital" class="tab-content">
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+          Envie o <strong>PDF ou Imagem</strong> do edital. O sistema lê as disciplinas e assuntos, podendo substituir integralmente o plano de estudos anterior.
+        </p>
+
+        <!-- Opção de Reinício Total -->
+        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 10px; display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="chkSubstituirTudo" checked style="cursor: pointer; width: 16px; height: 16px;">
+          <label for="chkSubstituirTudo" style="font-size: 0.78rem; color: var(--text); cursor: pointer; text-transform: none;">
+            <strong>Substituir tudo:</strong> Limpar edital anterior e recomeçar cronograma do zero ao carregar.
+          </label>
+        </div>
+
+        <label>Anexar Edital (.PDF, .PNG, .JPG)</label>
+        <div class="pdf-upload-box" onclick="document.getElementById('pdfInput').click()">
+          <span style="font-size: 1.5rem;">📄 🖼️</span>
+          <div style="font-size: 0.82rem; font-weight: 600; color: var(--primary); margin-top: 4px;">
+            Clique para selecionar PDF ou Imagem
+          </div>
+          <div id="nomeArquivoPdf" style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">Nenhum ficheiro selecionado</div>
+          <input type="file" id="pdfInput" accept="application/pdf, image/png, image/jpeg, image/jpg" onchange="carregarArquivoUniversal(event)">
+        </div>
+
+        <div class="field">
+          <label for="geminiApiKey">Google Gemini API Key (Opcional)</label>
+          <input type="password" id="geminiApiKey" placeholder="Cole sua chave AIzaSy... (se tiver)">
+        </div>
+
+        <div class="field">
+          <label for="textoEdital">Texto Reconhecido</label>
+          <textarea id="textoEdital" rows="4" placeholder="O texto extraído surgirá aqui..."></textarea>
+        </div>
+
+        <button class="btn btn-primary" id="btnAnalisarEdital" onclick="processarEditalIA()">✨ Analisar & Montar Estudos</button>
+        <button class="btn btn-danger" style="margin-top: 2px;" onclick="redefinirEditalManualmente()">🗑️ Redefinir / Limpar Edital Atual</button>
+        <div id="statusIA" style="display: none; font-size: 0.8rem; padding: 8px; border-radius: 6px;"></div>
+      </div>
+
+      <!-- Aba 7: Segurança -->
+      <div id="aba-senha" class="tab-content">
+        <div class="field">
+          <label for="senhaAtual">Palavra-passe Atual</label>
+          <input type="password" id="senhaAtual">
+        </div>
         <div class="field">
           <label for="novaSenha">Nova Palavra-passe</label>
-          <input type="password" id="novaSenha" placeholder="Digite a nova senha">
+          <input type="password" id="novaSenha">
         </div>
-
         <div class="field">
           <label for="confirmaNovaSenha">Confirmar Nova Palavra-passe</label>
-          <input type="password" id="confirmaNovaSenha" placeholder="Repita a nova senha">
+          <input type="password" id="confirmaNovaSenha">
         </div>
-
         <div id="msgStatusSenha" style="font-size: 0.82rem; display: none; padding: 8px; border-radius: 6px;"></div>
-
         <button class="btn btn-primary" onclick="alterarPalavraPasse()">Guardar Nova Senha</button>
       </div>
 
@@ -570,7 +886,7 @@
       <header class="main-header">
         <div>
           <h1 id="tituloCronograma">Cronograma Semanal</h1>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Ciclo contínuo semanal com datas e persistência</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Ciclo de matérias com assuntos específicos vinculados ao edital verticalizado</p>
         </div>
 
         <div class="controls-top">
@@ -589,7 +905,6 @@
   </div>
 
   <script>
-    // Palavras-passe padrão iniciais
     const USUARIOS_PADRAO = {
       "Cristiano": "333435",
       "Kelvin": "bk9bk9@@",
@@ -618,19 +933,149 @@
       return `cronograma_perfil_${user.toLowerCase()}`;
     }
 
+    function obterTopicosPadrao(nomeMateria) {
+      const m = nomeMateria.toLowerCase();
+      if (m.includes('portug')) {
+        return [
+          '1. Compreensão e interpretação de textos',
+          '2. Tipologias e gêneros textuais',
+          '3. Ortografia oficial',
+          '4. Acentuação gráfica',
+          '5. Emprego das classes de palavras',
+          '6. Emprego do sinal indicativo de crase',
+          '7. Sintaxe da oração e do período',
+          '8. Mecanismos de coesão textual',
+          '9. Pontuação',
+          '10. Concordância nominal e verbal',
+          '11. Regência nominal e verbal',
+          '12. Colocação pronominal',
+          '13. Significação das palavras',
+          '14. Variação linguística',
+          '15. Redação oficial: manual da presidência'
+        ];
+      }
+      if (m.includes('história') || m.includes('historia')) {
+        return [
+          '1. A ocupação pré-colonial e capitania de Pernambuco',
+          '2. A civilização do açúcar e a sociedade colonial',
+          '3. A ocupação holandesa (1630-1654)',
+          '4. Movimentos nativistas: Guerra dos Mascates',
+          '5. A Revolução Pernambucana de 1817',
+          '6. A Confederação do Equador (1824)',
+          '7. A Revolta Praieira (1848)',
+          '8. Pernambuco na República e movimentos sociais'
+        ];
+      }
+      if (m.includes('geografia')) {
+        return [
+          '1. Localização, relevo e geomorfologia de Pernambuco',
+          '2. Clima e bacias hidrográficas (São Francisco e Capibaribe)',
+          '3. Vegetação e domínios morfoclimáticos (Caatinga e Mata Atlântica)',
+          '4. Processo de urbanização e regiões de desenvolvimento',
+          '5. Atividades econômicas: polo gesseiro, fruticultura e Suape'
+        ];
+      }
+      if (m.includes('constitucional')) {
+        return [
+          '1. Princípios Fundamentais (Art. 1º ao 4º)',
+          '2. Direitos e Deveres Individuais e Coletivos (Art. 5º)',
+          '3. Direitos Sociais e Nacionalidade (Art. 6º ao 13)',
+          '4. Organização Político-Administrativa do Estado',
+          '5. Da Administração Pública (Art. 37 ao 41)',
+          '6. Da Segurança Pública (Art. 144 da CF/88)'
+        ];
+      }
+      if (m.includes('penal') && !m.includes('processual')) {
+        return [
+          '1. Aplicação da lei penal no tempo e no espaço',
+          '2. Conceito de crime: fato típico, antijurídico e culpável',
+          '3. Crime consumado, tentado e desistência voluntária',
+          '4. Excludentes de ilicitude e culpabilidade',
+          '5. Crimes contra a pessoa (homicídio, lesão corporal)',
+          '6. Crimes contra o patrimônio (furto, roubo, extorsão)',
+          '7. Crimes contra a administração pública'
+        ];
+      }
+      if (m.includes('processual') || m.includes('processo penal')) {
+        return [
+          '1. Inquérito Policial: características e instauração',
+          '2. Ação Penal: pública incondicionada, condicionada e privada',
+          '3. Prisão em flagrante e prisão preventiva',
+          '4. Das provas e do interrogatório do acusado'
+        ];
+      }
+      if (m.includes('humano')) {
+        return [
+          '1. Conceito, evolução e características dos Direitos Humanos',
+          '2. Declaração Universal dos Direitos Humanos (DUDH 1948)',
+          '3. Convenção Americana sobre Direitos Humanos (Pacto de San José)',
+          '4. Direitos humanos e atuação policial'
+        ];
+      }
+      if (m.includes('lógico') || m.includes('raciocínio') || m.includes('matem')) {
+        return [
+          '1. Estruturas lógicas e proposições simples e compostas',
+          '2. Conectivos lógicos e tabelas-verdade',
+          '3. Equivalências e negações lógicas (Leis de De Morgan)',
+          '4. Diagramas lógicos e conjuntos',
+          '5. Razão, proporção e regra de três simples/composta',
+          '6. Análise combinatória e probabilidade'
+        ];
+      }
+      if (m.includes('legislação') || m.includes('especial')) {
+        return [
+          '1. Estatuto dos Policiais Militares de Pernambuco',
+          '2. Lei de Abuso de Autoridade (Lei nº 13.869/2019)',
+          '3. Lei de Drogas (Lei nº 11.343/2006)',
+          '4. Estatuto do Desarmamento (Lei nº 10.826/2003)',
+          '5. Lei Maria da Penha (Lei nº 11.340/2006)',
+          '6. Crimes Hediondos (Lei nº 8.072/1990)'
+        ];
+      }
+      if (m.includes('informát') || m.includes('tecnologia')) {
+        return [
+          '1. Conceitos básicos de hardware, Windows e Linux',
+          '2. Pacote Office (Word, Excel) e LibreOffice',
+          '3. Redes de computadores, internet e navegadores',
+          '4. Segurança da informação: vírus, phishing, backup e firewalls'
+        ];
+      }
+      return [
+        '1. Introdução e conceitos fundamentais',
+        '2. Tópicos essenciais e princípios doutrinários',
+        '3. Legislação aplicada e jurisprudência',
+        '4. Resolução intensiva de exercícios'
+      ];
+    }
+
     function obterEstadoPadrao() {
+      const discsIniciais = [
+        { nome: 'Língua Portuguesa', peso: 4 },
+        { nome: 'História de Pernambuco', peso: 3 },
+        { nome: 'Direito Constitucional', peso: 4 },
+        { nome: 'Raciocínio Lógico', peso: 3 },
+        { nome: 'Direito Penal', peso: 4 }
+      ];
+
+      const editalVert = {};
+      discsIniciais.forEach(d => {
+        editalVert[d.nome] = obterTopicosPadrao(d.nome).map((tit, idx) => ({
+          id: 'top_' + Math.random().toString(36).substr(2, 7) + '_' + idx,
+          titulo: tit,
+          t: false, r1: false, r7: false, r15: false, r30: false
+        }));
+      });
+
       return {
         tema: 'dark',
-        disciplinas: [
-          { nome: 'Português', peso: 3 },
-          { nome: 'Direito Penal', peso: 4 },
-          { nome: 'Direito Constitucional', peso: 3 },
-          { nome: 'Raciocínio Lógico', peso: 2 },
-          { nome: 'Direito Administrativo', peso: 2 }
-        ],
-        porDia: 2,
+        disciplinas: discsIniciais,
+        porDia: 3,
         ponteiroGeral: 0,
-        semanas: {}
+        indicesTopicos: {},
+        semanas: {},
+        historicoHoras: [],
+        historicoQuestoes: [],
+        editalVerticalizado: editalVert
       };
     }
 
@@ -779,11 +1224,30 @@
         estado = obterEstadoPadrao();
       }
 
+      if (!estado.historicoHoras) estado.historicoHoras = [];
+      if (!estado.historicoQuestoes) estado.historicoQuestoes = [];
+      if (!estado.editalVerticalizado) estado.editalVerticalizado = {};
+      if (!estado.indicesTopicos) estado.indicesTopicos = {};
+
+      estado.disciplinas.forEach(d => {
+        if (!estado.editalVerticalizado[d.nome] || estado.editalVerticalizado[d.nome].length === 0) {
+          estado.editalVerticalizado[d.nome] = obterTopicosPadrao(d.nome).map((tit, idx) => ({
+            id: 'top_' + Math.random().toString(36).substr(2, 7) + '_' + idx,
+            titulo: tit,
+            t: false, r1: false, r7: false, r15: false, r30: false
+          }));
+        }
+      });
+
       document.body.setAttribute('data-theme', estado.tema);
       document.getElementById('btnTema').innerText = estado.tema === 'dark' ? '☀️ Claro' : '🌙 Escuro';
-      document.getElementById('materiasPorDia').value = estado.porDia || 2;
-      renderizarPesos();
+      document.getElementById('materiasPorDia').value = estado.porDia || 3;
 
+      renderizarPesos();
+      atualizarSelectsMaterias();
+      atualizarVisualizacaoHoras();
+      atualizarVisualizacaoQuestoes();
+      renderizarEditalVerticalizado();
       atualizarSemanaAtiva();
     }
 
@@ -792,9 +1256,6 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(abaId).classList.add('active');
       botao.classList.add('active');
-
-      const msg = document.getElementById('msgStatusSenha');
-      if (msg) msg.style.display = 'none';
     }
 
     function alternarTema() {
@@ -804,19 +1265,50 @@
       salvarEstado();
     }
 
+    function atualizarSelectsMaterias() {
+      const selectTimer = document.getElementById('timerSelectMateria');
+      const selectFiltro = document.getElementById('filtroMateriaHoras');
+      const selectQuestoes = document.getElementById('questoesSelectMateria');
+      const selectFiltroQuestoes = document.getElementById('filtroQuestoesMateria');
+      const selectTopicoMateria = document.getElementById('selectMateriaNovoTopico');
+
+      const valFiltroAtual = selectFiltro.value;
+      const valFiltroQAtual = selectFiltroQuestoes.value;
+
+      selectTimer.innerHTML = '';
+      selectQuestoes.innerHTML = '';
+      selectTopicoMateria.innerHTML = '';
+      selectFiltro.innerHTML = '<option value="TODAS">-- Todas as Disciplinas --</option>';
+      selectFiltroQuestoes.innerHTML = '<option value="TODAS">-- Todas as Disciplinas --</option>';
+
+      estado.disciplinas.forEach(item => {
+        const opt = () => {
+          const o = document.createElement('option');
+          o.value = item.nome;
+          o.innerText = item.nome;
+          return o;
+        };
+
+        selectTimer.appendChild(opt());
+        selectQuestoes.appendChild(opt());
+        selectTopicoMateria.appendChild(opt());
+        selectFiltro.appendChild(opt());
+        selectFiltroQuestoes.appendChild(opt());
+      });
+
+      if (valFiltroAtual) selectFiltro.value = valFiltroAtual;
+      if (valFiltroQAtual) selectFiltroQuestoes.value = valFiltroQAtual;
+    }
+
     function renderizarPesos() {
       const lista = document.getElementById('listaPesos');
-      const selectTimer = document.getElementById('timerSelectMateria');
       lista.innerHTML = '';
-      selectTimer.innerHTML = '';
 
       estado.disciplinas.forEach((item, index) => {
         const li = document.createElement('li');
         li.className = 'item-card';
         li.innerHTML = `
-          <div>
-            <strong>${item.nome}</strong>
-          </div>
+          <div><strong>${item.nome}</strong></div>
           <div style="display:flex; align-items:center; gap:8px;">
             <select onchange="alterarPeso(${index}, this.value)" style="padding:4px 8px; font-size:0.8rem;">
               ${[1,2,3,4,5].map(p => `<option value="${p}" ${item.peso === p ? 'selected' : ''}>Peso ${p}</option>`).join('')}
@@ -825,11 +1317,6 @@
           </div>
         `;
         lista.appendChild(li);
-
-        const opt = document.createElement('option');
-        opt.value = item.nome;
-        opt.innerText = item.nome;
-        selectTimer.appendChild(opt);
       });
     }
 
@@ -838,9 +1325,19 @@
       const nome = input.value.trim();
       if (!nome) return;
 
-      estado.disciplinas.push({ nome, peso: 2 });
+      estado.disciplinas.push({ nome, peso: 3 });
+      if (!estado.editalVerticalizado[nome]) {
+        estado.editalVerticalizado[nome] = obterTopicosPadrao(nome).map((tit, idx) => ({
+          id: 'top_' + Math.random().toString(36).substr(2, 7) + '_' + idx,
+          titulo: tit,
+          t: false, r1: false, r7: false, r15: false, r30: false
+        }));
+      }
+
       input.value = '';
       renderizarPesos();
+      atualizarSelectsMaterias();
+      renderizarEditalVerticalizado();
       salvarEstado();
     }
 
@@ -850,30 +1347,53 @@
     }
 
     function removerDisciplina(index) {
+      const materia = estado.disciplinas[index].nome;
       estado.disciplinas.splice(index, 1);
+      delete estado.editalVerticalizado[materia];
+
       renderizarPesos();
+      atualizarSelectsMaterias();
+      renderizarEditalVerticalizado();
       salvarEstado();
     }
 
     function gerarSemanaAutomatica(chaveSemana) {
       if (!estado.disciplinas || estado.disciplinas.length === 0) return;
 
-      estado.porDia = parseInt(document.getElementById('materiasPorDia').value) || 2;
+      estado.porDia = parseInt(document.getElementById('materiasPorDia').value) || 3;
 
       let pool = [];
       estado.disciplinas.forEach(d => {
         for (let i = 0; i < d.peso; i++) pool.push(d.nome);
       });
 
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+
       estado.semanas[chaveSemana] = {};
       let ponteiro = estado.ponteiroGeral || 0;
+
+      if (!estado.indicesTopicos) estado.indicesTopicos = {};
 
       DIAS.forEach(dia => {
         estado.semanas[chaveSemana][dia] = [];
         for (let k = 0; k < estado.porDia; k++) {
+          const nomeMateria = pool[ponteiro % pool.length];
+          const listaTopicos = estado.editalVerticalizado[nomeMateria] || [];
+          
+          let assuntoDoDia = 'Tópicos essenciais e exercícios';
+          if (listaTopicos.length > 0) {
+            const idxAtual = estado.indicesTopicos[nomeMateria] || 0;
+            assuntoDoDia = listaTopicos[idxAtual % listaTopicos.length].titulo;
+            estado.indicesTopicos[nomeMateria] = idxAtual + 1;
+          }
+
           estado.semanas[chaveSemana][dia].push({
             id: 'slot_' + Math.random().toString(36).substr(2, 9),
-            materia: pool[ponteiro % pool.length],
+            materia: nomeMateria,
+            assunto: assuntoDoDia,
             feito: false
           });
           ponteiro++;
@@ -889,6 +1409,7 @@
       renderizarGrade();
     }
 
+    /* Drag and Drop */
     let itemArrastado = null;
 
     function handleDragStart(e, diaOrigem, indexOrigem) {
@@ -984,7 +1505,10 @@
           card.innerHTML = `
             <div class="slot-left">
               <input type="checkbox" ${item.feito ? 'checked' : ''} onchange="toggleConclusao('${d.nome}', ${idx})">
-              <span>${item.materia}</span>
+              <div class="slot-texts">
+                <span class="slot-materia-title">${item.materia}</span>
+                <span class="slot-assunto-sub">${item.assunto || 'Assunto do edital'}</span>
+              </div>
             </div>
             <button class="btn-play-mini" title="Cronometrar esta matéria" onclick="iniciarTimerMateria('${item.materia}')">▶</button>
           `;
@@ -1012,9 +1536,9 @@
       renderizarGrade();
     }
 
+    /* Timer */
     let timerInterval = null;
     let timerSegundos = 0;
-    let tempoTotalSessao = 0;
 
     function formatarTempo(segundos) {
       const h = String(Math.floor(segundos / 3600)).padStart(2, '0');
@@ -1034,9 +1558,7 @@
       } else {
         timerInterval = setInterval(() => {
           timerSegundos++;
-          tempoTotalSessao++;
           document.getElementById('timerDisplay').innerText = formatarTempo(timerSegundos);
-          document.getElementById('sessaoTempoTotal').innerText = `${Math.floor(tempoTotalSessao / 3600)}h ${Math.floor((tempoTotalSessao % 3600) / 60)}m`;
         }, 1000);
         btn.innerText = 'Pausar';
         btn.classList.remove('btn-primary');
@@ -1055,6 +1577,499 @@
       trocarAba('aba-timer', tabTimerBtn);
       document.getElementById('timerSelectMateria').value = nomeMateria;
       if (!timerInterval) toggleTimer();
+    }
+
+    function salvarTempoCronometrado() {
+      const minutos = Math.floor(timerSegundos / 60);
+      if (minutos < 1) {
+        alert('O tempo precisa de ter pelo menos 1 minuto para ser guardado.');
+        return;
+      }
+
+      const materia = document.getElementById('timerSelectMateria').value;
+      const d = new Date();
+      const dataStr = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+
+      estado.historicoHoras.unshift({
+        id: 'reg_' + Date.now(),
+        materia: materia,
+        minutos: minutos,
+        data: dataStr
+      });
+
+      salvarEstado();
+      resetarTimer();
+      atualizarVisualizacaoHoras();
+      alert(`Guardado: ${minutos} min em ${materia}!`);
+    }
+
+    function atualizarVisualizacaoHoras() {
+      const filtro = document.getElementById('filtroMateriaHoras').value;
+      const labelFiltro = document.getElementById('labelFiltroNome');
+      const displayTotal = document.getElementById('displayTotalHorasLiquidas');
+      const containerLista = document.getElementById('listaHistoricoHoras');
+
+      let registrosFiltrados = estado.historicoHoras || [];
+      if (filtro && filtro !== 'TODAS') {
+        registrosFiltrados = registrosFiltrados.filter(r => r.materia === filtro);
+        labelFiltro.innerText = filtro;
+      } else {
+        labelFiltro.innerText = 'Todas as Disciplinas';
+      }
+
+      const totalMinutos = registrosFiltrados.reduce((acc, cur) => acc + (cur.minutos || 0), 0);
+      const h = Math.floor(totalMinutos / 60);
+      const m = totalMinutos % 60;
+      displayTotal.innerText = `${h}h ${String(m).padStart(2, '0')}m`;
+
+      containerLista.innerHTML = '';
+      if (registrosFiltrados.length === 0) {
+        containerLista.innerHTML = `<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:12px;">Nenhum registo guardado.</div>`;
+        return;
+      }
+
+      registrosFiltrados.forEach(reg => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'registro-item';
+
+        const rh = Math.floor(reg.minutos / 60);
+        const rm = reg.minutos % 60;
+        const tempoTxt = rh > 0 ? `${rh}h ${rm}m` : `${rm}m`;
+
+        itemDiv.innerHTML = `
+          <div class="reg-info">
+            <span class="reg-materia">${reg.materia}</span>
+            <span class="reg-data-tempo">${reg.data} • <strong>${tempoTxt}</strong></span>
+          </div>
+          <div>
+            <button class="btn-mini-acao" title="Excluir" style="color:var(--danger);" onclick="excluirHora('${reg.id}')">🗑️</button>
+          </div>
+        `;
+        containerLista.appendChild(itemDiv);
+      });
+    }
+
+    function excluirHora(id) {
+      if (confirm('Eliminar esta sessão de estudo?')) {
+        estado.historicoHoras = estado.historicoHoras.filter(r => r.id !== id);
+        salvarEstado();
+        atualizarVisualizacaoHoras();
+      }
+    }
+
+    /* MÓDULO QUESTÕES */
+    function salvarRegistroQuestao() {
+      const materia = document.getElementById('questoesSelectMateria').value;
+      const acertos = parseInt(document.getElementById('inputQuestoesAcertos').value) || 0;
+      const erros = parseInt(document.getElementById('inputQuestoesErros').value) || 0;
+      const total = acertos + erros;
+
+      if (total <= 0) {
+        alert('Informe pelo menos uma questão resolvida.');
+        return;
+      }
+
+      const d = new Date();
+      const dataStr = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+      estado.historicoQuestoes.unshift({
+        id: 'q_' + Date.now(),
+        materia: materia,
+        acertos: acertos,
+        erros: erros,
+        total: total,
+        data: dataStr
+      });
+
+      salvarEstado();
+      atualizarVisualizacaoQuestoes();
+    }
+
+    function atualizarVisualizacaoQuestoes() {
+      const filtro = document.getElementById('filtroQuestoesMateria').value;
+      const containerLista = document.getElementById('listaHistoricoQuestoes');
+
+      let questoesFiltradas = estado.historicoQuestoes || [];
+      if (filtro && filtro !== 'TODAS') {
+        questoesFiltradas = questoesFiltradas.filter(q => q.materia === filtro);
+      }
+
+      const totalFeitas = questoesFiltradas.reduce((acc, cur) => acc + cur.total, 0);
+      const totalAcertos = questoesFiltradas.reduce((acc, cur) => acc + cur.acertos, 0);
+      const taxa = totalFeitas > 0 ? Math.round((totalAcertos / totalFeitas) * 100) : 0;
+
+      document.getElementById('statQuestoesTotal').innerText = totalFeitas;
+      document.getElementById('statQuestoesAcertos').innerText = totalAcertos;
+      document.getElementById('statQuestoesTaxa').innerText = `${taxa}%`;
+
+      containerLista.innerHTML = '';
+      if (questoesFiltradas.length === 0) {
+        containerLista.innerHTML = `<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:12px;">Nenhuma questão registada.</div>`;
+        return;
+      }
+
+      questoesFiltradas.forEach(q => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'registro-item';
+        const taxaItem = Math.round((q.acertos / q.total) * 100);
+
+        itemDiv.innerHTML = `
+          <div class="reg-info">
+            <span class="reg-materia">${q.materia}</span>
+            <span class="reg-data-tempo">${q.data} • <strong>${q.acertos} acertos</strong> de ${q.total} (${taxaItem}%)</span>
+          </div>
+          <div>
+            <button class="btn-mini-acao" title="Excluir" style="color:var(--danger);" onclick="excluirQuestao('${q.id}')">🗑️</button>
+          </div>
+        `;
+        containerLista.appendChild(itemDiv);
+      });
+    }
+
+    function excluirQuestao(id) {
+      if (confirm('Eliminar este registo de questões?')) {
+        estado.historicoQuestoes = estado.historicoQuestoes.filter(q => q.id !== id);
+        salvarEstado();
+        atualizarVisualizacaoQuestoes();
+      }
+    }
+
+    /* MÓDULO EDITAL VERTICALIZADO */
+    function renderizarEditalVerticalizado() {
+      const container = document.getElementById('containerEditalVerticalizado');
+      container.innerHTML = '';
+
+      estado.disciplinas.forEach(disc => {
+        const bloco = document.createElement('div');
+        bloco.className = 'subject-block';
+
+        const topicos = (estado.editalVerticalizado && estado.editalVerticalizado[disc.nome]) || [];
+
+        bloco.innerHTML = `
+          <div class="subject-header-ev">
+            <span>${disc.nome}</span>
+            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">${topicos.length} tópicos</span>
+          </div>
+          <table class="ev-table">
+            <thead>
+              <tr>
+                <th style="width: 48%;">Assunto</th>
+                <th>Teo</th>
+                <th>1D</th>
+                <th>7D</th>
+                <th>15D</th>
+                <th>30D</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${topicos.map(t => `
+                <tr>
+                  <td class="topic-cell">${t.titulo}</td>
+                  <td><input type="checkbox" ${t.t ? 'checked' : ''} onchange="toggleCheckEdital('${disc.nome}', '${t.id}', 't')"></td>
+                  <td><input type="checkbox" ${t.r1 ? 'checked' : ''} onchange="toggleCheckEdital('${disc.nome}', '${t.id}', 'r1')"></td>
+                  <td><input type="checkbox" ${t.r7 ? 'checked' : ''} onchange="toggleCheckEdital('${disc.nome}', '${t.id}', 'r7')"></td>
+                  <td><input type="checkbox" ${t.r15 ? 'checked' : ''} onchange="toggleCheckEdital('${disc.nome}', '${t.id}', 'r15')"></td>
+                  <td><input type="checkbox" ${t.r30 ? 'checked' : ''} onchange="toggleCheckEdital('${disc.nome}', '${t.id}', 'r30')"></td>
+                  <td><button class="btn-mini-acao" style="color:var(--danger);" onclick="removerTopicoEdital('${disc.nome}', '${t.id}')">&times;</button></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+
+        container.appendChild(bloco);
+      });
+    }
+
+    function toggleCheckEdital(materia, idTopico, campo) {
+      const topico = estado.editalVerticalizado[materia].find(t => t.id === idTopico);
+      if (topico) {
+        topico[campo] = !topico[campo];
+        salvarEstado();
+      }
+    }
+
+    function adicionarTopicoAoEdital() {
+      const materia = document.getElementById('selectMateriaNovoTopico').value;
+      const input = document.getElementById('inputNovoTopico');
+      const titulo = input.value.trim();
+
+      if (!titulo) return;
+
+      if (!estado.editalVerticalizado[materia]) {
+        estado.editalVerticalizado[materia] = [];
+      }
+
+      estado.editalVerticalizado[materia].push({
+        id: 'top_' + Date.now(),
+        titulo: titulo,
+        t: false,
+        r1: false,
+        r7: false,
+        r15: false,
+        r30: false
+      });
+
+      input.value = '';
+      salvarEstado();
+      renderizarEditalVerticalizado();
+    }
+
+    function removerTopicoEdital(materia, idTopico) {
+      estado.editalVerticalizado[materia] = estado.editalVerticalizado[materia].filter(t => t.id !== idTopico);
+      salvarEstado();
+      renderizarEditalVerticalizado();
+    }
+
+    /* LEITURA MULTIPÁGINAS DE PDF & IMAGENS */
+    async function carregarArquivoUniversal(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const nomeLabel = document.getElementById('nomeArquivoPdf');
+      const campoTexto = document.getElementById('textoEdital');
+      nomeLabel.innerText = `Processando: ${file.name}...`;
+
+      if (file.type.startsWith('image/')) {
+        try {
+          nomeLabel.innerText = `OCR na imagem em execução...`;
+          const resultado = await Tesseract.recognize(file, 'por');
+          const texto = resultado.data.text.trim();
+          if (texto) {
+            campoTexto.value = texto;
+            nomeLabel.innerText = `Reconhecido: ${file.name}`;
+            processarEditalIA();
+          }
+        } catch (err) {
+          console.error(err);
+          nomeLabel.innerText = 'Falha no OCR da imagem';
+        }
+        return;
+      }
+
+      if (file.type === 'application/pdf') {
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          let textoCompleto = '';
+
+          for (let i = 1; i <= Math.min(pdf.numPages, 10); i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map(item => item.str).join(' ');
+            textoCompleto += pageText + '\n\n';
+          }
+
+          if (textoCompleto.trim().length > 50) {
+            campoTexto.value = textoCompleto.trim();
+            nomeLabel.innerText = `Carregado: ${file.name} (${pdf.numPages} pág.)`;
+            processarEditalIA();
+            return;
+          }
+
+          nomeLabel.innerText = `Lendo páginas escaneadas com OCR...`;
+          let textoOcrTotal = '';
+          const maxPaginasOcr = Math.min(pdf.numPages, 3);
+
+          for (let i = 1; i <= maxPaginasOcr; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 1.5 });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+            const resOcr = await Tesseract.recognize(canvas, 'por');
+            textoOcrTotal += resOcr.data.text + '\n\n';
+          }
+
+          if (textoOcrTotal.trim()) {
+            campoTexto.value = textoOcrTotal.trim();
+            nomeLabel.innerText = `Reconhecido com OCR: ${file.name}`;
+            processarEditalIA();
+          }
+        } catch (err) {
+          console.error(err);
+          nomeLabel.innerText = 'Falha ao processar PDF';
+        }
+      }
+    }
+
+    /* REDEFINIR MANUALMENTE O EDITAL */
+    function redefinirEditalManualmente() {
+      if (confirm('Tem certeza de que deseja limpar todas as matérias, edital verticalizado e cronograma atual para começar um concurso novo?')) {
+        estado.disciplinas = [];
+        estado.editalVerticalizado = {};
+        estado.semanas = {};
+        estado.indicesTopicos = {};
+        estado.ponteiroGeral = 0;
+
+        salvarEstado();
+        renderizarPesos();
+        atualizarSelectsMaterias();
+        renderizarEditalVerticalizado();
+        renderizarGrade();
+
+        document.getElementById('statusIA').style.display = 'block';
+        document.getElementById('statusIA').style.color = '#ef4444';
+        document.getElementById('statusIA').style.background = 'rgba(239, 68, 68, 0.1)';
+        document.getElementById('statusIA').innerText = 'Edital e ciclo de matérias redefinidos com sucesso!';
+      }
+    }
+
+    /* PROCESSAMENTO IA / TROCA COMPLETA DE EDITAL */
+    async function processarEditalIA() {
+      const texto = document.getElementById('textoEdital').value.trim();
+      const apiKey = document.getElementById('geminiApiKey').value.trim();
+      const status = document.getElementById('statusIA');
+      const btn = document.getElementById('btnAnalisarEdital');
+      const substituirTudo = document.getElementById('chkSubstituirTudo').checked;
+
+      if (!texto) {
+        alert('Anexe o edital ou cole o conteúdo antes de continuar.');
+        return;
+      }
+
+      if (apiKey) {
+        localStorage.setItem('gemini_api_key_' + usuarioAtivo.toLowerCase(), apiKey);
+      }
+
+      status.style.display = 'block';
+      status.style.color = '#38bdf8';
+      status.style.background = 'rgba(56, 189, 248, 0.1)';
+      status.innerText = '🤖 IA extraindo disciplinas e cada um dos assuntos numerados...';
+      btn.disabled = true;
+
+      let dadosExtraidos = [];
+
+      if (apiKey) {
+        try {
+          dadosExtraidos = await chamarGeminiAPIComTopicos(apiKey, texto);
+        } catch (err) {
+          console.warn('Recorrendo ao extrator local especializado:', err);
+          dadosExtraidos = extrairDisciplinasETopicosLocalmente(texto);
+        }
+      } else {
+        await new Promise(r => setTimeout(r, 600));
+        dadosExtraidos = extrairDisciplinasETopicosLocalmente(texto);
+      }
+
+      if (dadosExtraidos && dadosExtraidos.length > 0) {
+        // Se a opção de substituir tudo estiver marcada, limpa o edital anterior
+        if (substituirTudo) {
+          estado.disciplinas = [];
+          estado.editalVerticalizado = {};
+          estado.semanas = {};
+          estado.indicesTopicos = {};
+          estado.ponteiroGeral = 0;
+        }
+
+        estado.disciplinas = dadosExtraidos.map(d => ({ nome: d.nome, peso: d.peso || 3 }));
+
+        dadosExtraidos.forEach(d => {
+          const listaTopicos = d.topicos && d.topicos.length > 0 ? d.topicos : obterTopicosPadrao(d.nome);
+          estado.editalVerticalizado[d.nome] = listaTopicos.map((tit, idx) => ({
+            id: 'top_' + Math.random().toString(36).substr(2, 7) + '_' + idx,
+            titulo: tit,
+            t: false, r1: false, r7: false, r15: false, r30: false
+          }));
+        });
+
+        estado.indicesTopicos = {};
+        salvarEstado();
+        renderizarPesos();
+        atualizarSelectsMaterias();
+        renderizarEditalVerticalizado();
+        gerarSemanaAutomatica(chaveSemanaAtiva);
+        renderizarGrade();
+
+        status.style.color = '#10b981';
+        status.style.background = 'rgba(16, 185, 129, 0.1)';
+        status.innerText = `✅ Sucesso! Novo edital carregado: ${dadosExtraidos.length} disciplinas organizadas do zero!`;
+      } else {
+        status.style.color = '#ef4444';
+        status.style.background = 'rgba(239, 68, 68, 0.1)';
+        status.innerText = 'Não foi possível extrair assuntos suficientes. Tente anexar novamente.';
+      }
+
+      btn.disabled = false;
+    }
+
+    async function chamarGeminiAPIComTopicos(key, editalTexto) {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+      
+      const prompt = `Você é um coordenador pedagógico de concursos públicos. Analise este edital verticalizado e extraia TODAS as disciplinas principais e a lista completa de tópicos/assuntos pertencentes a cada uma.
+Atribua a cada disciplina um peso de 2 a 5.
+Retorne EXCLUSIVAMENTE um array JSON puro (sem markdown de bloco):
+[
+  {
+    "nome": "Língua Portuguesa",
+    "peso": 4,
+    "topicos": ["1. Compreensão e interpretação de textos", "2. Tipologias textuais", "3. Ortografia oficial", "4. Crase", "5. Sintaxe"]
+  },
+  {
+    "nome": "História de Pernambuco",
+    "peso": 3,
+    "topicos": ["1. Capitania de Pernambuco", "2. Invasão Holandesa", "3. Revolução de 1817"]
+  }
+]
+
+Texto do edital:
+${editalTexto.slice(0, 16000)}`;
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      });
+
+      if (!res.ok) throw new Error('Erro na resposta da API');
+      const data = await res.json();
+      let respostaTexto = data.candidates[0].content.parts[0].text;
+      respostaTexto = respostaTexto.replace(/```json/g, '').replace(/```/g, '').trim();
+      return JSON.parse(respostaTexto);
+    }
+
+    function extrairDisciplinasETopicosLocalmente(texto) {
+      const mapa = [
+        { padrao: /(l[ií]ngua portuguesa|portugu[eê]s|gram[aá]tica)/i, nome: 'Língua Portuguesa', peso: 4 },
+        { padrao: /(hist[oó]ria de pernambuco|hist[oó]ria)/i, nome: 'História de Pernambuco', peso: 3 },
+        { padrao: /(geografia de pernambuco|geografia)/i, nome: 'Geografia de Pernambuco', peso: 3 },
+        { padrao: /(direito constitucional|constitucional)/i, nome: 'Direito Constitucional', peso: 4 },
+        { padrao: /(direito penal|penal militar)/i, nome: 'Direito Penal', peso: 4 },
+        { padrao: /(processual penal|processo penal)/i, nome: 'Direito Processual Penal', peso: 4 },
+        { padrao: /(racioc[ií]nio l[oó]gico|rlm|matem[aá]tica)/i, nome: 'Raciocínio Lógico', peso: 3 },
+        { padrao: /(direitos humanos)/i, nome: 'Direitos Humanos', peso: 3 },
+        { padrao: /(legisla[cç][aã]o especial|leis especiais)/i, nome: 'Legislação Especial', peso: 4 },
+        { padrao: /(inform[aá]tica|tecnologia)/i, nome: 'Informática', peso: 3 }
+      ];
+
+      const resultado = [];
+      mapa.forEach(item => {
+        if (item.padrao.test(texto)) {
+          resultado.push({
+            nome: item.nome,
+            peso: item.peso,
+            topicos: obterTopicosPadrao(item.nome)
+          });
+        }
+      });
+
+      if (resultado.length < 2) {
+        return [
+          { nome: 'Língua Portuguesa', peso: 4, topicos: obterTopicosPadrao('Língua Portuguesa') },
+          { nome: 'História de Pernambuco', peso: 3, topicos: obterTopicosPadrao('História de Pernambuco') },
+          { nome: 'Direito Constitucional', peso: 4, topicos: obterTopicosPadrao('Direito Constitucional') },
+          { nome: 'Raciocínio Lógico', peso: 3, topicos: obterTopicosPadrao('Raciocínio Lógico') },
+          { nome: 'Direito Penal', peso: 4, topicos: obterTopicosPadrao('Direito Penal') }
+        ];
+      }
+
+      return resultado;
     }
 
     const sessaoSalva = sessionStorage.getItem('usuario_ativo');

@@ -1,30 +1,40 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cronograma Semanal de Estudos</title>
+  <title>Plano & Ciclo de Estudos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f172a;
-      --surface: #1e293b;
-      --surface-border: #334155;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
+      --bg: #0b0f19;
+      --surface: #111827;
+      --surface-hover: #1f293d;
+      --border: #1f2937;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
       --primary: #38bdf8;
-      --primary-hover: #0284c7;
-      --success: #22c55e;
-      --card-bg: #1e293b;
+      --primary-glow: rgba(56, 189, 248, 0.15);
+      --accent: #6366f1;
+      --success: #10b981;
+      --danger: #ef4444;
+      --card-bg: #131c2e;
     }
 
     [data-theme="light"] {
       --bg: #f8fafc;
       --surface: #ffffff;
-      --surface-border: #e2e8f0;
+      --surface-hover: #f1f5f9;
+      --border: #e2e8f0;
       --text: #0f172a;
       --text-muted: #64748b;
       --primary: #0284c7;
-      --primary-hover: #0369a1;
+      --primary-glow: rgba(2, 132, 199, 0.12);
+      --accent: #4f46e5;
+      --success: #059669;
+      --danger: #dc2626;
       --card-bg: #ffffff;
     }
 
@@ -32,330 +42,941 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
     body {
       background-color: var(--bg);
       color: var(--text);
-      display: flex;
       min-height: 100vh;
-      transition: background-color 0.2s, color 0.2s;
+      display: flex;
+      transition: background-color 0.25s, color 0.25s;
     }
 
-    /* Barra Lateral Esquerda */
-    aside {
-      width: 320px;
+    #tela-login {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .login-box {
       background: var(--surface);
-      border-right: 1px solid var(--surface-border);
-      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .login-box h2 {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .login-box p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    #app-container {
+      display: none;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    aside {
+      width: 340px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      gap: 20px;
       flex-shrink: 0;
     }
 
-    h2 {
-      font-size: 1.25rem;
-      color: var(--primary);
+    .sidebar-header {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid var(--border);
     }
 
-    .form-group {
+    .sidebar-header h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .user-tag {
+      margin-top: 6px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .user-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: var(--primary-glow);
+      color: var(--primary);
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .tab-nav {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px 6px;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: var(--surface);
+    }
+
+    .tab-content {
+      display: none;
+      padding: 20px;
+      flex-direction: column;
+      gap: 18px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    .field {
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
 
     label {
-      font-size: 0.85rem;
-      color: var(--text-muted);
+      font-size: 0.78rem;
       font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
     }
 
-    input, select, button {
-      padding: 10px;
+    input, select {
+      padding: 10px 12px;
       border-radius: 8px;
-      border: 1px solid var(--surface-border);
+      border: 1px solid var(--border);
       background: var(--bg);
       color: var(--text);
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       outline: none;
     }
 
-    button {
+    input:focus, select:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
       cursor: pointer;
-      font-weight: bold;
-      transition: opacity 0.2s;
-    }
-
-    button.btn-primary {
-      background: var(--primary);
-      color: #0f172a;
       border: none;
+      transition: all 0.2s;
     }
 
-    button.btn-primary:hover {
-      background: var(--primary-hover);
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #ffffff;
+      box-shadow: 0 4px 12px var(--primary-glow);
     }
 
-    button.btn-secondary {
+    .btn-primary:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
       background: transparent;
-      border: 1px solid var(--surface-border);
+      border: 1px solid var(--border);
       color: var(--text);
     }
 
-    .subject-list {
+    .btn-outline:hover {
+      background: var(--surface-hover);
+    }
+
+    .btn-danger {
+      background: transparent;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: var(--danger);
+    }
+
+    .item-list {
       list-style: none;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      max-height: 180px;
+      max-height: 240px;
       overflow-y: auto;
-      margin-top: 8px;
     }
 
-    .subject-item {
+    .item-card {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
       background: var(--bg);
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--surface-border);
-      font-size: 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.88rem;
     }
 
-    .btn-remove {
-      background: none;
-      border: none;
-      color: #ef4444;
-      cursor: pointer;
-      font-size: 1rem;
-      padding: 0 4px;
+    .timer-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
     }
 
-    /* Conteúdo Principal */
+    .timer-display {
+      font-size: 2.8rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      font-variant-numeric: tabular-nums;
+      color: var(--primary);
+    }
+
+    .timer-controls {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .timer-controls .btn {
+      flex: 1;
+    }
+
     main {
       flex: 1;
       padding: 32px;
       overflow-y: auto;
     }
 
-    .header-bar {
+    .main-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 24px;
-    }
-
-    .grid-semana {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      flex-wrap: wrap;
       gap: 16px;
     }
 
-    .day-card {
+    .main-header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+
+    .controls-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .week-navigator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 8px;
+    }
+
+    .week-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      min-width: 170px;
+      text-align: center;
+    }
+
+    .week-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+    }
+
+    .day-column {
       background: var(--card-bg);
-      border: 1px solid var(--surface-border);
-      border-radius: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
       padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      min-height: 250px;
+      transition: border-color 0.2s, background-color 0.2s;
     }
 
-    .day-title {
-      font-size: 1rem;
-      font-weight: bold;
-      border-bottom: 1px solid var(--surface-border);
+    .day-column.today {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    .day-column.drag-over {
+      border: 2px dashed var(--primary);
+      background: rgba(56, 189, 248, 0.05);
+    }
+
+    .day-name {
       padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .day-title-text {
+      font-size: 0.95rem;
+      font-weight: 700;
       color: var(--primary);
     }
 
-    .study-slot {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.9rem;
-      background: var(--bg);
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid var(--surface-border);
+    .day-date-tag {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 500;
     }
 
-    .study-slot.concluido {
+    .slot-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .slot-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: grab;
+      user-select: none;
+      transition: all 0.2s;
+    }
+
+    .slot-card:active {
+      cursor: grabbing;
+    }
+
+    .slot-card.dragging {
+      opacity: 0.35;
+      transform: scale(0.98);
+    }
+
+    .slot-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+    }
+
+    .slot-card.done {
+      border-color: var(--success);
+      opacity: 0.65;
+    }
+
+    .slot-card.done span {
       text-decoration: line-through;
       color: var(--text-muted);
-      border-color: var(--success);
+    }
+
+    .btn-play-mini {
+      background: transparent;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
     }
   </style>
 </head>
 <body>
 
-  <!-- Menu Lateral Esquerdo -->
-  <aside>
-    <h2>Organizador</h2>
-
-    <div class="form-group">
-      <label for="novaMateria">Adicionar Disciplina:</label>
-      <div style="display: flex; gap: 6px;">
-        <input type="text" id="novaMateria" placeholder="Ex: Direito Penal">
-        <button class="btn-primary" onclick="adicionarMateria()">+</button>
+  <!-- Início de Sessão -->
+  <div id="tela-login">
+    <div class="login-box">
+      <h2>Plano de Estudos</h2>
+      <p>Introduza os dados de acesso para continuar</p>
+      <div class="field" style="margin-bottom: 12px;">
+        <label for="usuario">Utilizador</label>
+        <input type="text" id="usuario" placeholder="">
       </div>
-      <ul class="subject-list" id="listaMaterias"></ul>
+      <div class="field" style="margin-bottom: 16px;">
+        <label for="senha">Palavra-passe</label>
+        <input type="password" id="senha" placeholder="">
+      </div>
+      <div id="msgErro" style="color: var(--danger); font-size: 0.8rem; margin-bottom: 12px; display: none; text-align: center;">Utilizador ou palavra-passe incorretos!</div>
+      <button class="btn btn-primary" style="width: 100%;" onclick="autenticar()">Entrar no Painel</button>
     </div>
+  </div>
 
-    <div class="form-group">
-      <label for="materiasPorDia">Disciplinas por dia:</label>
-      <input type="number" id="materiasPorDia" min="1" max="6" value="2">
-    </div>
+  <!-- Painel Principal -->
+  <div id="app-container">
+    <aside>
+      <div class="sidebar-header">
+        <h2>📚 Estudo Inteligente</h2>
+        <div class="user-tag">Perfil: <span id="labelNomeUsuario" class="user-badge">-</span></div>
+      </div>
 
-    <button class="btn-primary" onclick="gerarCronograma()">Reorganizar Estudos</button>
-    <button class="btn-secondary" onclick="limparTudo()">Limpar Tudo</button>
-  </aside>
+      <nav class="tab-nav">
+        <button class="tab-btn active" onclick="trocarAba('aba-ciclo', this)">Ciclo</button>
+        <button class="tab-btn" onclick="trocarAba('aba-pesos', this)">Pesos</button>
+        <button class="tab-btn" onclick="trocarAba('aba-timer', this)">Cronómetro</button>
+      </nav>
 
-  <!-- Área Principal -->
-  <main>
-    <div class="header-bar">
-      <h1>Cronograma Semanal</h1>
-      <button class="btn-secondary" onclick="alternarTema()" id="btnTema">☀️ Modo Claro</button>
-    </div>
+      <!-- Aba 1: Ciclo -->
+      <div id="aba-ciclo" class="tab-content active">
+        <div class="field">
+          <label>Adicionar Disciplina</label>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="novaMateria" placeholder="Ex: Informática">
+            <button class="btn btn-primary" onclick="adicionarMateria()">+</button>
+          </div>
+        </div>
 
-    <div class="grid-semana" id="gradeSemana"></div>
-  </main>
+        <div class="field">
+          <label>Disciplinas por dia</label>
+          <input type="number" id="materiasPorDia" min="1" max="6" value="2">
+        </div>
+
+        <button class="btn btn-primary" onclick="gerarCronogramaSemanaAtual()">⚡ Regenerar Esta Semana</button>
+        <button class="btn btn-outline" onclick="reiniciarProgressoSemana()">Limpar Checkboxes da Semana</button>
+      </div>
+
+      <!-- Aba 2: Pesos -->
+      <div id="aba-pesos" class="tab-content">
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+          Disciplinas com pesos mais elevados (3, 4, 5) surgem com maior frequência no ciclo semanal.
+        </p>
+        <ul class="item-list" id="listaPesos"></ul>
+      </div>
+
+      <!-- Aba 3: Cronómetro -->
+      <div id="aba-timer" class="tab-content">
+        <div class="field">
+          <label>Disciplina em Foco</label>
+          <select id="timerSelectMateria"></select>
+        </div>
+
+        <div class="timer-card">
+          <div class="timer-display" id="timerDisplay">00:00:00</div>
+          <div class="timer-controls">
+            <button class="btn btn-primary" id="btnIniciarTimer" onclick="toggleTimer()">Iniciar</button>
+            <button class="btn btn-outline" onclick="resetarTimer()">Zerar</button>
+          </div>
+        </div>
+
+        <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">
+          Tempo total nesta sessão: <span id="sessaoTempoTotal" style="color: var(--primary); font-weight: 600;">0h 0m</span>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="btn btn-danger" style="width: 100%;" onclick="sair()">Terminar Sessão</button>
+      </div>
+    </aside>
+
+    <main>
+      <header class="main-header">
+        <div>
+          <h1 id="tituloCronograma">Cronograma Semanal</h1>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Ciclo contínuo semanal com datas e persistência</p>
+        </div>
+
+        <div class="controls-top">
+          <!-- Navegador de Semanas com Datas -->
+          <div class="week-navigator">
+            <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(-1)">◀</button>
+            <span class="week-label" id="labelIntervaloSemana">Carregando...</span>
+            <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(1)">▶</button>
+          </div>
+          <button class="btn btn-outline" style="padding: 6px 12px;" onclick="irParaHoje()">Hoje</button>
+          <button class="btn btn-outline" onclick="alternarTema()" id="btnTema">☀️ Claro</button>
+        </div>
+      </header>
+
+      <section class="week-grid" id="gradeSemana"></section>
+    </main>
+  </div>
 
   <script>
-    const DIAS = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
-    
-    let estado = {
-      tema: 'dark',
-      materias: ['Português', 'Raciocínio Lógico', 'Direito Constitucional', 'Direito Administrativo'],
-      porDia: 2,
-      cronograma: {}
+    const USUARIOS_VALIDOS = {
+      "Cristiano": "333435",
+      "Kelvin": "bk9bk9@@"
     };
 
-    function carregarDados() {
-      const dadosSalvos = localStorage.getItem('cronograma_dados');
-      if (dadosSalvos) {
-        estado = JSON.parse(dadosSalvos);
+    const DIAS = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
+
+    let usuarioAtivo = null;
+    let dataReferencia = new Date(); // Data usada para calcular a semana
+    let chaveSemanaAtiva = '';
+    let estado = {};
+
+    function chaveArmazenamento(user) {
+      return `cronograma_perfil_${user.toLowerCase()}`;
+    }
+
+    function obterEstadoPadrao() {
+      return {
+        tema: 'dark',
+        disciplinas: [
+          { nome: 'Português', peso: 3 },
+          { nome: 'Direito Penal', peso: 4 },
+          { nome: 'Direito Constitucional', peso: 3 },
+          { nome: 'Raciocínio Lógico', peso: 2 },
+          { nome: 'Direito Administrativo', peso: 2 }
+        ],
+        porDia: 2,
+        ponteiroGeral: 0,
+        semanas: {}
+      };
+    }
+
+    /* Cálculo de Datas da Semana */
+    function obterSegundaFeira(data) {
+      const d = new Date(data);
+      const diaSemana = d.getDay();
+      const diff = (diaSemana === 0 ? -6 : 1) - diaSemana; // Segunda = 1, Domingo = 0
+      d.setDate(d.getDate() + diff);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+
+    function formatarDataChave(d) {
+      const ano = d.getFullYear();
+      const mes = String(d.getMonth() + 1).padStart(2, '0');
+      const dia = String(d.getDate()).padStart(2, '0');
+      return `${ano}-${mes}-${dia}`;
+    }
+
+    function obterDiasDaSemana(segunda) {
+      return DIAS.map((nome, index) => {
+        const dataDia = new Date(segunda);
+        dataDia.setDate(segunda.getDate() + index);
+        const formatada = `${String(dataDia.getDate()).padStart(2, '0')}/${String(dataDia.getMonth() + 1).padStart(2, '0')}`;
+        return { nome, data: formatada, dataCompleta: dataDia };
+      });
+    }
+
+    function atualizarSemanaAtiva() {
+      const segunda = obterSegundaFeira(dataReferencia);
+      chaveSemanaAtiva = `semana_${formatarDataChave(segunda)}`;
+
+      const domingo = new Date(segunda);
+      domingo.setDate(segunda.getDate() + 6);
+
+      const fSeg = `${String(segunda.getDate()).padStart(2, '0')}/${String(segunda.getMonth() + 1).padStart(2, '0')}`;
+      const fDom = `${String(domingo.getDate()).padStart(2, '0')}/${String(domingo.getMonth() + 1).padStart(2, '0')}/${domingo.getFullYear()}`;
+      document.getElementById('labelIntervaloSemana').innerText = `${fSeg} - ${fDom}`;
+
+      // Se a semana ainda não existir, cria-a automaticamente
+      if (!estado.semanas[chaveSemanaAtiva]) {
+        gerarSemanaAutomatica(chaveSemanaAtiva);
       }
-      document.body.setAttribute('data-theme', estado.tema);
-      document.getElementById('btnTema').innerText = estado.tema === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Escuro';
-      document.getElementById('materiasPorDia').value = estado.porDia;
-      renderizarMaterias();
-      if (Object.keys(estado.cronograma).length === 0) {
-        gerarCronograma();
+
+      renderizarGrade();
+    }
+
+    function navegarSemana(delta) {
+      dataReferencia.setDate(dataReferencia.getDate() + (delta * 7));
+      atualizarSemanaAtiva();
+    }
+
+    function irParaHoje() {
+      dataReferencia = new Date();
+      atualizarSemanaAtiva();
+    }
+
+    /* Autenticação */
+    function autenticar() {
+      const u = document.getElementById('usuario').value.trim();
+      const s = document.getElementById('senha').value.trim();
+      const erro = document.getElementById('msgErro');
+
+      if (USUARIOS_VALIDOS[u] && USUARIOS_VALIDOS[u] === s) {
+        usuarioAtivo = u;
+        sessionStorage.setItem('usuario_ativo', usuarioAtivo);
+        abrirApp();
       } else {
-        renderizarGrade();
+        erro.style.display = 'block';
       }
     }
 
-    function guardarDados() {
-      localStorage.setItem('cronograma_dados', JSON.stringify(estado));
+    function sair() {
+      sessionStorage.removeItem('usuario_ativo');
+      location.reload();
+    }
+
+    function abrirApp() {
+      document.getElementById('tela-login').style.display = 'none';
+      document.getElementById('app-container').style.display = 'flex';
+      document.getElementById('labelNomeUsuario').innerText = usuarioAtivo;
+      document.getElementById('tituloCronograma').innerText = `Cronograma de ${usuarioAtivo}`;
+      carregarEstado();
+    }
+
+    function salvarEstado() {
+      if (!usuarioAtivo) return;
+      localStorage.setItem(chaveArmazenamento(usuarioAtivo), JSON.stringify(estado));
+    }
+
+    function carregarEstado() {
+      const chave = chaveArmazenamento(usuarioAtivo);
+      const salvos = localStorage.getItem(chave);
+
+      if (salvos) {
+        estado = JSON.parse(salvos);
+      } else {
+        estado = obterEstadoPadrao();
+      }
+
+      document.body.setAttribute('data-theme', estado.tema);
+      document.getElementById('btnTema').innerText = estado.tema === 'dark' ? '☀️ Claro' : '🌙 Escuro';
+      document.getElementById('materiasPorDia').value = estado.porDia || 2;
+      renderizarPesos();
+
+      atualizarSemanaAtiva();
+    }
+
+    function trocarAba(abaId, botao) {
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(abaId).classList.add('active');
+      botao.classList.add('active');
     }
 
     function alternarTema() {
       estado.tema = estado.tema === 'dark' ? 'light' : 'dark';
       document.body.setAttribute('data-theme', estado.tema);
-      document.getElementById('btnTema').innerText = estado.tema === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Escuro';
-      guardarDados();
+      document.getElementById('btnTema').innerText = estado.tema === 'dark' ? '☀️ Claro' : '🌙 Escuro';
+      salvarEstado();
     }
 
-    function renderizarMaterias() {
-      const lista = document.getElementById('listaMaterias');
+    function renderizarPesos() {
+      const lista = document.getElementById('listaPesos');
+      const selectTimer = document.getElementById('timerSelectMateria');
       lista.innerHTML = '';
-      estado.materias.forEach((materia, index) => {
+      selectTimer.innerHTML = '';
+
+      estado.disciplinas.forEach((item, index) => {
         const li = document.createElement('li');
-        li.className = 'subject-item';
-        li.innerHTML = `<span>${materia}</span><button class="btn-remove" onclick="removerMateria(${index})">&times;</button>`;
+        li.className = 'item-card';
+        li.innerHTML = `
+          <div>
+            <strong>${item.nome}</strong>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <select onchange="alterarPeso(${index}, this.value)" style="padding:4px 8px; font-size:0.8rem;">
+              ${[1,2,3,4,5].map(p => `<option value="${p}" ${item.peso === p ? 'selected' : ''}>Peso ${p}</option>`).join('')}
+            </select>
+            <button class="btn btn-danger" style="padding:4px 8px;" onclick="removerDisciplina(${index})">&times;</button>
+          </div>
+        `;
         lista.appendChild(li);
+
+        const opt = document.createElement('option');
+        opt.value = item.nome;
+        opt.innerText = item.nome;
+        selectTimer.appendChild(opt);
       });
     }
 
     function adicionarMateria() {
       const input = document.getElementById('novaMateria');
       const nome = input.value.trim();
-      if (nome) {
-        estado.materias.push(nome);
-        input.value = '';
-        renderizarMaterias();
-        guardarDados();
-      }
+      if (!nome) return;
+
+      estado.disciplinas.push({ nome, peso: 2 });
+      input.value = '';
+      renderizarPesos();
+      salvarEstado();
     }
 
-    function removerMateria(index) {
-      estado.materias.splice(index, 1);
-      renderizarMaterias();
-      guardarDados();
+    function alterarPeso(index, novoPeso) {
+      estado.disciplinas[index].peso = parseInt(novoPeso);
+      salvarEstado();
     }
 
-    function gerarCronograma() {
-      if (estado.materias.length === 0) {
-        alert('Adicione pelo menos uma disciplina.');
-        return;
-      }
+    function removerDisciplina(index) {
+      estado.disciplinas.splice(index, 1);
+      renderizarPesos();
+      salvarEstado();
+    }
+
+    /* Geração Contínua e Automática */
+    function gerarSemanaAutomatica(chaveSemana) {
+      if (!estado.disciplinas || estado.disciplinas.length === 0) return;
 
       estado.porDia = parseInt(document.getElementById('materiasPorDia').value) || 2;
-      estado.cronograma = {};
 
-      let indexMateria = 0;
+      let pool = [];
+      estado.disciplinas.forEach(d => {
+        for (let i = 0; i < d.peso; i++) pool.push(d.nome);
+      });
+
+      estado.semanas[chaveSemana] = {};
+      let ponteiro = estado.ponteiroGeral || 0;
+
       DIAS.forEach(dia => {
-        estado.cronograma[dia] = [];
-        for (let i = 0; i < estado.porDia; i++) {
-          estado.cronograma[dia].push({
-            materia: estado.materias[indexMateria % estado.materias.length],
+        estado.semanas[chaveSemana][dia] = [];
+        for (let k = 0; k < estado.porDia; k++) {
+          estado.semanas[chaveSemana][dia].push({
+            id: 'slot_' + Math.random().toString(36).substr(2, 9),
+            materia: pool[ponteiro % pool.length],
             feito: false
           });
-          indexMateria++;
+          ponteiro++;
         }
       });
 
-      guardarDados();
+      estado.ponteiroGeral = ponteiro;
+      salvarEstado();
+    }
+
+    function gerarCronogramaSemanaAtual() {
+      gerarSemanaAutomatica(chaveSemanaAtiva);
       renderizarGrade();
     }
 
-    function alternarStatus(dia, indice) {
-      estado.cronograma[dia][indice].feito = !estado.cronograma[dia][indice].feito;
-      guardarDados();
+    /* Drag and Drop */
+    let itemArrastado = null;
+
+    function handleDragStart(e, diaOrigem, indexOrigem) {
+      itemArrastado = { diaOrigem, indexOrigem, semana: chaveSemanaAtiva };
+      e.target.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleDragEnd(e) {
+      e.target.classList.remove('dragging');
+      document.querySelectorAll('.day-column').forEach(c => c.classList.remove('drag-over'));
+      itemArrastado = null;
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    }
+
+    function handleDragEnter(e) {
+      e.currentTarget.classList.add('drag-over');
+    }
+
+    function handleDragLeave(e) {
+      e.currentTarget.classList.remove('drag-over');
+    }
+
+    function handleDrop(e, diaDestino) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over');
+
+      if (!itemArrastado) return;
+
+      const { diaOrigem, indexOrigem } = itemArrastado;
+      const cronogramaAtual = estado.semanas[chaveSemanaAtiva];
+
+      const [materiaMovida] = cronogramaAtual[diaOrigem].splice(indexOrigem, 1);
+      if (!cronogramaAtual[diaDestino]) cronogramaAtual[diaDestino] = [];
+      cronogramaAtual[diaDestino].push(materiaMovida);
+
+      salvarEstado();
       renderizarGrade();
     }
 
+    /* Interface Principal */
     function renderizarGrade() {
       const grade = document.getElementById('gradeSemana');
       grade.innerHTML = '';
 
-      DIAS.forEach(dia => {
-        const card = document.createElement('div');
-        card.className = 'day-card';
+      const segunda = obterSegundaFeira(dataReferencia);
+      const diasComData = obterDiasDaSemana(segunda);
+      const cronogramaAtual = estado.semanas[chaveSemanaAtiva] || {};
 
-        const titulo = document.createElement('div');
-        titulo.className = 'day-title';
-        titulo.innerText = dia;
-        card.appendChild(titulo);
+      const hoje = new Date();
+      const hojeFormatado = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}`;
 
-        const listaEstudos = estado.cronograma[dia] || [];
-        listaEstudos.forEach((item, idx) => {
-          const slot = document.createElement('div');
-          slot.className = `study-slot ${item.feito ? 'concluido' : ''}`;
-          slot.innerHTML = `
-            <input type="checkbox" ${item.feito ? 'checked' : ''} onchange="alternarStatus('${dia}', ${idx})">
-            <span>${item.materia}</span>
+      diasComData.forEach(d => {
+        const coluna = document.createElement('div');
+        coluna.className = 'day-column';
+
+        // Destaca se o cartão for o dia de hoje
+        if (d.data === hojeFormatado && hoje.getFullYear() === d.dataCompleta.getFullYear()) {
+          coluna.classList.add('today');
+        }
+
+        coluna.ondragover = handleDragOver;
+        coluna.ondragenter = handleDragEnter;
+        coluna.ondragleave = handleDragLeave;
+        coluna.ondrop = (e) => handleDrop(e, d.nome);
+
+        const slots = cronogramaAtual[d.nome] || [];
+
+        const header = document.createElement('div');
+        header.className = 'day-name';
+        header.innerHTML = `
+          <div>
+            <div class="day-title-text">${d.nome}</div>
+            <div class="day-date-tag">${d.data}</div>
+          </div>
+          <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">${slots.length} disc.</span>
+        `;
+        coluna.appendChild(header);
+
+        const slotList = document.createElement('div');
+        slotList.className = 'slot-list';
+
+        slots.forEach((item, idx) => {
+          const card = document.createElement('div');
+          card.className = `slot-card ${item.feito ? 'done' : ''}`;
+          card.draggable = true;
+
+          card.ondragstart = (e) => handleDragStart(e, d.nome, idx);
+          card.ondragend = handleDragEnd;
+
+          card.innerHTML = `
+            <div class="slot-left">
+              <input type="checkbox" ${item.feito ? 'checked' : ''} onchange="toggleConclusao('${d.nome}', ${idx})">
+              <span>${item.materia}</span>
+            </div>
+            <button class="btn-play-mini" title="Cronometrar esta matéria" onclick="iniciarTimerMateria('${item.materia}')">▶</button>
           `;
-          card.appendChild(slot);
+          slotList.appendChild(card);
         });
 
-        grade.appendChild(card);
+        coluna.appendChild(slotList);
+        grade.appendChild(coluna);
       });
     }
 
-    function limparTudo() {
-      if (confirm('Deseja reiniciar todas as configurações e matérias?')) {
-        localStorage.removeItem('cronograma_dados');
-        location.reload();
+    function toggleConclusao(dia, idx) {
+      estado.semanas[chaveSemanaAtiva][dia][idx].feito = !estado.semanas[chaveSemanaAtiva][dia][idx].feito;
+      salvarEstado();
+      renderizarGrade();
+    }
+
+    function reiniciarProgressoSemana() {
+      DIAS.forEach(dia => {
+        if (estado.semanas[chaveSemanaAtiva] && estado.semanas[chaveSemanaAtiva][dia]) {
+          estado.semanas[chaveSemanaAtiva][dia].forEach(item => item.feito = false);
+        }
+      });
+      salvarEstado();
+      renderizarGrade();
+    }
+
+    /* Cronómetro */
+    let timerInterval = null;
+    let timerSegundos = 0;
+    let tempoTotalSessao = 0;
+
+    function formatarTempo(segundos) {
+      const h = String(Math.floor(segundos / 3600)).padStart(2, '0');
+      const m = String(Math.floor((segundos % 3600) / 60)).padStart(2, '0');
+      const s = String(segundos % 60).padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    function toggleTimer() {
+      const btn = document.getElementById('btnIniciarTimer');
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        btn.innerText = 'Iniciar';
+        btn.classList.add('btn-primary');
+        btn.classList.remove('btn-outline');
+      } else {
+        timerInterval = setInterval(() => {
+          timerSegundos++;
+          tempoTotalSessao++;
+          document.getElementById('timerDisplay').innerText = formatarTempo(timerSegundos);
+          document.getElementById('sessaoTempoTotal').innerText = `${Math.floor(tempoTotalSessao / 3600)}h ${Math.floor((tempoTotalSessao % 3600) / 60)}m`;
+        }, 1000);
+        btn.innerText = 'Pausar';
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-outline');
       }
     }
 
-    carregarDados();
+    function resetarTimer() {
+      if (timerInterval) toggleTimer();
+      timerSegundos = 0;
+      document.getElementById('timerDisplay').innerText = '00:00:00';
+    }
+
+    function iniciarTimerMateria(nomeMateria) {
+      const tabTimerBtn = document.querySelectorAll('.tab-btn')[2];
+      trocarAba('aba-timer', tabTimerBtn);
+      document.getElementById('timerSelectMateria').value = nomeMateria;
+      if (!timerInterval) toggleTimer();
+    }
+
+    const sessaoSalva = sessionStorage.getItem('usuario_ativo');
+    if (sessaoSalva && USUARIOS_VALIDOS[sessaoSalva]) {
+      usuarioAtivo = sessaoSalva;
+      abrirApp();
+    }
   </script>
 </body>
 </html>

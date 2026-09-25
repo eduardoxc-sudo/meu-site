@@ -157,7 +157,7 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       color: var(--text-muted);
-      font-size: 0.72rem;
+      font-size: 0.70rem;
       font-weight: 600;
       cursor: pointer;
       text-align: center;
@@ -289,6 +289,7 @@
       font-size: 0.85rem;
     }
 
+    /* Timer */
     .timer-card {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -493,6 +494,30 @@
       height: 15px;
     }
 
+    /* Aba de Revisões */
+    .revisao-card-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .badge-revisao-tag {
+      font-size: 0.70rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      width: fit-content;
+    }
+    .badge-revisao-tag.atrasada { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
+    .badge-revisao-tag.hoje { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
+    .badge-revisao-tag.futura { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid #38bdf8; }
+    .badge-revisao-tag.concluida { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
+
+    /* Estilo de Prioridades */
     .prio-item-card {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -877,7 +902,7 @@
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
 
-    /* ESTILO DO PDF: QUADRO GERAL COM TODAS AS DATAS */
+    /* Estilo PDF */
     #areaExportacaoPDF {
       display: none;
       background: #ffffff;
@@ -1026,9 +1051,11 @@
         <div class="user-tag">Perfil: <span id="labelNomeUsuario" class="user-badge">-</span></div>
       </div>
 
+      <!-- Menu em Grade -->
       <nav class="tab-nav">
         <button class="tab-btn active" onclick="trocarAba('aba-ciclo', this)">Ciclo</button>
         <button class="tab-btn" onclick="trocarAba('aba-prioridades', this)">Prioridades</button>
+        <button class="tab-btn" onclick="trocarAba('aba-revisoes', this)">Revisões ⏰</button>
         <button class="tab-btn" onclick="trocarAba('aba-pesos', this)">Pesos</button>
         <button class="tab-btn" onclick="trocarAba('aba-timer', this)">Timer</button>
         <button class="tab-btn" onclick="trocarAba('aba-questoes', this)">Questões</button>
@@ -1077,7 +1104,21 @@
         <div id="containerListaPrioridades" style="display: flex; flex-direction: column; gap: 8px;"></div>
       </div>
 
-      <!-- Aba 3: Pesos -->
+      <!-- Aba 3: Nova Aba de Revisões com Datas de D1, D7, D15, D30 -->
+      <div id="aba-revisoes" class="tab-content">
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+          Ao estudar um assunto (marcando Teoria ou Revisão no Edital), o sistema agenda as datas exatas (D1 amanhã, D7, D15 e D30):
+        </p>
+
+        <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+          <label style="color: var(--primary);">Filtrar Matéria de Revisão</label>
+          <select id="filtroMateriaRevisoes" onchange="renderizarAbaRevisoes()"></select>
+        </div>
+
+        <div id="containerListaRevisoes" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      </div>
+
+      <!-- Aba 4: Pesos -->
       <div id="aba-pesos" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
           Disciplinas com pesos mais elevados surgem com maior frequência no ciclo semanal.
@@ -1085,7 +1126,7 @@
         <ul class="item-list" id="listaPesos"></ul>
       </div>
 
-      <!-- Aba 4: Timer & Horas Líquidas -->
+      <!-- Aba 5: Timer & Horas Líquidas -->
       <div id="aba-timer" class="tab-content">
         <div class="field">
           <label>Disciplina em Foco</label>
@@ -1120,7 +1161,7 @@
         <div class="historico-container" id="listaHistoricoHoras"></div>
       </div>
 
-      <!-- Aba 5: Registo de Questões -->
+      <!-- Aba 6: Registo de Questões -->
       <div id="aba-questoes" class="tab-content">
         <div class="metric-grid-questoes">
           <div class="metric-box">
@@ -1164,7 +1205,7 @@
         <div class="historico-container" id="listaHistoricoQuestoes"></div>
       </div>
 
-      <!-- Aba 6: Edital Verticalizado -->
+      <!-- Aba 7: Edital Verticalizado -->
       <div id="aba-edital-vert" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
           Acompanhe todos os assuntos cadastrados com <strong>Teoria</strong> e ciclo de <strong>Revisão Espaçada</strong> (1D, 7D, 15D, 30D).
@@ -1187,10 +1228,10 @@
         <div id="containerEditalVerticalizado" style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;"></div>
       </div>
 
-      <!-- Aba 7: Visão Geral -->
+      <!-- Aba 8: Visão Geral -->
       <div id="aba-visao-geral" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Navegue pelas semanas ou baixe o <strong>Quadro Geral com Todas as Datas Reais</strong> em PDF até zerar todos os 73 tópicos.
+          Navegue pelas semanas ou baixe o <strong>Quadro Geral com Todas as Datas Reais</strong> em PDF até zerar todos os tópicos do edital.
         </p>
 
         <button class="btn btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); padding: 12px; font-size: 0.88rem; width: 100%;" onclick="baixarQuadroGeralDatasPDF()">
@@ -1209,7 +1250,7 @@
         <div id="containerVisaoGeral" style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;"></div>
       </div>
 
-      <!-- Aba 8: Planeamento -->
+      <!-- Aba 9: Planeamento -->
       <div id="aba-planejamento" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
           Defina as datas da sua jornada para calcular o ritmo necessário e fechar o edital antes da prova.
@@ -1250,14 +1291,14 @@
         </div>
       </div>
 
-      <!-- Aba 9: Edital TXT -->
+      <!-- Aba 10: Edital TXT -->
       <div id="aba-edital" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
           Digite ou cole o conteúdo programático do edital verticalizado. O sistema criará exatamente as disciplinas que constarem no texto.
         </p>
 
         <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 10px; display: flex; align-items: center; gap: 8px;">
-          <input type="checkbox" id="chkSubstituirTudo" checked style="cursor: pointer; width: 16px; height: 16px;">
+          <input type="checkbox" id="chkSubstituirTudo" style="cursor: pointer; width: 16px; height: 16px;">
           <label for="chkSubstituirTudo" style="font-size: 0.78rem; color: var(--text); cursor: pointer; text-transform: none;">
             <strong>Substituir tudo:</strong> Limpar edital anterior e recomeçar cronograma do zero.
           </label>
@@ -1273,7 +1314,7 @@
         <div id="statusIA" style="display: none; font-size: 0.8rem; padding: 8px; border-radius: 6px;"></div>
       </div>
 
-      <!-- Aba 10: Segurança -->
+      <!-- Aba 11: Segurança -->
       <div id="aba-senha" class="tab-content">
         <div class="field">
           <label for="senhaAtual">Palavra-passe Atual</label>
@@ -1292,7 +1333,6 @@
       </div>
 
       <div class="sidebar-footer">
-        <button class="btn btn-danger" style="width: 100%;" onclick="redefinirPerfilCompletamente()">⚠️ Zerar Tudo Deste Perfil</button>
         <button class="btn btn-outline" style="width: 100%;" onclick="sair()">Terminar Sessão</button>
       </div>
     </aside>
@@ -1353,7 +1393,8 @@
       "Kelvin": "bk9bk9@@",
       "Robson": "333435",
       "Eduardo": "333435",
-      "Gabi": "333435"
+      "Gabi": "333435",
+      "Cleciana": "8265"
     };
 
     const DIAS = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
@@ -1398,8 +1439,9 @@
       localStorage.setItem('usuarios_senhas_personalizadas', JSON.stringify(novasSenhas));
     }
 
+    // CHAVE DEFINITIVA ESTÁVEL QUE NUNCA RESETA OS DADOS
     function chaveArmazenamento(user) {
-      return `cronograma_perfil_${user.toLowerCase()}_quadrogdf_v2`;
+      return `cronograma_perfil_${user.toLowerCase()}`;
     }
 
     function obterEstadoPadrao() {
@@ -1417,7 +1459,9 @@
         planejamento: { inicio: '', prova: '' },
         collapseEdital: {},
         materiaFiltroEdital: 'TODAS',
-        filtroPrioridadesMateria: 'TODAS'
+        filtroPrioridadesMateria: 'TODAS',
+        filtroRevisoesMateria: 'TODAS',
+        agendaRevisoes: []
       };
     }
 
@@ -1435,6 +1479,13 @@
       const mes = String(d.getMonth() + 1).padStart(2, '0');
       const dia = String(d.getDate()).padStart(2, '0');
       return `${ano}-${mes}-${dia}`;
+    }
+
+    function formatarDataBR(d) {
+      const dia = String(d.getDate()).padStart(2, '0');
+      const mes = String(d.getMonth() + 1).padStart(2, '0');
+      const ano = d.getFullYear();
+      return `${dia}/${mes}/${ano}`;
     }
 
     function obterDiasDaSemana(segunda) {
@@ -1514,14 +1565,6 @@
 
     function forcarSincronizacaoHoje() {
       dataReferencia = new Date();
-      if (estado.semanas) {
-        Object.keys(estado.semanas).forEach(k => {
-          if (k.includes('2027') || k.includes('2028') || k.includes('2029')) {
-            delete estado.semanas[k];
-          }
-        });
-      }
-      salvarEstado();
       atualizarSemanaAtiva();
     }
 
@@ -1589,14 +1632,29 @@
       document.getElementById('confirmaNovaSenha').value = '';
     }
 
-    function redefinirPerfilCompletamente() {
-      if (confirm(`Atenção: Tem certeza de que deseja zerar completamente o perfil de ${usuarioAtivo}? Todo o cronograma, edital e registros serão apagados para começar do zero absoluto.`)) {
-        localStorage.removeItem(chaveArmazenamento(usuarioAtivo));
-        estado = obterEstadoPadrao();
+    function redefinirEditalManualmente() {
+      if (confirm('Tem certeza de que deseja limpar todas as matérias e o edital para começar um concurso novo?')) {
+        estado.disciplinas = [];
+        estado.editalVerticalizado = {};
+        estado.semanas = {};
+        estado.indicesTopicos = {};
+        estado.ponteiroGeral = 0;
+        estado.agendaRevisoes = [];
+
         salvarEstado();
-        carregarEstado();
-        irParaHoje();
-        alert('Perfil zerado com sucesso! Agora você pode começar um edital novo.');
+        renderizarPesos();
+        atualizarSelectsMaterias();
+        renderizarEditalVerticalizado();
+        renderizarAbaPrioridades();
+        renderizarAbaRevisoes();
+        forcarSincronizacaoHoje();
+        renderizarVisaoGeral();
+        atualizarPainelPlanejamento();
+
+        document.getElementById('statusIA').style.display = 'block';
+        document.getElementById('statusIA').style.color = '#ef4444';
+        document.getElementById('statusIA').style.background = 'rgba(239, 68, 68, 0.1)';
+        document.getElementById('statusIA').innerText = 'Edital e ciclo de matérias limpos com sucesso!';
       }
     }
 
@@ -1624,17 +1682,170 @@
       document.getElementById('txtOfensiva').innerText = `${totalDias} ${totalDias === 1 ? 'dia' : 'dias'}`;
     }
 
-    /* GERAÇÃO DO QUADRO GERAL COM TODAS AS DATAS EM PDF (SEM CORTES OU REPETIÇÃO PRECOCE) */
+    /* SISTEMA INTELIGENTE DE REVISÃO ESPAÇADA (D1, D7, D15, D30) */
+    function agendarRevisaoEspacada(materia, idTopico, tipoCicloOrigem) {
+      if (!estado.agendaRevisoes) estado.agendaRevisoes = [];
+      const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === idTopico);
+      if (!topico) return;
+
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+
+      // Define prazos a partir do estudo: D1 (+1d), D7 (+7d), D15 (+15d), D30 (+30d)
+      const regras = [
+        { tipo: 'D1', dias: 1, chaveCheck: 'r1' },
+        { tipo: 'D7', dias: 7, chaveCheck: 'r7' },
+        { tipo: 'D15', dias: 15, chaveCheck: 'r15' },
+        { tipo: 'D30', dias: 30, chaveCheck: 'r30' }
+      ];
+
+      regras.forEach(regra => {
+        const jaExiste = estado.agendaRevisoes.find(r => r.idTopico === idTopico && r.tipo === regra.tipo);
+        if (!jaExiste) {
+          const dataAlvo = new Date(hoje);
+          dataAlvo.setDate(hoje.getDate() + regra.dias);
+
+          estado.agendaRevisoes.push({
+            idRev: 'rev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+            materia: materia,
+            idTopico: idTopico,
+            assunto: topico.titulo,
+            tipo: regra.tipo,
+            chaveCheck: regra.chaveCheck,
+            dataPrevista: formatarDataChave(dataAlvo),
+            dataPrevistaFormatada: formatarDataBR(dataAlvo),
+            concluida: false
+          });
+        }
+      });
+
+      salvarEstado();
+      renderizarAbaRevisoes();
+    }
+
+    function renderizarAbaRevisoes() {
+      const container = document.getElementById('containerListaRevisoes');
+      const selectFiltro = document.getElementById('filtroMateriaRevisoes');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (!estado.agendaRevisoes || estado.agendaRevisoes.length === 0) {
+        container.innerHTML = `
+          <div style="font-size:0.82rem; color:var(--text-muted); text-align:center; padding:20px; background:var(--card-bg); border-radius:10px; border:1px dashed var(--border);">
+            Nenhuma revisão agendada no momento.<br>
+            Ao estudar um assunto e marcar <strong>Teoria</strong> ou <strong>1D/7D/15D/30D</strong> na aba Edital, as revisões com as datas exatas (D1 amanhã, D7, etc.) aparecerão aqui automaticamente.
+          </div>
+        `;
+        return;
+      }
+
+      const filtroMat = selectFiltro ? selectFiltro.value : 'TODAS';
+      estado.filtroRevisoesMateria = filtroMat;
+      salvarEstado();
+
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const hojeChave = formatarDataChave(hoje);
+
+      let revisoes = estado.agendaRevisoes;
+      if (filtroMat !== 'TODAS') {
+        revisoes = revisoes.filter(r => r.materia === filtroMat);
+      }
+
+      // Ordena por data prevista
+      revisoes.sort((a, b) => a.dataPrevista.localeCompare(b.dataPrevista));
+
+      const pendentesHoje = revisoes.filter(r => !r.concluida && r.dataPrevista <= hojeChave);
+      const futuras = revisoes.filter(r => !r.concluida && r.dataPrevista > hojeChave);
+      const concluidas = revisoes.filter(r => r.concluida);
+
+      const montarCard = (r) => {
+        let statusClass = 'futura';
+        let statusTexto = `Prevista: ${r.dataPrevistaFormatada}`;
+
+        if (r.concluida) {
+          statusClass = 'concluida';
+          statusTexto = `Concluída ✓ (${r.dataPrevistaFormatada})`;
+        } else if (r.dataPrevista === hojeChave) {
+          statusClass = 'hoje';
+          statusTexto = `HOJE! (${r.dataPrevistaFormatada})`;
+        } else if (r.dataPrevista < hojeChave) {
+          statusClass = 'atrasada';
+          statusTexto = `Atrasada (${r.dataPrevistaFormatada})`;
+        }
+
+        return `
+          <div class="revisao-card-item">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <span style="font-size:0.75rem; color:var(--primary); font-weight:700;">${r.materia}</span>
+                <div style="font-size:0.82rem; font-weight:600; color:var(--text); margin-top:2px;">${r.assunto}</div>
+              </div>
+              <span class="badge-revisao-tag ${statusClass}">Ciclo ${r.tipo} • ${statusTexto}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+              <label style="display:flex; align-items:center; gap:6px; font-size:0.78rem; cursor:pointer; color:var(--text); text-transform:none;">
+                <input type="checkbox" ${r.concluida ? 'checked' : ''} onchange="toggleConcluirRevisaoAgenda('${r.idRev}')">
+                Marcar como revisado
+              </label>
+              <button class="btn-mini-acao" style="color:var(--danger);" onclick="excluirItemRevisao('${r.idRev}')">🗑️</button>
+            </div>
+          </div>
+        `;
+      };
+
+      let html = '';
+
+      if (pendentesHoje.length > 0) {
+        html += `<div style="font-size:0.85rem; font-weight:700; color:var(--warning); margin-top:4px;">⚡ Revisões para Hoje / Pendentes (${pendentesHoje.length})</div>`;
+        pendentesHoje.forEach(r => html += montarCard(r));
+      }
+
+      if (futuras.length > 0) {
+        html += `<div style="font-size:0.85rem; font-weight:700; color:var(--primary); margin-top:10px;">📅 Próximas Revisões Agendadas (${futuras.length})</div>`;
+        futuras.forEach(r => html += montarCard(r));
+      }
+
+      if (concluidas.length > 0) {
+        html += `<div style="font-size:0.85rem; font-weight:700; color:var(--success); margin-top:10px;">✅ Revisões Concluídas (${concluidas.length})</div>`;
+        concluidas.forEach(r => html += montarCard(r));
+      }
+
+      container.innerHTML = html;
+    }
+
+    function toggleConcluirRevisaoAgenda(idRev) {
+      const item = (estado.agendaRevisoes || []).find(r => r.idRev === idRev);
+      if (item) {
+        item.concluida = !item.concluida;
+
+        // Atualiza checkbox correspondente no edital verticalizado (ex: r1, r7, r15, r30)
+        const topico = (estado.editalVerticalizado[item.materia] || []).find(t => t.id === item.idTopico);
+        if (topico && item.chaveCheck) {
+          topico[item.chaveCheck] = item.concluida;
+        }
+
+        salvarEstado();
+        renderizarAbaRevisoes();
+        renderizarEditalVerticalizado();
+      }
+    }
+
+    function excluirItemRevisao(idRev) {
+      estado.agendaRevisoes = (estado.agendaRevisoes || []).filter(r => r.idRev !== idRev);
+      salvarEstado();
+      renderizarAbaRevisoes();
+    }
+
+    /* GERAÇÃO DO QUADRO GERAL COM TODAS AS DATAS EM PDF */
     function baixarQuadroGeralDatasPDF() {
       if (!estado.disciplinas || estado.disciplinas.length === 0) {
         alert('Não há disciplinas ou tópicos cadastrados para gerar o cronograma!');
         return;
       }
 
-      // Lê o valor rigoroso de disciplinas por dia (ex: 2)
       const porDia = parseInt(estado.porDia) || parseInt(document.getElementById('materiasPorDia').value) || 2;
       
-      // Coleta TODOS os tópicos do edital organizado por prioridade
       let listaTodosTopicos = [];
       estado.disciplinas.forEach(d => {
         const topicos = estado.editalVerticalizado[d.nome] || [];
@@ -1654,18 +1865,14 @@
         return;
       }
 
-      // Ordena a lista mestra estritamente: 1º Vermelho, 2º Amarelo, 3º Verde
       const pesoPrio = { 'vermelho': 1, 'amarelo': 2, 'verde': 3 };
       listaTodosTopicos.sort((a, b) => pesoPrio[a.prioridade] - pesoPrio[b.prioridade]);
 
-      // Calcula o número EXATO de dias e semanas corridas necessárias (ex: 73 / 2 = 37 dias = 6 semanas)
       const diasNecessarios = Math.ceil(totalTopicos / porDia);
       const totalSemanasGerar = Math.ceil(diasNecessarios / 7);
 
-      // Data de partida fixada na Segunda-feira corrente real (21/09/2026)
       let dataSegunda = obterSegundaFeira(new Date());
 
-      // Data final calculada
       const dataFimCalculada = new Date(dataSegunda);
       dataFimCalculada.setDate(dataSegunda.getDate() + (totalSemanasGerar * 7) - 1);
       const fInicioGeral = `${String(dataSegunda.getDate()).padStart(2, '0')}/${String(dataSegunda.getMonth() + 1).padStart(2, '0')}/${dataSegunda.getFullYear()}`;
@@ -1737,7 +1944,6 @@
               `;
               ponteiroTopico++;
             } else {
-              // Quando os 73 tópicos forem 100% esgotados
               htmlDoc += `
                 <div class="pdf-slot-item" style="border-bottom:none; opacity:0.6;">
                   <span class="pdf-materia-tag" style="color:#059669;">[x] Edital Finalizado</span>
@@ -1802,14 +2008,8 @@
       if (!estado.collapseEdital) estado.collapseEdital = {};
       if (!estado.materiaFiltroEdital) estado.materiaFiltroEdital = 'TODAS';
       if (!estado.filtroPrioridadesMateria) estado.filtroPrioridadesMateria = 'TODAS';
-
-      if (estado.semanas) {
-        Object.keys(estado.semanas).forEach(k => {
-          if (k.includes('2027') || k.includes('2028') || k.includes('2029')) {
-            delete estado.semanas[k];
-          }
-        });
-      }
+      if (!estado.filtroRevisoesMateria) estado.filtroRevisoesMateria = 'TODAS';
+      if (!estado.agendaRevisoes) estado.agendaRevisoes = [];
 
       document.body.setAttribute('data-theme', estado.tema);
       document.getElementById('btnTema').innerText = estado.tema === 'dark' ? '☀️ Claro' : '🌙 Escuro';
@@ -1830,6 +2030,7 @@
       atualizarVisualizacaoQuestoes();
       renderizarEditalVerticalizado();
       renderizarAbaPrioridades();
+      renderizarAbaRevisoes();
       atualizarPainelPlanejamento();
       atualizarIndicadorPresenca();
       atualizarSemanaAtiva();
@@ -1849,6 +2050,8 @@
         renderizarEditalVerticalizado();
       } else if (abaId === 'aba-prioridades') {
         renderizarAbaPrioridades();
+      } else if (abaId === 'aba-revisoes') {
+        renderizarAbaRevisoes();
       }
     }
 
@@ -1868,11 +2071,13 @@
       const selectModalHoras = document.getElementById('modalHorasSelectMateria');
       const selectFiltroExclusivo = document.getElementById('filtroExclusivoMateriaEdital');
       const selectFiltroPrioridades = document.getElementById('filtroMateriaPrioridades');
+      const selectFiltroRevisoes = document.getElementById('filtroMateriaRevisoes');
 
       const valFiltroAtual = selectFiltro.value;
       const valFiltroQAtual = selectFiltroQuestoes.value;
       const valFiltroExclusivoAtual = estado.materiaFiltroEdital || 'TODAS';
       const valFiltroPrioridadesAtual = estado.filtroPrioridadesMateria || 'TODAS';
+      const valFiltroRevisoesAtual = estado.filtroRevisoesMateria || 'TODAS';
 
       selectTimer.innerHTML = '';
       selectQuestoes.innerHTML = '';
@@ -1882,6 +2087,7 @@
       selectFiltroQuestoes.innerHTML = '<option value="TODAS">-- Todas as Disciplinas --</option>';
       selectFiltroExclusivo.innerHTML = '<option value="TODAS">-- Mostrar Todas as Matérias --</option>';
       selectFiltroPrioridades.innerHTML = '<option value="TODAS">-- Todas as Disciplinas --</option>';
+      selectFiltroRevisoes.innerHTML = '<option value="TODAS">-- Todas as Disciplinas --</option>';
 
       estado.disciplinas.forEach(item => {
         const opt = () => {
@@ -1899,12 +2105,14 @@
         selectFiltroQuestoes.appendChild(opt());
         selectFiltroExclusivo.appendChild(opt());
         selectFiltroPrioridades.appendChild(opt());
+        selectFiltroRevisoes.appendChild(opt());
       });
 
       if (valFiltroAtual) selectFiltro.value = valFiltroAtual;
       if (valFiltroQAtual) selectFiltroQuestoes.value = valFiltroQAtual;
       selectFiltroExclusivo.value = valFiltroExclusivoAtual;
       selectFiltroPrioridades.value = valFiltroPrioridadesAtual;
+      selectFiltroRevisoes.value = valFiltroRevisoesAtual;
     }
 
     function renderizarPesos() {
@@ -2175,7 +2383,7 @@
             <p style="color: var(--text-muted); font-size: 0.88rem; max-width: 440px; margin: 0 auto 20px;">
               Digite ou cole o edital na aba <strong>Edital TXT</strong> para iniciar o cronograma limpo.
             </p>
-            <button class="btn btn-primary" onclick="trocarAba('aba-edital', document.querySelectorAll('.tab-btn')[8])">Ir para Edital TXT</button>
+            <button class="btn btn-primary" onclick="trocarAba('aba-edital', document.querySelectorAll('.tab-btn')[9])">Ir para Edital TXT</button>
           </div>
         `;
         return;
@@ -2260,6 +2468,9 @@
         const topicoObj = estado.editalVerticalizado[slot.materia].find(t => t.titulo === slot.assunto);
         if (topicoObj) {
           topicoObj.t = slot.feito;
+          if (slot.feito) {
+            agendarRevisaoEspacada(slot.materia, topicoObj.id, 'Teo');
+          }
         }
       }
 
@@ -2437,7 +2648,7 @@
     }
 
     function iniciarTimerMateria(nomeMateria) {
-      const tabTimerBtn = document.querySelectorAll('.tab-btn')[3];
+      const tabTimerBtn = document.querySelectorAll('.tab-btn')[4];
       trocarAba('aba-timer', tabTimerBtn);
       document.getElementById('timerSelectMateria').value = nomeMateria;
       if (!timerInterval) toggleTimer();
@@ -2715,6 +2926,12 @@
       const topico = estado.editalVerticalizado[materia].find(t => t.id === idTopico);
       if (topico) {
         topico[campo] = !topico[campo];
+
+        // Se marcou (ou desmarcou) Teo ou alguma revisão, atualiza/agenda no módulo de revisões
+        if (topico[campo]) {
+          agendarRevisaoEspacada(materia, idTopico, campo);
+        }
+
         salvarEstado();
 
         if (campo === 't') {
@@ -2761,32 +2978,6 @@
       atualizarPainelPlanejamento();
     }
 
-    function redefinirEditalManualmente() {
-      if (confirm('Tem certeza de que deseja limpar todas as matérias e o edital para começar um concurso novo?')) {
-        estado.disciplinas = [];
-        estado.editalVerticalizado = {};
-        estado.semanas = {};
-        estado.indicesTopicos = {};
-        estado.ponteiroGeral = 0;
-        estado.materiaFiltroEdital = 'TODAS';
-        estado.filtroPrioridadesMateria = 'TODAS';
-
-        salvarEstado();
-        renderizarPesos();
-        atualizarSelectsMaterias();
-        renderizarEditalVerticalizado();
-        renderizarAbaPrioridades();
-        forcarSincronizacaoHoje();
-        renderizarVisaoGeral();
-        atualizarPainelPlanejamento();
-
-        document.getElementById('statusIA').style.display = 'block';
-        document.getElementById('statusIA').style.color = '#ef4444';
-        document.getElementById('statusIA').style.background = 'rgba(239, 68, 68, 0.1)';
-        document.getElementById('statusIA').innerText = 'Edital e ciclo de matérias redefinidos com sucesso!';
-      }
-    }
-
     function sanitizarTopicoLinha(texto) {
       let t = texto.replace(/[\|\_]{2,}/g, '').trim();
       const pontoMatch = t.match(/^(.*?[.;])(\s+[A-Za-z0-9\-\s\.\/]{1,30})?$/);
@@ -2798,7 +2989,6 @@
       return t;
     }
 
-    /* PROCESSADOR DE TEXTO DIRETO */
     function processarEditalTexto() {
       const texto = document.getElementById('textoEdital').value.trim();
       const status = document.getElementById('statusIA');
@@ -2825,6 +3015,7 @@
           estado.ponteiroGeral = 0;
           estado.materiaFiltroEdital = 'TODAS';
           estado.filtroPrioridadesMateria = 'TODAS';
+          estado.agendaRevisoes = [];
         }
 
         estado.disciplinas = dadosExtraidos.map(d => ({ nome: d.nome, peso: d.peso || 3 }));
@@ -2846,6 +3037,7 @@
         atualizarSelectsMaterias();
         renderizarEditalVerticalizado();
         renderizarAbaPrioridades();
+        renderizarAbaRevisoes();
         forcarSincronizacaoHoje();
         renderizarVisaoGeral();
         atualizarPainelPlanejamento();

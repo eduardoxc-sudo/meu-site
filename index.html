@@ -105,7 +105,7 @@
     }
 
     aside {
-      width: 380px;
+      width: 390px;
       background: var(--surface);
       border-right: 1px solid var(--border);
       display: flex;
@@ -114,7 +114,7 @@
     }
 
     .sidebar-header {
-      padding: 20px 18px 14px;
+      padding: 18px 16px 12px;
       border-bottom: 1px solid var(--border);
     }
 
@@ -146,30 +146,38 @@
     }
 
     .tab-nav {
-      display: flex;
-      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      padding: 10px 14px;
       background: var(--bg);
-      overflow-x: auto;
+      border-bottom: 1px solid var(--border);
     }
 
     .tab-btn {
-      flex: 1;
-      padding: 12px 6px;
-      background: transparent;
-      border: none;
-      border-bottom: 2px solid transparent;
+      padding: 8px 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
       color: var(--text-muted);
       font-size: 0.72rem;
       font-weight: 600;
       cursor: pointer;
+      text-align: center;
       white-space: nowrap;
       transition: all 0.2s;
     }
 
+    .tab-btn:hover {
+      background: var(--surface-hover);
+      color: var(--text);
+    }
+
     .tab-btn.active {
-      color: var(--primary);
-      border-bottom-color: var(--primary);
-      background: var(--surface);
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-color: transparent;
+      box-shadow: 0 2px 8px var(--primary-glow);
     }
 
     .tab-content {
@@ -264,6 +272,37 @@
       background: rgba(239, 68, 68, 0.1);
     }
 
+    .card-estimativa-edital {
+      background: rgba(56, 189, 248, 0.06);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .card-estimativa-edital .tit {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-estimativa-edital .desc {
+      font-size: 0.78rem;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .card-estimativa-edital .badge-dias {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
     .pdf-upload-box {
       border: 2px dashed var(--primary);
       border-radius: 10px;
@@ -302,6 +341,7 @@
       font-size: 0.85rem;
     }
 
+    /* Módulo Timer */
     .timer-card {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -358,7 +398,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      max-height: 220px;
+      max-height: 200px;
       overflow-y: auto;
       margin-top: 4px;
     }
@@ -403,51 +443,138 @@
       background: var(--surface-hover);
     }
 
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1500;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      width: 100%;
+      max-width: 340px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
     .subject-block {
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 10px;
       overflow: hidden;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
     }
 
     .subject-header-ev {
       background: var(--primary-glow);
       color: var(--primary);
       font-weight: 700;
-      padding: 10px 12px;
+      padding: 12px 14px;
       font-size: 0.88rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .subject-header-ev:hover {
+      background: rgba(56, 189, 248, 0.22);
+    }
+
+    .subject-header-ev .seta-collapse {
+      transition: transform 0.2s ease;
+      font-size: 0.75rem;
+    }
+
+    .subject-header-ev.collapsed .seta-collapse {
+      transform: rotate(-90deg);
+    }
+
+    .subject-body-ev {
+      display: block;
+    }
+
+    .subject-body-ev.collapsed {
+      display: none;
     }
 
     .ev-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.78rem;
+      font-size: 0.82rem;
     }
 
     .ev-table th, .ev-table td {
       border: 1px solid var(--border);
-      padding: 6px 4px;
+      padding: 8px 6px;
       text-align: center;
     }
 
     .ev-table th {
-      background: rgba(255, 255, 255, 0.02);
+      background: rgba(255, 255, 255, 0.03);
       color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 700;
     }
 
     .ev-table td.topic-cell {
       text-align: left;
-      padding-left: 8px;
+      padding-left: 12px;
+      padding-right: 8px;
       font-weight: 500;
+      line-height: 1.4;
+      color: var(--text);
     }
 
     .ev-table input[type="checkbox"] {
       cursor: pointer;
       accent-color: var(--primary);
+      width: 15px;
+      height: 15px;
+    }
+
+    .agenda-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .agenda-dia-header {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed var(--border);
+      padding-bottom: 6px;
+      margin-bottom: 4px;
+    }
+
+    .agenda-item-slot {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text);
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
     }
 
     .metric-grid-questoes {
@@ -468,6 +595,25 @@
       font-size: 1.1rem;
       font-weight: 700;
       margin-top: 2px;
+    }
+
+    .sugestao-card {
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sugestao-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.82rem;
+      line-height: 1.4;
+      color: var(--text);
     }
 
     main {
@@ -497,7 +643,6 @@
       flex-wrap: wrap;
     }
 
-    /* Indicador de Presença / Ofensiva */
     .presence-badge {
       display: inline-flex;
       align-items: center;
@@ -599,7 +744,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      gap: 10px;
       cursor: grab;
       user-select: none;
       transition: all 0.2s;
@@ -618,26 +763,33 @@
       display: flex;
       align-items: flex-start;
       gap: 10px;
-      font-size: 0.88rem;
       flex: 1;
+      min-width: 0;
     }
 
     .slot-texts {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
+      flex: 1;
+      min-width: 0;
     }
 
     .slot-materia-title {
       font-weight: 700;
       color: var(--primary);
       font-size: 0.85rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
     }
 
     .slot-assunto-sub {
-      font-size: 0.76rem;
+      font-size: 0.78rem;
       color: var(--text);
-      line-height: 1.3;
+      line-height: 1.35;
+      word-break: break-word;
     }
 
     .slot-card.done {
@@ -659,6 +811,7 @@
       font-size: 0.9rem;
       padding: 4px;
       border-radius: 4px;
+      flex-shrink: 0;
     }
 
     .sidebar-footer {
@@ -672,16 +825,15 @@
 
     .ai-badge {
       display: inline-block;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       background: linear-gradient(135deg, #a855f7, #6366f1);
       color: #fff;
-      padding: 2px 6px;
+      padding: 1px 5px;
       border-radius: 4px;
       font-weight: 700;
-      margin-left: 4px;
+      margin-left: 2px;
     }
 
-    /* Modal / Pop-up de Vitória */
     #celebrationOverlay {
       position: fixed;
       inset: 0;
@@ -713,28 +865,20 @@
       animation: bounce 0.6s infinite alternate;
     }
 
-    @keyframes popIn {
-      to { transform: scale(1); }
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    @keyframes bounce {
-      from { transform: translateY(0); }
-      to { transform: translateY(-8px); }
-    }
+    @keyframes popIn { to { transform: scale(1); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
   </style>
 </head>
 <body>
 
-  <!-- Modal de Celebração de Vitória -->
+  <!-- Modal de Celebração -->
   <div id="celebrationOverlay">
     <div class="celebration-card">
       <div class="celebration-icon">🏆✨</div>
       <h2 style="color: var(--success); font-size: 1.5rem; margin-bottom: 6px;">Meta Cumprida!</h2>
-      <p style="font-size: 0.95rem; color: var(--text); font-weight: 600;">Parabéns! Você finalizou todas as matérias de hoje com sucesso!</p>
-      <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Consistência é a chave da aprovação.</div>
+      <p style="font-size: 0.95rem; color: var(--text); font-weight: 600;">Parabéns! Finalizou todas as matérias de hoje com sucesso!</p>
+      <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">A consistência é a chave da aprovação.</div>
     </div>
   </div>
 
@@ -756,7 +900,6 @@
     </div>
   </div>
 
-  <!-- Painel Principal -->
   <div id="app-container">
     <aside>
       <div class="sidebar-header">
@@ -770,6 +913,8 @@
         <button class="tab-btn" onclick="trocarAba('aba-timer', this)">Timer</button>
         <button class="tab-btn" onclick="trocarAba('aba-questoes', this)">Questões</button>
         <button class="tab-btn" onclick="trocarAba('aba-edital-vert', this)">Edital</button>
+        <button class="tab-btn" onclick="trocarAba('aba-visao-geral', this)">Visão Geral</button>
+        <button class="tab-btn" onclick="trocarAba('aba-planejamento', this)">Planeamento</button>
         <button class="tab-btn" onclick="trocarAba('aba-edital', this)">IA <span class="ai-badge">IA</span></button>
         <button class="tab-btn" onclick="trocarAba('aba-senha', this)">Segurança</button>
       </nav>
@@ -779,14 +924,24 @@
         <div class="field">
           <label>Adicionar Disciplina</label>
           <div style="display: flex; gap: 6px;">
-            <input type="text" id="novaMateria" placeholder="Ex: Informática">
+            <input type="text" id="novaMateria" placeholder="Ex: Língua Portuguesa">
             <button class="btn btn-primary" onclick="adicionarMateria()">+</button>
           </div>
         </div>
 
         <div class="field">
           <label>Disciplinas por dia</label>
-          <input type="number" id="materiasPorDia" min="1" max="6" value="3">
+          <input type="number" id="materiasPorDia" min="1" max="8" value="3" oninput="atualizarCalculoEstimativaCiclo()">
+        </div>
+
+        <div class="card-estimativa-edital" id="painelEstimativaCiclo">
+          <div class="tit">
+            <span>⏱️ Previsão de Término do Edital</span>
+            <span class="badge-dias" id="txtDiasTermino">--</span>
+          </div>
+          <div class="desc" id="txtDescTermino">
+            Carregue ou adicione matérias para calcular a estimativa.
+          </div>
         </div>
 
         <button class="btn btn-primary" onclick="gerarCronogramaSemanaAtual()">⚡ Regenerar Esta Semana</button>
@@ -829,6 +984,8 @@
           </div>
           <div class="val-tot" id="displayTotalHorasLiquidas">0h 00m</div>
         </div>
+
+        <button class="btn btn-outline" style="width: 100%; margin-top: 2px;" onclick="abrirModalManualHoras()">➕ Lançar Horas Manualmente</button>
 
         <label style="margin-top: 4px;">Histórico de Sessões</label>
         <div class="historico-container" id="listaHistoricoHoras"></div>
@@ -881,35 +1038,99 @@
       <!-- Aba 5: Edital Verticalizado -->
       <div id="aba-edital-vert" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Acompanhe todos os assuntos do edital com <strong>Teoria</strong> e ciclo de <strong>Revisão Espaçada</strong> (1D, 7D, 15D, 30D).
+          Acompanhe todos os assuntos cadastrados com <strong>Teoria</strong> e ciclo de <strong>Revisão Espaçada</strong> (1D, 7D, 15D, 30D)[cite: 17].
         </p>
+
+        <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+          <label style="color: var(--primary);">Filtrar Visualização da Matéria</label>
+          <select id="filtroExclusivoMateriaEdital" onchange="renderizarEditalVerticalizado()"></select>
+        </div>
 
         <div class="field">
           <label>Adicionar Tópico/Assunto</label>
           <div style="display: flex; gap: 6px;">
             <select id="selectMateriaNovoTopico" style="flex: 1;"></select>
-            <input type="text" id="inputNovoTopico" placeholder="Ex: Crase" style="flex: 1.4;">
+            <input type="text" id="inputNovoTopico" placeholder="Ex: Figuras de linguagem" style="flex: 1.4;">
             <button class="btn btn-primary" onclick="adicionarTopicoAoEdital()">+</button>
           </div>
         </div>
 
-        <div id="containerEditalVerticalizado" style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;"></div>
+        <div id="containerEditalVerticalizado" style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;"></div>
       </div>
 
-      <!-- Aba 6: IA Edital -->
+      <!-- Aba 6: Visão Geral -->
+      <div id="aba-visao-geral" class="tab-content">
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+          Navegue pelas semanas do cronograma para verificar a distribuição dos assuntos do edital ao longo do tempo.
+        </p>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;">
+          <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(-1)">◀ Anterior</button>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: var(--primary);" id="labelSemanaVisaoGeral">Carregando...</span>
+            <button class="btn-mini-acao" style="color:var(--primary); font-size:0.75rem; text-decoration:underline;" onclick="irParaHoje()">Voltar para Hoje</button>
+          </div>
+          <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(1)">Próxima ▶</button>
+        </div>
+
+        <div id="containerVisaoGeral" style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;"></div>
+      </div>
+
+      <!-- Aba 7: Planeamento -->
+      <div id="aba-planejamento" class="tab-content">
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+          Defina as datas da sua jornada para calcular o ritmo necessário e fechar o edital antes da prova.
+        </p>
+
+        <div class="field">
+          <label for="dataInicioEstudos">Início dos Estudos</label>
+          <input type="date" id="dataInicioEstudos" onchange="atualizarPainelPlanejamento()">
+        </div>
+
+        <div class="field">
+          <label for="dataProvaConcurso">Data da Prova</label>
+          <input type="date" id="dataProvaConcurso" onchange="atualizarPainelPlanejamento()">
+        </div>
+
+        <div class="metric-grid-questoes" style="grid-template-columns: repeat(2, 1fr); margin-top: 4px;">
+          <div class="metric-box">
+            <div style="font-size:0.72rem; color:var(--text-muted);">Dias Restantes</div>
+            <div class="num" id="diasAteProva" style="color:var(--primary);">--</div>
+          </div>
+          <div class="metric-box">
+            <div style="font-size:0.72rem; color:var(--text-muted);">Semanas Úteis</div>
+            <div class="num" id="semanasAteProva" style="color:var(--accent);">--</div>
+          </div>
+        </div>
+
+        <div class="sugestao-card">
+          <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem;">🎯 Sugestões para Fechar o Edital</div>
+          <div class="sugestao-item" id="sugestaoRitmoTopicos">
+            Defina a data da prova para calcularmos a meta de tópicos por dia/semana.
+          </div>
+          <div class="sugestao-item">
+            💡 <strong>Reta Final:</strong> Reserve as últimas 2 semanas anteriores à prova exclusivamente para resolução de questões e revisões espaçadas.
+          </div>
+          <div class="sugestao-item">
+            💡 <strong>Simulados:</strong> Agende um simulado completo aos domingos para testar tempo de prova e fixação das matérias.
+          </div>
+        </div>
+      </div>
+
+      <!-- Aba 8: IA Edital -->
       <div id="aba-edital" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Envie o <strong>PDF ou Imagem</strong> do edital. O sistema lê as disciplinas e assuntos, podendo substituir integralmente o plano de estudos anterior.
+          Cole o texto ou anexe qualquer arquivo de edital. O sistema criará exatamente as disciplinas que constarem no texto[cite: 10, 12].
         </p>
 
         <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 10px; display: flex; align-items: center; gap: 8px;">
           <input type="checkbox" id="chkSubstituirTudo" checked style="cursor: pointer; width: 16px; height: 16px;">
           <label for="chkSubstituirTudo" style="font-size: 0.78rem; color: var(--text); cursor: pointer; text-transform: none;">
-            <strong>Substituir tudo:</strong> Limpar edital anterior e recomeçar cronograma do zero ao carregar.
+            <strong>Substituir tudo:</strong> Limpar edital anterior e recomeçar cronograma do zero.
           </label>
         </div>
 
-        <label>Anexar Edital (.PDF, .PNG, .JPG)</label>
+        <label>Anexar Arquivo do Edital (.PDF, .PNG, .JPG)</label>
         <div class="pdf-upload-box" onclick="document.getElementById('pdfInput').click()">
           <span style="font-size: 1.5rem;">📄 🖼️</span>
           <div style="font-size: 0.82rem; font-weight: 600; color: var(--primary); margin-top: 4px;">
@@ -925,8 +1146,8 @@
         </div>
 
         <div class="field">
-          <label for="textoEdital">Texto Reconhecido</label>
-          <textarea id="textoEdital" rows="4" placeholder="O texto extraído surgirá aqui..."></textarea>
+          <label for="textoEdital">Texto do Conteúdo Programático</label>
+          <textarea id="textoEdital" rows="5" placeholder="Exemplo:&#10;Língua Portuguesa&#10;1. Compreensão de textos&#10;2. Intertextualidade&#10;3. Figuras de linguagem"></textarea>
         </div>
 
         <button class="btn btn-primary" id="btnAnalisarEdital" onclick="processarEditalIA()">✨ Analisar & Montar Estudos</button>
@@ -934,7 +1155,7 @@
         <div id="statusIA" style="display: none; font-size: 0.8rem; padding: 8px; border-radius: 6px;"></div>
       </div>
 
-      <!-- Aba 7: Segurança -->
+      <!-- Aba 9: Segurança -->
       <div id="aba-senha" class="tab-content">
         <div class="field">
           <label for="senhaAtual">Palavra-passe Atual</label>
@@ -962,11 +1183,10 @@
       <header class="main-header">
         <div>
           <h1 id="tituloCronograma">Cronograma Semanal</h1>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Ciclo de matérias com assuntos específicos vinculados ao edital</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Ciclo de matérias com assuntos específicos vinculados ao edital verticalizado</p>
         </div>
 
         <div class="controls-top">
-          <!-- Indicador de Presença / Ofensiva -->
           <div class="presence-badge" id="badgePresenca" title="Dias seguidos em que você estudou">
             🔥 <span id="txtOfensiva">0 dias</span> de presença
           </div>
@@ -976,13 +1196,37 @@
             <span class="week-label" id="labelIntervaloSemana">Carregando...</span>
             <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(1)">▶</button>
           </div>
-          <button class="btn btn-outline" style="padding: 6px 12px;" onclick="irParaHoje()">Hoje</button>
+          <button class="btn btn-primary" style="padding: 6px 12px;" onclick="forcarSincronizacaoHoje()">↺ Redefinir para Data de Hoje</button>
           <button class="btn btn-outline" onclick="alternarTema()" id="btnTema">☀️ Claro</button>
         </div>
       </header>
 
       <section class="week-grid" id="gradeSemana"></section>
     </main>
+  </div>
+
+  <div class="modal-overlay" id="modalManualHoras">
+    <div class="modal-box">
+      <h3 style="color:var(--primary); font-size:1.05rem;">Lançar Horas de Estudo</h3>
+      <div class="field">
+        <label>Disciplina</label>
+        <select id="modalHorasSelectMateria"></select>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <div class="field" style="flex:1;">
+          <label>Horas</label>
+          <input type="number" id="modalHorasInputH" min="0" value="1">
+        </div>
+        <div class="field" style="flex:1;">
+          <label>Minutos</label>
+          <input type="number" id="modalHorasInputM" min="0" max="59" value="0">
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:6px;">
+        <button class="btn btn-primary" style="flex:1;" onclick="salvarHorasManual()">Salvar</button>
+        <button class="btn btn-outline" style="flex:1;" onclick="fecharModalManualHoras()">Cancelar</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -1004,7 +1248,7 @@
     function tocarSomVitoria() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const notas = [261.63, 329.63, 392.00, 523.25]; // Dó, Mi, Sol, Dó Maior
+        const notas = [261.63, 329.63, 392.00, 523.25];
         notas.forEach((freq, index) => {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
@@ -1017,18 +1261,14 @@
           osc.start(audioCtx.currentTime + index * 0.12);
           osc.stop(audioCtx.currentTime + index * 0.12 + 0.35);
         });
-      } catch (e) {
-        console.warn('Áudio Web não suportado:', e);
-      }
+      } catch (e) {}
     }
 
     function dispararCelebracao() {
       tocarSomVitoria();
       const overlay = document.getElementById('celebrationOverlay');
       overlay.style.display = 'flex';
-      setTimeout(() => {
-        overlay.style.display = 'none';
-      }, 2500);
+      setTimeout(() => { overlay.style.display = 'none'; }, 2500);
     }
 
     function obterSenhas() {
@@ -1041,14 +1281,13 @@
     }
 
     function chaveArmazenamento(user) {
-      return `cronograma_perfil_${user.toLowerCase()}_v3_zero`;
+      return `cronograma_perfil_${user.toLowerCase()}_resetano_v1`;
     }
 
-    // Estado inicial totalmente limpo
     function obterEstadoPadrao() {
       return {
         tema: 'dark',
-        disciplinas: [], // ZERADO
+        disciplinas: [],
         porDia: 3,
         ponteiroGeral: 0,
         indicesTopicos: {},
@@ -1056,105 +1295,11 @@
         historicoHoras: [],
         historicoQuestoes: [],
         editalVerticalizado: {},
-        diasCompletosLog: [] // Log de dias com meta 100% batida para cálculo da presença
+        diasCompletosLog: [],
+        planejamento: { inicio: '', prova: '' },
+        collapseEdital: {},
+        materiaFiltroEdital: 'TODAS'
       };
-    }
-
-    function obterTopicosPadrao(nomeMateria) {
-      const m = nomeMateria.toLowerCase();
-      if (m.includes('portug')) {
-        return [
-          '1. Compreensão e interpretação de textos',
-          '2. Tipologias e gêneros textuais',
-          '3. Ortografia oficial',
-          '4. Acentuação gráfica',
-          '5. Emprego das classes de palavras',
-          '6. Emprego do sinal indicativo de crase',
-          '7. Sintaxe da oração e do período',
-          '8. Mecanismos de coesão textual',
-          '9. Pontuação',
-          '10. Concordância nominal e verbal',
-          '11. Regência nominal e verbal',
-          '12. Colocação pronominal',
-          '13. Significação das palavras',
-          '14. Variação linguística',
-          '15. Redação oficial: manual da presidência'
-        ];
-      }
-      if (m.includes('história') || m.includes('historia')) {
-        return [
-          '1. A ocupação pré-colonial e capitania de Pernambuco',
-          '2. A civilização do açúcar e a sociedade colonial',
-          '3. A ocupação holandesa (1630-1654)',
-          '4. Movimentos nativistas: Guerra dos Mascates',
-          '5. A Revolução Pernambucana de 1817',
-          '6. A Confederação do Equador (1824)',
-          '7. A Revolta Praieira (1848)',
-          '8. Pernambuco na República e movimentos sociais'
-        ];
-      }
-      if (m.includes('geografia')) {
-        return [
-          '1. Localização, relevo e geomorfologia de Pernambuco',
-          '2. Clima e bacias hidrográficas',
-          '3. Vegetação e domínios morfoclimáticos',
-          '4. Processo de urbanização e desenvolvimento',
-          '5. Atividades econômicas: polo gesseiro e Suape'
-        ];
-      }
-      if (m.includes('constitucional')) {
-        return [
-          '1. Princípios Fundamentais (Art. 1º ao 4º)',
-          '2. Direitos e Deveres Individuais e Coletivos (Art. 5º)',
-          '3. Direitos Sociais e Nacionalidade (Art. 6º ao 13)',
-          '4. Organização Político-Administrativa do Estado',
-          '5. Da Administração Pública (Art. 37 ao 41)',
-          '6. Da Segurança Pública (Art. 144 da CF/88)'
-        ];
-      }
-      if (m.includes('penal') && !m.includes('processual')) {
-        return [
-          '1. Aplicação da lei penal no tempo e no espaço',
-          '2. Conceito de crime: fato típico, antijurídico e culpável',
-          '3. Crime consumado, tentado e desistência voluntária',
-          '4. Excludentes de ilicitude e culpabilidade',
-          '5. Crimes contra a pessoa',
-          '6. Crimes contra o patrimônio',
-          '7. Crimes contra a administração pública'
-        ];
-      }
-      if (m.includes('processual') || m.includes('processo penal')) {
-        return [
-          '1. Inquérito Policial',
-          '2. Ação Penal',
-          '3. Prisão em flagrante e preventiva',
-          '4. Das provas e do interrogatório'
-        ];
-      }
-      if (m.includes('humano')) {
-        return [
-          '1. Conceito e características dos Direitos Humanos',
-          '2. Declaração Universal dos Direitos Humanos (1948)',
-          '3. Convenção Americana sobre Direitos Humanos',
-          '4. Direitos humanos e atuação policial'
-        ];
-      }
-      if (m.includes('lógico') || m.includes('raciocínio') || m.includes('matem')) {
-        return [
-          '1. Proposições simples e compostas',
-          '2. Conectivos e tabelas-verdade',
-          '3. Equivalências e negações lógicas',
-          '4. Diagramas lógicos e conjuntos',
-          '5. Razão, proporção e regra de três',
-          '6. Análise combinatória e probabilidade'
-        ];
-      }
-      return [
-        '1. Introdução e conceitos fundamentais',
-        '2. Tópicos essenciais e princípios doutrinários',
-        '3. Legislação aplicada e jurisprudência',
-        '4. Resolução intensiva de exercícios'
-      ];
     }
 
     function obterSegundaFeira(data) {
@@ -1190,23 +1335,64 @@
       domingo.setDate(segunda.getDate() + 6);
 
       const fSeg = `${String(segunda.getDate()).padStart(2, '0')}/${String(segunda.getMonth() + 1).padStart(2, '0')}`;
-      const fDom = `${String(domingo.getDate()).padStart(2, '0')}/${String(domingo.getMonth() + 1).padStart(2, '0')}/${domingo.getFullYear()}`;
-      document.getElementById('labelIntervaloSemana').innerText = `${fSeg} - ${fDom}`;
+      const fDom = `${String(domingo.getDate()).padStart(2, '0')}/${String(domingo.getMonth() + 1).padStart(2, '0')}`;
+      const anoDom = domingo.getFullYear();
+      const labelFormatado = `${fSeg} - ${fDom}/${anoDom}`;
+
+      document.getElementById('labelIntervaloSemana').innerText = labelFormatado;
+      const lblVisao = document.getElementById('labelSemanaVisaoGeral');
+      if (lblVisao) lblVisao.innerText = labelFormatado;
 
       if (!estado.semanas[chaveSemanaAtiva] && estado.disciplinas.length > 0) {
         gerarSemanaAutomatica(chaveSemanaAtiva);
       }
 
       renderizarGrade();
+      renderizarVisaoGeral();
+      atualizarCalculoEstimativaCiclo();
     }
 
     function navegarSemana(delta) {
-      dataReferencia.setDate(dataReferencia.getDate() + (delta * 7));
+      const hoje = new Date();
+      const limiteFuturo = new Date(hoje);
+      limiteFuturo.setDate(hoje.getDate() + (26 * 7));
+
+      const limitePassado = new Date(hoje);
+      limitePassado.setDate(hoje.getDate() - (4 * 7));
+
+      const novaData = new Date(dataReferencia);
+      novaData.setDate(novaData.getDate() + (delta * 7));
+
+      if (delta > 0 && novaData > limiteFuturo) {
+        alert("Já atingiu o horizonte planejado do edital!");
+        return;
+      }
+      if (delta < 0 && novaData < limitePassado) {
+        alert("Limite de semanas anteriores atingido.");
+        return;
+      }
+
+      dataReferencia = novaData;
       atualizarSemanaAtiva();
     }
 
     function irParaHoje() {
       dataReferencia = new Date();
+      atualizarSemanaAtiva();
+    }
+
+    // Força limpeza de semanas corrompidas no futuro (ex: 2027) e reancora em 2026
+    function forcarSincronizacaoHoje() {
+      dataReferencia = new Date();
+      // Remove chaves que foram geradas para anos errados
+      if (estado.semanas) {
+        Object.keys(estado.semanas).forEach(k => {
+          if (k.startsWith('semana_2027') || k.startsWith('semana_2028') || k.startsWith('semana_2029')) {
+            delete estado.semanas[k];
+          }
+        });
+      }
+      salvarEstado();
       atualizarSemanaAtiva();
     }
 
@@ -1280,6 +1466,7 @@
         estado = obterEstadoPadrao();
         salvarEstado();
         carregarEstado();
+        irParaHoje();
         alert('Perfil zerado com sucesso! Agora você pode começar um edital novo.');
       }
     }
@@ -1308,6 +1495,62 @@
       document.getElementById('txtOfensiva').innerText = `${totalDias} ${totalDias === 1 ? 'dia' : 'dias'}`;
     }
 
+    /* ESTIMATIVA BASEADA ESTRITAMENTE NA TEORIA (REVISÕES TOTALMENTE IGNORADAS) */
+    function atualizarCalculoEstimativaCiclo() {
+      const elDias = document.getElementById('txtDiasTermino');
+      const elDesc = document.getElementById('txtDescTermino');
+      const inputPorDia = document.getElementById('materiasPorDia');
+
+      let porDia = parseInt(inputPorDia.value);
+      if (isNaN(porDia) || porDia < 1) porDia = 1;
+
+      let totalTopicos = 0;
+      let topicosConcluidos = 0;
+
+      // APENAS t: true É CONSIDERADO. r1, r7, r15, r30 SÃO 100% IGNORADOS AQUI.
+      Object.keys(estado.editalVerticalizado || {}).forEach(materia => {
+        const lista = estado.editalVerticalizado[materia] || [];
+        totalTopicos += lista.length;
+        topicosConcluidos += lista.filter(t => t.t === true).length;
+      });
+
+      const topicosPendentes = Math.max(0, totalTopicos - topicosConcluidos);
+
+      if (totalTopicos === 0) {
+        elDias.innerText = '--';
+        elDesc.innerText = 'Nenhum edital cadastrado no momento. Anexe o edital na aba IA.';
+        return;
+      }
+
+      if (topicosPendentes === 0) {
+        elDias.innerText = '100% Concluído';
+        elDesc.innerText = 'Parabéns! Você já finalizou a teoria de todos os tópicos deste edital.';
+        return;
+      }
+
+      const diasNecessarios = Math.ceil(topicosPendentes / porDia);
+      const semanasNecessarias = (diasNecessarios / 7).toFixed(1);
+
+      // Sincroniza estritamente com a data de hoje real (2026)
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+
+      const dataFim = new Date(hoje);
+      dataFim.setDate(hoje.getDate() + diasNecessarios);
+
+      const diaFormatado = String(dataFim.getDate()).padStart(2, '0');
+      const mesFormatado = String(dataFim.getMonth() + 1).padStart(2, '0');
+      const anoFormatado = dataFim.getFullYear();
+
+      elDias.innerText = `${diasNecessarios} ${diasNecessarios === 1 ? 'dia' : 'dias'}`;
+      elDesc.innerHTML = `
+        Com <strong>${porDia} matérias/dia</strong>, fechará os <strong>${topicosPendentes} tópicos restantes</strong> em cerca de <strong>${semanasNecessarias} semanas</strong> (previsão: <strong>${diaFormatado}/${mesFormatado}/${anoFormatado}</strong>).
+      `;
+
+      estado.porDia = porDia;
+      salvarEstado();
+    }
+
     function carregarEstado() {
       const chave = chaveArmazenamento(usuarioAtivo);
       const salvos = localStorage.getItem(chave);
@@ -1323,17 +1566,32 @@
       if (!estado.editalVerticalizado) estado.editalVerticalizado = {};
       if (!estado.indicesTopicos) estado.indicesTopicos = {};
       if (!estado.diasCompletosLog) estado.diasCompletosLog = [];
+      if (!estado.planejamento) estado.planejamento = { inicio: '', prova: '' };
+      if (!estado.collapseEdital) estado.collapseEdital = {};
+      if (!estado.materiaFiltroEdital) estado.materiaFiltroEdital = 'TODAS';
 
       document.body.setAttribute('data-theme', estado.tema);
       document.getElementById('btnTema').innerText = estado.tema === 'dark' ? '☀️ Claro' : '🌙 Escuro';
       document.getElementById('materiasPorDia').value = estado.porDia || 3;
+
+      if (estado.planejamento.inicio) {
+        document.getElementById('dataInicioEstudos').value = estado.planejamento.inicio;
+      }
+      if (estado.planejamento.prova) {
+        document.getElementById('dataProvaConcurso').value = estado.planejamento.prova;
+      }
+
+      // Garante sempre o ano corrente
+      dataReferencia = new Date();
 
       renderizarPesos();
       atualizarSelectsMaterias();
       atualizarVisualizacaoHoras();
       atualizarVisualizacaoQuestoes();
       renderizarEditalVerticalizado();
+      atualizarPainelPlanejamento();
       atualizarIndicadorPresenca();
+      atualizarCalculoEstimativaCiclo();
       atualizarSemanaAtiva();
     }
 
@@ -1342,6 +1600,16 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(abaId).classList.add('active');
       botao.classList.add('active');
+
+      if (abaId === 'aba-visao-geral') {
+        renderizarVisaoGeral();
+      } else if (abaId === 'aba-planejamento') {
+        atualizarPainelPlanejamento();
+      } else if (abaId === 'aba-ciclo') {
+        atualizarCalculoEstimativaCiclo();
+      } else if (abaId === 'aba-edital-vert') {
+        renderizarEditalVerticalizado();
+      }
     }
 
     function alternarTema() {
@@ -1357,15 +1625,20 @@
       const selectQuestoes = document.getElementById('questoesSelectMateria');
       const selectFiltroQuestoes = document.getElementById('filtroQuestoesMateria');
       const selectTopicoMateria = document.getElementById('selectMateriaNovoTopico');
+      const selectModalHoras = document.getElementById('modalHorasSelectMateria');
+      const selectFiltroExclusivo = document.getElementById('filtroExclusivoMateriaEdital');
 
       const valFiltroAtual = selectFiltro.value;
       const valFiltroQAtual = selectFiltroQuestoes.value;
+      const valFiltroExclusivoAtual = estado.materiaFiltroEdital || 'TODAS';
 
       selectTimer.innerHTML = '';
       selectQuestoes.innerHTML = '';
       selectTopicoMateria.innerHTML = '';
+      selectModalHoras.innerHTML = '';
       selectFiltro.innerHTML = '<option value="TODAS">-- Todas as Disciplinas --</option>';
       selectFiltroQuestoes.innerHTML = '<option value="TODAS">-- Todas as Disciplinas --</option>';
+      selectFiltroExclusivo.innerHTML = '<option value="TODAS">-- Mostrar Todas as Matérias --</option>';
 
       estado.disciplinas.forEach(item => {
         const opt = () => {
@@ -1378,12 +1651,15 @@
         selectTimer.appendChild(opt());
         selectQuestoes.appendChild(opt());
         selectTopicoMateria.appendChild(opt());
+        selectModalHoras.appendChild(opt());
         selectFiltro.appendChild(opt());
         selectFiltroQuestoes.appendChild(opt());
+        selectFiltroExclusivo.appendChild(opt());
       });
 
       if (valFiltroAtual) selectFiltro.value = valFiltroAtual;
       if (valFiltroQAtual) selectFiltroQuestoes.value = valFiltroQAtual;
+      selectFiltroExclusivo.value = valFiltroExclusivoAtual;
     }
 
     function renderizarPesos() {
@@ -1391,7 +1667,7 @@
       lista.innerHTML = '';
 
       if (estado.disciplinas.length === 0) {
-        lista.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:12px;">Nenhuma matéria cadastrada. Adicione uma disciplina ou anexe seu edital na aba IA.</div>';
+        lista.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:12px;">Nenhuma matéria cadastrada. Carregue o edital na aba IA.</div>';
         return;
       }
 
@@ -1418,11 +1694,9 @@
 
       estado.disciplinas.push({ nome, peso: 3 });
       if (!estado.editalVerticalizado[nome]) {
-        estado.editalVerticalizado[nome] = obterTopicosPadrao(nome).map((tit, idx) => ({
-          id: 'top_' + Math.random().toString(36).substr(2, 7) + '_' + idx,
-          titulo: tit,
-          t: false, r1: false, r7: false, r15: false, r30: false
-        }));
+        estado.editalVerticalizado[nome] = [
+          { id: 'top_' + Date.now() + '_1', titulo: '1. Introdução e Conceitos Iniciais.', t: false, r1: false, r7: false, r15: false, r30: false }
+        ];
       }
 
       input.value = '';
@@ -1431,6 +1705,8 @@
       renderizarEditalVerticalizado();
       gerarSemanaAutomatica(chaveSemanaAtiva);
       renderizarGrade();
+      renderizarVisaoGeral();
+      atualizarCalculoEstimativaCiclo();
       salvarEstado();
     }
 
@@ -1449,6 +1725,8 @@
       renderizarEditalVerticalizado();
       gerarSemanaAutomatica(chaveSemanaAtiva);
       renderizarGrade();
+      renderizarVisaoGeral();
+      atualizarCalculoEstimativaCiclo();
       salvarEstado();
     }
 
@@ -1482,7 +1760,7 @@
           const nomeMateria = pool[ponteiro % pool.length];
           const listaTopicos = estado.editalVerticalizado[nomeMateria] || [];
           
-          let assuntoDoDia = 'Tópicos essenciais e exercícios';
+          let assuntoDoDia = 'Tópicos essenciais e exercícios.';
           if (listaTopicos.length > 0) {
             const idxAtual = estado.indicesTopicos[nomeMateria] || 0;
             assuntoDoDia = listaTopicos[idxAtual % listaTopicos.length].titulo;
@@ -1506,6 +1784,8 @@
     function gerarCronogramaSemanaAtual() {
       gerarSemanaAutomatica(chaveSemanaAtiva);
       renderizarGrade();
+      renderizarVisaoGeral();
+      atualizarCalculoEstimativaCiclo();
     }
 
     let itemArrastado = null;
@@ -1550,6 +1830,7 @@
 
       salvarEstado();
       renderizarGrade();
+      renderizarVisaoGeral();
     }
 
     function renderizarGrade() {
@@ -1560,11 +1841,11 @@
         grade.innerHTML = `
           <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--card-bg); border-radius: 16px; border: 1px dashed var(--border);">
             <div style="font-size: 2.5rem; margin-bottom: 12px;">📑✨</div>
-            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 8px;">Nenhum edital ativo no momento</h3>
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 8px;">Nenhum edital ativo</h3>
             <p style="color: var(--text-muted); font-size: 0.88rem; max-width: 440px; margin: 0 auto 20px;">
-              Este perfil está zerado. Vá até a aba <strong>IA</strong> para anexar o PDF do edital verticalizado ou use a aba <strong>Ciclo</strong> para adicionar matérias manualmente.
+              Cole o conteúdo ou anexe qualquer edital verticalizado na aba <strong>IA</strong> para iniciar o cronograma limpo[cite: 10, 12].
             </p>
-            <button class="btn btn-primary" onclick="trocarAba('aba-edital', document.querySelectorAll('.tab-btn')[5])">Ir para IA Edital</button>
+            <button class="btn btn-primary" onclick="trocarAba('aba-edital', document.querySelectorAll('.tab-btn')[7])">Ir para IA Edital</button>
           </div>
         `;
         return;
@@ -1624,7 +1905,7 @@
               <input type="checkbox" ${item.feito ? 'checked' : ''} onchange="toggleConclusao('${d.nome}', ${idx}, '${d.data}')">
               <div class="slot-texts">
                 <span class="slot-materia-title">${item.materia}</span>
-                <span class="slot-assunto-sub">${item.assunto || 'Assunto do edital'}</span>
+                <span class="slot-assunto-sub" title="${item.assunto}">${item.assunto || 'Assunto do edital'}</span>
               </div>
             </div>
             <button class="btn-play-mini" title="Cronometrar esta matéria" onclick="iniciarTimerMateria('${item.materia}')">▶</button>
@@ -1643,11 +1924,9 @@
 
       const todosFeitosAgora = estado.semanas[chaveSemanaAtiva][dia].every(s => s.feito);
 
-      // Se todas as disciplinas do dia foram cumpridas com este clique
       if (slot.feito && todosFeitosAgora) {
         dispararCelebracao();
 
-        // Registra no contador de presença
         if (!estado.diasCompletosLog) estado.diasCompletosLog = [];
         const chaveDiaLog = `${chaveSemanaAtiva}_${dia}`;
         if (!estado.diasCompletosLog.includes(chaveDiaLog)) {
@@ -1658,6 +1937,8 @@
       salvarEstado();
       atualizarIndicadorPresenca();
       renderizarGrade();
+      renderizarVisaoGeral();
+      atualizarCalculoEstimativaCiclo();
     }
 
     function reiniciarProgressoSemana() {
@@ -1668,9 +1949,118 @@
       });
       salvarEstado();
       renderizarGrade();
+      renderizarVisaoGeral();
+      atualizarCalculoEstimativaCiclo();
     }
 
-    /* Timer */
+    function renderizarVisaoGeral() {
+      const container = document.getElementById('containerVisaoGeral');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (estado.disciplinas.length === 0) {
+        container.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:12px;">Nenhum cronograma gerado ainda.</div>';
+        return;
+      }
+
+      const segunda = obterSegundaFeira(dataReferencia);
+      const diasComData = obterDiasDaSemana(segunda);
+      const cronogramaAtual = estado.semanas[chaveSemanaAtiva] || {};
+
+      diasComData.forEach(d => {
+        const slots = cronogramaAtual[d.nome] || [];
+        const cardDia = document.createElement('div');
+        cardDia.className = 'agenda-card';
+
+        let htmlSlots = '';
+        if (slots.length === 0) {
+          htmlSlots = '<div style="font-size:0.75rem; color:var(--text-muted); padding:4px 0;">Nenhuma matéria agendada neste dia.</div>';
+        } else {
+          slots.forEach(s => {
+            htmlSlots += `
+              <div class="agenda-item-slot">
+                <span><strong>${s.materia}:</strong> ${s.assunto}</span>
+                <span style="font-size:0.72rem; color:${s.feito ? 'var(--success)' : 'var(--text-muted)'}; font-weight:600;">
+                  ${s.feito ? '✅ Concluído' : '⏳ Pendente'}
+                </span>
+              </div>
+            `;
+          });
+        }
+
+        cardDia.innerHTML = `
+          <div class="agenda-dia-header">
+            <span>${d.nome}</span>
+            <span>${d.data}</span>
+          </div>
+          ${htmlSlots}
+        `;
+        container.appendChild(cardDia);
+      });
+    }
+
+    function atualizarPainelPlanejamento() {
+      const dtInicioInput = document.getElementById('dataInicioEstudos').value;
+      const dtProvaInput = document.getElementById('dataProvaConcurso').value;
+
+      if (!estado.planejamento) estado.planejamento = {};
+      estado.planejamento.inicio = dtInicioInput;
+      estado.planejamento.prova = dtProvaInput;
+      salvarEstado();
+
+      const elDias = document.getElementById('diasAteProva');
+      const elSemanas = document.getElementById('semanasAteProva');
+      const elSugestao = document.getElementById('sugestaoRitmoTopicos');
+
+      if (!dtProvaInput) {
+        elDias.innerText = '--';
+        elSemanas.innerText = '--';
+        elSugestao.innerHTML = 'Defina a data da prova para calcularmos o ritmo de estudo.';
+        return;
+      }
+
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const dProva = new Date(dtProvaInput + 'T00:00:00');
+
+      const diffTime = dProva - hoje;
+      const diffDias = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDias <= 0) {
+        elDias.innerText = '0';
+        elSemanas.innerText = '0';
+        elSugestao.innerHTML = '⚠️ A data da prova já chegou ou expirou!';
+        return;
+      }
+
+      const diffSemanas = Math.ceil(diffDias / 7);
+      elDias.innerText = `${diffDias}d`;
+      elSemanas.innerText = `${diffSemanas} sem.`;
+
+      let totalTopicos = 0;
+      let topicosFeitos = 0;
+      Object.keys(estado.editalVerticalizado || {}).forEach(k => {
+        const tops = estado.editalVerticalizado[k] || [];
+        totalTopicos += tops.length;
+        topicosFeitos += tops.filter(t => t.t === true).length;
+      });
+
+      const topicosRestantes = Math.max(0, totalTopicos - topicosFeitos);
+
+      if (totalTopicos === 0) {
+        elSugestao.innerHTML = 'Carregue o edital na aba IA para calcular o ritmo exato de tópicos.';
+        return;
+      }
+
+      const topicosPorSemana = Math.ceil(topicosRestantes / Math.max(1, diffSemanas));
+      const topicosPorDia = (topicosRestantes / Math.max(1, diffDias)).toFixed(1);
+
+      elSugestao.innerHTML = `
+        📌 <strong>Ritmo Ideal:</strong> Tem <strong>${topicosRestantes} tópicos</strong> restantes no edital. 
+        Para fechar 100% até à prova, cumpra em média <strong>${topicosPorSemana} tópicos por semana</strong> (~${topicosPorDia} assunto/dia).
+      `;
+    }
+
     let timerInterval = null;
     let timerSegundos = 0;
 
@@ -1737,6 +2127,40 @@
       alert(`Guardado: ${minutos} min em ${materia}!`);
     }
 
+    function abrirModalManualHoras() {
+      document.getElementById('modalManualHoras').style.display = 'flex';
+    }
+
+    function fecharModalManualHoras() {
+      document.getElementById('modalManualHoras').style.display = 'none';
+    }
+
+    function salvarHorasManual() {
+      const materia = document.getElementById('modalHorasSelectMateria').value;
+      const h = parseInt(document.getElementById('modalHorasInputH').value) || 0;
+      const m = parseInt(document.getElementById('modalHorasInputM').value) || 0;
+      const totalMin = (h * 60) + m;
+
+      if (totalMin <= 0) {
+        alert('Informe pelo menos 1 minuto de estudo.');
+        return;
+      }
+
+      const d = new Date();
+      const dataStr = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+
+      estado.historicoHoras.unshift({
+        id: 'reg_' + Date.now(),
+        materia: materia,
+        minutos: totalMin,
+        data: dataStr
+      });
+
+      salvarEstado();
+      fecharModalManualHoras();
+      atualizarVisualizacaoHoras();
+    }
+
     function atualizarVisualizacaoHoras() {
       const filtro = document.getElementById('filtroMateriaHoras').value;
       const labelFiltro = document.getElementById('labelFiltroNome');
@@ -1791,7 +2215,6 @@
       }
     }
 
-    /* MÓDULO QUESTÕES */
     function salvarRegistroQuestao() {
       const materia = document.getElementById('questoesSelectMateria').value;
       const acertos = parseInt(document.getElementById('inputQuestoesAcertos').value) || 0;
@@ -1868,9 +2291,16 @@
       }
     }
 
-    /* MÓDULO EDITAL VERTICALIZADO */
+    function toggleCollapseMateria(materia) {
+      if (!estado.collapseEdital) estado.collapseEdital = {};
+      estado.collapseEdital[materia] = !estado.collapseEdital[materia];
+      salvarEstado();
+      renderizarEditalVerticalizado();
+    }
+
     function renderizarEditalVerticalizado() {
       const container = document.getElementById('containerEditalVerticalizado');
+      const selectFiltroExclusivo = document.getElementById('filtroExclusivoMateriaEdital');
       container.innerHTML = '';
 
       if (estado.disciplinas.length === 0) {
@@ -1878,63 +2308,91 @@
         return;
       }
 
-      estado.disciplinas.forEach(disc => {
+      if (!estado.collapseEdital) estado.collapseEdital = {};
+      const materiaSelecionada = selectFiltroExclusivo ? selectFiltroExclusivo.value : (estado.materiaFiltroEdital || 'TODAS');
+      estado.materiaFiltroEdital = materiaSelecionada;
+      salvarEstado();
+
+      const disciplinasExibidas = (materiaSelecionada === 'TODAS') 
+        ? estado.disciplinas 
+        : estado.disciplinas.filter(d => d.nome === materiaSelecionada);
+
+      if (disciplinasExibidas.length === 0) {
+        container.innerHTML = '<div style="font-size:0.82rem; color:var(--text-muted); text-align:center; padding:16px;">Nenhum tópico encontrado para esta disciplina.</div>';
+        return;
+      }
+
+      disciplinasExibidas.forEach(disc => {
         const bloco = document.createElement('div');
         bloco.className = 'subject-block';
 
         const topicos = (estado.editalVerticalizado && estado.editalVerticalizado[disc.nome]) || [];
+        const isCollapsed = !!estado.collapseEdital[disc.nome];
 
         bloco.innerHTML = `
-          <div class="subject-header-ev">
+          <div class="subject-header-ev ${isCollapsed ? 'collapsed' : ''}" onclick="toggleCollapseMateria('${disc.nome}')">
             <span>${disc.nome}</span>
-            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">${topicos.length} tópicos</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">${topicos.length} tópicos</span>
+              <span class="seta-collapse">${isCollapsed ? '►' : '▼'}</span>
+            </div>
           </div>
-          <table class="ev-table">
-            <thead>
-              <tr>
-                <th style="width: 48%;">Assunto</th>
-                <th>Teo</th>
-                <th>1D</th>
-                <th>7D</th>
-                <th>15D</th>
-                <th>30D</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              ${topicos.map(t => `
+          <div class="subject-body-ev ${isCollapsed ? 'collapsed' : ''}">
+            <table class="ev-table">
+              <thead>
                 <tr>
-                  <td class="topic-cell">${t.titulo}</td>
-                  <td><input type="checkbox" ${t.t ? 'checked' : ''} onchange="toggleCheckEdital('${disc.nome}', '${t.id}', 't')"></td>
-                  <td><input type="checkbox" ${t.r1 ? 'checked' : ''} onchange="toggleCheckEdital('${disc.nome}', '${t.id}', 'r1')"></td>
-                  <td><input type="checkbox" ${t.r7 ? 'checked' : ''} onchange="toggleCheckEdital('${disc.nome}', '${t.id}', 'r7')"></td>
-                  <td><input type="checkbox" ${t.r15 ? 'checked' : ''} onchange="toggleCheckEdital('${disc.nome}', '${t.id}', 'r15')"></td>
-                  <td><input type="checkbox" ${t.r30 ? 'checked' : ''} onchange="toggleCheckEdital('${disc.nome}', '${t.id}', 'r30')"></td>
-                  <td><button class="btn-mini-acao" style="color:var(--danger);" onclick="removerTopicoEdital('${disc.nome}', '${t.id}')">&times;</button></td>
+                  <th style="width: 52%;">Assunto</th>
+                  <th>Teo</th>
+                  <th>1D</th>
+                  <th>7D</th>
+                  <th>15D</th>
+                  <th>30D</th>
+                  <th></th>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                ${topicos.map(t => `
+                  <tr>
+                    <td class="topic-cell">${t.titulo}</td>
+                    <td><input type="checkbox" ${t.t ? 'checked' : ''} onchange="toggleCheckEdital('${disc.nome}', '${t.id}', 't')"></td>
+                    <td><input type="checkbox" ${t.r1 ? 'checked' : ''} onchange="toggleCheckEdital('${disc.nome}', '${t.id}', 'r1')"></td>
+                    <td><input type="checkbox" ${t.r7 ? 'checked' : ''} onchange="toggleCheckEdital('${disc.nome}', '${t.id}', 'r7')"></td>
+                    <td><input type="checkbox" ${t.r15 ? 'checked' : ''} onchange="toggleCheckEdital('${disc.nome}', '${t.id}', 'r15')"></td>
+                    <td><input type="checkbox" ${t.r30 ? 'checked' : ''} onchange="toggleCheckEdital('${disc.nome}', '${t.id}', 'r30')"></td>
+                    <td><button class="btn-mini-acao" style="color:var(--danger);" onclick="removerTopicoEdital('${disc.nome}', '${t.id}')">&times;</button></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
         `;
 
         container.appendChild(bloco);
       });
     }
 
+    /* ALTERAÇÕES DE REVISÃO NUNCA AFETAM O TEMPO RESTANTE DO EDITAL */
     function toggleCheckEdital(materia, idTopico, campo) {
       const topico = estado.editalVerticalizado[materia].find(t => t.id === idTopico);
       if (topico) {
         topico[campo] = !topico[campo];
         salvarEstado();
+
+        // APENAS A TEORIA AFETA OS DIAS RESTANTES DO EDITAL
+        if (campo === 't') {
+          atualizarPainelPlanejamento();
+          atualizarCalculoEstimativaCiclo();
+        }
       }
     }
 
     function adicionarTopicoAoEdital() {
       const materia = document.getElementById('selectMateriaNovoTopico').value;
       const input = document.getElementById('inputNovoTopico');
-      const titulo = input.value.trim();
+      let titulo = input.value.trim();
 
       if (!titulo || !materia) return;
+      if (!titulo.endsWith('.')) titulo += '.';
 
       if (!estado.editalVerticalizado[materia]) {
         estado.editalVerticalizado[materia] = [];
@@ -1953,15 +2411,18 @@
       input.value = '';
       salvarEstado();
       renderizarEditalVerticalizado();
+      atualizarPainelPlanejamento();
+      atualizarCalculoEstimativaCiclo();
     }
 
     function removerTopicoEdital(materia, idTopico) {
       estado.editalVerticalizado[materia] = estado.editalVerticalizado[materia].filter(t => t.id !== idTopico);
       salvarEstado();
       renderizarEditalVerticalizado();
+      atualizarPainelPlanejamento();
+      atualizarCalculoEstimativaCiclo();
     }
 
-    /* LEITURA MULTIPÁGINAS DE PDF & IMAGENS */
     async function carregarArquivoUniversal(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -1993,7 +2454,7 @@
           const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
           let textoCompleto = '';
 
-          for (let i = 1; i <= Math.min(pdf.numPages, 10); i++) {
+          for (let i = 1; i <= Math.min(pdf.numPages, 12); i++) {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
             const pageText = textContent.items.map(item => item.str).join(' ');
@@ -2007,9 +2468,9 @@
             return;
           }
 
-          nomeLabel.innerText = `Lendo páginas escaneadas com OCR...`;
+          nomeLabel.innerText = `Lendo páginas com OCR...`;
           let textoOcrTotal = '';
-          const maxPaginasOcr = Math.min(pdf.numPages, 3);
+          const maxPaginasOcr = Math.min(pdf.numPages, 4);
 
           for (let i = 1; i <= maxPaginasOcr; i++) {
             const page = await pdf.getPage(i);
@@ -2043,18 +2504,33 @@
         estado.semanas = {};
         estado.indicesTopicos = {};
         estado.ponteiroGeral = 0;
+        estado.materiaFiltroEdital = 'TODAS';
 
         salvarEstado();
         renderizarPesos();
         atualizarSelectsMaterias();
         renderizarEditalVerticalizado();
-        renderizarGrade();
+        forcarSincronizacaoHoje();
+        renderizarVisaoGeral();
+        atualizarPainelPlanejamento();
+        atualizarCalculoEstimativaCiclo();
 
         document.getElementById('statusIA').style.display = 'block';
         document.getElementById('statusIA').style.color = '#ef4444';
         document.getElementById('statusIA').style.background = 'rgba(239, 68, 68, 0.1)';
         document.getElementById('statusIA').innerText = 'Edital e ciclo de matérias redefinidos com sucesso!';
       }
+    }
+
+    function sanitizarTopicoLinha(texto) {
+      let t = texto.replace(/[\|\_]{2,}/g, '').trim();
+      const pontoMatch = t.match(/^(.*?[.;])(\s+[A-Za-z0-9\-\s\.\/]{1,30})?$/);
+      if (pontoMatch && pontoMatch[1].length > 8) {
+        t = pontoMatch[1];
+      }
+      t = t.replace(/\s{2,}/g, ' ').trim();
+      if (!t.endsWith('.') && !t.endsWith(';')) t += '.';
+      return t;
     }
 
     async function processarEditalIA() {
@@ -2076,21 +2552,20 @@
       status.style.display = 'block';
       status.style.color = '#38bdf8';
       status.style.background = 'rgba(56, 189, 248, 0.1)';
-      status.innerText = '🤖 IA extraindo disciplinas e cada um dos assuntos numerados...';
+      status.innerText = '🤖 IA organizando estritamente o edital...';
       btn.disabled = true;
 
       let dadosExtraidos = [];
 
       if (apiKey) {
         try {
-          dadosExtraidos = await chamarGeminiAPIComTopicos(apiKey, texto);
+          dadosExtraidos = await chamarGeminiAPIUniversal(apiKey, texto);
         } catch (err) {
-          console.warn('Recorrendo ao extrator local especializado:', err);
-          dadosExtraidos = extrairDisciplinasETopicosLocalmente(texto);
+          dadosExtraidos = extrairDisciplinasETopicosUniversal(texto);
         }
       } else {
-        await new Promise(r => setTimeout(r, 600));
-        dadosExtraidos = extrairDisciplinasETopicosLocalmente(texto);
+        await new Promise(r => setTimeout(r, 400));
+        dadosExtraidos = extrairDisciplinasETopicosUniversal(texto);
       }
 
       if (dadosExtraidos && dadosExtraidos.length > 0) {
@@ -2100,15 +2575,17 @@
           estado.semanas = {};
           estado.indicesTopicos = {};
           estado.ponteiroGeral = 0;
+          estado.materiaFiltroEdital = 'TODAS';
         }
 
         estado.disciplinas = dadosExtraidos.map(d => ({ nome: d.nome, peso: d.peso || 3 }));
 
         dadosExtraidos.forEach(d => {
-          const listaTopicos = d.topicos && d.topicos.length > 0 ? d.topicos : obterTopicosPadrao(d.nome);
+          const listaTopicos = d.topicos && d.topicos.length > 0 ? d.topicos : ['1. Conteúdo programático.'];
+
           estado.editalVerticalizado[d.nome] = listaTopicos.map((tit, idx) => ({
             id: 'top_' + Math.random().toString(36).substr(2, 7) + '_' + idx,
-            titulo: tit,
+            titulo: sanitizarTopicoLinha(tit),
             t: false, r1: false, r7: false, r15: false, r30: false
           }));
         });
@@ -2118,42 +2595,41 @@
         renderizarPesos();
         atualizarSelectsMaterias();
         renderizarEditalVerticalizado();
-        gerarSemanaAutomatica(chaveSemanaAtiva);
-        renderizarGrade();
+        forcarSincronizacaoHoje();
+        renderizarVisaoGeral();
+        atualizarPainelPlanejamento();
+        atualizarCalculoEstimativaCiclo();
 
         status.style.color = '#10b981';
         status.style.background = 'rgba(16, 185, 129, 0.1)';
-        status.innerText = `✅ Sucesso! Novo edital carregado: ${dadosExtraidos.length} disciplinas organizadas do zero!`;
+        status.innerText = `✅ Sucesso! ${dadosExtraidos.length} matéria(s) cadastrada(s) e cronograma sincronizado!`;
       } else {
         status.style.color = '#ef4444';
         status.style.background = 'rgba(239, 68, 68, 0.1)';
-        status.innerText = 'Não foi possível extrair assuntos suficientes. Tente anexar novamente.';
+        status.innerText = 'Não foi possível extrair assuntos. Verifique o texto digitado.';
       }
 
       btn.disabled = false;
     }
 
-    async function chamarGeminiAPIComTopicos(key, editalTexto) {
+    async function chamarGeminiAPIUniversal(key, editalTexto) {
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
       
-      const prompt = `Você é um coordenador pedagógico de concursos públicos. Analise este edital verticalizado e extraia TODAS as disciplinas principais e a lista completa de tópicos/assuntos pertencentes a cada uma.
-Atribua a cada disciplina um peso de 2 a 5.
-Retorne EXCLUSIVAMENTE um array JSON puro (sem markdown de bloco):
+      const prompt = `Você é um analisador estrito de editais.
+Extraia EXCLUSIVAMENTE o conteúdo que o usuário digitou ou que consta no documento.
+NÃO invente matérias adicionais.
+Remova todos os ruídos de colunas e checklists de tabelas (Teoria, Questões, Erros, Acertos, % Acerto, 1º, 2º, 3º, ___/___%).
+Retorne EXCLUSIVAMENTE um array JSON puro:
 [
   {
-    "nome": "Língua Portuguesa",
+    "nome": "Nome da Matéria",
     "peso": 4,
-    "topicos": ["1. Compreensão e interpretação de textos", "2. Tipologias textuais", "3. Ortografia oficial", "4. Crase", "5. Sintaxe"]
-  },
-  {
-    "nome": "História de Pernambuco",
-    "peso": 3,
-    "topicos": ["1. Capitania de Pernambuco", "2. Invasão Holandesa", "3. Revolução de 1817"]
+    "topicos": ["1. Assunto A.", "2. Assunto B."]
   }
 ]
 
-Texto do edital:
-${editalTexto.slice(0, 16000)}`;
+Texto:
+${editalTexto.slice(0, 18000)}`;
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -2170,40 +2646,48 @@ ${editalTexto.slice(0, 16000)}`;
       return JSON.parse(respostaTexto);
     }
 
-    function extrairDisciplinasETopicosLocalmente(texto) {
-      const mapa = [
-        { padrao: /(l[ií]ngua portuguesa|portugu[eê]s|gram[aá]tica)/i, nome: 'Língua Portuguesa', peso: 4 },
-        { padrao: /(hist[oó]ria de pernambuco|hist[oó]ria)/i, nome: 'História de Pernambuco', peso: 3 },
-        { padrao: /(geografia de pernambuco|geografia)/i, nome: 'Geografia de Pernambuco', peso: 3 },
-        { padrao: /(direito constitucional|constitucional)/i, nome: 'Direito Constitucional', peso: 4 },
-        { padrao: /(direito penal|penal militar)/i, nome: 'Direito Penal', peso: 4 },
-        { padrao: /(processual penal|processo penal)/i, nome: 'Direito Processual Penal', peso: 4 },
-        { padrao: /(racioc[ií]nio l[oó]gico|rlm|matem[aá]tica)/i, nome: 'Raciocínio Lógico', peso: 3 },
-        { padrao: /(direitos humanos)/i, nome: 'Direitos Humanos', peso: 3 },
-        { padrao: /(legisla[cç][aã]o especial|leis especiais)/i, nome: 'Legislação Especial', peso: 4 },
-        { padrao: /(inform[aá]tica|tecnologia)/i, nome: 'Informática', peso: 3 }
-      ];
-
+    function extrairDisciplinasETopicosUniversal(texto) {
+      const linhas = texto.split(/[\r\n]+/).map(l => l.trim()).filter(l => l.length > 0);
       const resultado = [];
-      mapa.forEach(item => {
-        if (item.padrao.test(texto)) {
-          resultado.push({
-            nome: item.nome,
-            peso: item.peso,
-            topicos: obterTopicosPadrao(item.nome)
-          });
+      let mapaMaterias = {};
+      let materiaAtual = null;
+
+      const regexCabecalho = /^(L[IÍ]NGUA PORTUGUESA|PORTUGU[EÊ]S|HIST[OÓ]RIA[A-Z\s]*|GEOGRAFIA[A-Z\s]*|RACIOC[IÍ]NIO L[OÓ]GICO[A-Z\s]*|RLM[A-Z\s\-]*|INFORM[AÁ]TICA|DIREITO[A-Z\s]+|DIREITOS HUMANOS[A-Z\s]*|LEGISLA[CÇ][AÃ]O[A-Z\s]*|ADMINISTRA[CÇ][AÃ]O[A-Z\s]*|NO[CÇ][OÕ]ES DE [A-Z\s]+|CONTABILIDADE[A-Z\s]*)/i;
+      const regexTopicoNumerado = /^(\d+[\.\-\)]|\d+\.\d+[\.\-\)]|[a-z]\))\s*(.+)/i;
+
+      linhas.forEach(linha => {
+        if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSUNTO|TEORIA|TOTAL|ERROS|ACERTOS|1º|2º|3º)/i.test(linha)) return;
+
+        const matchDisc = linha.match(regexCabecalho);
+        if ((matchDisc && !regexTopicoNumerado.test(linha)) || (!regexTopicoNumerado.test(linha) && linha.length < 40 && !linha.includes('.'))) {
+          materiaAtual = linha.replace(/^[•\-\*]\s*/, '').trim();
+          materiaAtual = materiaAtual.toLowerCase().replace(/(^|\s)\S/g, l => l.toUpperCase());
+          if (!mapaMaterias[materiaAtual]) {
+            mapaMaterias[materiaAtual] = [];
+          }
+          return;
+        }
+
+        if (!materiaAtual) {
+          materiaAtual = 'Disciplina de Estudo';
+          mapaMaterias[materiaAtual] = [];
+        }
+
+        let itemTexto = sanitizarTopicoLinha(linha);
+        if (itemTexto.length > 3 && !mapaMaterias[materiaAtual].includes(itemTexto)) {
+          mapaMaterias[materiaAtual].push(itemTexto);
         }
       });
 
-      if (resultado.length < 2) {
-        return [
-          { nome: 'Língua Portuguesa', peso: 4, topicos: obterTopicosPadrao('Língua Portuguesa') },
-          { nome: 'História de Pernambuco', peso: 3, topicos: obterTopicosPadrao('História de Pernambuco') },
-          { nome: 'Direito Constitucional', peso: 4, topicos: obterTopicosPadrao('Direito Constitucional') },
-          { nome: 'Raciocínio Lógico', peso: 3, topicos: obterTopicosPadrao('Raciocínio Lógico') },
-          { nome: 'Direito Penal', peso: 4, topicos: obterTopicosPadrao('Direito Penal') }
-        ];
-      }
+      Object.keys(mapaMaterias).forEach(nome => {
+        if (mapaMaterias[nome].length > 0) {
+          resultado.push({
+            nome: nome,
+            peso: 3,
+            topicos: mapaMaterias[nome]
+          });
+        }
+      });
 
       return resultado;
     }

@@ -9,9 +9,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <!-- Firebase App & Firestore SDKs (v9 Compat) -->
+  <!-- Firebase SDKs compatíveis com Realtime Database -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <style>
     :root {
@@ -103,6 +103,21 @@
       display: none;
       width: 100%;
       min-height: 100vh;
+      flex-direction: row;
+    }
+
+    @media (max-width: 900px) {
+      #app-container {
+        flex-direction: column;
+      }
+      aside {
+        width: 100% !important;
+        border-right: none !important;
+        border-bottom: 1px solid var(--border);
+      }
+      main {
+        padding: 16px !important;
+      }
     }
 
     aside {
@@ -156,6 +171,29 @@
     }
     .sync-status.online { color: var(--success); }
     .sync-status.syncing { color: var(--warning); }
+
+    .sync-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .btn-sync-action {
+      flex: 1;
+      padding: 5px 6px;
+      font-size: 0.70rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-sync-action:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
 
     .tab-nav {
       display: grid;
@@ -304,7 +342,6 @@
       font-size: 0.85rem;
     }
 
-    /* Timer */
     .timer-card {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -509,7 +546,6 @@
       height: 15px;
     }
 
-    /* Aba de Revisões */
     .revisao-card-item {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -532,7 +568,6 @@
     .badge-revisao-tag.futura { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid #38bdf8; }
     .badge-revisao-tag.concluida { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
 
-    /* Estilo de Prioridades */
     .prio-item-card {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -917,7 +952,6 @@
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
 
-    /* Estilo PDF */
     #areaExportacaoPDF {
       display: none;
       background: #ffffff;
@@ -1067,6 +1101,11 @@
           Perfil: <span id="labelNomeUsuario" class="user-badge">-</span>
         </div>
         <div id="statusSincronizacaoNuvem" class="sync-status">☁️ Inicializando nuvem...</div>
+        
+        <div class="sync-actions">
+          <button class="btn-sync-action" title="Envia todos os dados locais deste aparelho para a nuvem" onclick="forcarUploadNuvem()">⬆️ Enviar para Nuvem</button>
+          <button class="btn-sync-action" title="Baixa todos os dados salvos na nuvem para este aparelho" onclick="forcarDownloadNuvem()">⬇️ Puxar da Nuvem</button>
+        </div>
       </div>
 
       <nav class="tab-nav">
@@ -1410,10 +1449,10 @@
   </div>
 
   <script>
-    // Configuração oficial do projeto Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyB8vR5ccnYQxc-QiASnxFeYvHpwFWPHXP8",
       authDomain: "estudo-inteligente-f2186.firebaseapp.com",
+      databaseURL: "https://estudo-inteligente-f2186-default-rtdb.firebaseio.com",
       projectId: "estudo-inteligente-f2186",
       storageBucket: "estudo-inteligente-f2186.firebasestorage.app",
       messagingSenderId: "959251021540",
@@ -1421,10 +1460,10 @@
       measurementId: "G-8JSMGLKMVJ"
     };
 
-    let db = null;
+    let rtdb = null;
     try {
       firebase.initializeApp(firebaseConfig);
-      db = firebase.firestore();
+      rtdb = firebase.database();
     } catch (e) {
       console.warn("Firebase não inicializado, fallback para local:", e);
     }
@@ -1444,8 +1483,8 @@
     let dataReferencia = new Date();
     let chaveSemanaAtiva = '';
     let estado = {};
-    let unsubscribeFirestore = null;
     let debounceSalvarNuvem = null;
+    let dbRefAtivo = null;
 
     function atualizarStatusNuvem(texto, statusClass) {
       const el = document.getElementById('statusSincronizacaoNuvem');
@@ -1711,7 +1750,7 @@
     }
 
     function sair() {
-      if (unsubscribeFirestore) unsubscribeFirestore();
+      if (dbRefAtivo) dbRefAtivo.off();
       sessionStorage.removeItem('usuario_ativo');
       location.reload();
     }
@@ -1724,9 +1763,50 @@
       iniciarSincronizacaoPerfil();
     }
 
-    /* SINCRONIZAÇÃO EM TEMPO REAL COM O CLOUD FIRESTORE */
+    /* FORÇAR UPLOAD PARA A NUVEM */
+    function forcarUploadNuvem() {
+      if (!usuarioAtivo || !rtdb) {
+        alert("Nuvem não conectada.");
+        return;
+      }
+      atualizarStatusNuvem("☁️ Enviando dados...", "syncing");
+      rtdb.ref("perfis/" + usuarioAtivo.toLowerCase()).set({
+        estado: estado,
+        atualizadoEm: new Date().toISOString()
+      }).then(() => {
+        atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
+        alert("Sucesso! Todos os dados deste aparelho foram salvos na nuvem.");
+      }).catch(err => {
+        alert("Erro ao enviar: " + err.message);
+      });
+    }
+
+    /* FORÇAR DOWNLOAD DA NUVEM */
+    function forcarDownloadNuvem() {
+      if (!usuarioAtivo || !rtdb) {
+        alert("Nuvem não conectada.");
+        return;
+      }
+      atualizarStatusNuvem("☁️ Baixando dados...", "syncing");
+      rtdb.ref("perfis/" + usuarioAtivo.toLowerCase()).once("value").then(snapshot => {
+        const dados = snapshot.val();
+        if (dados && dados.estado && dados.estado.disciplinas && dados.estado.disciplinas.length > 0) {
+          estado = dados.estado;
+          const chave = chaveArmazenamento(usuarioAtivo);
+          localStorage.setItem(chave, JSON.stringify(estado));
+          atualizarUIAposCarregar();
+          atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
+          alert("Sucesso! Os seus estudos foram baixados da nuvem e carregados na tela.");
+        } else {
+          alert("Nenhum dado encontrado na nuvem para este perfil ainda. Envie primeiro pelo PC.");
+        }
+      }).catch(err => {
+        alert("Erro ao puxar dados: " + err.message);
+      });
+    }
+
+    /* SINCRONIZAÇÃO EM TEMPO REAL */
     function iniciarSincronizacaoPerfil() {
-      // 1. Carrega primeiro da cache local para exibição instantânea
       const chave = chaveArmazenamento(usuarioAtivo);
       const salvos = localStorage.getItem(chave);
       if (salvos) {
@@ -1736,29 +1816,28 @@
       }
       atualizarUIAposCarregar();
 
-      // 2. Se o Firebase estiver ativo, ouve as alterações na nuvem em tempo real
-      if (db) {
+      if (rtdb) {
         atualizarStatusNuvem("☁️ Conectando à nuvem...", "syncing");
-        const docRef = db.collection("estudos_perfis").doc(usuarioAtivo.toLowerCase());
+        if (dbRefAtivo) dbRefAtivo.off();
 
-        if (unsubscribeFirestore) unsubscribeFirestore();
+        dbRefAtivo = rtdb.ref("perfis/" + usuarioAtivo.toLowerCase());
 
-        unsubscribeFirestore = docRef.onSnapshot(doc => {
-          if (doc.exists) {
-            const dadosNuvem = doc.data();
-            if (dadosNuvem && dadosNuvem.estado) {
-              estado = dadosNuvem.estado;
-              localStorage.setItem(chave, JSON.stringify(estado));
-              atualizarUIAposCarregar();
-              atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
-            }
-          } else {
-            // Se o documento ainda não existir na nuvem, faz o upload do estado inicial
-            docRef.set({ estado: estado, atualizadoEm: new Date().toISOString() });
+        dbRefAtivo.on("value", snapshot => {
+          const dadosNuvem = snapshot.val();
+          if (dadosNuvem && dadosNuvem.estado && dadosNuvem.estado.disciplinas && dadosNuvem.estado.disciplinas.length > 0) {
+            estado = dadosNuvem.estado;
+            localStorage.setItem(chave, JSON.stringify(estado));
+            atualizarUIAposCarregar();
             atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
+          } else if (estado.disciplinas && estado.disciplinas.length > 0) {
+            // Se o aparelho já tem matérias mas a nuvem está vazia, sobe os dados automaticamente
+            dbRefAtivo.set({ estado: estado, atualizadoEm: new Date().toISOString() });
+            atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
+          } else {
+            atualizarStatusNuvem("☁️ Nuvem pronta (sem matérias)", "online");
           }
         }, error => {
-          console.warn("Erro ao sincronizar com Firestore:", error);
+          console.warn("Erro ao ouvir Realtime Database:", error);
           atualizarStatusNuvem("⚠️ Modo Offline (Salvo localmente)", "");
         });
       } else {
@@ -1771,17 +1850,17 @@
       const chave = chaveArmazenamento(usuarioAtivo);
       localStorage.setItem(chave, JSON.stringify(estado));
 
-      if (db) {
+      if (rtdb && dbRefAtivo) {
         atualizarStatusNuvem("☁️ Enviando para a nuvem...", "syncing");
         clearTimeout(debounceSalvarNuvem);
         debounceSalvarNuvem = setTimeout(() => {
-          db.collection("estudos_perfis").doc(usuarioAtivo.toLowerCase()).set({
+          dbRefAtivo.set({
             estado: estado,
             atualizadoEm: new Date().toISOString()
-          }, { merge: true }).then(() => {
+          }).then(() => {
             atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
           }).catch(err => {
-            console.error("Falha ao salvar na nuvem:", err);
+            console.error("Falha ao salvar no Realtime DB:", err);
             atualizarStatusNuvem("⚠️ Erro ao sincronizar", "");
           });
         }, 500);

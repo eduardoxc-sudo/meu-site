@@ -492,21 +492,8 @@
       background: rgba(56, 189, 248, 0.22);
     }
 
-    .subject-header-ev .seta-collapse {
-      transition: transform 0.2s ease;
-      font-size: 0.75rem;
-    }
-
-    .subject-header-ev.collapsed .seta-collapse {
-      transform: rotate(-90deg);
-    }
-
     .subject-body-ev {
       display: block;
-    }
-
-    .subject-body-ev.collapsed {
-      display: none;
     }
 
     .ev-table {
@@ -1347,19 +1334,73 @@
     let diaMobileIndex = (new Date().getDay() + 6) % 7;
     let modoMobileApenasHoje = true;
 
+    // Contexto de áudio partilhado
+    let sharedAudioCtx = null;
+
+    function obterOuDesbloquearAudioContext() {
+      try {
+        if (!sharedAudioCtx) {
+          sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (sharedAudioCtx.state === 'suspended') {
+          sharedAudioCtx.resume();
+        }
+        return sharedAudioCtx;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // Desbloqueia o áudio ao primeiro clique em qualquer ponto da página
+    window.addEventListener('click', () => {
+      obterOuDesbloquearAudioContext();
+    }, { once: true });
+
+    function tocarSomVitoria() {
+      try {
+        const audioCtx = obterOuDesbloquearAudioContext();
+        if (!audioCtx) return;
+
+        // Sequência melódica triunfal (Dó, Mi, Sol, Dó agudo, Mi agudo)
+        const notas = [261.63, 329.63, 392.00, 523.25, 659.25];
+        const agora = audioCtx.currentTime;
+
+        notas.forEach((freq, index) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, agora + (index * 0.11));
+
+          gain.gain.setValueAtTime(0.001, agora + (index * 0.11));
+          gain.gain.exponentialRampToValueAtTime(0.25, agora + (index * 0.11) + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, agora + (index * 0.11) + 0.38);
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          osc.start(agora + (index * 0.11));
+          osc.stop(agora + (index * 0.11) + 0.40);
+        });
+      } catch (e) {
+        console.warn("Falha ao emitir áudio:", e);
+      }
+    }
+
+    function dispararCelebracao() {
+      tocarSomVitoria();
+      const overlay = document.getElementById('celebrationOverlay');
+      if (overlay) {
+        overlay.style.display = 'flex';
+        setTimeout(() => { overlay.style.display = 'none'; }, 2200);
+      }
+    }
+
     function atualizarStatusNuvem(texto, statusClass) {
       const el = document.getElementById('statusSincronizacaoNuvem');
       if (el) {
         el.innerText = texto;
         el.className = 'sync-status ' + (statusClass || '');
-      }
-    }
-
-    function dispararCelebracao() {
-      const overlay = document.getElementById('celebrationOverlay');
-      if (overlay) {
-        overlay.style.display = 'flex';
-        setTimeout(() => { overlay.style.display = 'none'; }, 2200);
       }
     }
 
@@ -1506,6 +1547,7 @@
     }
 
     function autenticar() {
+      obterOuDesbloquearAudioContext();
       const uInput = document.getElementById('usuario').value.trim();
       const sInput = document.getElementById('senha').value.trim();
       const erro = document.getElementById('msgErro');
@@ -1650,7 +1692,6 @@
             atualizarStatusNuvem("☁️ Nuvem pronta", "online");
           }
 
-          // Monitorização em tempo real sem ciclo recursivo
           dbRefAtivo.on("value", snap => {
             const val = snap.val();
             if (val && val.estado && !isReceivingFromCloud) {
@@ -1994,6 +2035,7 @@
     }
 
     function toggleConclusao(dia, idx, dataChaveReal) {
+      obterOuDesbloquearAudioContext();
       const slot = estado.semanas[chaveSemanaAtiva][dia][idx];
       slot.feito = !slot.feito;
 

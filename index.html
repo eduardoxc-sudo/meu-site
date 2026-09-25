@@ -9,6 +9,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+  <!-- Firebase App & Firestore SDKs (v9 Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
   <style>
     :root {
       --bg: #0b0f19;
@@ -141,6 +145,17 @@
       border-radius: 6px;
       font-weight: 600;
     }
+
+    .sync-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .sync-status.online { color: var(--success); }
+    .sync-status.syncing { color: var(--warning); }
 
     .tab-nav {
       display: grid;
@@ -1048,7 +1063,10 @@
     <aside>
       <div class="sidebar-header">
         <h2>📚 Estudo Inteligente</h2>
-        <div class="user-tag">Perfil: <span id="labelNomeUsuario" class="user-badge">-</span></div>
+        <div class="user-tag">
+          Perfil: <span id="labelNomeUsuario" class="user-badge">-</span>
+        </div>
+        <div id="statusSincronizacaoNuvem" class="sync-status">☁️ Inicializando nuvem...</div>
       </div>
 
       <nav class="tab-nav">
@@ -1332,6 +1350,11 @@
       </div>
 
       <div class="sidebar-footer">
+        <div style="display: flex; gap: 6px;">
+          <button class="btn btn-outline" style="flex: 1; font-size: 0.75rem;" onclick="exportarBackup()">📤 Fazer Backup</button>
+          <button class="btn btn-outline" style="flex: 1; font-size: 0.75rem;" onclick="document.getElementById('inputRestaurarBackup').click()">📥 Restaurar</button>
+        </div>
+        <input type="file" id="inputRestaurarBackup" accept=".json" style="display:none;" onchange="importarBackup(event)">
         <button class="btn btn-outline" style="width: 100%;" onclick="sair()">Terminar Sessão</button>
       </div>
     </aside>
@@ -1387,6 +1410,25 @@
   </div>
 
   <script>
+    // Configuração oficial do projeto Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyB8vR5ccnYQxc-QiASnxFeYvHpwFWPHXP8",
+      authDomain: "estudo-inteligente-f2186.firebaseapp.com",
+      projectId: "estudo-inteligente-f2186",
+      storageBucket: "estudo-inteligente-f2186.firebasestorage.app",
+      messagingSenderId: "959251021540",
+      appId: "1:959251021540:web:8efd2385e8d10a4664f6f1",
+      measurementId: "G-8JSMGLKMVJ"
+    };
+
+    let db = null;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+    } catch (e) {
+      console.warn("Firebase não inicializado, fallback para local:", e);
+    }
+
     const USUARIOS_PADRAO = {
       "Cristiano": "333435",
       "Kelvin": "bk9bk9@@",
@@ -1402,6 +1444,16 @@
     let dataReferencia = new Date();
     let chaveSemanaAtiva = '';
     let estado = {};
+    let unsubscribeFirestore = null;
+    let debounceSalvarNuvem = null;
+
+    function atualizarStatusNuvem(texto, statusClass) {
+      const el = document.getElementById('statusSincronizacaoNuvem');
+      if (el) {
+        el.innerText = texto;
+        el.className = 'sync-status ' + (statusClass || '');
+      }
+    }
 
     function tocarSomVitoria() {
       try {
@@ -1453,7 +1505,7 @@
         historicoHoras: [],
         historicoQuestoes: [],
         editalVerticalizado: {},
-        diasCompletosLog: [], // Armazena estritamente as datas reais cumpridas (ex: '2026-09-25')
+        diasCompletosLog: [],
         planejamento: { inicio: '', prova: '' },
         collapseEdital: {},
         materiaFiltroEdital: 'TODAS',
@@ -1638,7 +1690,7 @@
         estado.indicesTopicos = {};
         estado.ponteiroGeral = 0;
         estado.agendaRevisoes = [];
-        estado.diasCompletosLog = []; // Zera a presença real
+        estado.diasCompletosLog = [];
 
         salvarEstado();
         renderizarPesos();
@@ -1659,6 +1711,7 @@
     }
 
     function sair() {
+      if (unsubscribeFirestore) unsubscribeFirestore();
       sessionStorage.removeItem('usuario_ativo');
       location.reload();
     }
@@ -1668,18 +1721,111 @@
       document.getElementById('app-container').style.display = 'flex';
       document.getElementById('labelNomeUsuario').innerText = usuarioAtivo;
       document.getElementById('tituloCronograma').innerText = `Cronograma de ${usuarioAtivo}`;
-      carregarEstado();
+      iniciarSincronizacaoPerfil();
+    }
+
+    /* SINCRONIZAÇÃO EM TEMPO REAL COM O CLOUD FIRESTORE */
+    function iniciarSincronizacaoPerfil() {
+      // 1. Carrega primeiro da cache local para exibição instantânea
+      const chave = chaveArmazenamento(usuarioAtivo);
+      const salvos = localStorage.getItem(chave);
+      if (salvos) {
+        try { estado = JSON.parse(salvos); } catch (e) { estado = obterEstadoPadrao(); }
+      } else {
+        estado = obterEstadoPadrao();
+      }
+      atualizarUIAposCarregar();
+
+      // 2. Se o Firebase estiver ativo, ouve as alterações na nuvem em tempo real
+      if (db) {
+        atualizarStatusNuvem("☁️ Conectando à nuvem...", "syncing");
+        const docRef = db.collection("estudos_perfis").doc(usuarioAtivo.toLowerCase());
+
+        if (unsubscribeFirestore) unsubscribeFirestore();
+
+        unsubscribeFirestore = docRef.onSnapshot(doc => {
+          if (doc.exists) {
+            const dadosNuvem = doc.data();
+            if (dadosNuvem && dadosNuvem.estado) {
+              estado = dadosNuvem.estado;
+              localStorage.setItem(chave, JSON.stringify(estado));
+              atualizarUIAposCarregar();
+              atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
+            }
+          } else {
+            // Se o documento ainda não existir na nuvem, faz o upload do estado inicial
+            docRef.set({ estado: estado, atualizadoEm: new Date().toISOString() });
+            atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
+          }
+        }, error => {
+          console.warn("Erro ao sincronizar com Firestore:", error);
+          atualizarStatusNuvem("⚠️ Modo Offline (Salvo localmente)", "");
+        });
+      } else {
+        atualizarStatusNuvem("⚠️ Modo Offline (Salvo localmente)", "");
+      }
     }
 
     function salvarEstado() {
       if (!usuarioAtivo) return;
-      localStorage.setItem(chaveArmazenamento(usuarioAtivo), JSON.stringify(estado));
+      const chave = chaveArmazenamento(usuarioAtivo);
+      localStorage.setItem(chave, JSON.stringify(estado));
+
+      if (db) {
+        atualizarStatusNuvem("☁️ Enviando para a nuvem...", "syncing");
+        clearTimeout(debounceSalvarNuvem);
+        debounceSalvarNuvem = setTimeout(() => {
+          db.collection("estudos_perfis").doc(usuarioAtivo.toLowerCase()).set({
+            estado: estado,
+            atualizadoEm: new Date().toISOString()
+          }, { merge: true }).then(() => {
+            atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
+          }).catch(err => {
+            console.error("Falha ao salvar na nuvem:", err);
+            atualizarStatusNuvem("⚠️ Erro ao sincronizar", "");
+          });
+        }, 500);
+      }
     }
 
     function atualizarIndicadorPresenca() {
       if (!estado.diasCompletosLog) estado.diasCompletosLog = [];
       const totalDias = estado.diasCompletosLog.length;
       document.getElementById('txtOfensiva').innerText = `${totalDias} ${totalDias === 1 ? 'dia' : 'dias'}`;
+    }
+
+    function exportarBackup() {
+      const dados = JSON.stringify(estado, null, 2);
+      const blob = new Blob([dados], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_estudos_${usuarioAtivo.toLowerCase()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importarBackup(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importado = JSON.parse(e.target.result);
+          if (importado && importado.disciplinas) {
+            estado = importado;
+            salvarEstado();
+            atualizarUIAposCarregar();
+            alert('Backup restaurado com sucesso! Os seus dados foram carregados.');
+          } else {
+            alert('Ficheiro de backup inválido.');
+          }
+        } catch (err) {
+          alert('Erro ao ler o ficheiro de backup.');
+        }
+      };
+      reader.readAsText(file);
     }
 
     function agendarRevisaoIndividual(materia, idTopico, campoMarcado, deveAgendar) {
@@ -1990,16 +2136,7 @@
       });
     }
 
-    function carregarEstado() {
-      const chave = chaveArmazenamento(usuarioAtivo);
-      const salvos = localStorage.getItem(chave);
-
-      if (salvos) {
-        estado = JSON.parse(salvos);
-      } else {
-        estado = obterEstadoPadrao();
-      }
-
+    function atualizarUIAposCarregar() {
       if (!estado.historicoHoras) estado.historicoHoras = [];
       if (!estado.historicoQuestoes) estado.historicoQuestoes = [];
       if (!estado.editalVerticalizado) estado.editalVerticalizado = {};
@@ -2012,7 +2149,7 @@
       if (!estado.filtroRevisoesMateria) estado.filtroRevisoesMateria = 'TODAS';
       if (!estado.agendaRevisoes) estado.agendaRevisoes = [];
 
-      document.body.setAttribute('data-theme', estado.tema);
+      document.body.setAttribute('data-theme', estado.tema || 'dark');
       document.getElementById('btnTema').innerText = estado.tema === 'dark' ? '☀️ Claro' : '🌙 Escuro';
       document.getElementById('materiasPorDia').value = estado.porDia || 2;
 
@@ -2461,7 +2598,6 @@
       });
     }
 
-    /* CONDIÇÃO DIÁRIA REAL: REGISTA O DIA EXATO (YYYY-MM-DD) SE TODAS AS METAS ESTIVEREM CONCLUÍDAS */
     function toggleConclusao(dia, idx, dataChaveReal) {
       const slot = estado.semanas[chaveSemanaAtiva][dia][idx];
       slot.feito = !slot.feito;
@@ -2483,7 +2619,6 @@
         }
         dispararCelebracao();
       } else {
-        // Se desmarcou uma matéria desse dia, remove da contagem de presença
         estado.diasCompletosLog = estado.diasCompletosLog.filter(data => data !== dataChaveReal);
       }
 
@@ -2503,7 +2638,6 @@
         if (estado.semanas[chaveSemanaAtiva] && estado.semanas[chaveSemanaAtiva][d.nome]) {
           estado.semanas[chaveSemanaAtiva][d.nome].forEach(item => item.feito = false);
         }
-        // Remove os dias da semana limpa do registo de presença
         if (estado.diasCompletosLog) {
           estado.diasCompletosLog = estado.diasCompletosLog.filter(data => data !== dataChaveReal);
         }
@@ -3021,7 +3155,6 @@
       const dadosExtraidos = extrairDisciplinasETopicosUniversal(texto);
 
       if (dadosExtraidos && dadosExtraidos.length > 0) {
-        // Ao carregar um edital novo, zera todo o progresso antigo para começar do zero
         estado.disciplinas = [];
         estado.editalVerticalizado = {};
         estado.semanas = {};
@@ -3030,7 +3163,7 @@
         estado.materiaFiltroEdital = 'TODAS';
         estado.filtroPrioridadesMateria = 'TODAS';
         estado.agendaRevisoes = [];
-        estado.diasCompletosLog = []; // ZERA A PRESENÇA AUTOMATICAMENTE
+        estado.diasCompletosLog = [];
 
         estado.disciplinas = dadosExtraidos.map(d => ({ nome: d.nome, peso: d.peso || 3 }));
 

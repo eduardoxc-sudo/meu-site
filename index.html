@@ -1051,7 +1051,6 @@
         <div class="user-tag">Perfil: <span id="labelNomeUsuario" class="user-badge">-</span></div>
       </div>
 
-      <!-- Menu em Grade -->
       <nav class="tab-nav">
         <button class="tab-btn active" onclick="trocarAba('aba-ciclo', this)">Ciclo</button>
         <button class="tab-btn" onclick="trocarAba('aba-prioridades', this)">Prioridades</button>
@@ -1104,10 +1103,10 @@
         <div id="containerListaPrioridades" style="display: flex; flex-direction: column; gap: 8px;"></div>
       </div>
 
-      <!-- Aba 3: Nova Aba de Revisões com Datas de D1, D7, D15, D30 -->
+      <!-- Aba 3: Revisões com D1, D7, D15, D30 Individuais -->
       <div id="aba-revisoes" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Ao estudar um assunto (marcando Teoria ou Revisão no Edital), o sistema agenda as datas exatas (D1 amanhã, D7, D15 e D30):
+          Ao marcar uma revisão específica (1D, 7D, 15D ou 30D) no Edital, apenas essa revisão é agendada para a sua data correspondente:
         </p>
 
         <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
@@ -1208,7 +1207,7 @@
       <!-- Aba 7: Edital Verticalizado -->
       <div id="aba-edital-vert" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Acompanhe todos os assuntos cadastrados com <strong>Teoria</strong> e ciclo de <strong>Revisão Espaçada</strong> (1D, 7D, 15D, 30D).
+          Acompanhe todos os assuntos com <strong>Teoria</strong> e marque <strong>1D, 7D, 15D ou 30D</strong> para agendar somente a revisão desejada:
         </p>
 
         <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
@@ -1439,7 +1438,6 @@
       localStorage.setItem('usuarios_senhas_personalizadas', JSON.stringify(novasSenhas));
     }
 
-    // CHAVE DEFINITIVA ESTÁVEL QUE NUNCA RESETA OS DADOS
     function chaveArmazenamento(user) {
       return `cronograma_perfil_${user.toLowerCase()}`;
     }
@@ -1682,42 +1680,49 @@
       document.getElementById('txtOfensiva').innerText = `${totalDias} ${totalDias === 1 ? 'dia' : 'dias'}`;
     }
 
-    /* SISTEMA INTELIGENTE DE REVISÃO ESPAÇADA (D1, D7, D15, D30) */
-    function agendarRevisaoEspacada(materia, idTopico, tipoCicloOrigem) {
+    /* SISTEMA DE REVISÃO: AGENDA APENAS O CICLO QUE FOR MARCADO (TEORIA NÃO AGENDA NADA) */
+    function agendarRevisaoIndividual(materia, idTopico, campoMarcado, deveAgendar) {
       if (!estado.agendaRevisoes) estado.agendaRevisoes = [];
       const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === idTopico);
       if (!topico) return;
 
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
+      // Dicionário de configuração de dias
+      const mapaCiclos = {
+        'r1': { tipo: 'D1', dias: 1 },
+        'r7': { tipo: 'D7', dias: 7 },
+        'r15': { tipo: 'D15', dias: 15 },
+        'r30': { tipo: 'D30', dias: 30 }
+      };
 
-      // Define prazos a partir do estudo: D1 (+1d), D7 (+7d), D15 (+15d), D30 (+30d)
-      const regras = [
-        { tipo: 'D1', dias: 1, chaveCheck: 'r1' },
-        { tipo: 'D7', dias: 7, chaveCheck: 'r7' },
-        { tipo: 'D15', dias: 15, chaveCheck: 'r15' },
-        { tipo: 'D30', dias: 30, chaveCheck: 'r30' }
-      ];
+      const config = mapaCiclos[campoMarcado];
+      if (!config) return; // Se for 't' (teoria), não agenda nada
 
-      regras.forEach(regra => {
-        const jaExiste = estado.agendaRevisoes.find(r => r.idTopico === idTopico && r.tipo === regra.tipo);
+      if (deveAgendar) {
+        // Verifica se já existe para não duplicar
+        const jaExiste = estado.agendaRevisoes.find(r => r.idTopico === idTopico && r.chaveCheck === campoMarcado);
         if (!jaExiste) {
+          const hoje = new Date();
+          hoje.setHours(0, 0, 0, 0);
+
           const dataAlvo = new Date(hoje);
-          dataAlvo.setDate(hoje.getDate() + regra.dias);
+          dataAlvo.setDate(hoje.getDate() + config.dias);
 
           estado.agendaRevisoes.push({
             idRev: 'rev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
             materia: materia,
             idTopico: idTopico,
             assunto: topico.titulo,
-            tipo: regra.tipo,
-            chaveCheck: regra.chaveCheck,
+            tipo: config.tipo,
+            chaveCheck: campoMarcado,
             dataPrevista: formatarDataChave(dataAlvo),
             dataPrevistaFormatada: formatarDataBR(dataAlvo),
             concluida: false
           });
         }
-      });
+      } else {
+        // Se desmarcou no edital, remove da agenda de revisões
+        estado.agendaRevisoes = estado.agendaRevisoes.filter(r => !(r.idTopico === idTopico && r.chaveCheck === campoMarcado));
+      }
 
       salvarEstado();
       renderizarAbaRevisoes();
@@ -1733,7 +1738,7 @@
         container.innerHTML = `
           <div style="font-size:0.82rem; color:var(--text-muted); text-align:center; padding:20px; background:var(--card-bg); border-radius:10px; border:1px dashed var(--border);">
             Nenhuma revisão agendada no momento.<br>
-            Ao estudar um assunto e marcar <strong>Teoria</strong> ou <strong>1D/7D/15D/30D</strong> na aba Edital, as revisões com as datas exatas (D1 amanhã, D7, etc.) aparecerão aqui automaticamente.
+            Ao marcar <strong>1D, 7D, 15D ou 30D</strong> na aba Edital, apenas o ciclo escolhido aparecerá aqui com sua data exata.
           </div>
         `;
         return;
@@ -1752,7 +1757,6 @@
         revisoes = revisoes.filter(r => r.materia === filtroMat);
       }
 
-      // Ordena por data prevista
       revisoes.sort((a, b) => a.dataPrevista.localeCompare(b.dataPrevista));
 
       const pendentesHoje = revisoes.filter(r => !r.concluida && r.dataPrevista <= hojeChave);
@@ -1818,23 +1822,24 @@
       const item = (estado.agendaRevisoes || []).find(r => r.idRev === idRev);
       if (item) {
         item.concluida = !item.concluida;
-
-        // Atualiza checkbox correspondente no edital verticalizado (ex: r1, r7, r15, r30)
-        const topico = (estado.editalVerticalizado[item.materia] || []).find(t => t.id === item.idTopico);
-        if (topico && item.chaveCheck) {
-          topico[item.chaveCheck] = item.concluida;
-        }
-
         salvarEstado();
         renderizarAbaRevisoes();
-        renderizarEditalVerticalizado();
       }
     }
 
     function excluirItemRevisao(idRev) {
+      const item = (estado.agendaRevisoes || []).find(r => r.idRev === idRev);
+      if (item) {
+        // Desmarca também no edital verticalizado
+        const topico = (estado.editalVerticalizado[item.materia] || []).find(t => t.id === item.idTopico);
+        if (topico && item.chaveCheck) {
+          topico[item.chaveCheck] = false;
+        }
+      }
       estado.agendaRevisoes = (estado.agendaRevisoes || []).filter(r => r.idRev !== idRev);
       salvarEstado();
       renderizarAbaRevisoes();
+      renderizarEditalVerticalizado();
     }
 
     /* GERAÇÃO DO QUADRO GERAL COM TODAS AS DATAS EM PDF */
@@ -2468,9 +2473,6 @@
         const topicoObj = estado.editalVerticalizado[slot.materia].find(t => t.titulo === slot.assunto);
         if (topicoObj) {
           topicoObj.t = slot.feito;
-          if (slot.feito) {
-            agendarRevisaoEspacada(slot.materia, topicoObj.id, 'Teo');
-          }
         }
       }
 
@@ -2927,9 +2929,9 @@
       if (topico) {
         topico[campo] = !topico[campo];
 
-        // Se marcou (ou desmarcou) Teo ou alguma revisão, atualiza/agenda no módulo de revisões
-        if (topico[campo]) {
-          agendarRevisaoEspacada(materia, idTopico, campo);
+        // Se marcou 1D, 7D, 15D ou 30D, agenda APENAS esse ciclo. Teoria ('t') NÃO agenda nada.
+        if (campo !== 't') {
+          agendarRevisaoIndividual(materia, idTopico, campo, topico[campo]);
         }
 
         salvarEstado();
@@ -2972,9 +2974,14 @@
 
     function removerTopicoEdital(materia, idTopico) {
       estado.editalVerticalizado[materia] = estado.editalVerticalizado[materia].filter(t => t.id !== idTopico);
+      // Remove eventuais revisões desse tópico
+      if (estado.agendaRevisoes) {
+        estado.agendaRevisoes = estado.agendaRevisoes.filter(r => r.idTopico !== idTopico);
+      }
       salvarEstado();
       renderizarEditalVerticalizado();
       renderizarAbaPrioridades();
+      renderizarAbaRevisoes();
       atualizarPainelPlanejamento();
     }
 

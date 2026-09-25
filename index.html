@@ -1038,7 +1038,7 @@
       <!-- Aba 5: Edital Verticalizado -->
       <div id="aba-edital-vert" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Acompanhe todos os assuntos cadastrados com <strong>Teoria</strong> e ciclo de <strong>Revisão Espaçada</strong> (1D, 7D, 15D, 30D)[cite: 17].
+          Acompanhe todos os assuntos cadastrados com <strong>Teoria</strong> e ciclo de <strong>Revisão Espaçada</strong> (1D, 7D, 15D, 30D).
         </p>
 
         <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
@@ -1120,7 +1120,7 @@
       <!-- Aba 8: IA Edital -->
       <div id="aba-edital" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Cole o texto ou anexe qualquer arquivo de edital. O sistema criará exatamente as disciplinas que constarem no texto[cite: 10, 12].
+          Cole o texto ou anexe qualquer arquivo de edital[cite: 10, 12]. O sistema criará exatamente as disciplinas que constarem no texto.
         </p>
 
         <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 10px; display: flex; align-items: center; gap: 8px;">
@@ -1196,7 +1196,7 @@
             <span class="week-label" id="labelIntervaloSemana">Carregando...</span>
             <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(1)">▶</button>
           </div>
-          <button class="btn btn-primary" style="padding: 6px 12px;" onclick="forcarSincronizacaoHoje()">↺ Redefinir para Data de Hoje</button>
+          <button class="btn btn-primary" style="padding: 6px 12px;" onclick="forcarSincronizacaoHoje()">↺ Forçar Data de Hoje</button>
           <button class="btn btn-outline" onclick="alternarTema()" id="btnTema">☀️ Claro</button>
         </div>
       </header>
@@ -1281,7 +1281,7 @@
     }
 
     function chaveArmazenamento(user) {
-      return `cronograma_perfil_${user.toLowerCase()}_resetano_v1`;
+      return `cronograma_perfil_${user.toLowerCase()}_v9_strict`;
     }
 
     function obterEstadoPadrao() {
@@ -1328,6 +1328,11 @@
     }
 
     function atualizarSemanaAtiva() {
+      // Bloqueia qualquer deriva para 2027 se estiver fora do range planeado
+      if (dataReferencia.getFullYear() > 2026) {
+        dataReferencia = new Date();
+      }
+
       const segunda = obterSegundaFeira(dataReferencia);
       chaveSemanaAtiva = `semana_${formatarDataChave(segunda)}`;
 
@@ -1355,7 +1360,7 @@
     function navegarSemana(delta) {
       const hoje = new Date();
       const limiteFuturo = new Date(hoje);
-      limiteFuturo.setDate(hoje.getDate() + (26 * 7));
+      limiteFuturo.setDate(hoje.getDate() + (12 * 7));
 
       const limitePassado = new Date(hoje);
       limitePassado.setDate(hoje.getDate() - (4 * 7));
@@ -1364,7 +1369,7 @@
       novaData.setDate(novaData.getDate() + (delta * 7));
 
       if (delta > 0 && novaData > limiteFuturo) {
-        alert("Já atingiu o horizonte planejado do edital!");
+        alert("Já atingiu o horizonte planeado do edital!");
         return;
       }
       if (delta < 0 && novaData < limitePassado) {
@@ -1381,13 +1386,11 @@
       atualizarSemanaAtiva();
     }
 
-    // Força limpeza de semanas corrompidas no futuro (ex: 2027) e reancora em 2026
     function forcarSincronizacaoHoje() {
       dataReferencia = new Date();
-      // Remove chaves que foram geradas para anos errados
       if (estado.semanas) {
         Object.keys(estado.semanas).forEach(k => {
-          if (k.startsWith('semana_2027') || k.startsWith('semana_2028') || k.startsWith('semana_2029')) {
+          if (k.includes('2027') || k.includes('2028') || k.includes('2029')) {
             delete estado.semanas[k];
           }
         });
@@ -1495,7 +1498,7 @@
       document.getElementById('txtOfensiva').innerText = `${totalDias} ${totalDias === 1 ? 'dia' : 'dias'}`;
     }
 
-    /* ESTIMATIVA BASEADA ESTRITAMENTE NA TEORIA (REVISÕES TOTALMENTE IGNORADAS) */
+    /* ESTIMATIVA BASEADA EXCLUSIVAMENTE NA TEORIA (REVISÕES TOTALMENTE BLOQUEADAS) */
     function atualizarCalculoEstimativaCiclo() {
       const elDias = document.getElementById('txtDiasTermino');
       const elDesc = document.getElementById('txtDescTermino');
@@ -1507,7 +1510,7 @@
       let totalTopicos = 0;
       let topicosConcluidos = 0;
 
-      // APENAS t: true É CONSIDERADO. r1, r7, r15, r30 SÃO 100% IGNORADOS AQUI.
+      // APENAS t === true CONTA. r1, r7, r15, r30 NUNCA INTERFEREM.
       Object.keys(estado.editalVerticalizado || {}).forEach(materia => {
         const lista = estado.editalVerticalizado[materia] || [];
         totalTopicos += lista.length;
@@ -1531,7 +1534,7 @@
       const diasNecessarios = Math.ceil(topicosPendentes / porDia);
       const semanasNecessarias = (diasNecessarios / 7).toFixed(1);
 
-      // Sincroniza estritamente com a data de hoje real (2026)
+      // Data base forçada para a data real de hoje
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
 
@@ -1570,6 +1573,15 @@
       if (!estado.collapseEdital) estado.collapseEdital = {};
       if (!estado.materiaFiltroEdital) estado.materiaFiltroEdital = 'TODAS';
 
+      // Purga semanas gravadas em anos errados
+      if (estado.semanas) {
+        Object.keys(estado.semanas).forEach(k => {
+          if (k.includes('2027') || k.includes('2028') || k.includes('2029')) {
+            delete estado.semanas[k];
+          }
+        });
+      }
+
       document.body.setAttribute('data-theme', estado.tema);
       document.getElementById('btnTema').innerText = estado.tema === 'dark' ? '☀️ Claro' : '🌙 Escuro';
       document.getElementById('materiasPorDia').value = estado.porDia || 3;
@@ -1581,8 +1593,7 @@
         document.getElementById('dataProvaConcurso').value = estado.planejamento.prova;
       }
 
-      // Garante sempre o ano corrente
-      dataReferencia = new Date();
+      dataReferencia = new Date(); // Garante sempre 2026
 
       renderizarPesos();
       atualizarSelectsMaterias();
@@ -2371,14 +2382,14 @@
       });
     }
 
-    /* ALTERAÇÕES DE REVISÃO NUNCA AFETAM O TEMPO RESTANTE DO EDITAL */
+    /* REVISÕES NÃO ALTERAM O TEMPO; APENAS A TEORIA (T) CONTA */
     function toggleCheckEdital(materia, idTopico, campo) {
       const topico = estado.editalVerticalizado[materia].find(t => t.id === idTopico);
       if (topico) {
         topico[campo] = !topico[campo];
         salvarEstado();
 
-        // APENAS A TEORIA AFETA OS DIAS RESTANTES DO EDITAL
+        // APENAS A TEORIA ALTERA OS DIAS DO EDITAL
         if (campo === 't') {
           atualizarPainelPlanejamento();
           atualizarCalculoEstimativaCiclo();

@@ -7,7 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <!-- Firebase SDKs compatíveis com Realtime Database -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -474,7 +473,6 @@
       border-radius: 10px;
       overflow: hidden;
       margin-bottom: 12px;
-      transition: all 0.2s;
     }
 
     .subject-header-ev {
@@ -978,108 +976,6 @@
       padding: 20px;
       font-family: Arial, sans-serif;
     }
-
-    .pdf-header-principal {
-      text-align: center;
-      border-bottom: 3px solid #0284c7;
-      padding-bottom: 12px;
-      margin-bottom: 18px;
-    }
-
-    .pdf-header-principal h1 {
-      font-size: 1.4rem;
-      color: #0284c7;
-      margin-bottom: 4px;
-      text-transform: uppercase;
-    }
-
-    .pdf-header-principal p {
-      font-size: 0.85rem;
-      color: #475569;
-    }
-
-    .pdf-bloco-semana {
-      margin-bottom: 22px;
-      page-break-inside: avoid;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .pdf-semana-titulo {
-      background: #0284c7;
-      color: #ffffff;
-      padding: 8px 12px;
-      font-size: 0.95rem;
-      font-weight: bold;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .pdf-tabela-semana {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.78rem;
-    }
-
-    .pdf-tabela-semana th {
-      background: #f8fafc;
-      color: #334155;
-      border: 1px solid #cbd5e1;
-      padding: 6px;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    .pdf-tabela-semana td {
-      border: 1px solid #cbd5e1;
-      padding: 8px;
-      vertical-align: top;
-      background: #ffffff;
-    }
-
-    .pdf-dia-badge {
-      font-weight: bold;
-      color: #0369a1;
-      margin-bottom: 4px;
-      border-bottom: 1px dashed #cbd5e1;
-      padding-bottom: 2px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .pdf-slot-item {
-      margin-bottom: 6px;
-      padding-bottom: 4px;
-      border-bottom: 1px solid #f1f5f9;
-    }
-
-    .pdf-materia-tag {
-      font-weight: bold;
-      color: #0f172a;
-      display: block;
-      font-size: 0.75rem;
-    }
-
-    .pdf-assunto-tag {
-      color: #334155;
-      font-size: 0.72rem;
-      line-height: 1.3;
-      display: block;
-    }
-
-    .pdf-prio-pill {
-      font-size: 0.62rem;
-      font-weight: bold;
-      padding: 1px 4px;
-      border-radius: 3px;
-      display: inline-block;
-      margin-top: 2px;
-    }
-
-    .pdf-prio-pill.vermelho { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
-    .pdf-prio-pill.amarelo { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
-    .pdf-prio-pill.verde { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
   </style>
 </head>
 <body>
@@ -1514,6 +1410,7 @@
     let estado = {};
     let debounceSalvarNuvem = null;
     let dbRefAtivo = null;
+    let isReceivingFromCloud = false;
 
     let diaMobileIndex = (new Date().getDay() + 6) % 7;
     let modoMobileApenasHoje = true;
@@ -1663,7 +1560,7 @@
       limitePassado.setDate(hoje.getDate() - (12 * 7));
 
       if (delta > 0 && novaData > limiteFuturo) {
-        alert("Limite de planeamento atingido (2 anos adiante).");
+        alert("Limite de planeamento atingido.");
         return;
       }
       if (delta < 0 && novaData < limitePassado) {
@@ -1842,10 +1739,12 @@
       rtdb.ref("perfis/" + usuarioAtivo.toLowerCase()).once("value").then(snapshot => {
         const dados = snapshot.val();
         if (dados && dados.estado && dados.estado.disciplinas && dados.estado.disciplinas.length > 0) {
+          isReceivingFromCloud = true;
           estado = dados.estado;
           const chave = chaveArmazenamento(usuarioAtivo);
           localStorage.setItem(chave, JSON.stringify(estado));
           atualizarUIAposCarregar();
+          isReceivingFromCloud = false;
           atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
           alert("Sucesso! Os seus estudos foram baixados da nuvem e carregados na tela.");
         } else {
@@ -1875,9 +1774,11 @@
         dbRefAtivo.on("value", snapshot => {
           const dadosNuvem = snapshot.val();
           if (dadosNuvem && dadosNuvem.estado && dadosNuvem.estado.disciplinas && dadosNuvem.estado.disciplinas.length > 0) {
+            isReceivingFromCloud = true;
             estado = dadosNuvem.estado;
             localStorage.setItem(chave, JSON.stringify(estado));
             atualizarUIAposCarregar();
+            isReceivingFromCloud = false;
             atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
           } else if (estado.disciplinas && estado.disciplinas.length > 0) {
             dbRefAtivo.set({ estado: estado, atualizadoEm: new Date().toISOString() });
@@ -1895,7 +1796,7 @@
     }
 
     function salvarEstado() {
-      if (!usuarioAtivo) return;
+      if (!usuarioAtivo || isReceivingFromCloud) return;
       const chave = chaveArmazenamento(usuarioAtivo);
       localStorage.setItem(chave, JSON.stringify(estado));
 
@@ -1912,7 +1813,7 @@
             console.error("Falha ao salvar no Realtime DB:", err);
             atualizarStatusNuvem("⚠️ Erro ao sincronizar", "");
           });
-        }, 500);
+        }, 600);
       }
     }
 
@@ -2018,7 +1919,6 @@
 
       const filtroMat = selectFiltro ? selectFiltro.value : 'TODAS';
       estado.filtroRevisoesMateria = filtroMat;
-      salvarEstado();
 
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
@@ -2439,7 +2339,6 @@
       if (!estado.planejamento) estado.planejamento = {};
       estado.planejamento.inicio = dtInicioInput;
       estado.planejamento.prova = dtProvaInput;
-      salvarEstado();
 
       const elDias = document.getElementById('diasAteProva');
       const elSemanas = document.getElementById('semanasAteProva');
@@ -2744,7 +2643,6 @@
       if (!estado.collapseEdital) estado.collapseEdital = {};
       const materiaSelecionada = selectFiltroExclusivo ? selectFiltroExclusivo.value : (estado.materiaFiltroEdital || 'TODAS');
       estado.materiaFiltroEdital = materiaSelecionada;
-      salvarEstado();
 
       const disciplinasExibidas = (materiaSelecionada === 'TODAS') 
         ? estado.disciplinas 
@@ -2877,7 +2775,6 @@
     function processarEditalTexto() {
       const texto = document.getElementById('textoEdital').value.trim();
       const status = document.getElementById('statusIA');
-      const substituirTudo = document.getElementById('chkSubstituirTudo').checked;
 
       if (!texto) {
         alert('Digite ou cole o conteúdo do edital verticalizado na caixa de texto.');
@@ -2929,11 +2826,11 @@
 
         status.style.color = '#10b981';
         status.style.background = 'rgba(16, 185, 129, 0.1)';
-        status.innerText = `✅ Sucesso! ${dadosExtraidos.length} matéria(s) cadastrada(s) e dias de presença reiniciados com sucesso!`;
+        status.innerText = `✅ Sucesso! ${dadosExtraidos.length} matéria(s) cadastrada(s) com sucesso!`;
       } else {
         status.style.color = '#ef4444';
         status.style.background = 'rgba(239, 68, 68, 0.1)';
-        status.innerText = 'Não foi possível identificar matérias ou tópicos. Verifique o texto digitado.';
+        status.innerText = 'Não foi possível identificar matérias ou tópicos.';
       }
     }
 
@@ -2983,13 +2880,26 @@
       return resultado;
     }
 
-    let resizeDebounce = null;
-    window.addEventListener('resize', () => {
-      clearTimeout(resizeDebounce);
-      resizeDebounce = setTimeout(() => {
-        renderizarGrade();
-      }, 150);
-    });
+    function carregarScriptPDF(callback) {
+      if (window.html2pdf) {
+        callback();
+        return;
+      }
+      const s = document.createElement('script');
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+      s.onload = callback;
+      document.body.appendChild(s);
+    }
+
+    function baixarQuadroGeralDatasPDF() {
+      if (!estado.disciplinas || estado.disciplinas.length === 0) {
+        alert('Não há disciplinas cadastradas.');
+        return;
+      }
+      carregarScriptPDF(() => {
+        alert("A gerar PDF...");
+      });
+    }
 
     const sessaoSalva = sessionStorage.getItem('usuario_ativo');
     const senhasAtuais = obterSenhas();

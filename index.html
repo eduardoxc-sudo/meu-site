@@ -768,6 +768,26 @@
       text-align: center;
     }
 
+    /* Barra de navegação móvel de dia exclusivo */
+    .mobile-day-bar {
+      display: none;
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 16px;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    @media (max-width: 900px) {
+      .mobile-day-bar {
+        display: flex;
+      }
+    }
+
     .week-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -1420,6 +1440,16 @@
         </div>
       </header>
 
+      <!-- Barra de controlo móvel de dia exclusivo -->
+      <div class="mobile-day-bar" id="mobileDayBar">
+        <button class="btn-sync-action" style="max-width: 90px;" onclick="navegarDiaMobile(-1)">◀ Anterior</button>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+          <span id="labelNomeDiaMobile" style="font-size: 0.88rem; font-weight: 700; color: var(--primary);">Hoje</span>
+          <button class="btn-mini-acao" style="font-size: 0.72rem; color: var(--text-muted); text-decoration: underline;" onclick="alternarModoVisualizacaoMobile()" id="btnToggleModoMobile">Ver semana completa</button>
+        </div>
+        <button class="btn-sync-action" style="max-width: 90px;" onclick="navegarDiaMobile(1)">Seguinte ▶</button>
+      </div>
+
       <section class="week-grid" id="gradeSemana"></section>
     </main>
   </div>
@@ -1485,6 +1515,10 @@
     let estado = {};
     let debounceSalvarNuvem = null;
     let dbRefAtivo = null;
+
+    // Controlo de exibição de dia único em dispositivos móveis
+    let diaMobileIndex = (new Date().getDay() + 6) % 7; // 0 = Segunda, ..., 6 = Domingo
+    let modoMobileApenasHoje = true;
 
     function atualizarStatusNuvem(texto, statusClass) {
       const el = document.getElementById('statusSincronizacaoNuvem');
@@ -1649,12 +1683,37 @@
 
     function irParaHoje() {
       dataReferencia = new Date();
+      diaMobileIndex = (new Date().getDay() + 6) % 7;
       atualizarSemanaAtiva();
     }
 
     function forcarSincronizacaoHoje() {
       dataReferencia = new Date();
+      diaMobileIndex = (new Date().getDay() + 6) % 7;
       atualizarSemanaAtiva();
+    }
+
+    function navegarDiaMobile(delta) {
+      diaMobileIndex += delta;
+      if (diaMobileIndex < 0) {
+        diaMobileIndex = 6;
+        navegarSemana(-1);
+        return;
+      } else if (diaMobileIndex > 6) {
+        diaMobileIndex = 0;
+        navegarSemana(1);
+        return;
+      }
+      renderizarGrade();
+    }
+
+    function alternarModoVisualizacaoMobile() {
+      modoMobileApenasHoje = !modoMobileApenasHoje;
+      const btn = document.getElementById('btnToggleModoMobile');
+      if (btn) {
+        btn.innerText = modoMobileApenasHoje ? 'Ver semana completa' : 'Ver apenas hoje';
+      }
+      renderizarGrade();
     }
 
     function autenticar() {
@@ -1763,7 +1822,6 @@
       iniciarSincronizacaoPerfil();
     }
 
-    /* FORÇAR UPLOAD PARA A NUVEM */
     function forcarUploadNuvem() {
       if (!usuarioAtivo || !rtdb) {
         alert("Nuvem não conectada.");
@@ -1781,7 +1839,6 @@
       });
     }
 
-    /* FORÇAR DOWNLOAD DA NUVEM */
     function forcarDownloadNuvem() {
       if (!usuarioAtivo || !rtdb) {
         alert("Nuvem não conectada.");
@@ -1805,7 +1862,6 @@
       });
     }
 
-    /* SINCRONIZAÇÃO EM TEMPO REAL */
     function iniciarSincronizacaoPerfil() {
       const chave = chaveArmazenamento(usuarioAtivo);
       const salvos = localStorage.getItem(chave);
@@ -1830,7 +1886,6 @@
             atualizarUIAposCarregar();
             atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
           } else if (estado.disciplinas && estado.disciplinas.length > 0) {
-            // Se o aparelho já tem matérias mas a nuvem está vazia, sobe os dados automaticamente
             dbRefAtivo.set({ estado: estado, atualizadoEm: new Date().toISOString() });
             atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
           } else {
@@ -2122,14 +2177,13 @@
         dom.setDate(seg.getDate() + 6);
 
         const fSeg = `${String(seg.getDate()).padStart(2, '0')}/${String(seg.getMonth() + 1).padStart(2, '0')}`;
-        const fDom = `${String(dom.getDate()).padStart(2, '0')}/${String(dom.getMonth() + 1).padStart(2, '0')}`;
-        const ano = dom.getFullYear();
+        const fDom = `${String(dom.getDate()).padStart(2, '0')}/${String(domogo = dom.getFullYear())}`;
 
         htmlDoc += `
           <div class="pdf-bloco-semana">
             <div class="pdf-semana-titulo">
               <span>Semana ${s + 1} de ${totalSemanasGerar}</span>
-              <span>${fSeg} a ${fDom}/${ano}</span>
+              <span>${fSeg} a ${fDom}</span>
             </div>
             <table class="pdf-tabela-semana">
               <thead>
@@ -2613,7 +2667,22 @@
       const hoje = new Date();
       const hojeFormatado = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}`;
 
-      diasComData.forEach(d => {
+      // Deteta se o ecrã é móvel
+      const isMobile = window.innerWidth <= 900;
+
+      // Atualiza o texto do dia ativo na barra móvel
+      const diaMobileInfo = diasComData[diaMobileIndex];
+      const lblMobile = document.getElementById('labelNomeDiaMobile');
+      if (lblMobile && diaMobileInfo) {
+        lblMobile.innerText = `${diaMobileInfo.nome} (${diaMobileInfo.data})`;
+      }
+
+      diasComData.forEach((d, idxDia) => {
+        // Se estiver no telemóvel e o modo "apenas hoje/dia selecionado" estiver ativo, esconde os outros dias
+        if (isMobile && modoMobileApenasHoje && idxDia !== diaMobileIndex) {
+          return;
+        }
+
         const coluna = document.createElement('div');
         coluna.className = 'day-column';
 
@@ -3324,6 +3393,11 @@
 
       return resultado;
     }
+
+    // Monitorização de redimensionamento da janela para atualizar a grelha
+    window.addEventListener('resize', () => {
+      renderizarGrade();
+    });
 
     const sessaoSalva = sessionStorage.getItem('usuario_ativo');
     const senhasAtuais = obterSenhas();

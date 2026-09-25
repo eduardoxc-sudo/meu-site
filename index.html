@@ -145,12 +145,12 @@
 
     .tab-btn {
       flex: 1;
-      padding: 12px 6px;
+      padding: 12px 4px;
       background: transparent;
       border: none;
       border-bottom: 2px solid transparent;
       color: var(--text-muted);
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
@@ -480,10 +480,12 @@
         <div class="user-tag">Perfil: <span id="labelNomeUsuario" class="user-badge">-</span></div>
       </div>
 
+      <!-- Separadores -->
       <nav class="tab-nav">
         <button class="tab-btn active" onclick="trocarAba('aba-ciclo', this)">Ciclo</button>
         <button class="tab-btn" onclick="trocarAba('aba-pesos', this)">Pesos</button>
-        <button class="tab-btn" onclick="trocarAba('aba-timer', this)">Cronómetro</button>
+        <button class="tab-btn" onclick="trocarAba('aba-timer', this)">Timer</button>
+        <button class="tab-btn" onclick="trocarAba('aba-senha', this)">Segurança</button>
       </nav>
 
       <!-- Aba 1: Ciclo -->
@@ -533,6 +535,32 @@
         </div>
       </div>
 
+      <!-- Aba 4: Segurança / Alterar Palavra-passe -->
+      <div id="aba-senha" class="tab-content">
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+          Altere a palavra-passe da sua conta. A nova senha será solicitada no seu próximo acesso.
+        </p>
+
+        <div class="field">
+          <label for="senhaAtual">Palavra-passe Atual</label>
+          <input type="password" id="senhaAtual" placeholder="Digite a senha atual">
+        </div>
+
+        <div class="field">
+          <label for="novaSenha">Nova Palavra-passe</label>
+          <input type="password" id="novaSenha" placeholder="Digite a nova senha">
+        </div>
+
+        <div class="field">
+          <label for="confirmaNovaSenha">Confirmar Nova Palavra-passe</label>
+          <input type="password" id="confirmaNovaSenha" placeholder="Repita a nova senha">
+        </div>
+
+        <div id="msgStatusSenha" style="font-size: 0.82rem; display: none; padding: 8px; border-radius: 6px;"></div>
+
+        <button class="btn btn-primary" onclick="alterarPalavraPasse()">Guardar Nova Senha</button>
+      </div>
+
       <div class="sidebar-footer">
         <button class="btn btn-danger" style="width: 100%;" onclick="sair()">Terminar Sessão</button>
       </div>
@@ -561,8 +589,8 @@
   </div>
 
   <script>
-    // Usuários cadastrados no sistema
-    const USUARIOS_VALIDOS = {
+    // Palavras-passe padrão iniciais
+    const USUARIOS_PADRAO = {
       "Cristiano": "333435",
       "Kelvin": "bk9bk9@@",
       "Robson": "333435",
@@ -576,6 +604,15 @@
     let dataReferencia = new Date();
     let chaveSemanaAtiva = '';
     let estado = {};
+
+    function obterSenhas() {
+      const salvas = localStorage.getItem('usuarios_senhas_personalizadas');
+      return salvas ? JSON.parse(salvas) : { ...USUARIOS_PADRAO };
+    }
+
+    function salvarSenhas(novasSenhas) {
+      localStorage.setItem('usuarios_senhas_personalizadas', JSON.stringify(novasSenhas));
+    }
 
     function chaveArmazenamento(user) {
       return `cronograma_perfil_${user.toLowerCase()}`;
@@ -654,19 +691,64 @@
       const uInput = document.getElementById('usuario').value.trim();
       const sInput = document.getElementById('senha').value.trim();
       const erro = document.getElementById('msgErro');
+      const senhas = obterSenhas();
 
-      // Busca sem diferenciar maiúsculas/minúsculas no nome
-      const usuarioEncontrado = Object.keys(USUARIOS_VALIDOS).find(
+      const usuarioEncontrado = Object.keys(senhas).find(
         key => key.toLowerCase() === uInput.toLowerCase()
       );
 
-      if (usuarioEncontrado && USUARIOS_VALIDOS[usuarioEncontrado] === sInput) {
+      if (usuarioEncontrado && senhas[usuarioEncontrado] === sInput) {
         usuarioAtivo = usuarioEncontrado;
         sessionStorage.setItem('usuario_ativo', usuarioAtivo);
         abrirApp();
       } else {
         erro.style.display = 'block';
       }
+    }
+
+    function alterarPalavraPasse() {
+      const atual = document.getElementById('senhaAtual').value.trim();
+      const nova = document.getElementById('novaSenha').value.trim();
+      const confirma = document.getElementById('confirmaNovaSenha').value.trim();
+      const msg = document.getElementById('msgStatusSenha');
+
+      const senhas = obterSenhas();
+
+      if (senhas[usuarioAtivo] !== atual) {
+        msg.style.display = 'block';
+        msg.style.color = '#ef4444';
+        msg.style.background = 'rgba(239, 68, 68, 0.1)';
+        msg.innerText = 'A palavra-passe atual está incorreta!';
+        return;
+      }
+
+      if (!nova || nova.length < 4) {
+        msg.style.display = 'block';
+        msg.style.color = '#ef4444';
+        msg.style.background = 'rgba(239, 68, 68, 0.1)';
+        msg.innerText = 'A nova senha deve ter pelo menos 4 caracteres!';
+        return;
+      }
+
+      if (nova !== confirma) {
+        msg.style.display = 'block';
+        msg.style.color = '#ef4444';
+        msg.style.background = 'rgba(239, 68, 68, 0.1)';
+        msg.innerText = 'As novas senhas não coincidem!';
+        return;
+      }
+
+      senhas[usuarioAtivo] = nova;
+      salvarSenhas(senhas);
+
+      msg.style.display = 'block';
+      msg.style.color = '#10b981';
+      msg.style.background = 'rgba(16, 185, 129, 0.1)';
+      msg.innerText = 'Palavra-passe alterada com sucesso!';
+
+      document.getElementById('senhaAtual').value = '';
+      document.getElementById('novaSenha').value = '';
+      document.getElementById('confirmaNovaSenha').value = '';
     }
 
     function sair() {
@@ -710,6 +792,9 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(abaId).classList.add('active');
       botao.classList.add('active');
+
+      const msg = document.getElementById('msgStatusSenha');
+      if (msg) msg.style.display = 'none';
     }
 
     function alternarTema() {
@@ -973,7 +1058,8 @@
     }
 
     const sessaoSalva = sessionStorage.getItem('usuario_ativo');
-    if (sessaoSalva && USUARIOS_VALIDOS[sessaoSalva]) {
+    const senhasAtuais = obterSenhas();
+    if (sessaoSalva && senhasAtuais[sessaoSalva]) {
       usuarioAtivo = sessaoSalva;
       abrirApp();
     }

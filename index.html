@@ -1204,8 +1204,11 @@
         <div id="statusIA" style="display: none; font-size: 0.8rem; padding: 8px; border-radius: 6px;"></div>
       </div>
 
-      <!-- Aba 11: Segurança -->
+      <!-- Aba 11: Segurança (Sincronizada na Nuvem) -->
       <div id="aba-senha" class="tab-content">
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+          A nova palavra-passe é guardada na nuvem e passa a valer para todos os seus dispositivos (PC e telemóvel).
+        </p>
         <div class="field">
           <label for="senhaAtual">Palavra-passe Atual</label>
           <input type="password" id="senhaAtual">
@@ -1334,7 +1337,6 @@
     let diaMobileIndex = (new Date().getDay() + 6) % 7;
     let modoMobileApenasHoje = true;
 
-    // Contexto de áudio partilhado
     let sharedAudioCtx = null;
 
     function obterOuDesbloquearAudioContext() {
@@ -1351,7 +1353,6 @@
       }
     }
 
-    // Desbloqueia o áudio ao primeiro clique em qualquer ponto da página
     window.addEventListener('click', () => {
       obterOuDesbloquearAudioContext();
     }, { once: true });
@@ -1361,7 +1362,6 @@
         const audioCtx = obterOuDesbloquearAudioContext();
         if (!audioCtx) return;
 
-        // Sequência melódica triunfal (Dó, Mi, Sol, Dó agudo, Mi agudo)
         const notas = [261.63, 329.63, 392.00, 523.25, 659.25];
         const agora = audioCtx.currentTime;
 
@@ -1404,13 +1404,14 @@
       }
     }
 
-    function obterSenhas() {
+    /* OBTENÇÃO DE SENHAS SINCRONIZADA COM A NUVEM */
+    function obterSenhasLocais() {
       const salvas = localStorage.getItem('usuarios_senhas_personalizadas');
       return salvas ? JSON.parse(salvas) : { ...USUARIOS_PADRAO };
     }
 
-    function salvarSenhas(novasSenhas) {
-      localStorage.setItem('usuarios_senhas_personalizadas', JSON.stringify(novasSenhas));
+    function salvarSenhasLocais(senhas) {
+      localStorage.setItem('usuarios_senhas_personalizadas', JSON.stringify(senhas));
     }
 
     function chaveArmazenamento(user) {
@@ -1546,51 +1547,106 @@
       renderizarGrade();
     }
 
+    /* AUTENTICAÇÃO COM VERIFICAÇÃO ONLINE NA NUVEM */
     function autenticar() {
       obterOuDesbloquearAudioContext();
       const uInput = document.getElementById('usuario').value.trim();
       const sInput = document.getElementById('senha').value.trim();
       const erro = document.getElementById('msgErro');
-      const senhas = obterSenhas();
 
-      const usuarioEncontrado = Object.keys(senhas).find(
+      const senhasLocais = obterSenhasLocais();
+
+      const usuarioEncontrado = Object.keys(senhasLocais).find(
         key => key.toLowerCase() === uInput.toLowerCase()
       );
 
-      if (usuarioEncontrado && senhas[usuarioEncontrado] === sInput) {
-        usuarioAtivo = usuarioEncontrado;
-        sessionStorage.setItem('usuario_ativo', usuarioAtivo);
-        abrirApp();
-      } else {
+      if (!usuarioEncontrado) {
         if (erro) erro.style.display = 'block';
+        return;
+      }
+
+      // Se o Firebase estiver ativo, valida primeiro contra a nuvem
+      if (rtdb) {
+        rtdb.ref("senhas/" + usuarioEncontrado.toLowerCase()).once("value").then(snap => {
+          const senhaNuvem = snap.val();
+          const senhaFinal = senhaNuvem ? senhaNuvem : senhasLocais[usuarioEncontrado];
+
+          if (senhaFinal === sInput) {
+            senhasLocais[usuarioEncontrado] = senhaFinal;
+            salvarSenhasLocais(senhasLocais);
+            usuarioAtivo = usuarioEncontrado;
+            sessionStorage.setItem('usuario_ativo', usuarioAtivo);
+            abrirApp();
+          } else {
+            if (erro) erro.style.display = 'block';
+          }
+        }).catch(() => {
+          // Fallback local se estiver offline
+          if (senhasLocais[usuarioEncontrado] === sInput) {
+            usuarioAtivo = usuarioEncontrado;
+            sessionStorage.setItem('usuario_ativo', usuarioAtivo);
+            abrirApp();
+          } else {
+            if (erro) erro.style.display = 'block';
+          }
+        });
+      } else {
+        if (senhasLocais[usuarioEncontrado] === sInput) {
+          usuarioAtivo = usuarioEncontrado;
+          sessionStorage.setItem('usuario_ativo', usuarioAtivo);
+          abrirApp();
+        } else {
+          if (erro) erro.style.display = 'block';
+        }
       }
     }
 
+    /* ALTERAR PALAVRA-PASSE GRAVANDO DIRETO NO FIREBASE */
     function alterarPalavraPasse() {
       const atual = document.getElementById('senhaAtual').value.trim();
       const nova = document.getElementById('novaSenha').value.trim();
       const confirma = document.getElementById('confirmaNovaSenha').value.trim();
       const msg = document.getElementById('msgStatusSenha');
-      const senhas = obterSenhas();
+      const senhas = obterSenhasLocais();
 
       if (senhas[usuarioAtivo] !== atual) {
         msg.style.display = 'block';
         msg.style.color = '#ef4444';
-        msg.innerText = 'Palavra-passe atual incorreta!';
+        msg.style.background = 'rgba(239, 68, 68, 0.1)';
+        msg.innerText = 'A palavra-passe atual está incorreta!';
         return;
       }
       if (!nova || nova.length < 4 || nova !== confirma) {
         msg.style.display = 'block';
         msg.style.color = '#ef4444';
-        msg.innerText = 'Nova senha inválida ou não coincide!';
+        msg.style.background = 'rgba(239, 68, 68, 0.1)';
+        msg.innerText = 'Nova senha inválida ou confirmação diferente!';
         return;
       }
 
       senhas[usuarioAtivo] = nova;
-      salvarSenhas(senhas);
-      msg.style.display = 'block';
-      msg.style.color = '#10b981';
-      msg.innerText = 'Senha alterada com sucesso!';
+      salvarSenhasLocais(senhas);
+
+      if (rtdb) {
+        rtdb.ref("senhas/" + usuarioAtivo.toLowerCase()).set(nova).then(() => {
+          msg.style.display = 'block';
+          msg.style.color = '#10b981';
+          msg.style.background = 'rgba(16, 185, 129, 0.1)';
+          msg.innerText = 'Palavra-passe alterada na nuvem! Já vale para o telemóvel e PC.';
+        }).catch(err => {
+          msg.style.display = 'block';
+          msg.style.color = '#10b981';
+          msg.innerText = 'Salva localmente (Nuvem indisponível no momento).';
+        });
+      } else {
+        msg.style.display = 'block';
+        msg.style.color = '#10b981';
+        msg.innerText = 'Senha alterada localmente!';
+      }
+
+      document.getElementById('senhaAtual').value = '';
+      document.getElementById('novaSenha').value = '';
+      document.getElementById('confirmaNovaSenha').value = '';
     }
 
     function redefinirEditalManualmente() {
@@ -2628,8 +2684,7 @@
     });
 
     const sessaoSalva = sessionStorage.getItem('usuario_ativo');
-    const senhasAtuais = obterSenhas();
-    if (sessaoSalva && senhasAtuais[sessaoSalva]) {
+    if (sessaoSalva) {
       usuarioAtivo = sessaoSalva;
       abrirApp();
     }

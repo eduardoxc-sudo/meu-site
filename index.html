@@ -7,12 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
     :root {
@@ -27,6 +22,7 @@
       --accent: #6366f1;
       --success: #10b981;
       --danger: #ef4444;
+      --warning: #f59e0b;
       --card-bg: #131c2e;
     }
 
@@ -42,6 +38,7 @@
       --accent: #4f46e5;
       --success: #059669;
       --danger: #dc2626;
+      --warning: #d97706;
       --card-bg: #ffffff;
     }
 
@@ -272,55 +269,6 @@
       background: rgba(239, 68, 68, 0.1);
     }
 
-    .card-estimativa-edital {
-      background: rgba(56, 189, 248, 0.06);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      border-radius: 10px;
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .card-estimativa-edital .tit {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--primary);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .card-estimativa-edital .desc {
-      font-size: 0.78rem;
-      color: var(--text);
-      line-height: 1.4;
-    }
-
-    .card-estimativa-edital .badge-dias {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #38bdf8;
-    }
-
-    .pdf-upload-box {
-      border: 2px dashed var(--primary);
-      border-radius: 10px;
-      padding: 14px;
-      text-align: center;
-      background: rgba(56, 189, 248, 0.04);
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    .pdf-upload-box:hover {
-      background: rgba(56, 189, 248, 0.08);
-    }
-
-    .pdf-upload-box input[type="file"] {
-      display: none;
-    }
-
     .item-list {
       list-style: none;
       display: flex;
@@ -341,7 +289,6 @@
       font-size: 0.85rem;
     }
 
-    /* Módulo Timer */
     .timer-card {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -544,6 +491,77 @@
       accent-color: var(--primary);
       width: 15px;
       height: 15px;
+    }
+
+    .prio-item-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .prio-topic-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    .prio-options {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-prio-tag {
+      flex: 1;
+      padding: 5px 4px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .btn-prio-tag.vermelho { color: var(--danger); border-color: rgba(239, 68, 68, 0.4); }
+    .btn-prio-tag.amarelo { color: var(--warning); border-color: rgba(245, 158, 11, 0.4); }
+    .btn-prio-tag.verde { color: var(--success); border-color: rgba(16, 185, 129, 0.4); }
+
+    .btn-prio-tag.active.vermelho { background: rgba(239, 68, 68, 0.2); border-color: var(--danger); }
+    .btn-prio-tag.active.amarelo { background: rgba(245, 158, 11, 0.2); border-color: var(--warning); }
+    .btn-prio-tag.active.verde { background: rgba(16, 185, 129, 0.2); border-color: var(--success); }
+
+    .tag-badge-prioridade {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      width: fit-content;
+      margin-top: 2px;
+    }
+
+    .tag-badge-prioridade.vermelho {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+
+    .tag-badge-prioridade.amarelo {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+
+    .tag-badge-prioridade.verde {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
     }
 
     .agenda-card {
@@ -763,6 +781,7 @@
       display: flex;
       align-items: flex-start;
       gap: 10px;
+      font-size: 0.88rem;
       flex: 1;
       min-width: 0;
     }
@@ -823,17 +842,6 @@
       gap: 8px;
     }
 
-    .ai-badge {
-      display: inline-block;
-      font-size: 0.68rem;
-      background: linear-gradient(135deg, #a855f7, #6366f1);
-      color: #fff;
-      padding: 1px 5px;
-      border-radius: 4px;
-      font-weight: 700;
-      margin-left: 2px;
-    }
-
     #celebrationOverlay {
       position: fixed;
       inset: 0;
@@ -868,11 +876,123 @@
     @keyframes popIn { to { transform: scale(1); } }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+
+    /* ESTILO DO PDF: QUADRO GERAL COM TODAS AS DATAS */
+    #areaExportacaoPDF {
+      display: none;
+      background: #ffffff;
+      color: #0f172a;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+
+    .pdf-header-principal {
+      text-align: center;
+      border-bottom: 3px solid #0284c7;
+      padding-bottom: 12px;
+      margin-bottom: 18px;
+    }
+
+    .pdf-header-principal h1 {
+      font-size: 1.4rem;
+      color: #0284c7;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .pdf-header-principal p {
+      font-size: 0.85rem;
+      color: #475569;
+    }
+
+    .pdf-bloco-semana {
+      margin-bottom: 22px;
+      page-break-inside: avoid;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .pdf-semana-titulo {
+      background: #0284c7;
+      color: #ffffff;
+      padding: 8px 12px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .pdf-tabela-semana {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+
+    .pdf-tabela-semana th {
+      background: #f8fafc;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      padding: 6px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .pdf-tabela-semana td {
+      border: 1px solid #cbd5e1;
+      padding: 8px;
+      vertical-align: top;
+      background: #ffffff;
+    }
+
+    .pdf-dia-badge {
+      font-weight: bold;
+      color: #0369a1;
+      margin-bottom: 4px;
+      border-bottom: 1px dashed #cbd5e1;
+      padding-bottom: 2px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .pdf-slot-item {
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .pdf-materia-tag {
+      font-weight: bold;
+      color: #0f172a;
+      display: block;
+      font-size: 0.75rem;
+    }
+
+    .pdf-assunto-tag {
+      color: #334155;
+      font-size: 0.72rem;
+      line-height: 1.3;
+      display: block;
+    }
+
+    .pdf-prio-pill {
+      font-size: 0.62rem;
+      font-weight: bold;
+      padding: 1px 4px;
+      border-radius: 3px;
+      display: inline-block;
+      margin-top: 2px;
+    }
+
+    .pdf-prio-pill.vermelho { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+    .pdf-prio-pill.amarelo { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .pdf-prio-pill.verde { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
   </style>
 </head>
 <body>
 
-  <!-- Modal de Celebração -->
+  <div id="areaExportacaoPDF"></div>
+
   <div id="celebrationOverlay">
     <div class="celebration-card">
       <div class="celebration-icon">🏆✨</div>
@@ -882,7 +1002,6 @@
     </div>
   </div>
 
-  <!-- Tela de Login -->
   <div id="tela-login">
     <div class="login-box">
       <h2>Plano de Estudos</h2>
@@ -909,13 +1028,14 @@
 
       <nav class="tab-nav">
         <button class="tab-btn active" onclick="trocarAba('aba-ciclo', this)">Ciclo</button>
+        <button class="tab-btn" onclick="trocarAba('aba-prioridades', this)">Prioridades</button>
         <button class="tab-btn" onclick="trocarAba('aba-pesos', this)">Pesos</button>
         <button class="tab-btn" onclick="trocarAba('aba-timer', this)">Timer</button>
         <button class="tab-btn" onclick="trocarAba('aba-questoes', this)">Questões</button>
         <button class="tab-btn" onclick="trocarAba('aba-edital-vert', this)">Edital</button>
         <button class="tab-btn" onclick="trocarAba('aba-visao-geral', this)">Visão Geral</button>
         <button class="tab-btn" onclick="trocarAba('aba-planejamento', this)">Planeamento</button>
-        <button class="tab-btn" onclick="trocarAba('aba-edital', this)">IA <span class="ai-badge">IA</span></button>
+        <button class="tab-btn" onclick="trocarAba('aba-edital', this)">Edital TXT</button>
         <button class="tab-btn" onclick="trocarAba('aba-senha', this)">Segurança</button>
       </nav>
 
@@ -931,24 +1051,33 @@
 
         <div class="field">
           <label>Disciplinas por dia</label>
-          <input type="number" id="materiasPorDia" min="1" max="8" value="3" oninput="atualizarCalculoEstimativaCiclo()">
-        </div>
-
-        <div class="card-estimativa-edital" id="painelEstimativaCiclo">
-          <div class="tit">
-            <span>⏱️ Previsão de Término do Edital</span>
-            <span class="badge-dias" id="txtDiasTermino">--</span>
-          </div>
-          <div class="desc" id="txtDescTermino">
-            Carregue ou adicione matérias para calcular a estimativa.
-          </div>
+          <input type="number" id="materiasPorDia" min="1" max="8" value="2" oninput="salvarDisciplinasPorDia()">
         </div>
 
         <button class="btn btn-primary" onclick="gerarCronogramaSemanaAtual()">⚡ Regenerar Esta Semana</button>
         <button class="btn btn-outline" onclick="reiniciarProgressoSemana()">Limpar Checkboxes da Semana</button>
       </div>
 
-      <!-- Aba 2: Pesos -->
+      <!-- Aba 2: Prioridades -->
+      <div id="aba-prioridades" class="tab-content">
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+          Escolha os assuntos que irá estudar primeiro. O ciclo dará preferência total aos tópicos marcados com <strong>🔴 Prioridade</strong>:
+        </p>
+        <div style="display: flex; gap: 6px; font-size: 0.72rem; font-weight: 700; margin-bottom: 4px;">
+          <span style="color: var(--danger);">🔴 Prioridade</span>
+          <span style="color: var(--warning);">🟡 Urgência</span>
+          <span style="color: var(--success);">🟢 Pouco urgente</span>
+        </div>
+
+        <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+          <label style="color: var(--primary);">Filtrar Matéria para Classificar</label>
+          <select id="filtroMateriaPrioridades" onchange="renderizarAbaPrioridades()"></select>
+        </div>
+
+        <div id="containerListaPrioridades" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      </div>
+
+      <!-- Aba 3: Pesos -->
       <div id="aba-pesos" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
           Disciplinas com pesos mais elevados surgem com maior frequência no ciclo semanal.
@@ -956,7 +1085,7 @@
         <ul class="item-list" id="listaPesos"></ul>
       </div>
 
-      <!-- Aba 3: Timer & Horas Líquidas -->
+      <!-- Aba 4: Timer & Horas Líquidas -->
       <div id="aba-timer" class="tab-content">
         <div class="field">
           <label>Disciplina em Foco</label>
@@ -991,7 +1120,7 @@
         <div class="historico-container" id="listaHistoricoHoras"></div>
       </div>
 
-      <!-- Aba 4: Registo de Questões -->
+      <!-- Aba 5: Registo de Questões -->
       <div id="aba-questoes" class="tab-content">
         <div class="metric-grid-questoes">
           <div class="metric-box">
@@ -1035,7 +1164,7 @@
         <div class="historico-container" id="listaHistoricoQuestoes"></div>
       </div>
 
-      <!-- Aba 5: Edital Verticalizado -->
+      <!-- Aba 6: Edital Verticalizado -->
       <div id="aba-edital-vert" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
           Acompanhe todos os assuntos cadastrados com <strong>Teoria</strong> e ciclo de <strong>Revisão Espaçada</strong> (1D, 7D, 15D, 30D).
@@ -1058,13 +1187,17 @@
         <div id="containerEditalVerticalizado" style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;"></div>
       </div>
 
-      <!-- Aba 6: Visão Geral -->
+      <!-- Aba 7: Visão Geral -->
       <div id="aba-visao-geral" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Navegue pelas semanas do cronograma para verificar a distribuição dos assuntos do edital ao longo do tempo.
+          Navegue pelas semanas ou baixe o <strong>Quadro Geral com Todas as Datas Reais</strong> em PDF até zerar todos os 73 tópicos.
         </p>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;">
+        <button class="btn btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); padding: 12px; font-size: 0.88rem; width: 100%;" onclick="baixarQuadroGeralDatasPDF()">
+          📥 Baixar Quadro Geral do Cronograma (PDF)
+        </button>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; margin-top: 6px;">
           <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(-1)">◀ Anterior</button>
           <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
             <span style="font-size: 0.82rem; font-weight: 700; color: var(--primary);" id="labelSemanaVisaoGeral">Carregando...</span>
@@ -1076,7 +1209,7 @@
         <div id="containerVisaoGeral" style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;"></div>
       </div>
 
-      <!-- Aba 7: Planeamento -->
+      <!-- Aba 8: Planeamento -->
       <div id="aba-planejamento" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
           Defina as datas da sua jornada para calcular o ritmo necessário e fechar o edital antes da prova.
@@ -1117,10 +1250,10 @@
         </div>
       </div>
 
-      <!-- Aba 8: IA Edital -->
+      <!-- Aba 9: Edital TXT -->
       <div id="aba-edital" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Cole o texto ou anexe qualquer arquivo de edital[cite: 10, 12]. O sistema criará exatamente as disciplinas que constarem no texto.
+          Digite ou cole o conteúdo programático do edital verticalizado. O sistema criará exatamente as disciplinas que constarem no texto.
         </p>
 
         <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 10px; display: flex; align-items: center; gap: 8px;">
@@ -1130,32 +1263,17 @@
           </label>
         </div>
 
-        <label>Anexar Arquivo do Edital (.PDF, .PNG, .JPG)</label>
-        <div class="pdf-upload-box" onclick="document.getElementById('pdfInput').click()">
-          <span style="font-size: 1.5rem;">📄 🖼️</span>
-          <div style="font-size: 0.82rem; font-weight: 600; color: var(--primary); margin-top: 4px;">
-            Clique para selecionar PDF ou Imagem
-          </div>
-          <div id="nomeArquivoPdf" style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">Nenhum ficheiro selecionado</div>
-          <input type="file" id="pdfInput" accept="application/pdf, image/png, image/jpeg, image/jpg" onchange="carregarArquivoUniversal(event)">
-        </div>
-
         <div class="field">
-          <label for="geminiApiKey">Google Gemini API Key (Opcional)</label>
-          <input type="password" id="geminiApiKey" placeholder="Cole sua chave AIzaSy... (se tiver)">
+          <label for="textoEdital">Texto do Edital Verticalizado (Cole aqui)</label>
+          <textarea id="textoEdital" rows="9" placeholder="Exemplo:&#10;Língua Portuguesa&#10;1. Compreensão e interpretação de textos.&#10;2. Tipologias e gêneros textuais.&#10;3. Ortografia oficial.&#10;&#10;Raciocínio Lógico&#10;1. Estruturas lógicas e proposições.&#10;2. Conectivos lógicos."></textarea>
         </div>
 
-        <div class="field">
-          <label for="textoEdital">Texto do Conteúdo Programático</label>
-          <textarea id="textoEdital" rows="5" placeholder="Exemplo:&#10;Língua Portuguesa&#10;1. Compreensão de textos&#10;2. Intertextualidade&#10;3. Figuras de linguagem"></textarea>
-        </div>
-
-        <button class="btn btn-primary" id="btnAnalisarEdital" onclick="processarEditalIA()">✨ Analisar & Montar Estudos</button>
+        <button class="btn btn-primary" id="btnAnalisarEdital" onclick="processarEditalTexto()">✨ Carregar Edital Digitado</button>
         <button class="btn btn-danger" style="margin-top: 2px;" onclick="redefinirEditalManualmente()">🗑️ Redefinir / Limpar Edital Atual</button>
         <div id="statusIA" style="display: none; font-size: 0.8rem; padding: 8px; border-radius: 6px;"></div>
       </div>
 
-      <!-- Aba 9: Segurança -->
+      <!-- Aba 10: Segurança -->
       <div id="aba-senha" class="tab-content">
         <div class="field">
           <label for="senhaAtual">Palavra-passe Atual</label>
@@ -1183,7 +1301,7 @@
       <header class="main-header">
         <div>
           <h1 id="tituloCronograma">Cronograma Semanal</h1>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Ciclo de matérias com assuntos específicos vinculados ao edital verticalizado</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Ciclo de matérias com priorização inteligente de tópicos</p>
         </div>
 
         <div class="controls-top">
@@ -1281,14 +1399,14 @@
     }
 
     function chaveArmazenamento(user) {
-      return `cronograma_perfil_${user.toLowerCase()}_v9_strict`;
+      return `cronograma_perfil_${user.toLowerCase()}_quadrogdf_v2`;
     }
 
     function obterEstadoPadrao() {
       return {
         tema: 'dark',
         disciplinas: [],
-        porDia: 3,
+        porDia: 2,
         ponteiroGeral: 0,
         indicesTopicos: {},
         semanas: {},
@@ -1298,7 +1416,8 @@
         diasCompletosLog: [],
         planejamento: { inicio: '', prova: '' },
         collapseEdital: {},
-        materiaFiltroEdital: 'TODAS'
+        materiaFiltroEdital: 'TODAS',
+        filtroPrioridadesMateria: 'TODAS'
       };
     }
 
@@ -1327,8 +1446,16 @@
       });
     }
 
+    function salvarDisciplinasPorDia() {
+      const input = document.getElementById('materiasPorDia');
+      let val = parseInt(input.value) || 2;
+      if (val < 1) val = 1;
+      if (val > 8) val = 8;
+      estado.porDia = val;
+      salvarEstado();
+    }
+
     function atualizarSemanaAtiva() {
-      // Bloqueia qualquer deriva para 2027 se estiver fora do range planeado
       if (dataReferencia.getFullYear() > 2026) {
         dataReferencia = new Date();
       }
@@ -1354,13 +1481,12 @@
 
       renderizarGrade();
       renderizarVisaoGeral();
-      atualizarCalculoEstimativaCiclo();
     }
 
     function navegarSemana(delta) {
       const hoje = new Date();
       const limiteFuturo = new Date(hoje);
-      limiteFuturo.setDate(hoje.getDate() + (12 * 7));
+      limiteFuturo.setDate(hoje.getDate() + (24 * 7));
 
       const limitePassado = new Date(hoje);
       limitePassado.setDate(hoje.getDate() - (4 * 7));
@@ -1369,7 +1495,7 @@
       novaData.setDate(novaData.getDate() + (delta * 7));
 
       if (delta > 0 && novaData > limiteFuturo) {
-        alert("Já atingiu o horizonte planeado do edital!");
+        alert("Já atingiu o horizonte planejado!");
         return;
       }
       if (delta < 0 && novaData < limitePassado) {
@@ -1498,60 +1624,163 @@
       document.getElementById('txtOfensiva').innerText = `${totalDias} ${totalDias === 1 ? 'dia' : 'dias'}`;
     }
 
-    /* ESTIMATIVA BASEADA EXCLUSIVAMENTE NA TEORIA (REVISÕES TOTALMENTE BLOQUEADAS) */
-    function atualizarCalculoEstimativaCiclo() {
-      const elDias = document.getElementById('txtDiasTermino');
-      const elDesc = document.getElementById('txtDescTermino');
-      const inputPorDia = document.getElementById('materiasPorDia');
+    /* GERAÇÃO DO QUADRO GERAL COM TODAS AS DATAS EM PDF (SEM CORTES OU REPETIÇÃO PRECOCE) */
+    function baixarQuadroGeralDatasPDF() {
+      if (!estado.disciplinas || estado.disciplinas.length === 0) {
+        alert('Não há disciplinas ou tópicos cadastrados para gerar o cronograma!');
+        return;
+      }
 
-      let porDia = parseInt(inputPorDia.value);
-      if (isNaN(porDia) || porDia < 1) porDia = 1;
-
-      let totalTopicos = 0;
-      let topicosConcluidos = 0;
-
-      // APENAS t === true CONTA. r1, r7, r15, r30 NUNCA INTERFEREM.
-      Object.keys(estado.editalVerticalizado || {}).forEach(materia => {
-        const lista = estado.editalVerticalizado[materia] || [];
-        totalTopicos += lista.length;
-        topicosConcluidos += lista.filter(t => t.t === true).length;
+      // Lê o valor rigoroso de disciplinas por dia (ex: 2)
+      const porDia = parseInt(estado.porDia) || parseInt(document.getElementById('materiasPorDia').value) || 2;
+      
+      // Coleta TODOS os tópicos do edital organizado por prioridade
+      let listaTodosTopicos = [];
+      estado.disciplinas.forEach(d => {
+        const topicos = estado.editalVerticalizado[d.nome] || [];
+        topicos.forEach(t => {
+          listaTodosTopicos.push({
+            materia: d.nome,
+            assunto: t.titulo,
+            prioridade: t.prioridade || 'amarelo',
+            t: t.t
+          });
+        });
       });
 
-      const topicosPendentes = Math.max(0, totalTopicos - topicosConcluidos);
-
+      const totalTopicos = listaTodosTopicos.length;
       if (totalTopicos === 0) {
-        elDias.innerText = '--';
-        elDesc.innerText = 'Nenhum edital cadastrado no momento. Anexe o edital na aba IA.';
+        alert('O edital verticalizado não possui tópicos cadastrados.');
         return;
       }
 
-      if (topicosPendentes === 0) {
-        elDias.innerText = '100% Concluído';
-        elDesc.innerText = 'Parabéns! Você já finalizou a teoria de todos os tópicos deste edital.';
-        return;
-      }
+      // Ordena a lista mestra estritamente: 1º Vermelho, 2º Amarelo, 3º Verde
+      const pesoPrio = { 'vermelho': 1, 'amarelo': 2, 'verde': 3 };
+      listaTodosTopicos.sort((a, b) => pesoPrio[a.prioridade] - pesoPrio[b.prioridade]);
 
-      const diasNecessarios = Math.ceil(topicosPendentes / porDia);
-      const semanasNecessarias = (diasNecessarios / 7).toFixed(1);
+      // Calcula o número EXATO de dias e semanas corridas necessárias (ex: 73 / 2 = 37 dias = 6 semanas)
+      const diasNecessarios = Math.ceil(totalTopicos / porDia);
+      const totalSemanasGerar = Math.ceil(diasNecessarios / 7);
 
-      // Data base forçada para a data real de hoje
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
+      // Data de partida fixada na Segunda-feira corrente real (21/09/2026)
+      let dataSegunda = obterSegundaFeira(new Date());
 
-      const dataFim = new Date(hoje);
-      dataFim.setDate(hoje.getDate() + diasNecessarios);
+      // Data final calculada
+      const dataFimCalculada = new Date(dataSegunda);
+      dataFimCalculada.setDate(dataSegunda.getDate() + (totalSemanasGerar * 7) - 1);
+      const fInicioGeral = `${String(dataSegunda.getDate()).padStart(2, '0')}/${String(dataSegunda.getMonth() + 1).padStart(2, '0')}/${dataSegunda.getFullYear()}`;
+      const fFimGeral = `${String(dataFimCalculada.getDate()).padStart(2, '0')}/${String(dataFimCalculada.getMonth() + 1).padStart(2, '0')}/${dataFimCalculada.getFullYear()}`;
 
-      const diaFormatado = String(dataFim.getDate()).padStart(2, '0');
-      const mesFormatado = String(dataFim.getMonth() + 1).padStart(2, '0');
-      const anoFormatado = dataFim.getFullYear();
-
-      elDias.innerText = `${diasNecessarios} ${diasNecessarios === 1 ? 'dia' : 'dias'}`;
-      elDesc.innerHTML = `
-        Com <strong>${porDia} matérias/dia</strong>, fechará os <strong>${topicosPendentes} tópicos restantes</strong> em cerca de <strong>${semanasNecessarias} semanas</strong> (previsão: <strong>${diaFormatado}/${mesFormatado}/${anoFormatado}</strong>).
+      let htmlDoc = `
+        <div class="pdf-header-principal">
+          <h1>Quadro Geral do Cronograma de Estudos</h1>
+          <p>Candidato: <strong>${usuarioAtivo}</strong> • Ritmo: <strong>${porDia} matérias/dia</strong> • Total de Tópicos do Edital: <strong>${totalTopicos}</strong></p>
+          <p style="font-size:0.8rem; color:#0369a1; font-weight:bold; margin-top:3px;">Período Completo: ${fInicioGeral} a ${fFimGeral} (${totalSemanasGerar} semanas para cobrir 100% do edital)</p>
+        </div>
       `;
 
-      estado.porDia = porDia;
-      salvarEstado();
+      let ponteiroTopico = 0;
+
+      for (let s = 0; s < totalSemanasGerar; s++) {
+        const seg = new Date(dataSegunda);
+        seg.setDate(dataSegunda.getDate() + (s * 7));
+
+        const dom = new Date(seg);
+        dom.setDate(seg.getDate() + 6);
+
+        const fSeg = `${String(seg.getDate()).padStart(2, '0')}/${String(seg.getMonth() + 1).padStart(2, '0')}`;
+        const fDom = `${String(dom.getDate()).padStart(2, '0')}/${String(dom.getMonth() + 1).padStart(2, '0')}`;
+        const ano = dom.getFullYear();
+
+        htmlDoc += `
+          <div class="pdf-bloco-semana">
+            <div class="pdf-semana-titulo">
+              <span>Semana ${s + 1} de ${totalSemanasGerar}</span>
+              <span>${fSeg} a ${fDom}/${ano}</span>
+            </div>
+            <table class="pdf-tabela-semana">
+              <thead>
+                <tr>
+                  <th style="width: 14.2%;">Segunda</th>
+                  <th style="width: 14.2%;">Terça</th>
+                  <th style="width: 14.2%;">Quarta</th>
+                  <th style="width: 14.2%;">Quinta</th>
+                  <th style="width: 14.2%;">Sexta</th>
+                  <th style="width: 14.2%;">Sábado</th>
+                  <th style="width: 14.2%;">Domingo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+        `;
+
+        DIAS.forEach((dia, diaIdx) => {
+          const dataDia = new Date(seg);
+          dataDia.setDate(seg.getDate() + diaIdx);
+          const dataDiaStr = `${String(dataDia.getDate()).padStart(2, '0')}/${String(dataDia.getMonth() + 1).padStart(2, '0')}`;
+
+          htmlDoc += `<td><div class="pdf-dia-badge"><span>${dataDiaStr}</span></div>`;
+
+          for (let k = 0; k < porDia; k++) {
+            if (ponteiroTopico < totalTopicos) {
+              const item = listaTodosTopicos[ponteiroTopico];
+              const pClass = item.prioridade || 'amarelo';
+              const pTexto = pClass === 'vermelho' ? 'Prioridade' : (pClass === 'verde' ? 'Pouco urgente' : 'Urgência');
+              const check = item.t ? '[x]' : '[ ]';
+
+              htmlDoc += `
+                <div class="pdf-slot-item">
+                  <span class="pdf-materia-tag">${check} ${item.materia}</span>
+                  <span class="pdf-assunto-tag">${item.assunto}</span>
+                  <span class="pdf-prio-pill ${pClass}">${pTexto}</span>
+                </div>
+              `;
+              ponteiroTopico++;
+            } else {
+              // Quando os 73 tópicos forem 100% esgotados
+              htmlDoc += `
+                <div class="pdf-slot-item" style="border-bottom:none; opacity:0.6;">
+                  <span class="pdf-materia-tag" style="color:#059669;">[x] Edital Finalizado</span>
+                  <span class="pdf-assunto-tag">Revisão geral & simulados</span>
+                </div>
+              `;
+            }
+          }
+
+          htmlDoc += `</td>`;
+        });
+
+        htmlDoc += `
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      htmlDoc += `
+        <div style="margin-top: 14px; padding: 10px 14px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; display: flex; justify-content: space-between;">
+          <span><strong>Total de Tópicos Agendados:</strong> ${totalTopicos} de ${totalTopicos} (100% contemplados)</span>
+          <span><strong>Semanas Necessárias:</strong> ${totalSemanasGerar} semanas completas</span>
+        </div>
+      `;
+
+      const areaPDF = document.getElementById('areaExportacaoPDF');
+      areaPDF.innerHTML = htmlDoc;
+      areaPDF.style.display = 'block';
+
+      const opt = {
+        margin: [8, 8, 8, 8],
+        filename: `Quadro_Geral_Cronograma_${usuarioAtivo}_Completo.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
+
+      html2pdf().set(opt).from(areaPDF).save().then(() => {
+        areaPDF.style.display = 'none';
+        areaPDF.innerHTML = '';
+      });
     }
 
     function carregarEstado() {
@@ -1572,8 +1801,8 @@
       if (!estado.planejamento) estado.planejamento = { inicio: '', prova: '' };
       if (!estado.collapseEdital) estado.collapseEdital = {};
       if (!estado.materiaFiltroEdital) estado.materiaFiltroEdital = 'TODAS';
+      if (!estado.filtroPrioridadesMateria) estado.filtroPrioridadesMateria = 'TODAS';
 
-      // Purga semanas gravadas em anos errados
       if (estado.semanas) {
         Object.keys(estado.semanas).forEach(k => {
           if (k.includes('2027') || k.includes('2028') || k.includes('2029')) {
@@ -1584,7 +1813,7 @@
 
       document.body.setAttribute('data-theme', estado.tema);
       document.getElementById('btnTema').innerText = estado.tema === 'dark' ? '☀️ Claro' : '🌙 Escuro';
-      document.getElementById('materiasPorDia').value = estado.porDia || 3;
+      document.getElementById('materiasPorDia').value = estado.porDia || 2;
 
       if (estado.planejamento.inicio) {
         document.getElementById('dataInicioEstudos').value = estado.planejamento.inicio;
@@ -1593,16 +1822,16 @@
         document.getElementById('dataProvaConcurso').value = estado.planejamento.prova;
       }
 
-      dataReferencia = new Date(); // Garante sempre 2026
+      dataReferencia = new Date();
 
       renderizarPesos();
       atualizarSelectsMaterias();
       atualizarVisualizacaoHoras();
       atualizarVisualizacaoQuestoes();
       renderizarEditalVerticalizado();
+      renderizarAbaPrioridades();
       atualizarPainelPlanejamento();
       atualizarIndicadorPresenca();
-      atualizarCalculoEstimativaCiclo();
       atualizarSemanaAtiva();
     }
 
@@ -1616,10 +1845,10 @@
         renderizarVisaoGeral();
       } else if (abaId === 'aba-planejamento') {
         atualizarPainelPlanejamento();
-      } else if (abaId === 'aba-ciclo') {
-        atualizarCalculoEstimativaCiclo();
       } else if (abaId === 'aba-edital-vert') {
         renderizarEditalVerticalizado();
+      } else if (abaId === 'aba-prioridades') {
+        renderizarAbaPrioridades();
       }
     }
 
@@ -1638,10 +1867,12 @@
       const selectTopicoMateria = document.getElementById('selectMateriaNovoTopico');
       const selectModalHoras = document.getElementById('modalHorasSelectMateria');
       const selectFiltroExclusivo = document.getElementById('filtroExclusivoMateriaEdital');
+      const selectFiltroPrioridades = document.getElementById('filtroMateriaPrioridades');
 
       const valFiltroAtual = selectFiltro.value;
       const valFiltroQAtual = selectFiltroQuestoes.value;
       const valFiltroExclusivoAtual = estado.materiaFiltroEdital || 'TODAS';
+      const valFiltroPrioridadesAtual = estado.filtroPrioridadesMateria || 'TODAS';
 
       selectTimer.innerHTML = '';
       selectQuestoes.innerHTML = '';
@@ -1650,6 +1881,7 @@
       selectFiltro.innerHTML = '<option value="TODAS">-- Todas as Disciplinas --</option>';
       selectFiltroQuestoes.innerHTML = '<option value="TODAS">-- Todas as Disciplinas --</option>';
       selectFiltroExclusivo.innerHTML = '<option value="TODAS">-- Mostrar Todas as Matérias --</option>';
+      selectFiltroPrioridades.innerHTML = '<option value="TODAS">-- Todas as Disciplinas --</option>';
 
       estado.disciplinas.forEach(item => {
         const opt = () => {
@@ -1666,11 +1898,13 @@
         selectFiltro.appendChild(opt());
         selectFiltroQuestoes.appendChild(opt());
         selectFiltroExclusivo.appendChild(opt());
+        selectFiltroPrioridades.appendChild(opt());
       });
 
       if (valFiltroAtual) selectFiltro.value = valFiltroAtual;
       if (valFiltroQAtual) selectFiltroQuestoes.value = valFiltroQAtual;
       selectFiltroExclusivo.value = valFiltroExclusivoAtual;
+      selectFiltroPrioridades.value = valFiltroPrioridadesAtual;
     }
 
     function renderizarPesos() {
@@ -1678,7 +1912,7 @@
       lista.innerHTML = '';
 
       if (estado.disciplinas.length === 0) {
-        lista.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:12px;">Nenhuma matéria cadastrada. Carregue o edital na aba IA.</div>';
+        lista.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:12px;">Nenhuma matéria cadastrada. Digite ou cole o edital na aba Edital TXT.</div>';
         return;
       }
 
@@ -1706,7 +1940,7 @@
       estado.disciplinas.push({ nome, peso: 3 });
       if (!estado.editalVerticalizado[nome]) {
         estado.editalVerticalizado[nome] = [
-          { id: 'top_' + Date.now() + '_1', titulo: '1. Introdução e Conceitos Iniciais.', t: false, r1: false, r7: false, r15: false, r30: false }
+          { id: 'top_' + Date.now() + '_1', titulo: '1. Introdução e Conceitos Iniciais.', t: false, r1: false, r7: false, r15: false, r30: false, prioridade: 'amarelo' }
         ];
       }
 
@@ -1714,10 +1948,10 @@
       renderizarPesos();
       atualizarSelectsMaterias();
       renderizarEditalVerticalizado();
+      renderizarAbaPrioridades();
       gerarSemanaAutomatica(chaveSemanaAtiva);
       renderizarGrade();
       renderizarVisaoGeral();
-      atualizarCalculoEstimativaCiclo();
       salvarEstado();
     }
 
@@ -1734,11 +1968,97 @@
       renderizarPesos();
       atualizarSelectsMaterias();
       renderizarEditalVerticalizado();
+      renderizarAbaPrioridades();
       gerarSemanaAutomatica(chaveSemanaAtiva);
       renderizarGrade();
       renderizarVisaoGeral();
-      atualizarCalculoEstimativaCiclo();
       salvarEstado();
+    }
+
+    function renderizarAbaPrioridades() {
+      const container = document.getElementById('containerListaPrioridades');
+      const selectFiltro = document.getElementById('filtroMateriaPrioridades');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (estado.disciplinas.length === 0) {
+        container.innerHTML = '<div style="font-size:0.82rem; color:var(--text-muted); text-align:center; padding:16px;">Nenhuma matéria cadastrada.</div>';
+        return;
+      }
+
+      const materiaSel = selectFiltro ? selectFiltro.value : 'TODAS';
+      estado.filtroPrioridadesMateria = materiaSel;
+      salvarEstado();
+
+      const disciplinasFiltro = (materiaSel === 'TODAS') 
+        ? estado.disciplinas 
+        : estado.disciplinas.filter(d => d.nome === materiaSel);
+
+      disciplinasFiltro.forEach(disc => {
+        const topicos = estado.editalVerticalizado[disc.nome] || [];
+        if (topicos.length === 0) return;
+
+        const headerDisc = document.createElement('div');
+        headerDisc.style.fontSize = '0.85rem';
+        headerDisc.style.fontWeight = '700';
+        headerDisc.style.color = 'var(--primary)';
+        headerDisc.style.marginTop = '6px';
+        headerDisc.innerText = disc.nome;
+        container.appendChild(headerDisc);
+
+        topicos.forEach(t => {
+          const prioAtual = t.prioridade || 'amarelo';
+          const card = document.createElement('div');
+          card.className = 'prio-item-card';
+
+          card.innerHTML = `
+            <div class="prio-topic-title">${t.titulo}</div>
+            <div class="prio-options">
+              <button class="btn-prio-tag vermelho ${prioAtual === 'vermelho' ? 'active' : ''}" onclick="definirPrioridadeTopico('${disc.nome}', '${t.id}', 'vermelho')">🔴 Prioridade</button>
+              <button class="btn-prio-tag amarelo ${prioAtual === 'amarelo' ? 'active' : ''}" onclick="definirPrioridadeTopico('${disc.nome}', '${t.id}', 'amarelo')">🟡 Urgência</button>
+              <button class="btn-prio-tag verde ${prioAtual === 'verde' ? 'active' : ''}" onclick="definirPrioridadeTopico('${disc.nome}', '${t.id}', 'verde')">🟢 Pouco urgente</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      });
+    }
+
+    function definirPrioridadeTopico(materia, idTopico, novaPrio) {
+      const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === idTopico);
+      if (topico) {
+        topico.prioridade = novaPrio;
+        if (estado.indicesTopicos) {
+          estado.indicesTopicos[materia] = 0;
+        }
+        salvarEstado();
+        renderizarAbaPrioridades();
+      }
+    }
+
+    function obterProximoTopicoPrioritario(nomeMateria) {
+      const lista = estado.editalVerticalizado[nomeMateria] || [];
+      if (lista.length === 0) {
+        return { titulo: 'Tópicos essenciais e exercícios.', prioridade: 'amarelo' };
+      }
+
+      const pendentes = lista.filter(t => !t.t);
+      const baseParaEscolha = pendentes.length > 0 ? pendentes : lista;
+
+      const vermelhos = baseParaEscolha.filter(t => t.prioridade === 'vermelho');
+      const amarelos = baseParaEscolha.filter(t => (t.prioridade === 'amarelo' || !t.prioridade));
+      const verdes = baseParaEscolha.filter(t => t.prioridade === 'verde');
+
+      let filaAtiva = vermelhos.length > 0 ? vermelhos : (amarelos.length > 0 ? amarelos : verdes);
+
+      const idxAtual = estado.indicesTopicos[nomeMateria] || 0;
+      const escolhido = filaAtiva[idxAtual % filaAtiva.length];
+      estado.indicesTopicos[nomeMateria] = idxAtual + 1;
+
+      return {
+        titulo: escolhido.titulo,
+        prioridade: escolhido.prioridade || 'amarelo'
+      };
     }
 
     function gerarSemanaAutomatica(chaveSemana) {
@@ -1748,7 +2068,7 @@
         return;
       }
 
-      estado.porDia = parseInt(document.getElementById('materiasPorDia').value) || 3;
+      estado.porDia = parseInt(document.getElementById('materiasPorDia').value) || 2;
 
       let pool = [];
       estado.disciplinas.forEach(d => {
@@ -1760,28 +2080,28 @@
         [pool[i], pool[j]] = [pool[j], pool[i]];
       }
 
+      const semanaExistente = estado.semanas[chaveSemana] || {};
       estado.semanas[chaveSemana] = {};
       let ponteiro = estado.ponteiroGeral || 0;
 
-      if (!estado.indicesTopicos) estado.indicesTopicos = {};
-
       DIAS.forEach(dia => {
+        const slotsAntigos = semanaExistente[dia] || [];
         estado.semanas[chaveSemana][dia] = [];
+
         for (let k = 0; k < estado.porDia; k++) {
-          const nomeMateria = pool[ponteiro % pool.length];
-          const listaTopicos = estado.editalVerticalizado[nomeMateria] || [];
-          
-          let assuntoDoDia = 'Tópicos essenciais e exercícios.';
-          if (listaTopicos.length > 0) {
-            const idxAtual = estado.indicesTopicos[nomeMateria] || 0;
-            assuntoDoDia = listaTopicos[idxAtual % listaTopicos.length].titulo;
-            estado.indicesTopicos[nomeMateria] = idxAtual + 1;
+          if (slotsAntigos[k] && slotsAntigos[k].feito) {
+            estado.semanas[chaveSemana][dia].push(slotsAntigos[k]);
+            continue;
           }
+
+          const nomeMateria = pool[ponteiro % pool.length];
+          const infoTopico = obterProximoTopicoPrioritario(nomeMateria);
 
           estado.semanas[chaveSemana][dia].push({
             id: 'slot_' + Math.random().toString(36).substr(2, 9),
             materia: nomeMateria,
-            assunto: assuntoDoDia,
+            assunto: infoTopico.titulo,
+            prioridade: infoTopico.prioridade,
             feito: false
           });
           ponteiro++;
@@ -1796,7 +2116,6 @@
       gerarSemanaAutomatica(chaveSemanaAtiva);
       renderizarGrade();
       renderizarVisaoGeral();
-      atualizarCalculoEstimativaCiclo();
     }
 
     let itemArrastado = null;
@@ -1854,9 +2173,9 @@
             <div style="font-size: 2.5rem; margin-bottom: 12px;">📑✨</div>
             <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 8px;">Nenhum edital ativo</h3>
             <p style="color: var(--text-muted); font-size: 0.88rem; max-width: 440px; margin: 0 auto 20px;">
-              Cole o conteúdo ou anexe qualquer edital verticalizado na aba <strong>IA</strong> para iniciar o cronograma limpo[cite: 10, 12].
+              Digite ou cole o edital na aba <strong>Edital TXT</strong> para iniciar o cronograma limpo.
             </p>
-            <button class="btn btn-primary" onclick="trocarAba('aba-edital', document.querySelectorAll('.tab-btn')[7])">Ir para IA Edital</button>
+            <button class="btn btn-primary" onclick="trocarAba('aba-edital', document.querySelectorAll('.tab-btn')[8])">Ir para Edital TXT</button>
           </div>
         `;
         return;
@@ -1911,12 +2230,16 @@
           card.ondragstart = (e) => handleDragStart(e, d.nome, idx);
           card.ondragend = handleDragEnd;
 
+          const pClass = item.prioridade || 'amarelo';
+          const pTexto = pClass === 'vermelho' ? '🔴 Prioridade' : (pClass === 'verde' ? '🟢 Pouco urgente' : '🟡 Urgência');
+
           card.innerHTML = `
             <div class="slot-left">
               <input type="checkbox" ${item.feito ? 'checked' : ''} onchange="toggleConclusao('${d.nome}', ${idx}, '${d.data}')">
               <div class="slot-texts">
                 <span class="slot-materia-title">${item.materia}</span>
                 <span class="slot-assunto-sub" title="${item.assunto}">${item.assunto || 'Assunto do edital'}</span>
+                <span class="tag-badge-prioridade ${pClass}">${pTexto}</span>
               </div>
             </div>
             <button class="btn-play-mini" title="Cronometrar esta matéria" onclick="iniciarTimerMateria('${item.materia}')">▶</button>
@@ -1932,6 +2255,13 @@
     function toggleConclusao(dia, idx, dataTexto) {
       const slot = estado.semanas[chaveSemanaAtiva][dia][idx];
       slot.feito = !slot.feito;
+
+      if (estado.editalVerticalizado[slot.materia]) {
+        const topicoObj = estado.editalVerticalizado[slot.materia].find(t => t.titulo === slot.assunto);
+        if (topicoObj) {
+          topicoObj.t = slot.feito;
+        }
+      }
 
       const todosFeitosAgora = estado.semanas[chaveSemanaAtiva][dia].every(s => s.feito);
 
@@ -1949,7 +2279,7 @@
       atualizarIndicadorPresenca();
       renderizarGrade();
       renderizarVisaoGeral();
-      atualizarCalculoEstimativaCiclo();
+      renderizarEditalVerticalizado();
     }
 
     function reiniciarProgressoSemana() {
@@ -1961,7 +2291,6 @@
       salvarEstado();
       renderizarGrade();
       renderizarVisaoGeral();
-      atualizarCalculoEstimativaCiclo();
     }
 
     function renderizarVisaoGeral() {
@@ -2059,7 +2388,7 @@
       const topicosRestantes = Math.max(0, totalTopicos - topicosFeitos);
 
       if (totalTopicos === 0) {
-        elSugestao.innerHTML = 'Carregue o edital na aba IA para calcular o ritmo exato de tópicos.';
+        elSugestao.innerHTML = 'Carregue o edital na aba Edital TXT para calcular o ritmo de tópicos.';
         return;
       }
 
@@ -2108,7 +2437,7 @@
     }
 
     function iniciarTimerMateria(nomeMateria) {
-      const tabTimerBtn = document.querySelectorAll('.tab-btn')[2];
+      const tabTimerBtn = document.querySelectorAll('.tab-btn')[3];
       trocarAba('aba-timer', tabTimerBtn);
       document.getElementById('timerSelectMateria').value = nomeMateria;
       if (!timerInterval) toggleTimer();
@@ -2382,17 +2711,14 @@
       });
     }
 
-    /* REVISÕES NÃO ALTERAM O TEMPO; APENAS A TEORIA (T) CONTA */
     function toggleCheckEdital(materia, idTopico, campo) {
       const topico = estado.editalVerticalizado[materia].find(t => t.id === idTopico);
       if (topico) {
         topico[campo] = !topico[campo];
         salvarEstado();
 
-        // APENAS A TEORIA ALTERA OS DIAS DO EDITAL
         if (campo === 't') {
           atualizarPainelPlanejamento();
-          atualizarCalculoEstimativaCiclo();
         }
       }
     }
@@ -2416,96 +2742,23 @@
         r1: false,
         r7: false,
         r15: false,
-        r30: false
+        r30: false,
+        prioridade: 'amarelo'
       });
 
       input.value = '';
       salvarEstado();
       renderizarEditalVerticalizado();
+      renderizarAbaPrioridades();
       atualizarPainelPlanejamento();
-      atualizarCalculoEstimativaCiclo();
     }
 
     function removerTopicoEdital(materia, idTopico) {
       estado.editalVerticalizado[materia] = estado.editalVerticalizado[materia].filter(t => t.id !== idTopico);
       salvarEstado();
       renderizarEditalVerticalizado();
+      renderizarAbaPrioridades();
       atualizarPainelPlanejamento();
-      atualizarCalculoEstimativaCiclo();
-    }
-
-    async function carregarArquivoUniversal(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const nomeLabel = document.getElementById('nomeArquivoPdf');
-      const campoTexto = document.getElementById('textoEdital');
-      nomeLabel.innerText = `Processando: ${file.name}...`;
-
-      if (file.type.startsWith('image/')) {
-        try {
-          nomeLabel.innerText = `OCR na imagem em execução...`;
-          const resultado = await Tesseract.recognize(file, 'por');
-          const texto = resultado.data.text.trim();
-          if (texto) {
-            campoTexto.value = texto;
-            nomeLabel.innerText = `Reconhecido: ${file.name}`;
-            processarEditalIA();
-          }
-        } catch (err) {
-          console.error(err);
-          nomeLabel.innerText = 'Falha no OCR da imagem';
-        }
-        return;
-      }
-
-      if (file.type === 'application/pdf') {
-        try {
-          const arrayBuffer = await file.arrayBuffer();
-          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-          let textoCompleto = '';
-
-          for (let i = 1; i <= Math.min(pdf.numPages, 12); i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items.map(item => item.str).join(' ');
-            textoCompleto += pageText + '\n\n';
-          }
-
-          if (textoCompleto.trim().length > 50) {
-            campoTexto.value = textoCompleto.trim();
-            nomeLabel.innerText = `Carregado: ${file.name} (${pdf.numPages} pág.)`;
-            processarEditalIA();
-            return;
-          }
-
-          nomeLabel.innerText = `Lendo páginas com OCR...`;
-          let textoOcrTotal = '';
-          const maxPaginasOcr = Math.min(pdf.numPages, 4);
-
-          for (let i = 1; i <= maxPaginasOcr; i++) {
-            const page = await pdf.getPage(i);
-            const viewport = page.getViewport({ scale: 1.5 });
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-
-            await page.render({ canvasContext: context, viewport: viewport }).promise;
-            const resOcr = await Tesseract.recognize(canvas, 'por');
-            textoOcrTotal += resOcr.data.text + '\n\n';
-          }
-
-          if (textoOcrTotal.trim()) {
-            campoTexto.value = textoOcrTotal.trim();
-            nomeLabel.innerText = `Reconhecido com OCR: ${file.name}`;
-            processarEditalIA();
-          }
-        } catch (err) {
-          console.error(err);
-          nomeLabel.innerText = 'Falha ao processar PDF';
-        }
-      }
     }
 
     function redefinirEditalManualmente() {
@@ -2516,15 +2769,16 @@
         estado.indicesTopicos = {};
         estado.ponteiroGeral = 0;
         estado.materiaFiltroEdital = 'TODAS';
+        estado.filtroPrioridadesMateria = 'TODAS';
 
         salvarEstado();
         renderizarPesos();
         atualizarSelectsMaterias();
         renderizarEditalVerticalizado();
+        renderizarAbaPrioridades();
         forcarSincronizacaoHoje();
         renderizarVisaoGeral();
         atualizarPainelPlanejamento();
-        atualizarCalculoEstimativaCiclo();
 
         document.getElementById('statusIA').style.display = 'block';
         document.getElementById('statusIA').style.color = '#ef4444';
@@ -2544,40 +2798,23 @@
       return t;
     }
 
-    async function processarEditalIA() {
+    /* PROCESSADOR DE TEXTO DIRETO */
+    function processarEditalTexto() {
       const texto = document.getElementById('textoEdital').value.trim();
-      const apiKey = document.getElementById('geminiApiKey').value.trim();
       const status = document.getElementById('statusIA');
-      const btn = document.getElementById('btnAnalisarEdital');
       const substituirTudo = document.getElementById('chkSubstituirTudo').checked;
 
       if (!texto) {
-        alert('Anexe o edital ou cole o conteúdo antes de continuar.');
+        alert('Digite ou cole o conteúdo do edital verticalizado na caixa de texto.');
         return;
-      }
-
-      if (apiKey) {
-        localStorage.setItem('gemini_api_key_' + usuarioAtivo.toLowerCase(), apiKey);
       }
 
       status.style.display = 'block';
       status.style.color = '#38bdf8';
       status.style.background = 'rgba(56, 189, 248, 0.1)';
-      status.innerText = '🤖 IA organizando estritamente o edital...';
-      btn.disabled = true;
+      status.innerText = 'Processando o conteúdo digitado...';
 
-      let dadosExtraidos = [];
-
-      if (apiKey) {
-        try {
-          dadosExtraidos = await chamarGeminiAPIUniversal(apiKey, texto);
-        } catch (err) {
-          dadosExtraidos = extrairDisciplinasETopicosUniversal(texto);
-        }
-      } else {
-        await new Promise(r => setTimeout(r, 400));
-        dadosExtraidos = extrairDisciplinasETopicosUniversal(texto);
-      }
+      const dadosExtraidos = extrairDisciplinasETopicosUniversal(texto);
 
       if (dadosExtraidos && dadosExtraidos.length > 0) {
         if (substituirTudo) {
@@ -2587,6 +2824,7 @@
           estado.indicesTopicos = {};
           estado.ponteiroGeral = 0;
           estado.materiaFiltroEdital = 'TODAS';
+          estado.filtroPrioridadesMateria = 'TODAS';
         }
 
         estado.disciplinas = dadosExtraidos.map(d => ({ nome: d.nome, peso: d.peso || 3 }));
@@ -2597,7 +2835,8 @@
           estado.editalVerticalizado[d.nome] = listaTopicos.map((tit, idx) => ({
             id: 'top_' + Math.random().toString(36).substr(2, 7) + '_' + idx,
             titulo: sanitizarTopicoLinha(tit),
-            t: false, r1: false, r7: false, r15: false, r30: false
+            t: false, r1: false, r7: false, r15: false, r30: false,
+            prioridade: 'amarelo'
           }));
         });
 
@@ -2606,55 +2845,19 @@
         renderizarPesos();
         atualizarSelectsMaterias();
         renderizarEditalVerticalizado();
+        renderizarAbaPrioridades();
         forcarSincronizacaoHoje();
         renderizarVisaoGeral();
         atualizarPainelPlanejamento();
-        atualizarCalculoEstimativaCiclo();
 
         status.style.color = '#10b981';
         status.style.background = 'rgba(16, 185, 129, 0.1)';
-        status.innerText = `✅ Sucesso! ${dadosExtraidos.length} matéria(s) cadastrada(s) e cronograma sincronizado!`;
+        status.innerText = `✅ Sucesso! ${dadosExtraidos.length} matéria(s) cadastrada(s) exatamente como digitado!`;
       } else {
         status.style.color = '#ef4444';
         status.style.background = 'rgba(239, 68, 68, 0.1)';
-        status.innerText = 'Não foi possível extrair assuntos. Verifique o texto digitado.';
+        status.innerText = 'Não foi possível identificar matérias ou tópicos. Verifique o texto digitado.';
       }
-
-      btn.disabled = false;
-    }
-
-    async function chamarGeminiAPIUniversal(key, editalTexto) {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
-      
-      const prompt = `Você é um analisador estrito de editais.
-Extraia EXCLUSIVAMENTE o conteúdo que o usuário digitou ou que consta no documento.
-NÃO invente matérias adicionais.
-Remova todos os ruídos de colunas e checklists de tabelas (Teoria, Questões, Erros, Acertos, % Acerto, 1º, 2º, 3º, ___/___%).
-Retorne EXCLUSIVAMENTE um array JSON puro:
-[
-  {
-    "nome": "Nome da Matéria",
-    "peso": 4,
-    "topicos": ["1. Assunto A.", "2. Assunto B."]
-  }
-]
-
-Texto:
-${editalTexto.slice(0, 18000)}`;
-
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
-        })
-      });
-
-      if (!res.ok) throw new Error('Erro na resposta da API');
-      const data = await res.json();
-      let respostaTexto = data.candidates[0].content.parts[0].text;
-      respostaTexto = respostaTexto.replace(/```json/g, '').replace(/```/g, '').trim();
-      return JSON.parse(respostaTexto);
     }
 
     function extrairDisciplinasETopicosUniversal(texto) {

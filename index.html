@@ -8,13 +8,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- PDF.js para renderizar páginas do PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
-
-  <!-- Tesseract.js para leitura OCR -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 
   <style>
@@ -61,6 +58,7 @@
       min-height: 100vh;
       display: flex;
       transition: background-color 0.25s, color 0.25s;
+      overflow-x: hidden;
     }
 
     #tela-login {
@@ -262,6 +260,10 @@
       color: var(--danger);
     }
 
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+
     .pdf-upload-box {
       border: 2px dashed var(--primary);
       border-radius: 10px;
@@ -300,7 +302,6 @@
       font-size: 0.85rem;
     }
 
-    /* Módulo Timer */
     .timer-card {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -402,7 +403,6 @@
       background: var(--surface-hover);
     }
 
-    /* Tabela do Edital Verticalizado */
     .subject-block {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -450,7 +450,6 @@
       accent-color: var(--primary);
     }
 
-    /* Módulo Questões */
     .metric-grid-questoes {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -498,6 +497,21 @@
       flex-wrap: wrap;
     }
 
+    /* Indicador de Presença / Ofensiva */
+    .presence-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #f87171;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+    }
+
     .week-navigator {
       display: flex;
       align-items: center;
@@ -538,6 +552,11 @@
     .day-column.today {
       border-color: var(--primary);
       box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    .day-column.day-completed {
+      border-color: var(--success);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
     }
 
     .day-column.drag-over {
@@ -646,6 +665,9 @@
       padding: 16px 20px;
       border-top: 1px solid var(--border);
       margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
     .ai-badge {
@@ -658,9 +680,63 @@
       font-weight: 700;
       margin-left: 4px;
     }
+
+    /* Modal / Pop-up de Vitória */
+    #celebrationOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      backdrop-filter: blur(5px);
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .celebration-card {
+      background: var(--surface);
+      border: 2px solid var(--success);
+      border-radius: 20px;
+      padding: 32px 28px;
+      text-align: center;
+      max-width: 360px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
+      transform: scale(0.9);
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .celebration-icon {
+      font-size: 3.5rem;
+      margin-bottom: 12px;
+      animation: bounce 0.6s infinite alternate;
+    }
+
+    @keyframes popIn {
+      to { transform: scale(1); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-8px); }
+    }
   </style>
 </head>
 <body>
+
+  <!-- Modal de Celebração de Vitória -->
+  <div id="celebrationOverlay">
+    <div class="celebration-card">
+      <div class="celebration-icon">🏆✨</div>
+      <h2 style="color: var(--success); font-size: 1.5rem; margin-bottom: 6px;">Meta Cumprida!</h2>
+      <p style="font-size: 0.95rem; color: var(--text); font-weight: 600;">Parabéns! Você finalizou todas as matérias de hoje com sucesso!</p>
+      <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Consistência é a chave da aprovação.</div>
+    </div>
+  </div>
 
   <!-- Tela de Login -->
   <div id="tela-login">
@@ -720,7 +796,7 @@
       <!-- Aba 2: Pesos -->
       <div id="aba-pesos" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Disciplinas com pesos mais elevados (3, 4, 5) surgem com maior frequência no ciclo semanal.
+          Disciplinas com pesos mais elevados surgem com maior frequência no ciclo semanal.
         </p>
         <ul class="item-list" id="listaPesos"></ul>
       </div>
@@ -820,13 +896,12 @@
         <div id="containerEditalVerticalizado" style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;"></div>
       </div>
 
-      <!-- Aba 6: IA Edital / Leitura de Arquivo & Troca de Edital -->
+      <!-- Aba 6: IA Edital -->
       <div id="aba-edital" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
           Envie o <strong>PDF ou Imagem</strong> do edital. O sistema lê as disciplinas e assuntos, podendo substituir integralmente o plano de estudos anterior.
         </p>
 
-        <!-- Opção de Reinício Total -->
         <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 10px; display: flex; align-items: center; gap: 8px;">
           <input type="checkbox" id="chkSubstituirTudo" checked style="cursor: pointer; width: 16px; height: 16px;">
           <label for="chkSubstituirTudo" style="font-size: 0.78rem; color: var(--text); cursor: pointer; text-transform: none;">
@@ -878,7 +953,8 @@
       </div>
 
       <div class="sidebar-footer">
-        <button class="btn btn-danger" style="width: 100%;" onclick="sair()">Terminar Sessão</button>
+        <button class="btn btn-danger" style="width: 100%;" onclick="redefinirPerfilCompletamente()">⚠️ Zerar Tudo Deste Perfil</button>
+        <button class="btn btn-outline" style="width: 100%;" onclick="sair()">Terminar Sessão</button>
       </div>
     </aside>
 
@@ -886,10 +962,15 @@
       <header class="main-header">
         <div>
           <h1 id="tituloCronograma">Cronograma Semanal</h1>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Ciclo de matérias com assuntos específicos vinculados ao edital verticalizado</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Ciclo de matérias com assuntos específicos vinculados ao edital</p>
         </div>
 
         <div class="controls-top">
+          <!-- Indicador de Presença / Ofensiva -->
+          <div class="presence-badge" id="badgePresenca" title="Dias seguidos em que você estudou">
+            🔥 <span id="txtOfensiva">0 dias</span> de presença
+          </div>
+
           <div class="week-navigator">
             <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(-1)">◀</button>
             <span class="week-label" id="labelIntervaloSemana">Carregando...</span>
@@ -920,6 +1001,36 @@
     let chaveSemanaAtiva = '';
     let estado = {};
 
+    function tocarSomVitoria() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const notas = [261.63, 329.63, 392.00, 523.25]; // Dó, Mi, Sol, Dó Maior
+        notas.forEach((freq, index) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + index * 0.12);
+          gain.gain.setValueAtTime(0.2, audioCtx.currentTime + index * 0.12);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + index * 0.12 + 0.35);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(audioCtx.currentTime + index * 0.12);
+          osc.stop(audioCtx.currentTime + index * 0.12 + 0.35);
+        });
+      } catch (e) {
+        console.warn('Áudio Web não suportado:', e);
+      }
+    }
+
+    function dispararCelebracao() {
+      tocarSomVitoria();
+      const overlay = document.getElementById('celebrationOverlay');
+      overlay.style.display = 'flex';
+      setTimeout(() => {
+        overlay.style.display = 'none';
+      }, 2500);
+    }
+
     function obterSenhas() {
       const salvas = localStorage.getItem('usuarios_senhas_personalizadas');
       return salvas ? JSON.parse(salvas) : { ...USUARIOS_PADRAO };
@@ -930,7 +1041,23 @@
     }
 
     function chaveArmazenamento(user) {
-      return `cronograma_perfil_${user.toLowerCase()}`;
+      return `cronograma_perfil_${user.toLowerCase()}_v3_zero`;
+    }
+
+    // Estado inicial totalmente limpo
+    function obterEstadoPadrao() {
+      return {
+        tema: 'dark',
+        disciplinas: [], // ZERADO
+        porDia: 3,
+        ponteiroGeral: 0,
+        indicesTopicos: {},
+        semanas: {},
+        historicoHoras: [],
+        historicoQuestoes: [],
+        editalVerticalizado: {},
+        diasCompletosLog: [] // Log de dias com meta 100% batida para cálculo da presença
+      };
     }
 
     function obterTopicosPadrao(nomeMateria) {
@@ -969,10 +1096,10 @@
       if (m.includes('geografia')) {
         return [
           '1. Localização, relevo e geomorfologia de Pernambuco',
-          '2. Clima e bacias hidrográficas (São Francisco e Capibaribe)',
-          '3. Vegetação e domínios morfoclimáticos (Caatinga e Mata Atlântica)',
-          '4. Processo de urbanização e regiões de desenvolvimento',
-          '5. Atividades econômicas: polo gesseiro, fruticultura e Suape'
+          '2. Clima e bacias hidrográficas',
+          '3. Vegetação e domínios morfoclimáticos',
+          '4. Processo de urbanização e desenvolvimento',
+          '5. Atividades econômicas: polo gesseiro e Suape'
         ];
       }
       if (m.includes('constitucional')) {
@@ -991,53 +1118,35 @@
           '2. Conceito de crime: fato típico, antijurídico e culpável',
           '3. Crime consumado, tentado e desistência voluntária',
           '4. Excludentes de ilicitude e culpabilidade',
-          '5. Crimes contra a pessoa (homicídio, lesão corporal)',
-          '6. Crimes contra o patrimônio (furto, roubo, extorsão)',
+          '5. Crimes contra a pessoa',
+          '6. Crimes contra o patrimônio',
           '7. Crimes contra a administração pública'
         ];
       }
       if (m.includes('processual') || m.includes('processo penal')) {
         return [
-          '1. Inquérito Policial: características e instauração',
-          '2. Ação Penal: pública incondicionada, condicionada e privada',
-          '3. Prisão em flagrante e prisão preventiva',
-          '4. Das provas e do interrogatório do acusado'
+          '1. Inquérito Policial',
+          '2. Ação Penal',
+          '3. Prisão em flagrante e preventiva',
+          '4. Das provas e do interrogatório'
         ];
       }
       if (m.includes('humano')) {
         return [
-          '1. Conceito, evolução e características dos Direitos Humanos',
-          '2. Declaração Universal dos Direitos Humanos (DUDH 1948)',
-          '3. Convenção Americana sobre Direitos Humanos (Pacto de San José)',
+          '1. Conceito e características dos Direitos Humanos',
+          '2. Declaração Universal dos Direitos Humanos (1948)',
+          '3. Convenção Americana sobre Direitos Humanos',
           '4. Direitos humanos e atuação policial'
         ];
       }
       if (m.includes('lógico') || m.includes('raciocínio') || m.includes('matem')) {
         return [
-          '1. Estruturas lógicas e proposições simples e compostas',
-          '2. Conectivos lógicos e tabelas-verdade',
-          '3. Equivalências e negações lógicas (Leis de De Morgan)',
+          '1. Proposições simples e compostas',
+          '2. Conectivos e tabelas-verdade',
+          '3. Equivalências e negações lógicas',
           '4. Diagramas lógicos e conjuntos',
-          '5. Razão, proporção e regra de três simples/composta',
+          '5. Razão, proporção e regra de três',
           '6. Análise combinatória e probabilidade'
-        ];
-      }
-      if (m.includes('legislação') || m.includes('especial')) {
-        return [
-          '1. Estatuto dos Policiais Militares de Pernambuco',
-          '2. Lei de Abuso de Autoridade (Lei nº 13.869/2019)',
-          '3. Lei de Drogas (Lei nº 11.343/2006)',
-          '4. Estatuto do Desarmamento (Lei nº 10.826/2003)',
-          '5. Lei Maria da Penha (Lei nº 11.340/2006)',
-          '6. Crimes Hediondos (Lei nº 8.072/1990)'
-        ];
-      }
-      if (m.includes('informát') || m.includes('tecnologia')) {
-        return [
-          '1. Conceitos básicos de hardware, Windows e Linux',
-          '2. Pacote Office (Word, Excel) e LibreOffice',
-          '3. Redes de computadores, internet e navegadores',
-          '4. Segurança da informação: vírus, phishing, backup e firewalls'
         ];
       }
       return [
@@ -1046,37 +1155,6 @@
         '3. Legislação aplicada e jurisprudência',
         '4. Resolução intensiva de exercícios'
       ];
-    }
-
-    function obterEstadoPadrao() {
-      const discsIniciais = [
-        { nome: 'Língua Portuguesa', peso: 4 },
-        { nome: 'História de Pernambuco', peso: 3 },
-        { nome: 'Direito Constitucional', peso: 4 },
-        { nome: 'Raciocínio Lógico', peso: 3 },
-        { nome: 'Direito Penal', peso: 4 }
-      ];
-
-      const editalVert = {};
-      discsIniciais.forEach(d => {
-        editalVert[d.nome] = obterTopicosPadrao(d.nome).map((tit, idx) => ({
-          id: 'top_' + Math.random().toString(36).substr(2, 7) + '_' + idx,
-          titulo: tit,
-          t: false, r1: false, r7: false, r15: false, r30: false
-        }));
-      });
-
-      return {
-        tema: 'dark',
-        disciplinas: discsIniciais,
-        porDia: 3,
-        ponteiroGeral: 0,
-        indicesTopicos: {},
-        semanas: {},
-        historicoHoras: [],
-        historicoQuestoes: [],
-        editalVerticalizado: editalVert
-      };
     }
 
     function obterSegundaFeira(data) {
@@ -1115,7 +1193,7 @@
       const fDom = `${String(domingo.getDate()).padStart(2, '0')}/${String(domingo.getMonth() + 1).padStart(2, '0')}/${domingo.getFullYear()}`;
       document.getElementById('labelIntervaloSemana').innerText = `${fSeg} - ${fDom}`;
 
-      if (!estado.semanas[chaveSemanaAtiva]) {
+      if (!estado.semanas[chaveSemanaAtiva] && estado.disciplinas.length > 0) {
         gerarSemanaAutomatica(chaveSemanaAtiva);
       }
 
@@ -1196,6 +1274,16 @@
       document.getElementById('confirmaNovaSenha').value = '';
     }
 
+    function redefinirPerfilCompletamente() {
+      if (confirm(`Atenção: Tem certeza de que deseja zerar completamente o perfil de ${usuarioAtivo}? Todo o cronograma, edital e registros serão apagados para começar do zero absoluto.`)) {
+        localStorage.removeItem(chaveArmazenamento(usuarioAtivo));
+        estado = obterEstadoPadrao();
+        salvarEstado();
+        carregarEstado();
+        alert('Perfil zerado com sucesso! Agora você pode começar um edital novo.');
+      }
+    }
+
     function sair() {
       sessionStorage.removeItem('usuario_ativo');
       location.reload();
@@ -1214,6 +1302,12 @@
       localStorage.setItem(chaveArmazenamento(usuarioAtivo), JSON.stringify(estado));
     }
 
+    function atualizarIndicadorPresenca() {
+      if (!estado.diasCompletosLog) estado.diasCompletosLog = [];
+      const totalDias = estado.diasCompletosLog.length;
+      document.getElementById('txtOfensiva').innerText = `${totalDias} ${totalDias === 1 ? 'dia' : 'dias'}`;
+    }
+
     function carregarEstado() {
       const chave = chaveArmazenamento(usuarioAtivo);
       const salvos = localStorage.getItem(chave);
@@ -1228,16 +1322,7 @@
       if (!estado.historicoQuestoes) estado.historicoQuestoes = [];
       if (!estado.editalVerticalizado) estado.editalVerticalizado = {};
       if (!estado.indicesTopicos) estado.indicesTopicos = {};
-
-      estado.disciplinas.forEach(d => {
-        if (!estado.editalVerticalizado[d.nome] || estado.editalVerticalizado[d.nome].length === 0) {
-          estado.editalVerticalizado[d.nome] = obterTopicosPadrao(d.nome).map((tit, idx) => ({
-            id: 'top_' + Math.random().toString(36).substr(2, 7) + '_' + idx,
-            titulo: tit,
-            t: false, r1: false, r7: false, r15: false, r30: false
-          }));
-        }
-      });
+      if (!estado.diasCompletosLog) estado.diasCompletosLog = [];
 
       document.body.setAttribute('data-theme', estado.tema);
       document.getElementById('btnTema').innerText = estado.tema === 'dark' ? '☀️ Claro' : '🌙 Escuro';
@@ -1248,6 +1333,7 @@
       atualizarVisualizacaoHoras();
       atualizarVisualizacaoQuestoes();
       renderizarEditalVerticalizado();
+      atualizarIndicadorPresenca();
       atualizarSemanaAtiva();
     }
 
@@ -1304,6 +1390,11 @@
       const lista = document.getElementById('listaPesos');
       lista.innerHTML = '';
 
+      if (estado.disciplinas.length === 0) {
+        lista.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:12px;">Nenhuma matéria cadastrada. Adicione uma disciplina ou anexe seu edital na aba IA.</div>';
+        return;
+      }
+
       estado.disciplinas.forEach((item, index) => {
         const li = document.createElement('li');
         li.className = 'item-card';
@@ -1338,6 +1429,8 @@
       renderizarPesos();
       atualizarSelectsMaterias();
       renderizarEditalVerticalizado();
+      gerarSemanaAutomatica(chaveSemanaAtiva);
+      renderizarGrade();
       salvarEstado();
     }
 
@@ -1354,11 +1447,17 @@
       renderizarPesos();
       atualizarSelectsMaterias();
       renderizarEditalVerticalizado();
+      gerarSemanaAutomatica(chaveSemanaAtiva);
+      renderizarGrade();
       salvarEstado();
     }
 
     function gerarSemanaAutomatica(chaveSemana) {
-      if (!estado.disciplinas || estado.disciplinas.length === 0) return;
+      if (!estado.disciplinas || estado.disciplinas.length === 0) {
+        estado.semanas[chaveSemana] = {};
+        salvarEstado();
+        return;
+      }
 
       estado.porDia = parseInt(document.getElementById('materiasPorDia').value) || 3;
 
@@ -1409,7 +1508,6 @@
       renderizarGrade();
     }
 
-    /* Drag and Drop */
     let itemArrastado = null;
 
     function handleDragStart(e, diaOrigem, indexOrigem) {
@@ -1458,6 +1556,20 @@
       const grade = document.getElementById('gradeSemana');
       grade.innerHTML = '';
 
+      if (estado.disciplinas.length === 0) {
+        grade.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--card-bg); border-radius: 16px; border: 1px dashed var(--border);">
+            <div style="font-size: 2.5rem; margin-bottom: 12px;">📑✨</div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 8px;">Nenhum edital ativo no momento</h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem; max-width: 440px; margin: 0 auto 20px;">
+              Este perfil está zerado. Vá até a aba <strong>IA</strong> para anexar o PDF do edital verticalizado ou use a aba <strong>Ciclo</strong> para adicionar matérias manualmente.
+            </p>
+            <button class="btn btn-primary" onclick="trocarAba('aba-edital', document.querySelectorAll('.tab-btn')[5])">Ir para IA Edital</button>
+          </div>
+        `;
+        return;
+      }
+
       const segunda = obterSegundaFeira(dataReferencia);
       const diasComData = obterDiasDaSemana(segunda);
       const cronogramaAtual = estado.semanas[chaveSemanaAtiva] || {};
@@ -1479,12 +1591,17 @@
         coluna.ondrop = (e) => handleDrop(e, d.nome);
 
         const slots = cronogramaAtual[d.nome] || [];
+        const todosFeitos = slots.length > 0 && slots.every(s => s.feito);
+
+        if (todosFeitos) {
+          coluna.classList.add('day-completed');
+        }
 
         const header = document.createElement('div');
         header.className = 'day-name';
         header.innerHTML = `
           <div>
-            <div class="day-title-text">${d.nome}</div>
+            <div class="day-title-text">${d.nome} ${todosFeitos ? '⭐' : ''}</div>
             <div class="day-date-tag">${d.data}</div>
           </div>
           <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">${slots.length} disc.</span>
@@ -1504,7 +1621,7 @@
 
           card.innerHTML = `
             <div class="slot-left">
-              <input type="checkbox" ${item.feito ? 'checked' : ''} onchange="toggleConclusao('${d.nome}', ${idx})">
+              <input type="checkbox" ${item.feito ? 'checked' : ''} onchange="toggleConclusao('${d.nome}', ${idx}, '${d.data}')">
               <div class="slot-texts">
                 <span class="slot-materia-title">${item.materia}</span>
                 <span class="slot-assunto-sub">${item.assunto || 'Assunto do edital'}</span>
@@ -1520,9 +1637,26 @@
       });
     }
 
-    function toggleConclusao(dia, idx) {
-      estado.semanas[chaveSemanaAtiva][dia][idx].feito = !estado.semanas[chaveSemanaAtiva][dia][idx].feito;
+    function toggleConclusao(dia, idx, dataTexto) {
+      const slot = estado.semanas[chaveSemanaAtiva][dia][idx];
+      slot.feito = !slot.feito;
+
+      const todosFeitosAgora = estado.semanas[chaveSemanaAtiva][dia].every(s => s.feito);
+
+      // Se todas as disciplinas do dia foram cumpridas com este clique
+      if (slot.feito && todosFeitosAgora) {
+        dispararCelebracao();
+
+        // Registra no contador de presença
+        if (!estado.diasCompletosLog) estado.diasCompletosLog = [];
+        const chaveDiaLog = `${chaveSemanaAtiva}_${dia}`;
+        if (!estado.diasCompletosLog.includes(chaveDiaLog)) {
+          estado.diasCompletosLog.push(chaveDiaLog);
+        }
+      }
+
       salvarEstado();
+      atualizarIndicadorPresenca();
       renderizarGrade();
     }
 
@@ -1739,6 +1873,11 @@
       const container = document.getElementById('containerEditalVerticalizado');
       container.innerHTML = '';
 
+      if (estado.disciplinas.length === 0) {
+        container.innerHTML = '<div style="font-size:0.82rem; color:var(--text-muted); text-align:center; padding:20px;">Nenhum edital cadastrado no momento.</div>';
+        return;
+      }
+
       estado.disciplinas.forEach(disc => {
         const bloco = document.createElement('div');
         bloco.className = 'subject-block';
@@ -1795,7 +1934,7 @@
       const input = document.getElementById('inputNovoTopico');
       const titulo = input.value.trim();
 
-      if (!titulo) return;
+      if (!titulo || !materia) return;
 
       if (!estado.editalVerticalizado[materia]) {
         estado.editalVerticalizado[materia] = [];
@@ -1897,9 +2036,8 @@
       }
     }
 
-    /* REDEFINIR MANUALMENTE O EDITAL */
     function redefinirEditalManualmente() {
-      if (confirm('Tem certeza de que deseja limpar todas as matérias, edital verticalizado e cronograma atual para começar um concurso novo?')) {
+      if (confirm('Tem certeza de que deseja limpar todas as matérias e o edital para começar um concurso novo?')) {
         estado.disciplinas = [];
         estado.editalVerticalizado = {};
         estado.semanas = {};
@@ -1919,7 +2057,6 @@
       }
     }
 
-    /* PROCESSAMENTO IA / TROCA COMPLETA DE EDITAL */
     async function processarEditalIA() {
       const texto = document.getElementById('textoEdital').value.trim();
       const apiKey = document.getElementById('geminiApiKey').value.trim();
@@ -1957,7 +2094,6 @@
       }
 
       if (dadosExtraidos && dadosExtraidos.length > 0) {
-        // Se a opção de substituir tudo estiver marcada, limpa o edital anterior
         if (substituirTudo) {
           estado.disciplinas = [];
           estado.editalVerticalizado = {};

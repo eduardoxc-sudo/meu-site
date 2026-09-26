@@ -649,6 +649,23 @@
       box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2) !important;
     }
 
+    .tag-numero-topico {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 38px;
+      padding: 2px 6px;
+      margin-right: 6px;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #38bdf8;
+      font-size: 0.68rem;
+      font-weight: 800;
+      line-height: 1.2;
+      flex-shrink: 0;
+    }
+
     .tag-badge-revisao-espacada {
       display: inline-block;
       font-size: 0.65rem;
@@ -2565,6 +2582,31 @@
       return lista;
     }
 
+    // Retorna a numeração fixa do tópico no edital inteiro: 1, 2, 3 ... N.
+    // A numeração não depende da semana e, por isso, não muda ao regenerar.
+    function obterNumeroGlobalTopico(topicoId) {
+      let numero = 0;
+
+      for (const materia of Object.keys(estado.editalVerticalizado || {})) {
+        const lista = estado.editalVerticalizado[materia] || [];
+
+        for (const topico of lista) {
+          numero++;
+          if (topico.id === topicoId) return numero;
+        }
+      }
+
+      return null;
+    }
+
+    function obterTotalTopicosNumerados() {
+      let total = 0;
+      Object.keys(estado.editalVerticalizado || {}).forEach(materia => {
+        total += (estado.editalVerticalizado[materia] || []).length;
+      });
+      return total;
+    }
+
     function obterProximoTopicoParaMateria(materia) {
       const lista = (estado.editalVerticalizado[materia] || []).filter(t => !t.t);
       if (lista.length === 0) return null;
@@ -2666,6 +2708,19 @@
 
       const porDia = parseInt(estado.porDia) || 2;
       const novaSemana = {};
+
+      // Cartões já marcados nesta semana são protegidos.
+      // Ao clicar em "Regenerar Esta Semana", eles continuam no mesmo dia,
+      // com o mesmo tópico e com o checkbox marcado.
+      const semanaAntesDeRegenerar = estado.semanas[chaveSemana] || {};
+      const concluidosProtegidos = {};
+
+      DIAS.forEach(nomeDia => {
+        concluidosProtegidos[nomeDia] = (semanaAntesDeRegenerar[nomeDia] || [])
+          .filter(slot => slot && slot.feito === true)
+          .map(slot => ({ ...slot }));
+      });
+
       const partesChave = chaveSemana.replace('semana_', '').split('-');
       const segundaRef = new Date(partesChave[0], partesChave[1] - 1, partesChave[2]);
 
@@ -2727,8 +2782,32 @@
           return;
         }
 
-        const slotsDoDia = [];
-        adicionarRevisoesDoDia(slotsDoDia, chaveDataDia);
+        // Começa pelos cartões concluídos que já existiam neste mesmo dia.
+        const slotsDoDia = (concluidosProtegidos[nomeDia] || []).map(slot => ({ ...slot }));
+
+        // Revisões são acrescentadas somente se ainda não estiverem entre
+        // os cartões protegidos.
+        const revisoesJaPresentes = new Set(
+          slotsDoDia.filter(s => s.revisaoId).map(s => s.revisaoId)
+        );
+
+        (estado.agendaRevisoes || []).forEach(rev => {
+          if (
+            rev.dataPrevista === chaveDataDia &&
+            !rev.concluida &&
+            !revisoesJaPresentes.has(rev.id)
+          ) {
+            slotsDoDia.push({
+              materia: rev.materia,
+              assunto: `🔁 Revisão: ${rev.topicoTitulo}`,
+              feito: false,
+              revisaoId: rev.id,
+              tipoRevisao: rev.tipo,
+              topicoId: rev.topicoId
+            });
+            revisoesJaPresentes.add(rev.id);
+          }
+        });
 
         // Revisões são EXTRAS. As matérias normais só são criadas
         // enquanto ainda estamos dentro do período previsto para concluir o edital.
@@ -2738,11 +2817,29 @@
         const podeCriarMateriaNormal = !dataFimConteudo || dataDia <= dataFimConteudo;
 
         if (podeCriarMateriaNormal) {
-          for (let i = 0; i < porDia; i++) {
-            const materia = cicloPonderado[ponteiro % cicloPonderado.length];
-            ponteiro++;
+          // Cartões normais concluídos continuam ocupando uma vaga do dia.
+          const normaisProtegidos = slotsDoDia.filter(slot => !slot.revisaoId).length;
+          const quantidadeParaCriar = Math.max(0, porDia - normaisProtegidos);
+          const topicosJaNoDia = new Set(
+            slotsDoDia.filter(s => !s.revisaoId && s.topicoId).map(s => s.topicoId)
+          );
 
-            const topico = obterProximoTopicoParaMateria(materia);
+          for (let i = 0; i < quantidadeParaCriar; i++) {
+            let tentativas = 0;
+            let materia = null;
+            let topico = null;
+
+            // Evita repetir no mesmo dia um tópico que ficou protegido.
+            do {
+              materia = cicloPonderado[ponteiro % cicloPonderado.length];
+              ponteiro++;
+              topico = obterProximoTopicoParaMateria(materia);
+              tentativas++;
+            } while (
+              topico &&
+              topicosJaNoDia.has(topico.id) &&
+              tentativas < cicloPonderado.length * 2
+            );
 
             slotsDoDia.push({
               materia,
@@ -2750,6 +2847,8 @@
               feito: false,
               topicoId: topico ? topico.id : null
             });
+
+            if (topico) topicosJaNoDia.add(topico.id);
           }
         }
 
@@ -2812,12 +2911,19 @@
         let slotsHtml = '';
         slots.forEach((slot, idxSlot) => {
           const isRevisao = !!slot.revisaoId;
+          const numeroTopico = slot.topicoId ? obterNumeroGlobalTopico(slot.topicoId) : null;
+          const totalTopicosNumerados = obterTotalTopicosNumerados();
+          const badgeNumero = numeroTopico
+            ? `<span class="tag-numero-topico">#${numeroTopico}/${totalTopicosNumerados}</span>`
+            : '';
+
           slotsHtml += `
             <div class="slot-card ${slot.feito ? 'done' : ''} ${isRevisao ? 'cartao-revisao-espacada' : ''}">
               <div class="slot-left">
                 <input type="checkbox" ${slot.feito ? 'checked' : ''} onchange="toggleSlotFeito('${diaInfo.nome}', ${idxSlot}, this.checked)">
                 <div class="slot-texts">
                   <div class="slot-header-row">
+                    ${badgeNumero}
                     <span class="slot-materia-title">${slot.materia}</span>
                     ${isRevisao ? '<span class="tag-badge-revisao-espacada">' + slot.tipoRevisao + '</span>' : ''}
                   </div>

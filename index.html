@@ -2654,13 +2654,69 @@
       return 0;
     }
 
-    function obterTopicosPendentesOrdenadosMateria(materia) {
-      const lista = (estado.editalVerticalizado[materia] || [])
-        .map((topico, indiceOriginal) => ({ topico, indiceOriginal }))
-        .filter(item => item.topico && item.topico.t !== true);
+    function normalizarTextoChave(valor) {
+      return String(valor || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '');
+    }
 
-      // Primeiro ALTA, depois MÉDIA, depois BAIXA.
-      // Empates preservam a ordem original do edital.
+    function resolverChaveMateriaNoEdital(materia) {
+      const chaves = Object.keys(estado.editalVerticalizado || {});
+      if (chaves.length === 0) return null;
+
+      // 1. correspondência exata
+      if (Object.prototype.hasOwnProperty.call(estado.editalVerticalizado, materia)) {
+        return materia;
+      }
+
+      const alvo = normalizarTextoChave(materia);
+
+      // 2. correspondência normalizada
+      let encontrada = chaves.find(chave => normalizarTextoChave(chave) === alvo);
+      if (encontrada) return encontrada;
+
+      // 3. compatibilidade com nomes que tenham complemento entre parênteses,
+      // abreviações ou pequenas diferenças de importação.
+      encontrada = chaves.find(chave => {
+        const k = normalizarTextoChave(chave);
+        return k && alvo && (k.startsWith(alvo) || alvo.startsWith(k));
+      });
+
+      return encontrada || null;
+    }
+
+    function obterIdsTopicosJaAgendados() {
+      const ids = new Set();
+
+      Object.values(estado.semanas || {}).forEach(semana => {
+        Object.values(semana || {}).forEach(slots => {
+          (slots || []).forEach(slot => {
+            if (slot && !slot.revisaoId && slot.topicoId) {
+              ids.add(slot.topicoId);
+            }
+          });
+        });
+      });
+
+      return ids;
+    }
+
+    function obterTopicosPendentesOrdenadosMateria(materia, idsIgnorar = new Set()) {
+      const chaveMateria = resolverChaveMateriaNoEdital(materia);
+      if (!chaveMateria) return [];
+
+      const lista = (estado.editalVerticalizado[chaveMateria] || [])
+        .map((topico, indiceOriginal) => ({ topico, indiceOriginal }))
+        .filter(item =>
+          item.topico &&
+          item.topico.t !== true &&
+          !idsIgnorar.has(item.topico.id)
+        );
+
+      // ALTA -> MÉDIA -> BAIXA -> sem prioridade.
+      // Dentro da mesma prioridade, mantém a ordem original do edital.
       lista.sort((a, b) => {
         const pa = obterNivelPrioridadeTopico(a.topico);
         const pb = obterNivelPrioridadeTopico(b.topico);
@@ -2751,12 +2807,29 @@
       return total;
     }
 
-    function obterProximoTopicoParaMateria(materia) {
-      const pendentesOrdenados = obterTopicosPendentesOrdenadosMateria(materia);
-      if (pendentesOrdenados.length === 0) return null;
+    function obterProximoTopicoParaMateria(materia, idsIgnorar = new Set()) {
+      const pendentesOrdenados = obterTopicosPendentesOrdenadosMateria(materia, idsIgnorar);
+      return pendentesOrdenados.length > 0 ? pendentesOrdenados[0] : null;
+    }
 
-      // O primeiro pendente é sempre o de maior prioridade.
-      return pendentesOrdenados[0];
+    function encontrarProximoTopicoDisponivel(cicloPonderado, ponteiroInicial, idsIgnorar) {
+      if (!cicloPonderado || cicloPonderado.length === 0) {
+        return { materia: null, topico: null, ponteiro: ponteiroInicial };
+      }
+
+      let ponteiro = ponteiroInicial;
+      // Procura em todas as matérias do ciclo. Não cria cartão vazio.
+      for (let tentativa = 0; tentativa < cicloPonderado.length; tentativa++) {
+        const materia = cicloPonderado[ponteiro % cicloPonderado.length];
+        ponteiro++;
+
+        const topico = obterProximoTopicoParaMateria(materia, idsIgnorar);
+        if (topico) {
+          return { materia, topico, ponteiro };
+        }
+      }
+
+      return { materia: null, topico: null, ponteiro };
     }
 
     // Completa as matérias normais de uma semana já existente sem mexer nas revisões.
@@ -2810,18 +2883,30 @@
         const normaisExistentes = slots.filter(slot => !slot.revisaoId).length;
         const faltam = Math.max(0, porDia - normaisExistentes);
 
-        for (let i = 0; i < faltam; i++) {
-          const materia = cicloPonderado[ponteiro % cicloPonderado.length];
-          ponteiro++;
+        const idsJaAgendados = obterIdsTopicosJaAgendados();
+        slots.forEach(slot => {
+          if (slot && !slot.revisaoId && slot.topicoId) idsJaAgendados.add(slot.topicoId);
+        });
 
-          const topico = obterProximoTopicoParaMateria(materia);
+        for (let i = 0; i < faltam; i++) {
+          const proximo = encontrarProximoTopicoDisponivel(
+            cicloPonderado,
+            ponteiro,
+            idsJaAgendados
+          );
+          ponteiro = proximo.ponteiro;
+
+          // Acabaram os tópicos disponíveis: não cria cartão artificial.
+          if (!proximo.topico) break;
 
           slots.push({
-            materia,
-            assunto: topico ? topico.titulo : 'Revisão livre / Questões',
+            materia: proximo.materia,
+            assunto: proximo.topico.titulo,
             feito: false,
-            topicoId: topico ? topico.id : null
+            topicoId: proximo.topico.id
           });
+
+          idsJaAgendados.add(proximo.topico.id);
         }
 
         semana[nomeDia] = slots;
@@ -2859,10 +2944,30 @@
       const semanaAntesDeRegenerar = estado.semanas[chaveSemana] || {};
       const concluidosProtegidos = {};
 
+      // IDs agendados em OUTRAS semanas + concluídos protegidos desta semana.
+      // Os cartões não concluídos da semana atual podem ser redistribuídos.
+      const idsAgendadosForaDaSemana = new Set();
+      Object.entries(estado.semanas || {}).forEach(([chave, semana]) => {
+        if (chave === chaveSemana) return;
+        Object.values(semana || {}).forEach(slots => {
+          (slots || []).forEach(slot => {
+            if (slot && !slot.revisaoId && slot.topicoId) {
+              idsAgendadosForaDaSemana.add(slot.topicoId);
+            }
+          });
+        });
+      });
+
       DIAS.forEach(nomeDia => {
         concluidosProtegidos[nomeDia] = (semanaAntesDeRegenerar[nomeDia] || [])
           .filter(slot => slot && slot.feito === true)
           .map(slot => ({ ...slot }));
+
+        concluidosProtegidos[nomeDia].forEach(slot => {
+          if (!slot.revisaoId && slot.topicoId) {
+            idsAgendadosForaDaSemana.add(slot.topicoId);
+          }
+        });
       });
 
       const partesChave = chaveSemana.replace('semana_', '').split('-');
@@ -2964,35 +3069,34 @@
           // Cartões normais concluídos continuam ocupando uma vaga do dia.
           const normaisProtegidos = slotsDoDia.filter(slot => !slot.revisaoId).length;
           const quantidadeParaCriar = Math.max(0, porDia - normaisProtegidos);
-          const topicosJaNoDia = new Set(
-            slotsDoDia.filter(s => !s.revisaoId && s.topicoId).map(s => s.topicoId)
-          );
+          const idsBloqueados = new Set(idsAgendadosForaDaSemana);
+          slotsDoDia.forEach(slot => {
+            if (slot && !slot.revisaoId && slot.topicoId) {
+              idsBloqueados.add(slot.topicoId);
+            }
+          });
 
           for (let i = 0; i < quantidadeParaCriar; i++) {
-            let tentativas = 0;
-            let materia = null;
-            let topico = null;
-
-            // Evita repetir no mesmo dia um tópico que ficou protegido.
-            do {
-              materia = cicloPonderado[ponteiro % cicloPonderado.length];
-              ponteiro++;
-              topico = obterProximoTopicoParaMateria(materia);
-              tentativas++;
-            } while (
-              topico &&
-              topicosJaNoDia.has(topico.id) &&
-              tentativas < cicloPonderado.length * 2
+            const proximo = encontrarProximoTopicoDisponivel(
+              cicloPonderado,
+              ponteiro,
+              idsBloqueados
             );
+            ponteiro = proximo.ponteiro;
+
+            // Se não existir mais tópico real disponível, para.
+            // Nunca cria "Revisão livre / Questões" como substituto.
+            if (!proximo.topico) break;
 
             slotsDoDia.push({
-              materia,
-              assunto: topico ? topico.titulo : 'Revisão livre / Questões',
+              materia: proximo.materia,
+              assunto: proximo.topico.titulo,
               feito: false,
-              topicoId: topico ? topico.id : null
+              topicoId: proximo.topico.id
             });
 
-            if (topico) topicosJaNoDia.add(topico.id);
+            idsBloqueados.add(proximo.topico.id);
+            idsAgendadosForaDaSemana.add(proximo.topico.id);
           }
         }
 

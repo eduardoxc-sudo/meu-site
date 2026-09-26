@@ -634,6 +634,25 @@
       border: 1px solid rgba(16, 185, 129, 0.35);
     }
 
+    /* ESTILO EXCLUSIVO DO CARTÃO DE REVISÃO ESPAÇADA NA GRADE */
+    .slot-card.cartao-revisao-espacada {
+      border: 2px solid #8b5cf6 !important;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.08)) !important;
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2) !important;
+    }
+
+    .tag-badge-revisao-espacada {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #8b5cf6;
+      color: #ffffff;
+      width: fit-content;
+      letter-spacing: 0.04em;
+    }
+
     .agenda-card {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -1069,6 +1088,7 @@
         <button class="tab-btn" onclick="trocarAba('aba-planejamento', this)">Planeamento</button>
         <button class="tab-btn" onclick="trocarAba('aba-edital', this)">Edital TXT</button>
         <button class="tab-btn" onclick="trocarAba('aba-senha', this)">Segurança</button>
+        <button class="tab-btn" id="btnAbaUsuariosAdmin" onclick="trocarAba('aba-usuarios-admin', this)" style="display:none; color: #f59e0b; font-weight:700;">Gestão Utilizadores 👥</button>
       </nav>
 
       <!-- Aba 1: Ciclo -->
@@ -1090,17 +1110,16 @@
         <button class="btn btn-outline" onclick="reiniciarProgressoSemana()">Limpar Checkboxes da Semana</button>
       </div>
 
-      <!-- Nova Aba: Editais Prontos -->
+      <!-- Aba: Editais Prontos -->
       <div id="aba-editais-prontos" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
           Clique em qualquer edital pronto da lista abaixo para aplicá-lo instantaneamente ao seu plano de estudos.
         </p>
 
-        <!-- Formulário exclusivo de Eduardo -->
         <div id="painelCriadorEduardo" style="display: none; background: rgba(56, 189, 248, 0.06); border: 1px solid var(--primary); border-radius: 10px; padding: 12px; margin-bottom: 10px;">
           <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">👑 Painel de Administração (Eduardo)</div>
           <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">
-            Cadastre um novo edital verticalizado aqui. Ele ficará disponível na lista de todos os usuários com o botão verde.
+            Cadastre um novo edital verticalizado aqui. Ele ficará disponível na lista de todos os utilizadores com o botão verde.
           </p>
 
           <div class="field" style="margin-bottom: 8px;">
@@ -1140,7 +1159,7 @@
       <!-- Aba 3: Revisões -->
       <div id="aba-revisoes" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Ao marcar 1D, 7D, 15D ou 30D no Edital, apenas essa revisão é agendada para a sua data correspondente:
+          Ao marcar 1D, 7D, 15D ou 30D no Edital, a revisão é agendada para a sua data e entra com destaque roxo no cronograma semanal:
         </p>
 
         <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
@@ -1235,6 +1254,14 @@
 
       <!-- Aba 7: Edital Verticalizado -->
       <div id="aba-edital-vert" class="tab-content">
+        <div id="blocoAdminMarcarTudo" style="display: none; background: rgba(16, 185, 129, 0.08); border: 1px solid var(--success); border-radius: 8px; padding: 10px; margin-bottom: 8px;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--success); margin-bottom: 6px;">👑 Controlo Rápido de Tópicos (Eduardo)</div>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn btn-success" style="flex: 1; font-size: 0.75rem;" onclick="adminMarcarTodosTopicos(true)">✅ Marcar Todos como Feitos</button>
+            <button class="btn btn-outline" style="flex: 1; font-size: 0.75rem; border-color: var(--danger); color: var(--danger);" onclick="adminMarcarTodosTopicos(false)">❌ Desmarcar Todos</button>
+          </div>
+        </div>
+
         <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
           <label style="color: var(--primary);">Filtrar Visualização da Matéria</label>
           <select id="filtroExclusivoMateriaEdital" onchange="renderizarEditalVerticalizado()"></select>
@@ -1329,6 +1356,29 @@
         </div>
         <div id="msgStatusSenha" style="font-size: 0.82rem; display: none; padding: 8px; border-radius: 6px;"></div>
         <button class="btn btn-primary" onclick="alterarPalavraPasse()">Guardar Nova Senha</button>
+      </div>
+
+      <!-- Aba 12: Gestão de Utilizadores (Exclusiva para Eduardo) -->
+      <div id="aba-usuarios-admin" class="tab-content">
+        <div style="font-size: 0.9rem; font-weight: 700; color: var(--warning); margin-bottom: 4px;">👑 Gestão de Acessos da Plataforma</div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+          Adicione ou remova utilizadores autorizados a aceder ao painel. Todas as alterações são sincronizadas na nuvem.
+        </p>
+
+        <div style="background: rgba(245, 158, 11, 0.06); border: 1px solid var(--warning); border-radius: 10px; padding: 12px;">
+          <div class="field" style="margin-bottom: 8px;">
+            <label for="inputNovoNomeUsuario">Nome do Novo Utilizador</label>
+            <input type="text" id="inputNovoNomeUsuario" placeholder="Ex: Roberto">
+          </div>
+          <div class="field" style="margin-bottom: 10px;">
+            <label for="inputNovaSenhaUsuario">Palavra-passe Inicial</label>
+            <input type="text" id="inputNovaSenhaUsuario" placeholder="Ex: 123456">
+          </div>
+          <button class="btn btn-primary" style="width: 100%;" onclick="adminCriarNovoUsuario()">➕ Adicionar Novo Utilizador</button>
+        </div>
+
+        <label style="margin-top: 6px;">Utilizadores Registados</label>
+        <div id="listaUsuariosCadastradosAdmin" style="display: flex; flex-direction: column; gap: 6px;"></div>
       </div>
 
       <div class="sidebar-footer">
@@ -1705,12 +1755,17 @@
         return;
       }
 
-      if (delta > 0 && dataLimiteFinalEdital) {
-        const domingoNovaSemana = new Date(obterSegundaFeira(novaData));
-        domingoNovaSemana.setDate(domingoNovaSemana.getDate() + 6);
+      let pendentes = 0;
+      Object.keys(estado.editalVerticalizado || {}).forEach(m => {
+        pendentes += (estado.editalVerticalizado[m] || []).filter(t => !t.t).length;
+      });
 
-        if (novaData > dataLimiteFinalEdital && domingoNovaSemana > dataLimiteFinalEdital) {
-          alert(`Chegou ao fim do edital! Todos os tópicos terminam em ${formatarDataBR(dataLimiteFinalEdital)}.`);
+      if (delta > 0 && dataLimiteFinalEdital) {
+        const segundaNovaSemana = obterSegundaFeira(novaData);
+        const segundaDataLimite = obterSegundaFeira(dataLimiteFinalEdital);
+
+        if (segundaNovaSemana > segundaDataLimite && pendentes === 0) {
+          alert(`Chegou ao fim do edital! Todos os tópicos foram concluídos.`);
           return;
         }
       }
@@ -1827,6 +1882,148 @@
       document.getElementById('confirmaNovaSenha').value = '';
     }
 
+    function adminMarcarTodosTopicos(marcar) {
+      if (!usuarioAtivo || usuarioAtivo.toLowerCase() !== 'eduardo') {
+        alert("Apenas o utilizador Eduardo pode utilizar esta função.");
+        return;
+      }
+
+      const acao = marcar ? "marcar como CONCLUÍDOS" : "DESMARCAR";
+      if (!confirm(`Deseja realmente ${acao} todos os tópicos do edital?`)) return;
+
+      Object.keys(estado.editalVerticalizado || {}).forEach(m => {
+        (estado.editalVerticalizado[m] || []).forEach(t => {
+          t.t = marcar;
+        });
+      });
+
+      Object.keys(estado.semanas || {}).forEach(semKey => {
+        Object.keys(estado.semanas[semKey] || {}).forEach(dia => {
+          (estado.semanas[semKey][dia] || []).forEach(slot => {
+            slot.feito = marcar;
+          });
+        });
+      });
+
+      salvarEstado();
+      renderizarEditalVerticalizado();
+      renderizarGrade();
+      renderizarVisaoGeral();
+      calcularPrevisaoFechamentoEdital();
+      alert(`Todos os tópicos foram ${marcar ? 'marcados como concluídos' : 'desmarcados'} com sucesso!`);
+    }
+
+    function configurarPainelAdminUsuarios() {
+      const btnAba = document.getElementById('btnAbaUsuariosAdmin');
+      const blocoMarcar = document.getElementById('blocoAdminMarcarTudo');
+      const isEduardo = (usuarioAtivo && usuarioAtivo.toLowerCase() === 'eduardo');
+
+      if (btnAba) btnAba.style.display = isEduardo ? 'block' : 'none';
+      if (blocoMarcar) blocoMarcar.style.display = isEduardo ? 'block' : 'none';
+
+      if (isEduardo) {
+        carregarListaUsuariosAdmin();
+      }
+    }
+
+    function carregarListaUsuariosAdmin() {
+      const container = document.getElementById('listaUsuariosCadastradosAdmin');
+      if (!container) return;
+
+      if (rtdb) {
+        rtdb.ref("senhas").on("value", snapshot => {
+          const senhasNuvem = snapshot.val() || {};
+          renderizarListaUsuariosAdminHtml(senhasNuvem);
+        });
+      } else {
+        renderizarListaUsuariosAdminHtml(obterSenhasLocais());
+      }
+    }
+
+    function renderizarListaUsuariosAdminHtml(senhasObj) {
+      const container = document.getElementById('listaUsuariosCadastradosAdmin');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const usuarios = Object.keys(senhasObj);
+      if (usuarios.length === 0) {
+        container.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center;">Nenhum utilizador encontrado.</div>';
+        return;
+      }
+
+      usuarios.forEach(u => {
+        const item = document.createElement('div');
+        item.className = 'item-card';
+        item.style.padding = '8px 10px';
+
+        const isEduardo = (u.toLowerCase() === 'eduardo');
+        const btnRemover = isEduardo 
+          ? '<span style="font-size:0.75rem; color:var(--primary); font-weight:700;">Admin</span>' 
+          : `<button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="adminExcluirUsuario('${u}')">🗑️ Excluir</button>`;
+
+        item.innerHTML = `
+          <div>
+            <strong>${u}</strong>
+            <span style="font-size:0.75rem; color:var(--text-muted); margin-left:6px;">(Senha: ${senhasObj[u]})</span>
+          </div>
+          ${btnRemover}
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function adminCriarNovoUsuario() {
+      const nomeInput = document.getElementById('inputNovoNomeUsuario');
+      const senhaInput = document.getElementById('inputNovaSenhaUsuario');
+      const nome = nomeInput.value.trim();
+      const senha = senhaInput.value.trim();
+
+      if (!nome || !senha) {
+        alert("Preencha o nome do utilizador e a palavra-passe.");
+        return;
+      }
+
+      const senhas = obterSenhasLocais();
+      senhas[nome] = senha;
+      salvarSenhasLocais(senhas);
+
+      if (rtdb) {
+        rtdb.ref("senhas/" + nome.toLowerCase()).set(senha).then(() => {
+          alert(`Utilizador "${nome}" adicionado com sucesso!`);
+          nomeInput.value = '';
+          senhaInput.value = '';
+        });
+      } else {
+        alert(`Utilizador "${nome}" adicionado localmente.`);
+        nomeInput.value = '';
+        senhaInput.value = '';
+        carregarListaUsuariosAdmin();
+      }
+    }
+
+    function adminExcluirUsuario(nome) {
+      if (nome.toLowerCase() === 'eduardo') {
+        alert("O utilizador administrador não pode ser excluído.");
+        return;
+      }
+
+      if (confirm(`Tem a certeza de que deseja eliminar o acesso de "${nome}"?`)) {
+        const senhas = obterSenhasLocais();
+        delete senhas[nome];
+        salvarSenhasLocais(senhas);
+
+        if (rtdb) {
+          rtdb.ref("senhas/" + nome.toLowerCase()).remove().then(() => {
+            rtdb.ref("perfis/" + nome.toLowerCase()).remove();
+            alert(`Utilizador "${nome}" excluído com sucesso!`);
+          });
+        } else {
+          alert(`Utilizador "${nome}" excluído localmente.`);
+          carregarListaUsuariosAdmin();
+        }
+      }
+    }
+
     function configurarAbaEditaisProntos() {
       const painelAdmin = document.getElementById('painelCriadorEduardo');
       if (usuarioAtivo && usuarioAtivo.toLowerCase() === 'eduardo') {
@@ -1884,7 +2081,7 @@
         rtdb.ref("editais_prontos/" + idEdital).set(objetoEditalPronto).then(() => {
           status.style.color = '#10b981';
           status.style.background = 'rgba(16, 185, 129, 0.1)';
-          status.innerText = "✅ Edital publicado com sucesso para todos os usuários!";
+          status.innerText = "✅ Edital publicado com sucesso para todos os utilizadores!";
           document.getElementById('tituloNovoEditalPronto').value = '';
           document.getElementById('textoNovoEditalPronto').value = '';
         }).catch(err => {
@@ -1980,7 +2177,7 @@
 
     function excluirEditalPronto(idEdital) {
       if (usuarioAtivo && usuarioAtivo.toLowerCase() !== 'eduardo') {
-        alert("Apenas o usuário Eduardo tem permissão para excluir editais.");
+        alert("Apenas o utilizador Eduardo tem permissão para excluir editais.");
         return;
       }
 
@@ -2029,6 +2226,7 @@
       document.getElementById('labelNomeUsuario').innerText = usuarioAtivo;
       document.getElementById('tituloCronograma').innerText = `Cronograma de ${usuarioAtivo}`;
       configurarAbaEditaisProntos();
+      configurarPainelAdminUsuarios();
       iniciarSincronizacaoPerfil();
     }
 
@@ -2182,47 +2380,89 @@
       reader.readAsText(file);
     }
 
+    /* ADICIONA / REMOVE A REVISÃO ESPAÇADA NA AGENDA E NA GRADE DO CRONOGRAMA */
     function agendarRevisaoIndividual(materia, idTopico, campoMarcado, deveAgendar) {
       if (!estado.agendaRevisoes) estado.agendaRevisoes = [];
+      if (!estado.semanas) estado.semanas = {};
       const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === idTopico);
       if (!topico) return;
 
       const mapaCiclos = {
-        'r1': { tipo: 'D1', dias: 1 },
-        'r7': { tipo: 'D7', dias: 7 },
-        'r15': { tipo: 'D15', dias: 15 },
-        'r30': { tipo: 'D30', dias: 30 }
+        'r1': { tipo: '1D', dias: 1 },
+        'r7': { tipo: '7D', dias: 7 },
+        'r15': { tipo: '15D', dias: 15 },
+        'r30': { tipo: '30D', dias: 30 }
       };
 
       const config = mapaCiclos[campoMarcado];
       if (!config) return;
 
+      const idRevisaoUnica = `rev_${idTopico}_${campoMarcado}`;
+
       if (deveAgendar) {
-        const jaExiste = estado.agendaRevisoes.find(r => r.idTopico === idTopico && r.chaveCheck === campoMarcado);
+        const jaExiste = estado.agendaRevisoes.find(r => r.idRev === idRevisaoUnica);
         if (!jaExiste) {
           const hoje = new Date();
           hoje.setHours(0, 0, 0, 0);
           const dataAlvo = new Date(hoje);
           dataAlvo.setDate(hoje.getDate() + config.dias);
 
+          const dataChaveAlvo = formatarDataChave(dataAlvo);
+          const segundaAlvo = obterSegundaFeira(dataAlvo);
+          const chaveSemanaAlvo = `semana_${formatarDataChave(segundaAlvo)}`;
+          const diaNomeAlvo = DIAS[(dataAlvo.getDay() + 6) % 7];
+
           estado.agendaRevisoes.push({
-            idRev: 'rev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+            idRev: idRevisaoUnica,
             materia: materia,
             idTopico: idTopico,
             assunto: topico.titulo,
             tipo: config.tipo,
             chaveCheck: campoMarcado,
-            dataPrevista: formatarDataChave(dataAlvo),
+            dataPrevista: dataChaveAlvo,
             dataPrevistaFormatada: formatarDataBR(dataAlvo),
             concluida: false
           });
+
+          // Inserção com destaque na semana de destino da grade
+          if (!estado.semanas[chaveSemanaAlvo]) {
+            gerarSemanaAutomatica(chaveSemanaAlvo, false, false);
+          }
+          if (!estado.semanas[chaveSemanaAlvo][diaNomeAlvo]) {
+            estado.semanas[chaveSemanaAlvo][diaNomeAlvo] = [];
+          }
+
+          const slotJaInserido = estado.semanas[chaveSemanaAlvo][diaNomeAlvo].find(s => s.id === idRevisaoUnica);
+          if (!slotJaInserido) {
+            estado.semanas[chaveSemanaAlvo][diaNomeAlvo].unshift({
+              id: idRevisaoUnica,
+              materia: materia,
+              assunto: `[Revisão ${config.tipo}] ${topico.titulo}`,
+              prioridade: 'revisao',
+              tipoRevisao: config.tipo,
+              isRevisaoEspacada: true,
+              idTopicoOrigem: idTopico,
+              chaveCheckOrigem: campoMarcado,
+              feito: false
+            });
+          }
         }
       } else {
-        estado.agendaRevisoes = estado.agendaRevisoes.filter(r => !(r.idTopico === idTopico && r.chaveCheck === campoMarcado));
+        // Remove da lista de revisões
+        estado.agendaRevisoes = estado.agendaRevisoes.filter(r => r.idRev !== idRevisaoUnica);
+
+        // Remove o cartão da semana em que estava agendado
+        Object.keys(estado.semanas).forEach(semKey => {
+          Object.keys(estado.semanas[semKey]).forEach(diaKey => {
+            estado.semanas[semKey][diaKey] = (estado.semanas[semKey][diaKey] || []).filter(s => s.id !== idRevisaoUnica);
+          });
+        });
       }
 
       salvarEstado();
       renderizarAbaRevisoes();
+      renderizarGrade();
+      renderizarVisaoGeral();
     }
 
     function renderizarAbaRevisoes() {
@@ -2273,15 +2513,42 @@
       const item = (estado.agendaRevisoes || []).find(r => r.idRev === idRev);
       if (item) {
         item.concluida = !item.concluida;
+
+        // Atualiza também o cartão correspondente na grade
+        Object.keys(estado.semanas || {}).forEach(semKey => {
+          Object.keys(estado.semanas[semKey] || {}).forEach(diaKey => {
+            const slot = (estado.semanas[semKey][diaKey] || []).find(s => s.id === idRev);
+            if (slot) slot.feito = item.concluida;
+          });
+        });
+
         salvarEstado();
         renderizarAbaRevisoes();
+        renderizarGrade();
+        renderizarVisaoGeral();
       }
     }
 
     function excluirItemRevisao(idRev) {
+      const item = (estado.agendaRevisoes || []).find(r => r.idRev === idRev);
+      if (item && item.idTopico && item.chaveCheck) {
+        const topico = (estado.editalVerticalizado[item.materia] || []).find(t => t.id === item.idTopico);
+        if (topico) topico[item.chaveCheck] = false;
+      }
+
       estado.agendaRevisoes = (estado.agendaRevisoes || []).filter(r => r.idRev !== idRev);
+
+      Object.keys(estado.semanas || {}).forEach(semKey => {
+        Object.keys(estado.semanas[semKey] || {}).forEach(diaKey => {
+          estado.semanas[semKey][diaKey] = (estado.semanas[semKey][diaKey] || []).filter(s => s.id !== idRev);
+        });
+      });
+
       salvarEstado();
+      renderizarEditalVerticalizado();
       renderizarAbaRevisoes();
+      renderizarGrade();
+      renderizarVisaoGeral();
     }
 
     function obterProximoTopicoPrioritario(nomeMateria) {
@@ -2308,7 +2575,6 @@
       };
     }
 
-    /* REGENERAÇÃO PRECISA: PRESERVA ITENS FEITOS, RENOVA ITENS NÃO FEITOS */
     function gerarSemanaAutomatica(chaveSemana, deveSalvar, forcarRenovacaoPendentes) {
       if (!estado.disciplinas || estado.disciplinas.length === 0) return;
 
@@ -2337,26 +2603,32 @@
         dataDoDia.setHours(0, 0, 0, 0);
         const diaTimestamp = dataDoDia.getTime();
 
-        // Dias passados estritamente livres (ou preserva o que já foi marcado como feito)
+        // Preserva sempre os cartões de revisão espaçada já inseridos
+        const revisoesDoDia = slotsAntigos.filter(s => s.isRevisaoEspacada);
+
         if (diaTimestamp < hojeTimestamp) {
           estado.semanas[chaveSemana][d.nome] = slotsAntigos.filter(s => s.feito);
           return;
         }
 
+        // Recoloca as revisões espaçadas no início do dia
+        revisoesDoDia.forEach(rev => {
+          estado.semanas[chaveSemana][d.nome].push(rev);
+        });
+
+        const slotsNormaisAntigos = slotsAntigos.filter(s => !s.isRevisaoEspacada);
+
         for (let k = 0; k < estado.porDia; k++) {
-          // Se o cartão antigo já estiver marcado como FEITO, NUNCA se altera
-          if (slotsAntigos[k] && slotsAntigos[k].feito) {
-            estado.semanas[chaveSemana][d.nome].push(slotsAntigos[k]);
+          if (slotsNormaisAntigos[k] && slotsNormaisAntigos[k].feito) {
+            estado.semanas[chaveSemana][d.nome].push(slotsNormaisAntigos[k]);
             continue;
           }
 
-          // Se NÃO estiver a forçar renovação e já existir cartão não feito, mantém
-          if (!forcarRenovacaoPendentes && slotsAntigos[k]) {
-            estado.semanas[chaveSemana][d.nome].push(slotsAntigos[k]);
+          if (!forcarRenovacaoPendentes && slotsNormaisAntigos[k]) {
+            estado.semanas[chaveSemana][d.nome].push(slotsNormaisAntigos[k]);
             continue;
           }
 
-          // Sorteia novo tópico do edital
           const nomeMateria = pool[ponteiro % pool.length];
           const infoTopico = obterProximoTopicoPrioritario(nomeMateria);
 
@@ -2382,6 +2654,7 @@
       calcularPrevisaoFechamentoEdital();
     }
 
+    /* RENDERIZAÇÃO DA GRADE COM DESTACAMENTO PARA REVISÕES ESPAÇADAS */
     function renderizarGrade() {
       const grade = document.getElementById('gradeSemana');
       if (!grade) return;
@@ -2428,9 +2701,19 @@
         } else {
           slots.forEach((item, idx) => {
             const card = document.createElement('div');
-            card.className = `slot-card ${item.feito ? 'done' : ''}`;
-            const pClass = item.prioridade || 'amarelo';
-            const pTexto = pClass === 'vermelho' ? '🔴 Prioridade' : (pClass === 'verde' ? '🟢 Pouco urgente' : '🟡 Urgência');
+            
+            // Verificação e estilização de Revisão Espaçada
+            const isRev = item.isRevisaoEspacada === true;
+            card.className = `slot-card ${item.feito ? 'done' : ''} ${isRev ? 'cartao-revisao-espacada' : ''}`;
+
+            let badgeHtml = '';
+            if (isRev) {
+              badgeHtml = `<span class="tag-badge-revisao-espacada">⏰ REVISÃO ESPAÇADA (${item.tipoRevisao || 'R'})</span>`;
+            } else {
+              const pClass = item.prioridade || 'amarelo';
+              const pTexto = pClass === 'vermelho' ? '🔴 Prioridade' : (pClass === 'verde' ? '🟢 Pouco urgente' : '🟡 Urgência');
+              badgeHtml = `<span class="tag-badge-prioridade ${pClass}">${pTexto}</span>`;
+            }
 
             card.innerHTML = `
               <div class="slot-left">
@@ -2438,7 +2721,7 @@
                 <div class="slot-texts">
                   <span class="slot-materia-title">${item.materia}</span>
                   <span class="slot-assunto-sub">${item.assunto || 'Assunto'}</span>
-                  <span class="tag-badge-prioridade ${pClass}">${pTexto}</span>
+                  ${badgeHtml}
                 </div>
               </div>
               <button class="btn-play-mini" title="Cronometrar" onclick="iniciarTimerMateria('${item.materia}')">▶</button>
@@ -2457,7 +2740,11 @@
       const slot = estado.semanas[chaveSemanaAtiva][dia][idx];
       slot.feito = !slot.feito;
 
-      if (estado.editalVerticalizado[slot.materia]) {
+      // Se for revisão espaçada, atualiza o item na aba de revisões
+      if (slot.isRevisaoEspacada && slot.id) {
+        const itemRev = (estado.agendaRevisoes || []).find(r => r.idRev === slot.id);
+        if (itemRev) itemRev.concluida = slot.feito;
+      } else if (estado.editalVerticalizado[slot.materia]) {
         const topicoObj = estado.editalVerticalizado[slot.materia].find(t => t.titulo === slot.assunto);
         if (topicoObj) topicoObj.t = slot.feito;
       }
@@ -2477,6 +2764,7 @@
       renderizarGrade();
       renderizarVisaoGeral();
       renderizarEditalVerticalizado();
+      renderizarAbaRevisoes();
       calcularPrevisaoFechamentoEdital();
     }
 
@@ -2520,9 +2808,10 @@
           htmlSlots = '<div style="font-size:0.75rem; color:var(--text-muted);">Livre</div>';
         } else {
           slots.forEach(s => {
+            const rotuloRev = s.isRevisaoEspacada ? `[REVISÃO ${s.tipoRevisao || ''}] ` : '';
             htmlSlots += `
               <div class="agenda-item-slot">
-                <span><strong>${s.materia}:</strong> ${s.assunto}</span>
+                <span><strong>${s.materia}:</strong> ${rotuloRev}${s.assunto}</span>
                 <span style="font-size:0.72rem; color:${s.feito ? 'var(--success)' : 'var(--text-muted)'}; font-weight:600;">
                   ${s.feito ? '✅ Concluído' : '⏳ Pendente'}
                 </span>
@@ -3070,6 +3359,7 @@
       atualizarIndicadorPresenca();
       atualizarSemanaAtiva();
       calcularPrevisaoFechamentoEdital();
+      configurarPainelAdminUsuarios();
     }
 
     function trocarAba(abaId, botao) {

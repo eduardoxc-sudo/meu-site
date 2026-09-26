@@ -1620,6 +1620,66 @@
     #aba-editais-prontos .v22-somente-admin {
       display: none;
     }
+
+    /* ===== V23: Horas líquidas na aba Progresso ===== */
+    .horas-progresso-v23 {
+      margin: 16px 0;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--bg-card);
+    }
+    .horas-cabecalho-v23 {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .horas-titulo-v23 {
+      color:var(--primary);
+      font-size:1rem;
+      font-weight:800;
+    }
+    .horas-sub-v23 {
+      margin-top:3px;
+      color:var(--text-muted);
+      font-size:.7rem;
+      line-height:1.35;
+    }
+    #horasTotalV23 {
+      color:var(--primary);
+      font-size:1rem;
+      white-space:nowrap;
+    }
+    .hora-linha-v23 { margin:11px 0; }
+    .hora-label-v23 {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:5px;
+      color:var(--text);
+      font-size:.73rem;
+    }
+    .hora-label-v23 span { overflow-wrap:anywhere; font-weight:700; }
+    .hora-label-v23 b { color:var(--primary); white-space:nowrap; }
+    .hora-trilho-v23 {
+      height:10px;
+      border-radius:20px;
+      overflow:hidden;
+      background:var(--surface-hover);
+    }
+    .hora-trilho-v23 > div {
+      height:100%;
+      border-radius:20px;
+      background:linear-gradient(90deg,#38bdf8,#6366f1);
+      transition:width .3s ease;
+    }
+    .horas-vazio-v23 {
+      padding:8px 0;
+      color:var(--text-muted);
+      font-size:.74rem;
+    }
 </style>
 </head>
 <body>
@@ -1917,13 +1977,24 @@
 
         <div class="progresso-filtro-v20">
           <label>FILTRAR DESEMPENHO POR MATÉRIA</label>
-          <select id="filtroProgressoMateriaV20" onchange="renderizarProgressoV20()">
+          <select id="filtroProgressoMateriaV20" onchange="renderizarProgressoV20(); renderizarHorasProgressoV23()">
             <option value="">Todas as Disciplinas</option>
           </select>
         </div>
         <div class="grafico-progresso-v20">
           <div class="grafico-titulo-v20" id="graficoTituloV20">Desempenho geral</div>
           <div id="graficoBarrasV20"></div>
+        </div>
+
+        <div class="horas-progresso-v23">
+          <div class="horas-cabecalho-v23">
+            <div>
+              <div class="horas-titulo-v23">⏱ Horas líquidas</div>
+              <div class="horas-sub-v23" id="horasSubtituloV23">Tempo acumulado de estudo</div>
+            </div>
+            <strong id="horasTotalV23">0h 00min</strong>
+          </div>
+          <div id="graficoHorasV23"></div>
         </div>
 
         <div class="progresso-cards">
@@ -5539,6 +5610,88 @@
         observer.observe(aba, { childList: true, subtree: true });
       });
     }
+
+    // ===== V23: Horas líquidas por matéria dentro de Progresso =====
+    function historicoHorasV23() {
+      if (typeof estado === 'undefined' || !estado) return [];
+      return Array.isArray(estado.historicoHoras) ? estado.historicoHoras : [];
+    }
+
+    function formatarMinutosV23(minutos) {
+      const total = Math.max(0, Math.round(Number(minutos) || 0));
+      const h = Math.floor(total / 60);
+      const m = total % 60;
+      return `${h}h ${String(m).padStart(2,'0')}min`;
+    }
+
+    function renderizarHorasProgressoV23() {
+      const filtro = document.getElementById('filtroProgressoMateriaV20')?.value || '';
+      const historico = historicoHorasV23();
+
+      const porMateria = {};
+      historico.forEach(item => {
+        const materia = String(item?.materia || '').trim();
+        const minutos = Number(item?.minutos || 0);
+        if (!materia || !Number.isFinite(minutos) || minutos <= 0) return;
+        porMateria[materia] = (porMateria[materia] || 0) + minutos;
+      });
+
+      let dados = Object.entries(porMateria)
+        .map(([materia,minutos]) => ({materia,minutos}))
+        .sort((a,b) => b.minutos - a.minutos);
+
+      if (filtro) dados = dados.filter(x => x.materia === filtro);
+
+      const total = dados.reduce((s,x) => s + x.minutos, 0);
+      const totalEl = document.getElementById('horasTotalV23');
+      const subEl = document.getElementById('horasSubtituloV23');
+      const grafico = document.getElementById('graficoHorasV23');
+
+      if (totalEl) totalEl.textContent = formatarMinutosV23(total);
+      if (subEl) subEl.textContent = filtro
+        ? `Tempo líquido acumulado — ${filtro}`
+        : 'Tempo líquido acumulado por matéria';
+
+      if (!grafico) return;
+      if (!dados.length) {
+        grafico.innerHTML = '<div class="horas-vazio-v23">Nenhum tempo salvo no Timer para esta seleção.</div>';
+        return;
+      }
+
+      const max = Math.max(...dados.map(x => x.minutos), 1);
+      grafico.innerHTML = dados.map(x => {
+        const pct = Math.max(4, Math.round((x.minutos / max) * 100));
+        return `<div class="hora-linha-v23">
+          <div class="hora-label-v23">
+            <span>${escV20(x.materia)}</span>
+            <b>${formatarMinutosV23(x.minutos)}</b>
+          </div>
+          <div class="hora-trilho-v23"><div style="width:${pct}%"></div></div>
+        </div>`;
+      }).join('');
+    }
+
+    // Ao abrir Progresso, atualiza questões + horas.
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('button');
+      if (btn && /Progresso/i.test(btn.textContent || '')) {
+        setTimeout(renderizarHorasProgressoV23, 100);
+      }
+    });
+
+    // Atualiza imediatamente após salvar tempo pelo Timer ou manualmente.
+    const registrarHoraEstudoOriginalV23 = window.registrarHoraEstudo;
+    if (typeof registrarHoraEstudoOriginalV23 === 'function') {
+      window.registrarHoraEstudo = function(materia, minutos) {
+        const r = registrarHoraEstudoOriginalV23.apply(this, arguments);
+        setTimeout(renderizarHorasProgressoV23, 30);
+        return r;
+      };
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(renderizarHorasProgressoV23, 300);
+    });
 </script>
 
   <button id="btnReabrirSidebar" class="sidebar-reopen"

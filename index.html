@@ -1143,6 +1143,91 @@
     .prog-bar{height:7px;background:var(--bg-input);border-radius:20px;overflow:hidden;}
     .prog-bar span{display:block;height:100%;background:linear-gradient(90deg,#38bdf8,#6366f1);}
     @media(max-width:600px){.planejamento-datas{grid-template-columns:1fr;}}
+
+    /* ===== V12: recolher/expandir menu lateral ===== */
+    .brand-row {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .btn-toggle-sidebar {
+      width:34px;
+      height:34px;
+      min-width:34px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:9px;
+      border:1px solid var(--border);
+      background:var(--bg-input);
+      color:var(--primary);
+      font-size:.9rem;
+      font-weight:900;
+      cursor:pointer;
+      transition:.18s ease;
+    }
+
+    .btn-toggle-sidebar:hover {
+      border-color:var(--primary);
+      transform:translateX(-1px);
+    }
+
+    /* Botão flutuante mostrado somente quando o menu está escondido */
+    .sidebar-reopen {
+      display:none;
+      position:fixed;
+      left:12px;
+      top:12px;
+      z-index:9999;
+      width:42px;
+      height:42px;
+      border:1px solid rgba(56,189,248,.45);
+      border-radius:11px;
+      background:var(--bg-card);
+      color:var(--primary);
+      box-shadow:0 6px 20px rgba(0,0,0,.25);
+      cursor:pointer;
+      font-size:1rem;
+      font-weight:900;
+    }
+
+    body.sidebar-hidden aside {
+      display:none !important;
+    }
+
+    body.sidebar-hidden main {
+      margin-left:0 !important;
+      width:100% !important;
+      max-width:none !important;
+    }
+
+    body.sidebar-hidden .sidebar-reopen {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    /* O cronograma aproveita o espaço liberado */
+    body.sidebar-hidden .week-grid {
+      grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
+      width:100% !important;
+    }
+
+    @media (min-width:1500px) {
+      body.sidebar-hidden .week-grid {
+        grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
+      }
+    }
+
+    body.sidebar-hidden #app-container {
+      grid-template-columns: 1fr !important;
+    }
+    body.sidebar-hidden main {
+      grid-column: 1 / -1 !important;
+      min-width: 0 !important;
+    }
 </style>
 </head>
 <body>
@@ -1176,7 +1261,13 @@
   <div id="app-container">
     <aside>
       <div class="sidebar-header">
-        <h2>📚 Estudo Inteligente</h2>
+        <div class="brand-row">
+          <h2>📚 Estudo Inteligente</h2>
+          <button id="btnToggleSidebar" class="btn-toggle-sidebar"
+                  onclick="toggleSidebar()"
+                  title="Esconder menu"
+                  aria-label="Esconder menu">◀</button>
+        </div>
         <div class="user-tag">
           Perfil: <span id="labelNomeUsuario" class="user-badge">-</span>
         </div>
@@ -4186,6 +4277,50 @@
       const c=document.getElementById('resultadoBuscaEdital');
       if(c)c.textContent=termo?n+' assunto(s) localizado(s)':'';
     });
+
+    // ===== V12: mostrar/esconder guia lateral =====
+    function aplicarEstadoSidebar(escondida) {
+      document.body.classList.toggle('sidebar-hidden', !!escondida);
+
+      const btn = document.getElementById('btnToggleSidebar');
+      if (btn) {
+        btn.textContent = escondida ? '▶' : '◀';
+        btn.title = escondida ? 'Mostrar menu' : 'Esconder menu';
+        btn.setAttribute('aria-label', btn.title);
+      }
+
+      try {
+        localStorage.setItem('estudoInteligente_sidebarHidden', escondida ? '1' : '0');
+      } catch (e) {}
+    }
+
+    function toggleSidebar(forcar) {
+      const atualmenteEscondida = document.body.classList.contains('sidebar-hidden');
+      const novaSituacao = typeof forcar === 'boolean' ? !forcar : !atualmenteEscondida;
+
+      // toggleSidebar(false), usado pelo botão flutuante, significa MOSTRAR.
+      if (forcar === false) {
+        aplicarEstadoSidebar(false);
+      } else if (forcar === true) {
+        aplicarEstadoSidebar(true);
+      } else {
+        aplicarEstadoSidebar(novaSituacao);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        const salvo = localStorage.getItem('estudoInteligente_sidebarHidden') === '1';
+        aplicarEstadoSidebar(salvo);
+      } catch (e) {
+        aplicarEstadoSidebar(false);
+      }
+    });
 </script>
+
+  <button id="btnReabrirSidebar" class="sidebar-reopen"
+          onclick="toggleSidebar(false)"
+          title="Mostrar menu"
+          aria-label="Mostrar menu">▶</button>
 </body>
 </html>

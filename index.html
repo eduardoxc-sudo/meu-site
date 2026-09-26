@@ -1264,6 +1264,28 @@
     @media(max-width:600px) {
       .planejamento-simples .planejamento-datas { grid-template-columns:1fr; }
     }
+
+    /* ===== V14: calendário branco no escuro / preto no claro ===== */
+    input[type="date"] { color-scheme: dark; }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      opacity: 1;
+      cursor: pointer;
+    }
+
+    body.light input[type="date"],
+    body.light-mode input[type="date"],
+    body.tema-claro input[type="date"],
+    [data-theme="light"] input[type="date"] {
+      color-scheme: light;
+    }
+
+    body.light input[type="date"]::-webkit-calendar-picker-indicator,
+    body.light-mode input[type="date"]::-webkit-calendar-picker-indicator,
+    body.tema-claro input[type="date"]::-webkit-calendar-picker-indicator,
+    [data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: none;
+    }
 </style>
 </head>
 <body>
@@ -1565,11 +1587,11 @@
           <div class="planejamento-datas">
             <div class="field">
               <label>INÍCIO DOS ESTUDOS</label>
-              <input type="date" id="planejamentoInicioAuto" onchange="atualizarPlanejamentoV13()">
+              <input type="date" id="planejamentoInicioAuto" onchange="calcularDiasAteProvaV14()" oninput="calcularDiasAteProvaV14()">
             </div>
             <div class="field">
               <label>DATA DA PROVA</label>
-              <input type="date" id="planejamentoProvaAuto" onchange="atualizarPlanejamentoV13()">
+              <input type="date" id="planejamentoProvaAuto" onchange="calcularDiasAteProvaV14()" oninput="calcularDiasAteProvaV14()">
             </div>
           </div>
 
@@ -2642,7 +2664,7 @@
       if (idAba === 'aba-questoes') atualizarVisualizacaoQuestoes();
       if (idAba === 'aba-questoes') setTimeout(atualizarAssuntosQuestoesV11, 0);
       if (idAba === 'aba-progresso') setTimeout(renderizarProgressoV11, 0);
-      if (idAba === 'aba-planejamento') setTimeout(atualizarPlanejamentoV13, 0);
+      if (idAba === 'aba-planejamento') setTimeout(calcularDiasAteProvaV14, 0);
     }
 
     function ativarAbaPorId(idAba) {
@@ -4312,6 +4334,41 @@
       } catch (e) {
         aplicarEstadoSidebar(false);
       }
+    });
+
+    // ===== V14: cálculo automático dos dias até a prova =====
+    function calcularDiasAteProvaV14() {
+      const inicio = document.getElementById('planejamentoInicioAuto');
+      const prova = document.getElementById('planejamentoProvaAuto');
+      const saida = document.getElementById('pvDiasFaltando');
+      if (!inicio || !prova || !saida) return;
+
+      if (!inicio.value || !prova.value) {
+        saida.textContent = '—';
+        return;
+      }
+
+      const a = inicio.value.split('-').map(Number);
+      const b = prova.value.split('-').map(Number);
+      const inicioMs = Date.UTC(a[0], a[1] - 1, a[2]);
+      const provaMs = Date.UTC(b[0], b[1] - 1, b[2]);
+      const dias = Math.round((provaMs - inicioMs) / 86400000);
+
+      if (!Number.isFinite(dias) || dias < 0) {
+        saida.textContent = 'Data inválida';
+        return;
+      }
+
+      saida.textContent = dias === 0 ? 'Hoje' : dias + (dias === 1 ? ' dia' : ' dias');
+
+      estado.dataInicio = inicio.value;
+      estado.inicioEstudos = inicio.value;
+      estado.dataProva = prova.value;
+      if (typeof salvarEstado === 'function') salvarEstado();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      setTimeout(calcularDiasAteProvaV14, 0);
     });
 </script>
 

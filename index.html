@@ -1082,7 +1082,7 @@
         <div class="user-tag">
           Perfil: <span id="labelNomeUsuario" class="user-badge">-</span>
         </div>
-        <div id="statusSincronizacaoNuvem" class="sync-status">☁️ Inicializando...</div>
+        <div id="statusSincronizacaoNuvem" class="sync-status">☁️ Pronto</div>
         
         <div class="sync-actions">
           <button class="btn-sync-action" title="Envia todos os dados locais deste aparelho para a nuvem" onclick="forcarUploadNuvem()">⬆️ Enviar para Nuvem</button>
@@ -2190,39 +2190,8 @@
       document.getElementById('tituloCronograma').innerText = `Cronograma de ${usuarioAtivo}`;
       configurarAbaEditaisProntos();
       configurarPainelAdminUsuarios();
-      iniciarSincronizacaoPerfil();
-    }
 
-    function forcarUploadNuvem() {
-      if (!usuarioAtivo || !rtdb) return;
-      atualizarStatusNuvem("☁️ Enviando dados...", "syncing");
-      rtdb.ref("perfis/" + usuarioAtivo.toLowerCase()).set({
-        estado: estado,
-        atualizadoEm: new Date().toISOString()
-      }).then(() => {
-        atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
-        alert("Dados salvos na nuvem com sucesso!");
-      });
-    }
-
-    function forcarDownloadNuvem() {
-      if (!usuarioAtivo || !rtdb) return;
-      atualizarStatusNuvem("☁️ Baixando dados...", "syncing");
-      rtdb.ref("perfis/" + usuarioAtivo.toLowerCase()).once("value").then(snapshot => {
-        const dados = snapshot.val();
-        if (dados && dados.estado) {
-          isReceivingFromCloud = true;
-          estado = dados.estado;
-          localStorage.setItem(chaveArmazenamento(usuarioAtivo), JSON.stringify(estado));
-          atualizarUIAposCarregar();
-          isReceivingFromCloud = false;
-          atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
-          alert("Estudos atualizados a partir da nuvem!");
-        }
-      });
-    }
-
-    function iniciarSincronizacaoPerfil() {
+      // Carregamento imediato local
       const chave = chaveArmazenamento(usuarioAtivo);
       const salvos = localStorage.getItem(chave);
       if (salvos) {
@@ -2231,12 +2200,11 @@
         estado = obterEstadoPadrao();
       }
 
-      // Renderização imediata síncrona
-      isReceivingFromCloud = true;
       dataReferencia = new Date();
       atualizarUIAposCarregar();
-      isReceivingFromCloud = false;
+      atualizarStatusNuvem("☁️ Pronto", "online");
 
+      // Sincronização em segundo plano com Firebase
       if (rtdb) {
         if (dbRefAtivo) dbRefAtivo.off();
         dbRefAtivo = rtdb.ref("perfis/" + usuarioAtivo.toLowerCase());
@@ -2244,21 +2212,12 @@
         dbRefAtivo.once("value", snapshot => {
           const dadosNuvem = snapshot.val();
           if (dadosNuvem && dadosNuvem.estado && dadosNuvem.estado.disciplinas && dadosNuvem.estado.disciplinas.length > 0) {
-            isReceivingFromCloud = true;
             estado = dadosNuvem.estado;
             localStorage.setItem(chave, JSON.stringify(estado));
             atualizarUIAposCarregar();
-            isReceivingFromCloud = false;
-            atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
-          } else if (estado.disciplinas && estado.disciplinas.length > 0) {
-            dbRefAtivo.set({ estado: estado, atualizadoEm: new Date().toISOString() });
-            atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
-          } else {
-            atualizarStatusNuvem("☁️ Nuvem pronta", "online");
+            atualizarStatusNuvem("☁️ Sincronizado", "online");
           }
         });
-      } else {
-        atualizarStatusNuvem("☁️ Pronto (Modo Local)", "online");
       }
     }
 
@@ -2275,7 +2234,7 @@
             estado: estado,
             atualizadoEm: new Date().toISOString()
           }).then(() => {
-            atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
+            atualizarStatusNuvem("☁️ Sincronizado", "online");
           });
         }, 400);
       }

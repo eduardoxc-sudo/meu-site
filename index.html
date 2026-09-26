@@ -1561,6 +1561,60 @@
     .grafico-linha-v20{margin:11px 0}.grafico-label-v20{display:flex;justify-content:space-between;gap:10px;font-size:.72rem;margin-bottom:5px}.grafico-label-v20 span{overflow-wrap:anywhere}
     .grafico-trilho-v20{height:11px;background:var(--bg-input);border-radius:20px;overflow:hidden}.grafico-trilho-v20>div{height:100%;border-radius:20px;transition:width .3s ease}
     .v20-vazio{font-size:.75rem;color:var(--text-muted);padding:8px 0}
+
+    /* ===== V21: correções de contraste + Motivação ===== */
+    .progresso-filtro-v20 select,
+    .progresso-filtro-v20 select option {
+      background: var(--bg) !important;
+      color: var(--text) !important;
+    }
+    .grafico-progresso-v20,
+    .grafico-progresso-v20 *,
+    .progresso-box,
+    .progresso-box *,
+    .progresso-card,
+    .progresso-card * {
+      color: var(--text);
+    }
+    .grafico-titulo-v20, .progresso-box h4 { color: var(--primary) !important; }
+    .grafico-trilho-v20, .prog-bar { background: var(--surface-hover) !important; }
+
+    .motivacao-admin-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .motivacao-admin-box h3 { color: var(--primary); margin: 0; }
+    .motivacao-admin-box p { color: var(--text-muted); font-size: .78rem; line-height: 1.45; }
+    .motivacao-admin-box select,
+    .motivacao-admin-box textarea {
+      width: 100%;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .motivacao-overlay-v21 {
+      position: fixed; inset: 0; z-index: 30000;
+      display: none; align-items: center; justify-content: center;
+      padding: 20px; background: rgba(0,0,0,.72); backdrop-filter: blur(5px);
+    }
+    .motivacao-card-v21 {
+      width: min(92vw, 430px);
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--primary);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 18px 55px rgba(0,0,0,.4);
+      text-align: center;
+    }
+    .motivacao-card-v21 .icone { font-size: 2.4rem; margin-bottom: 8px; }
+    .motivacao-card-v21 h2 { color: var(--primary); margin-bottom: 10px; }
+    .motivacao-card-v21 p { color: var(--text); line-height: 1.55; white-space: pre-wrap; }
+
 </style>
 </head>
 <body>
@@ -1571,6 +1625,16 @@
       <h2 style="color: var(--success); font-size: 1.5rem; margin-bottom: 6px;">Meta Cumprida!</h2>
       <p style="font-size: 0.95rem; color: var(--text); font-weight: 600;">Parabéns! Finalizou todas as matérias de hoje com sucesso!</p>
       <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">A consistência é a chave da aprovação.</div>
+    </div>
+  </div>
+
+
+  <div id="motivacaoOverlayV21" class="motivacao-overlay-v21">
+    <div class="motivacao-card-v21">
+      <div class="icone">🌟</div>
+      <h2>Uma mensagem para você</h2>
+      <p id="motivacaoMensagemV21"></p>
+      <button class="btn btn-primary" style="margin-top:18px;width:100%;" onclick="fecharMotivacaoV21()">Continuar meus estudos</button>
     </div>
   </div>
 
@@ -1622,6 +1686,7 @@
         <button class="tab-btn" onclick="trocarAba('aba-questoes', this)">Questões</button>
         <button class="tab-btn" onclick="trocarAba('aba-edital-vert', this)">Edital</button>
         <button class="tab-btn" onclick="trocarAba('aba-progresso', this)">📈 Progresso</button>
+        <button id="btnAbaMotivacaoV21" class="tab-btn" style="display:none;" onclick="trocarAba('aba-motivacao-v21', this)">💬 Motivação</button>
         <button class="tab-btn" onclick="trocarAba('aba-planejamento', this)">Planejamento</button>
         <button class="tab-btn" onclick="trocarAba('aba-edital', this)">Edital TXT</button>
         <button class="tab-btn" onclick="trocarAba('aba-senha', this)">Segurança</button>
@@ -1871,6 +1936,28 @@
         <div class="progresso-box">
           <h4>Assuntos para melhorar</h4>
           <div id="progAssuntos"></div>
+        </div>
+      </div>
+
+
+      <!-- V21: Motivação - somente Eduardo -->
+      <div id="aba-motivacao-v21" class="tab-content">
+        <div class="motivacao-admin-box">
+          <div>
+            <h3>💬 Mensagem de Motivação</h3>
+            <p>Envie uma mensagem para um utilizador. Ela será mostrada somente uma vez, no próximo acesso dele.</p>
+          </div>
+          <div class="field">
+            <label>Utilizador</label>
+            <select id="motivacaoUsuarioV21"></select>
+          </div>
+          <div class="field">
+            <label>Mensagem</label>
+            <textarea id="motivacaoTextoV21" rows="6" maxlength="600"
+              placeholder="Ex.: Continue firme! Cada dia de estudo deixa você mais perto do seu objetivo."></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="enviarMotivacaoV21()">📨 Enviar mensagem</button>
+          <div id="motivacaoStatusV21" style="font-size:.75rem;color:var(--text-muted);"></div>
         </div>
       </div>
 
@@ -2762,6 +2849,7 @@
 
       configurarAbaEditaisProntos();
       configurarPainelAdminUsuarios();
+      configurarMotivacaoV21();
 
       const chave = chaveArmazenamento(usuarioAtivo);
       const salvos = localStorage.getItem(chave);
@@ -2774,6 +2862,7 @@
       dataReferencia = new Date();
       atualizarUIAposCarregar();
       atualizarStatusNuvem("☁️ Pronto", "online");
+      setTimeout(verificarMotivacaoEntradaV21, 250);
 
       if (rtdb) {
         if (dbRefAtivo) dbRefAtivo.off();
@@ -4312,20 +4401,42 @@
 
     // ---------- Registo de questões ----------
     function salvarRegistroQuestao() {
-      const sel = document.getElementById('questoesSelectMateria');
+      const selMateria = document.getElementById('questoesSelectMateria');
+      const selAssunto = document.getElementById('questoesSelectAssunto');
       const acertos = parseInt(document.getElementById('inputQuestoesAcertos').value) || 0;
       const erros = parseInt(document.getElementById('inputQuestoesErros').value) || 0;
-      const materia = sel ? sel.value : null;
+
+      const materia = selMateria ? selMateria.value : '';
+      const assuntoId = selAssunto ? selAssunto.value : '';
+      const assuntoOpt = selAssunto && selAssunto.selectedIndex >= 0
+        ? selAssunto.options[selAssunto.selectedIndex] : null;
+      const assunto = assuntoOpt ? String(assuntoOpt.textContent || '').trim() : '';
+
       if (!materia) { alert('Selecione uma disciplina.'); return; }
-      if (acertos === 0 && erros === 0) { alert('Informe ao menos um acerto ou erro.'); return; }
+      if (!assuntoId || !assunto || /selecione/i.test(assunto)) {
+        alert('Selecione o assunto/conteúdo da questão.');
+        return;
+      }
+      if (acertos === 0 && erros === 0) {
+        alert('Informe ao menos um acerto ou erro.');
+        return;
+      }
 
       if (!estado.historicoQuestoes) estado.historicoQuestoes = [];
       estado.historicoQuestoes.push({
         id: 'qz_' + Math.random().toString(36).substr(2, 7),
-        materia, data: new Date().toISOString(), acertos, erros
+        materia: materia,
+        assuntoId: assuntoId,
+        assunto: assunto,
+        nomeAssunto: assunto,
+        data: new Date().toISOString(),
+        acertos: acertos,
+        erros: erros
       });
+
       salvarEstado();
       atualizarVisualizacaoQuestoes();
+      if (typeof renderizarProgressoV20 === 'function') renderizarProgressoV20();
     }
 
     function atualizarVisualizacaoQuestoes() {
@@ -4364,6 +4475,7 @@
         item.innerHTML = `
           <div class="reg-info">
             <span class="reg-materia">${q.materia}</span>
+            ${q.assunto || q.nomeAssunto ? `<span class="assunto-historico-v19">${q.assunto || q.nomeAssunto}</span>` : ''}
             <span class="reg-data-tempo">${formatarDataBR(d)} • ✅${q.acertos} ❌${q.erros} (${taxaItem}%)</span>
           </div>
           <button class="btn-mini-acao" title="Remover" onclick="excluirRegistroQuestao('${q.id}')">🗑️</button>
@@ -5201,6 +5313,107 @@
       if(/Progresso/i.test(b.textContent||''))setTimeout(renderizarProgressoV20,80);
     });
     document.addEventListener('DOMContentLoaded',()=>setTimeout(renderizarProgressoV20,250));
+
+    // ===== V21: Motivação individual, uma única vez no login =====
+    let motivacaoRefExibidaV21 = null;
+    let motivacaoVerificadaV21 = false;
+
+    function configurarMotivacaoV21() {
+      const btn = document.getElementById('btnAbaMotivacaoV21');
+      const isEduardo = String(usuarioAtivo || '').toLowerCase() === 'eduardo';
+      if (btn) btn.style.display = isEduardo ? '' : 'none';
+      if (!isEduardo) return;
+
+      const sel = document.getElementById('motivacaoUsuarioV21');
+      if (!sel) return;
+      const usuarios = Object.keys(obterSenhasLocais() || {})
+        .filter(u => u.toLowerCase() !== 'eduardo')
+        .sort((a,b) => a.localeCompare(b, 'pt-BR'));
+
+      sel.innerHTML = usuarios.length
+        ? usuarios.map(u => `<option value="${escV20(u)}">${escV20(u)}</option>`).join('')
+        : '<option value="">Nenhum utilizador cadastrado</option>';
+    }
+
+    function enviarMotivacaoV21() {
+      if (String(usuarioAtivo || '').toLowerCase() !== 'eduardo') return;
+      const sel = document.getElementById('motivacaoUsuarioV21');
+      const txt = document.getElementById('motivacaoTextoV21');
+      const status = document.getElementById('motivacaoStatusV21');
+      const destino = String(sel?.value || '').trim();
+      const mensagem = String(txt?.value || '').trim();
+
+      if (!destino) { alert('Selecione o utilizador.'); return; }
+      if (!mensagem) { alert('Escreva a mensagem de motivação.'); return; }
+      if (!rtdb) { alert('A nuvem não está disponível. Tente novamente quando estiver sincronizado.'); return; }
+
+      if (status) status.textContent = 'Enviando...';
+      const ref = rtdb.ref('mensagens_motivacao/' + destino.toLowerCase()).push();
+      ref.set({
+        mensagem: mensagem,
+        enviadoPor: usuarioAtivo,
+        enviadoEm: new Date().toISOString()
+      }).then(() => {
+        if (txt) txt.value = '';
+        if (status) {
+          status.style.color = 'var(--success)';
+          status.textContent = 'Mensagem enviada. Ela aparecerá uma única vez no próximo acesso de ' + destino + '.';
+        }
+      }).catch(() => {
+        if (status) {
+          status.style.color = 'var(--danger)';
+          status.textContent = 'Não foi possível enviar a mensagem.';
+        }
+      });
+    }
+
+    function verificarMotivacaoEntradaV21() {
+      if (motivacaoVerificadaV21 || !usuarioAtivo || !rtdb) return;
+      if (String(usuarioAtivo).toLowerCase() === 'eduardo') return;
+      motivacaoVerificadaV21 = true;
+
+      const ref = rtdb.ref('mensagens_motivacao/' + String(usuarioAtivo).toLowerCase());
+      ref.orderByChild('enviadoEm').limitToFirst(1).once('value').then(snapshot => {
+        if (!snapshot.exists()) return;
+
+        let chave = null, dados = null;
+        snapshot.forEach(child => {
+          if (!chave) { chave = child.key; dados = child.val(); }
+        });
+        if (!chave || !dados || !dados.mensagem) return;
+
+        motivacaoRefExibidaV21 = ref.child(chave);
+        const msg = document.getElementById('motivacaoMensagemV21');
+        const overlay = document.getElementById('motivacaoOverlayV21');
+        if (msg) msg.textContent = dados.mensagem;
+        if (overlay) overlay.style.display = 'flex';
+
+        // Remove imediatamente da fila: mesmo que feche/recarregue,
+        // esta mensagem não será mostrada novamente em outro dia/login.
+        motivacaoRefExibidaV21.remove().catch(() => {});
+      }).catch(() => {
+        motivacaoVerificadaV21 = false;
+      });
+    }
+
+    function fecharMotivacaoV21() {
+      const overlay = document.getElementById('motivacaoOverlayV21');
+      if (overlay) overlay.style.display = 'none';
+      motivacaoRefExibidaV21 = null;
+    }
+
+    // V21: reforça a renderização correta do progresso após salvar/excluir.
+    document.addEventListener('click', function(e) {
+      const b = e.target.closest('button');
+      if (!b) return;
+      if (/Registar Questões|Registrar Questões/i.test(b.textContent || '')) {
+        setTimeout(function(){
+          atualizarVisualizacaoQuestoes();
+          renderizarProgressoV20();
+        }, 50);
+      }
+    });
+
 </script>
 
   <button id="btnReabrirSidebar" class="sidebar-reopen"

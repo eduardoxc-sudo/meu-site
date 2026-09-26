@@ -2406,6 +2406,9 @@
         if (estado[chave] === undefined) estado[chave] = padrao[chave];
       });
 
+      // Corrige duplicações antigas de 1D/7D/15D/30D já salvas.
+      normalizarAgendaRevisoes();
+
       document.documentElement.setAttribute('data-theme', estado.tema || 'dark');
       const btnTema = document.getElementById('btnTema');
       if (btnTema) btnTema.innerText = estado.tema === 'light' ? '🌙 Escuro' : '☀️ Claro';
@@ -2561,28 +2564,57 @@
     function gerarSemanaAutomatica(chaveSemana, forcarRegenerar, resetarProgresso) {
       if (!estado.disciplinas || estado.disciplinas.length === 0) return;
       if (!estado.semanas) estado.semanas = {};
-      if (estado.semanas[chaveSemana] && !forcarRegenerar) return;
+
+      const semanaExistente = estado.semanas[chaveSemana];
+      if (semanaExistente && !forcarRegenerar) {
+        // Mesmo sem regenerar, garante que uma revisão recém-criada apareça
+        // no dia correto sem recriar a semana inteira.
+        inserirRevisoesNaSemana(chaveSemana);
+        return;
+      }
+
+      normalizarAgendaRevisoes();
 
       const cicloPonderado = construirListaCicloPonderada();
       if (cicloPonderado.length === 0) return;
 
       const porDia = parseInt(estado.porDia) || 2;
       const novaSemana = {};
-
       const partesChave = chaveSemana.replace('semana_', '').split('-');
       const segundaRef = new Date(partesChave[0], partesChave[1] - 1, partesChave[2]);
 
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const segundaHoje = obterSegundaFeira(hoje);
+      const ehSemanaAtual = chaveSemana === `semana_${formatarDataChave(segundaHoje)}`;
+
+      // Quando a semana atual é regenerada, preserva os dias que já passaram.
+      // Assim o sistema nunca cria novos assuntos em segunda/terça/etc. depois
+      // que esses dias já ficaram para trás.
+      const semanaAnterior = semanaExistente || {};
+
+      // Se estamos regenerando uma semana já existente, recuperamos o ponteiro
+      // do começo daquela semana, descontando os slots de estudo já gerados.
       let ponteiro = estado.ponteiroGeral || 0;
+      if (semanaExistente && forcarRegenerar) {
+        let slotsEstudoSemana = 0;
+        Object.values(semanaExistente).forEach(slots => {
+          (slots || []).forEach(slot => {
+            if (!slot.revisaoId) slotsEstudoSemana++;
+          });
+        });
+        ponteiro = Math.max(0, ponteiro - slotsEstudoSemana);
+      }
 
-      DIAS.forEach((nomeDia, idxDia) => {
-        const dataDia = new Date(segundaRef);
-        dataDia.setDate(segundaRef.getDate() + idxDia);
-        const chaveDataDia = formatarDataChave(dataDia);
-
-        const slotsDoDia = [];
+      const adicionarRevisoesDoDia = (slotsDoDia, chaveDataDia) => {
+        const idsAdicionados = new Set();
 
         (estado.agendaRevisoes || []).forEach(rev => {
-          if (rev.dataPrevista === chaveDataDia && !rev.concluida) {
+          if (
+            rev.dataPrevista === chaveDataDia &&
+            !rev.concluida &&
+            !idsAdicionados.has(rev.id)
+          ) {
             slotsDoDia.push({
               materia: rev.materia,
               assunto: `🔁 Revisão: ${rev.topicoTitulo}`,
@@ -2590,13 +2622,34 @@
               revisaoId: rev.id,
               tipoRevisao: rev.tipo
             });
+            idsAdicionados.add(rev.id);
           }
         });
+      };
+
+      DIAS.forEach((nomeDia, idxDia) => {
+        const dataDia = new Date(segundaRef);
+        dataDia.setDate(segundaRef.getDate() + idxDia);
+        dataDia.setHours(0, 0, 0, 0);
+        const chaveDataDia = formatarDataChave(dataDia);
+
+        const diaJaPassou = ehSemanaAtual && dataDia < hoje;
+
+        // Dias anteriores a hoje ficam intactos.
+        if (diaJaPassou) {
+          novaSemana[nomeDia] = semanaAnterior[nomeDia] || [];
+          return;
+        }
+
+        const slotsDoDia = [];
+        adicionarRevisoesDoDia(slotsDoDia, chaveDataDia);
 
         for (let i = 0; i < porDia; i++) {
           const materia = cicloPonderado[ponteiro % cicloPonderado.length];
           ponteiro++;
+
           const topico = obterProximoTopicoParaMateria(materia);
+
           slotsDoDia.push({
             materia,
             assunto: topico ? topico.titulo : 'Revisão livre / Questões',
@@ -2610,6 +2663,49 @@
 
       estado.ponteiroGeral = ponteiro;
       estado.semanas[chaveSemana] = novaSemana;
+      salvarEstado();
+    }
+
+    // Coloca as revisões diretamente na coluna do dia correspondente.
+    // Não cria outra coluna, outra semana ou outro registro.
+    function inserirRevisoesNaSemana(chaveSemana) {
+      if (!estado.semanas || !estado.semanas[chaveSemana]) return;
+
+      normalizarAgendaRevisoes();
+
+      const partesChave = chaveSemana.replace('semana_', '').split('-');
+      const segundaRef = new Date(partesChave[0], partesChave[1] - 1, partesChave[2]);
+
+      DIAS.forEach((nomeDia, idxDia) => {
+        const dataDia = new Date(segundaRef);
+        dataDia.setDate(segundaRef.getDate() + idxDia);
+        const chaveDataDia = formatarDataChave(dataDia);
+
+        const slots = estado.semanas[chaveSemana][nomeDia] || [];
+        const revisoesExistentes = new Set(
+          slots.filter(s => s.revisaoId).map(s => s.revisaoId)
+        );
+
+        (estado.agendaRevisoes || []).forEach(rev => {
+          if (
+            rev.dataPrevista === chaveDataDia &&
+            !rev.concluida &&
+            !revisoesExistentes.has(rev.id)
+          ) {
+            slots.unshift({
+              materia: rev.materia,
+              assunto: `🔁 Revisão: ${rev.topicoTitulo}`,
+              feito: false,
+              revisaoId: rev.id,
+              tipoRevisao: rev.tipo
+            });
+            revisoesExistentes.add(rev.id);
+          }
+        });
+
+        estado.semanas[chaveSemana][nomeDia] = slots;
+      });
+
       salvarEstado();
     }
 
@@ -2865,30 +2961,71 @@
     }
 
     // ---------- Revisões espaçadas ----------
+    // ---------- Revisões espaçadas ----------
+    // Mantém somente UMA revisão por tópico + intervalo (1D/7D/15D/30D).
+    // Isso evita que clicar novamente em D30 crie cópias da mesma revisão.
+    function normalizarAgendaRevisoes() {
+      if (!Array.isArray(estado.agendaRevisoes)) {
+        estado.agendaRevisoes = [];
+        return;
+      }
+
+      const mapa = new Map();
+
+      estado.agendaRevisoes.forEach(rev => {
+        if (!rev || !rev.topicoId || !rev.tipo) return;
+
+        const chave = `${rev.topicoId}__${rev.tipo}`;
+        const anterior = mapa.get(chave);
+
+        // Se já existe, mantém a versão concluída quando houver uma.
+        if (!anterior || (!anterior.concluida && rev.concluida)) {
+          mapa.set(chave, rev);
+        }
+      });
+
+      estado.agendaRevisoes = Array.from(mapa.values());
+    }
+
     function alternarRevisaoTopico(materia, topicoId, tipo, ativo) {
       const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
       if (!topico) return;
+
       const campo = 'r' + tipo.replace('D', '');
       topico[campo] = ativo;
 
       const diasMap = { '1D': 1, '7D': 7, '15D': 15, '30D': 30 };
       if (!estado.agendaRevisoes) estado.agendaRevisoes = [];
 
+      const chaveRevisao = r => r.topicoId === topicoId && r.tipo === tipo;
+
       if (ativo) {
+        // Primeiro remove qualquer duplicata antiga da mesma revisão.
+        // Depois cria exatamente UMA revisão.
+        estado.agendaRevisoes = estado.agendaRevisoes.filter(r => !chaveRevisao(r));
+
         const dataRev = new Date();
+        dataRev.setHours(0, 0, 0, 0);
         dataRev.setDate(dataRev.getDate() + diasMap[tipo]);
+
         estado.agendaRevisoes.push({
           id: 'rev_' + Math.random().toString(36).substr(2, 7),
-          materia, topicoId, topicoTitulo: topico.titulo,
-          tipo, dataPrevista: formatarDataChave(dataRev), concluida: false
+          materia,
+          topicoId,
+          topicoTitulo: topico.titulo,
+          tipo,
+          dataPrevista: formatarDataChave(dataRev),
+          concluida: false
         });
       } else {
-        estado.agendaRevisoes = estado.agendaRevisoes.filter(r => !(r.topicoId === topicoId && r.tipo === tipo));
+        estado.agendaRevisoes = estado.agendaRevisoes.filter(r => !chaveRevisao(r));
       }
 
+      normalizarAgendaRevisoes();
       salvarEstado();
       renderizarEditalVerticalizado();
       renderizarAbaRevisoes();
+      renderizarGrade();
     }
 
     function renderizarAbaRevisoes() {

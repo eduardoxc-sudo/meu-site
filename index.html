@@ -1086,7 +1086,7 @@
           <input type="number" id="materiasPorDia" min="1" max="8" value="2" oninput="salvarDisciplinasPorDia()">
         </div>
 
-        <button class="btn btn-primary" onclick="gerarCronogramaSemanaAtual(true)">⚡ Regenerar Esta Semana</button>
+        <button class="btn btn-primary" onclick="gerarCronogramaSemanaAtual(true, true)">⚡ Regenerar Esta Semana</button>
         <button class="btn btn-outline" onclick="reiniciarProgressoSemana()">Limpar Checkboxes da Semana</button>
       </div>
 
@@ -1684,7 +1684,7 @@
       const totalDisciplinasAgendadas = Object.values(slotsSemana).reduce((acc, curr) => acc + (curr ? curr.length : 0), 0);
 
       if (totalDisciplinasAgendadas === 0 && estado.disciplinas && estado.disciplinas.length > 0) {
-        gerarSemanaAutomatica(chaveSemanaAtiva, false);
+        gerarSemanaAutomatica(chaveSemanaAtiva, false, false);
       }
 
       renderizarGrade();
@@ -1952,7 +1952,7 @@
 
             const segunda = obterSegundaFeira(dataReferencia);
             chaveSemanaAtiva = `semana_${formatarDataChave(segunda)}`;
-            gerarSemanaAutomatica(chaveSemanaAtiva, false);
+            gerarSemanaAutomatica(chaveSemanaAtiva, false, true);
 
             const chave = chaveArmazenamento(usuarioAtivo);
             localStorage.setItem(chave, JSON.stringify(estado));
@@ -2308,8 +2308,8 @@
       };
     }
 
-    /* REGENERAÇÃO CORRIGIDA: DIAS ANTERIORES A HOJE NUNCA RECEBEM NOVAS MATÉRIAS */
-    function gerarSemanaAutomatica(chaveSemana, deveSalvar) {
+    /* REGENERAÇÃO PRECISA: PRESERVA ITENS FEITOS, RENOVA ITENS NÃO FEITOS */
+    function gerarSemanaAutomatica(chaveSemana, deveSalvar, forcarRenovacaoPendentes) {
       if (!estado.disciplinas || estado.disciplinas.length === 0) return;
 
       estado.porDia = parseInt(document.getElementById('materiasPorDia').value) || 2;
@@ -2322,7 +2322,6 @@
       estado.semanas[chaveSemana] = {};
       let ponteiro = estado.ponteiroGeral || 0;
 
-      // Data de hoje zerada
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
       const hojeTimestamp = hoje.getTime();
@@ -2338,18 +2337,26 @@
         dataDoDia.setHours(0, 0, 0, 0);
         const diaTimestamp = dataDoDia.getTime();
 
-        // Se o dia for estritamente anterior a hoje, preserva apenas os concluídos; não preenche cartões novos
+        // Dias passados estritamente livres (ou preserva o que já foi marcado como feito)
         if (diaTimestamp < hojeTimestamp) {
           estado.semanas[chaveSemana][d.nome] = slotsAntigos.filter(s => s.feito);
           return;
         }
 
         for (let k = 0; k < estado.porDia; k++) {
-          if (slotsAntigos[k]) {
+          // Se o cartão antigo já estiver marcado como FEITO, NUNCA se altera
+          if (slotsAntigos[k] && slotsAntigos[k].feito) {
             estado.semanas[chaveSemana][d.nome].push(slotsAntigos[k]);
             continue;
           }
 
+          // Se NÃO estiver a forçar renovação e já existir cartão não feito, mantém
+          if (!forcarRenovacaoPendentes && slotsAntigos[k]) {
+            estado.semanas[chaveSemana][d.nome].push(slotsAntigos[k]);
+            continue;
+          }
+
+          // Sorteia novo tópico do edital
           const nomeMateria = pool[ponteiro % pool.length];
           const infoTopico = obterProximoTopicoPrioritario(nomeMateria);
 
@@ -2368,8 +2375,8 @@
       if (deveSalvar) salvarEstado();
     }
 
-    function gerarCronogramaSemanaAtual(deveSalvar) {
-      gerarSemanaAutomatica(chaveSemanaAtiva, deveSalvar);
+    function gerarCronogramaSemanaAtual(deveSalvar, forcarRenovacao) {
+      gerarSemanaAutomatica(chaveSemanaAtiva, deveSalvar, forcarRenovacao);
       renderizarGrade();
       renderizarVisaoGeral();
       calcularPrevisaoFechamentoEdital();

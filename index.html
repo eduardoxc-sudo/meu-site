@@ -704,6 +704,45 @@
       color: var(--text);
     }
 
+    /* CARD DE ESTIMATIVA DE FECHAMENTO */
+    .card-estimativa-edital {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(56, 189, 248, 0.12));
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .est-info-col {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .est-titulo {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .est-data-destaque {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--success);
+    }
+
+    .est-detalhe {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
     main {
       flex: 1;
       padding: 32px;
@@ -714,7 +753,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       flex-wrap: wrap;
       gap: 16px;
     }
@@ -951,7 +990,6 @@
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
 
-    /* Estilos do Bloco de Editais Prontos */
     .edital-pronto-item {
       display: flex;
       align-items: center;
@@ -982,6 +1020,41 @@
     .btn-edital-verde:hover {
       opacity: 0.93;
       transform: translateY(-1px);
+    }
+
+    /* ESTILOS DE IMPRESSÃO / SALVAR COMO PDF */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      aside, .controls-top, .mobile-day-bar, .btn, .btn-sync-action, .btn-play-mini {
+        display: none !important;
+      }
+      main {
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .week-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 10px !important;
+      }
+      .day-column {
+        border: 1px solid #cbd5e1 !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+        page-break-inside: avoid;
+        padding: 10px !important;
+      }
+      .slot-card {
+        border: 1px solid #e2e8f0 !important;
+        background: #f8fafc !important;
+      }
+      .card-estimativa-edital {
+        border: 1px solid #10b981 !important;
+        background: #f0fdf4 !important;
+        color: #000000 !important;
+      }
     }
   </style>
 </head>
@@ -1062,7 +1135,7 @@
         <button class="btn btn-outline" onclick="reiniciarProgressoSemana()">Limpar Checkboxes da Semana</button>
       </div>
 
-      <!-- Nova Aba: Editais Prontos (Com permissão exclusiva de edição para Eduardo) -->
+      <!-- Nova Aba: Editais Prontos -->
       <div id="aba-editais-prontos" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
           Clique em qualquer edital pronto da lista abaixo para aplicá-lo instantaneamente ao seu plano de estudos.
@@ -1226,7 +1299,8 @@
 
       <!-- Aba 8: Visão Geral -->
       <div id="aba-visao-geral" class="tab-content">
-        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; margin-top: 6px;">
+        <button class="btn btn-success" style="width: 100%; margin-bottom: 8px;" onclick="imprimirCronograma()">🖨️ Imprimir Cronograma (PDF)</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;">
           <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(-1)">◀ Anterior</button>
           <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
             <span style="font-size: 0.82rem; font-weight: 700; color: var(--primary);" id="labelSemanaVisaoGeral">-</span>
@@ -1235,10 +1309,10 @@
           <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(1)">Próxima ▶</button>
         </div>
 
-        <div id="containerVisaoGeral" style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;"></div>
+        <div id="containerVisaoGeral" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
       </div>
 
-      <!-- Aba 9: Planeamento -->
+      <!-- Aba 9: Planeamento & Previsão -->
       <div id="aba-planejamento" class="tab-content">
         <div class="field">
           <label for="dataInicioEstudos">Início dos Estudos</label>
@@ -1252,7 +1326,7 @@
 
         <div class="metric-grid-questoes" style="grid-template-columns: repeat(2, 1fr); margin-top: 4px;">
           <div class="metric-box">
-            <div style="font-size:0.72rem; color:var(--text-muted);">Dias Restantes</div>
+            <div style="font-size:0.72rem; color:var(--text-muted);">Dias Até a Prova</div>
             <div class="num" id="diasAteProva" style="color:var(--primary);">--</div>
           </div>
           <div class="metric-box">
@@ -1262,9 +1336,9 @@
         </div>
 
         <div class="sugestao-card">
-          <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem;">🎯 Ritmo de Estudo</div>
+          <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem;">🎯 Estimativa de Fechamento do Edital</div>
           <div class="sugestao-item" id="sugestaoRitmoTopicos">
-            Defina a data da prova para calcularmos a meta de tópicos.
+            Cadastre ou adquira o edital para calcular a previsão.
           </div>
         </div>
       </div>
@@ -1320,6 +1394,7 @@
         </div>
 
         <div class="controls-top">
+          <button class="btn btn-success" onclick="imprimirCronograma()" title="Imprimir ou Salvar em PDF">🖨️ Imprimir Cronograma</button>
           <div class="presence-badge" id="badgePresenca">
             🔥 <span id="txtOfensiva">0 dias</span> de presença
           </div>
@@ -1333,6 +1408,19 @@
           <button class="btn btn-outline" onclick="alternarTema()" id="btnTema">☀️ Claro</button>
         </div>
       </header>
+
+      <!-- Painel Dinâmico de Previsão de Término do Edital -->
+      <div class="card-estimativa-edital" id="cardPrevisaoTerminoEdital">
+        <div class="est-info-col">
+          <span class="est-titulo">⏱️ Previsão de Conclusão do Edital</span>
+          <span class="est-data-destaque" id="displayDataFechamentoEdital">Calculando...</span>
+          <span class="est-detalhe" id="displayDetalhesRitmoEdital">Ritmo diário baseado no seu ciclo ativo</span>
+        </div>
+        <div style="text-align: right;" class="est-info-col">
+          <span class="est-titulo" style="color: var(--text-muted);">Status do Conteúdo</span>
+          <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary);" id="displayProgressoTopicosStatus">0 / 0 tópicos</span>
+        </div>
+      </div>
 
       <!-- Barra móvel de dia exclusivo -->
       <div class="mobile-day-bar" id="mobileDayBar">
@@ -1473,6 +1561,10 @@
       }
     }
 
+    function imprimirCronograma() {
+      window.print();
+    }
+
     function atualizarStatusNuvem(texto, statusClass) {
       const el = document.getElementById('statusSincronizacaoNuvem');
       if (el) {
@@ -1554,6 +1646,89 @@
       if (val > 8) val = 8;
       estado.porDia = val;
       salvarEstado();
+      calcularPrevisaoFechamentoEdital();
+    }
+
+    /* FUNÇÃO QUE CALCULA EXATAMENTE QUANDO O EDITAL VAI TERMINAR */
+    function calcularPrevisaoFechamentoEdital() {
+      const displayData = document.getElementById('displayDataFechamentoEdital');
+      const displayDetalhes = document.getElementById('displayDetalhesRitmoEdital');
+      const displayProgresso = document.getElementById('displayProgressoTopicosStatus');
+      const sugestaoRitmo = document.getElementById('sugestaoRitmoTopicos');
+
+      let totalTopicos = 0;
+      let topicosFeitos = 0;
+
+      Object.keys(estado.editalVerticalizado || {}).forEach(materia => {
+        const lista = estado.editalVerticalizado[materia] || [];
+        totalTopicos += lista.length;
+        topicosFeitos += lista.filter(t => t.t === true).length;
+      });
+
+      if (displayProgresso) {
+        displayProgresso.innerText = `${topicosFeitos} / ${totalTopicos} tópicos`;
+      }
+
+      if (totalTopicos === 0) {
+        if (displayData) displayData.innerText = "Nenhum edital ativo";
+        if (displayDetalhes) displayDetalhes.innerText = "Cadastre ou adquira um edital para ver a estimativa.";
+        return;
+      }
+
+      const topicosRestantes = Math.max(0, totalTopicos - topicosFeitos);
+      const porDia = parseInt(estado.porDia) || 2;
+
+      if (topicosRestantes === 0) {
+        if (displayData) {
+          displayData.innerText = "🎉 Edital 100% Zerado!";
+          displayData.style.color = "var(--success)";
+        }
+        if (displayDetalhes) displayDetalhes.innerText = "Parabéns! Todos os tópicos programados foram concluídos.";
+        return;
+      }
+
+      // Calcula dias restantes necessários (considerando estudo contínuo no ciclo)
+      const diasNecessarios = Math.ceil(topicosRestantes / porDia);
+
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+
+      const dataTerminoPrevista = new Date(hoje);
+      dataTerminoPrevista.setDate(hoje.getDate() + diasNecessarios);
+
+      const dataFormatada = formatarDataBR(dataTerminoPrevista);
+
+      if (displayData) {
+        displayData.innerText = `${dataFormatada}`;
+      }
+
+      const semanasNecessarias = Math.ceil(diasNecessarios / 7);
+      let detalhesTexto = `Faltam ${topicosRestantes} tópicos • Ritmo: ${porDia} tópicos/dia (~${diasNecessarios} dias / ${semanasNecessarias} semanas)`;
+
+      // Se houver data de prova cadastrada, compara as datas
+      if (estado.planejamento && estado.planejamento.prova) {
+        const dProva = new Date(estado.planejamento.prova + 'T00:00:00');
+        const diffProvaDias = Math.ceil((dProva - hoje) / (1000 * 60 * 60 * 24));
+
+        if (dataTerminoPrevista <= dProva) {
+          const diasFolga = Math.floor((dProva - dataTerminoPrevista) / (1000 * 60 * 60 * 24));
+          detalhesTexto += ` • ✅ Fecha ${diasFolga} dias ANTES da prova!`;
+        } else {
+          const diasAtraso = Math.ceil((dataTerminoPrevista - dProva) / (1000 * 60 * 60 * 24));
+          detalhesTexto += ` • ⚠️ Ultrapassa a prova em ${diasAtraso} dias. Aumente as matérias por dia.`;
+        }
+      }
+
+      if (displayDetalhes) {
+        displayDetalhes.innerText = detalhesTexto;
+      }
+
+      if (sugestaoRitmo) {
+        sugestaoRitmo.innerHTML = `
+          📌 No ritmo atual de <strong>${porDia} matérias por dia</strong>, fechará o edital em <strong>${dataFormatada}</strong>.<br>
+          ${detalhesTexto}
+        `;
+      }
     }
 
     function atualizarSemanaAtiva() {
@@ -1579,6 +1754,7 @@
 
       renderizarGrade();
       renderizarVisaoGeral();
+      calcularPrevisaoFechamentoEdital();
     }
 
     function navegarSemana(delta) {
@@ -1705,7 +1881,7 @@
           msg.style.color = '#10b981';
           msg.style.background = 'rgba(16, 185, 129, 0.1)';
           msg.innerText = 'Palavra-passe alterada na nuvem! Já vale para o telemóvel e PC.';
-        }).catch(err => {
+        }).catch(() => {
           msg.style.display = 'block';
           msg.style.color = '#10b981';
           msg.innerText = 'Salva localmente (Nuvem indisponível no momento).';
@@ -1721,10 +1897,8 @@
       document.getElementById('confirmaNovaSenha').value = '';
     }
 
-    /* MÓDULO EXCLUSIVO DE EDITAIS PRONTOS */
     function configurarAbaEditaisProntos() {
       const painelAdmin = document.getElementById('painelCriadorEduardo');
-      // Apenas o usuário 'Eduardo' visualiza o formulário de criação/edição
       if (usuarioAtivo && usuarioAtivo.toLowerCase() === 'eduardo') {
         painelAdmin.style.display = 'block';
       } else {
@@ -1811,7 +1985,6 @@
           div.className = 'edital-pronto-item';
 
           let btnExcluirHtml = '';
-          // Botão de excluir aparece SOMENTE para o Eduardo
           if (isEduardo) {
             btnExcluirHtml = `<button class="btn btn-danger" style="padding: 10px 12px;" title="Excluir este edital para todos" onclick="excluirEditalPronto('${item.id}')">🗑️</button>`;
           }
@@ -1857,6 +2030,7 @@
             renderizarVisaoGeral();
             atualizarPainelPlanejamento();
             atualizarIndicadorPresenca();
+            calcularPrevisaoFechamentoEdital();
 
             alert(`Parabéns! O edital "${dados.titulo}" foi adquirido e carregado com sucesso.`);
             trocarAba('aba-ciclo', document.querySelectorAll('.tab-btn')[0]);
@@ -1900,6 +2074,7 @@
         renderizarVisaoGeral();
         atualizarPainelPlanejamento();
         atualizarIndicadorPresenca();
+        calcularPrevisaoFechamentoEdital();
       }
     }
 
@@ -2241,6 +2416,7 @@
       gerarSemanaAutomatica(chaveSemanaAtiva, deveSalvar);
       renderizarGrade();
       renderizarVisaoGeral();
+      calcularPrevisaoFechamentoEdital();
     }
 
     function renderizarGrade() {
@@ -2347,6 +2523,7 @@
       renderizarGrade();
       renderizarVisaoGeral();
       renderizarEditalVerticalizado();
+      calcularPrevisaoFechamentoEdital();
     }
 
     function reiniciarProgressoSemana() {
@@ -2367,6 +2544,7 @@
       atualizarIndicadorPresenca();
       renderizarGrade();
       renderizarVisaoGeral();
+      calcularPrevisaoFechamentoEdital();
     }
 
     function renderizarVisaoGeral() {
@@ -2420,11 +2598,11 @@
 
       const elDias = document.getElementById('diasAteProva');
       const elSemanas = document.getElementById('semanasAteProva');
-      const elSugestao = document.getElementById('sugestaoRitmoTopicos');
 
       if (!dtProvaInput) {
         if (elDias) elDias.innerText = '--';
         if (elSemanas) elSemanas.innerText = '--';
+        calcularPrevisaoFechamentoEdital();
         return;
       }
 
@@ -2436,18 +2614,7 @@
       if (elDias) elDias.innerText = `${Math.max(0, diffDias)}d`;
       if (elSemanas) elSemanas.innerText = `${Math.max(0, Math.ceil(diffDias / 7))} sem.`;
 
-      let totalTopicos = 0;
-      let topicosFeitos = 0;
-      Object.keys(estado.editalVerticalizado || {}).forEach(k => {
-        const tops = estado.editalVerticalizado[k] || [];
-        totalTopicos += tops.length;
-        topicosFeitos += tops.filter(t => t.t === true).length;
-      });
-
-      const topicosRestantes = Math.max(0, totalTopicos - topicosFeitos);
-      if (elSugestao) {
-        elSugestao.innerHTML = `📌 Tem <strong>${topicosRestantes} tópicos</strong> restantes para fechar o edital.`;
-      }
+      calcularPrevisaoFechamentoEdital();
     }
 
     let timerInterval = null;
@@ -2683,6 +2850,7 @@
           agendarRevisaoIndividual(materia, idTopico, campo, topico[campo]);
         }
         salvarEstado();
+        calcularPrevisaoFechamentoEdital();
       }
     }
 
@@ -2703,12 +2871,14 @@
       input.value = '';
       salvarEstado();
       renderizarEditalVerticalizado();
+      calcularPrevisaoFechamentoEdital();
     }
 
     function removerTopicoEdital(materia, idTopico) {
       estado.editalVerticalizado[materia] = (estado.editalVerticalizado[materia] || []).filter(t => t.id !== idTopico);
       salvarEstado();
       renderizarEditalVerticalizado();
+      calcularPrevisaoFechamentoEdital();
     }
 
     function renderizarAbaPrioridades() {
@@ -2822,6 +2992,7 @@
       renderizarPesos();
       atualizarSelectsMaterias();
       renderizarEditalVerticalizado();
+      calcularPrevisaoFechamentoEdital();
     }
 
     function adicionarMateria() {
@@ -2835,6 +3006,7 @@
       renderizarPesos();
       atualizarSelectsMaterias();
       renderizarEditalVerticalizado();
+      calcularPrevisaoFechamentoEdital();
     }
 
     function sanitizarTopicoLinha(texto) {
@@ -2914,6 +3086,7 @@
 
         salvarEstado();
         atualizarUIAposCarregar();
+        calcularPrevisaoFechamentoEdital();
         alert('Edital carregado com sucesso!');
       }
     }
@@ -2942,6 +3115,7 @@
       atualizarPainelPlanejamento();
       atualizarIndicadorPresenca();
       atualizarSemanaAtiva();
+      calcularPrevisaoFechamentoEdital();
     }
 
     function trocarAba(abaId, botao) {

@@ -1615,6 +1615,11 @@
     .motivacao-card-v21 h2 { color: var(--primary); margin-bottom: 10px; }
     .motivacao-card-v21 p { color: var(--text); line-height: 1.55; white-space: pre-wrap; }
 
+
+    /* ===== V22: separação visual Admin x Usuário ===== */
+    #aba-editais-prontos .v22-somente-admin {
+      display: none;
+    }
 </style>
 </head>
 <body>
@@ -5414,6 +5419,126 @@
       }
     });
 
+
+    // ===== V22: permissões da aba Editais Prontos =====
+    function ehEduardoV22() {
+      return String(usuarioAtivo || '').trim().toLowerCase() === 'eduardo';
+    }
+
+    function localizarPainelAdminEditaisV22() {
+      const aba = document.getElementById('aba-editais-prontos');
+      if (!aba) return null;
+
+      // Localiza o bloco pelo título visível do painel.
+      const candidatos = Array.from(aba.querySelectorAll('div, section, article'));
+      return candidatos.find(el => {
+        const txt = (el.textContent || '').trim();
+        return /Painel de Administração\s*\(Eduardo\)/i.test(txt) &&
+               /Publicar Edital na Nuvem/i.test(txt);
+      }) || null;
+    }
+
+    function localizarListaEditaisV22() {
+      const aba = document.getElementById('aba-editais-prontos');
+      if (!aba) return null;
+
+      const candidatos = Array.from(aba.querySelectorAll('div, section'));
+      return candidatos.find(el => {
+        const txt = (el.textContent || '').trim();
+        return /EDITAIS DISPONÍVEIS PARA CARREGAR/i.test(txt);
+      }) || null;
+    }
+
+    function aplicarPermissoesEditaisV22() {
+      const admin = ehEduardoV22();
+      const painel = localizarPainelAdminEditaisV22();
+      const lista = localizarListaEditaisV22();
+
+      if (painel) painel.style.display = admin ? '' : 'none';
+      if (lista) lista.style.display = '';
+
+      // Segurança visual adicional:
+      // para não-Eduardo, remove/oculta botões de apagar/administrar editais.
+      const aba = document.getElementById('aba-editais-prontos');
+      if (!aba) return;
+
+      if (!admin) {
+        aba.querySelectorAll('button').forEach(btn => {
+          const txt = (btn.textContent || '').trim();
+          const titulo = (btn.title || '').trim();
+
+          // Mantém apenas aquisição/carregamento e navegação normal.
+          const permitido =
+            /Adquirir Edital|Carregar Edital|Usar Edital/i.test(txt);
+
+          const administrativo =
+            /Publicar|Excluir|Apagar|Remover|Editar/i.test(txt + ' ' + titulo) ||
+            /🗑|trash/i.test(txt + ' ' + titulo + ' ' + (btn.className || ''));
+
+          if (administrativo && !permitido) {
+            btn.style.display = 'none';
+            btn.disabled = true;
+          }
+        });
+      }
+    }
+
+    // Bloqueio funcional: mesmo que alguém tente chamar a função pelo console/interface,
+    // publicação/exclusão administrativa só é permitida ao Eduardo.
+    function protegerFuncaoAdminV22(nome) {
+      const original = window[nome];
+      if (typeof original !== 'function' || original.__protegidaV22) return;
+
+      const protegida = function(...args) {
+        if (!ehEduardoV22()) {
+          alert('Esta função administrativa está disponível somente para Eduardo.');
+          return;
+        }
+        return original.apply(this, args);
+      };
+      protegida.__protegidaV22 = true;
+      window[nome] = protegida;
+    }
+
+    function ativarSegurancaEditaisV22() {
+      [
+        'publicarEditalNaNuvem',
+        'publicarEdital',
+        'excluirEditalPronto',
+        'removerEditalPronto',
+        'deletarEditalPronto',
+        'excluirEditalNuvem',
+        'removerEditalNuvem'
+      ].forEach(protegerFuncaoAdminV22);
+
+      aplicarPermissoesEditaisV22();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(ativarSegurancaEditaisV22, 250);
+    });
+
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+
+      if (/Editais Prontos/i.test(btn.textContent || '')) {
+        setTimeout(ativarSegurancaEditaisV22, 80);
+      }
+    });
+
+    // Reaplica quando a lista da nuvem for redesenhada.
+    if (typeof MutationObserver !== 'undefined') {
+      document.addEventListener('DOMContentLoaded', function() {
+        const aba = document.getElementById('aba-editais-prontos');
+        if (!aba) return;
+
+        const observer = new MutationObserver(function() {
+          aplicarPermissoesEditaisV22();
+        });
+        observer.observe(aba, { childList: true, subtree: true });
+      });
+    }
 </script>
 
   <button id="btnReabrirSidebar" class="sidebar-reopen"

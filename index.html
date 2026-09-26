@@ -1147,7 +1147,7 @@
       <!-- Aba 3: Revisões Espaçadas -->
       <div id="aba-revisoes" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Visualização dedicada e isolada de todas as suas revisões espaçadas (1D, 7D, 15D, 30D) geradas a partir do edital.
+          Acompanhamento dedicado das revisões de 30 dias geradas a partir do edital.
         </p>
 
         <div class="field" style="background: rgba(139, 92, 246, 0.08); padding: 10px; border-radius: 8px; border: 1px solid rgba(139, 92, 246, 0.3);">
@@ -1324,7 +1324,7 @@
       <!-- Aba 11: Segurança (Sincronizada na Nuvem) -->
       <div id="aba-senha" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          A nova palavra-passe é guardada na nuvem e passa a valer para todos os seus dispositivos (PC e telemóvel).
+          A nova palavra-passe é guardada na nuvem e passa a valer para todos los seus dispositivos (PC e telemóvel).
         </p>
         <div class="field">
           <label for="senhaAtual">Palavra-passe Atual</label>
@@ -2283,7 +2283,7 @@
         salvarEstado();
         atualizarUIAposCarregar();
         calcularPrevisaoFechamentoEdital();
-        alert('Edital carregado e limpo com sucesso! As revisões e numeração do ciclo foram atualizadas.');
+        alert('Edital carregado com sucesso!');
         trocarAba('aba-ciclo', document.querySelectorAll('.tab-btn')[0]);
       } else {
         alert('Não foi possível extrair matérias do texto inserido.');
@@ -2550,7 +2550,7 @@
       }
     }
 
-    // ---------- Geração do ciclo semanal ----------
+    // ---------- Geração do ciclo semanal (Apenas 30D cria revisão no cronograma sem criar novas matérias) ----------
     function construirListaCicloPonderada() {
       let lista = [];
       (estado.disciplinas || []).forEach(d => {
@@ -2591,14 +2591,15 @@
 
         const slotsDoDia = [];
 
+        // Inserir revisão de 30 dias se houver agendada para este dia (sem criar nova matéria)
         (estado.agendaRevisoes || []).forEach(rev => {
-          if (rev.dataPrevista === chaveDataDia && !rev.concluida) {
+          if (rev.dataPrevista === chaveDataDia && !rev.concluida && rev.tipo === '30D') {
             slotsDoDia.push({
               materia: rev.materia,
-              assunto: `🔁 Revisão: ${rev.topicoTitulo}`,
+              assunto: `🔁 Revisão 30D: ${rev.topicoTitulo}`,
               feito: false,
               revisaoId: rev.id,
-              tipoRevisao: rev.tipo
+              tipoRevisao: '30D'
             });
           }
         });
@@ -2874,7 +2875,7 @@
       }
     }
 
-    // ---------- Revisões espaçadas (Com aba e visualização dedicada) ----------
+    // ---------- Revisões espaçadas (Apenas 30D cria o cartão roxo) ----------
     function alternarRevisaoTopico(materia, topicoId, tipo, ativo) {
       const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
       if (!topico) return;
@@ -2899,6 +2900,9 @@
       salvarEstado();
       renderizarEditalVerticalizado();
       renderizarAbaRevisoes();
+      // Regenera semanas para aplicar/remover a revisão de 30D sem criar novas matérias
+      Object.keys(estado.semanas || {}).forEach(k => gerarSemanaAutomatica(k, true, false));
+      renderizarGrade();
     }
 
     function renderizarAbaRevisoes() {
@@ -2909,12 +2913,13 @@
       container.innerHTML = '';
 
       const hojeChave = formatarDataChave(new Date());
-      let lista = [...(estado.agendaRevisoes || [])];
+      // Filtra para exibir apenas revisões do tipo 30D na aba dedicada
+      let lista = [...(estado.agendaRevisoes || [])].filter(r => r.tipo === '30D');
       if (filtroVal !== 'TODAS') lista = lista.filter(r => r.materia === filtroVal);
       lista.sort((a, b) => a.dataPrevista.localeCompare(b.dataPrevista));
 
       if (lista.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:16px; font-size:0.82rem;">Nenhuma revisão espaçada agendada. Marque as opções 1D, 7D, 15D ou 30D na aba Edital.</div>`;
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:16px; font-size:0.82rem;">Nenhuma revisão de 30 dias agendada. Marque a opção 30D na aba Edital.</div>`;
         return;
       }
 
@@ -2965,6 +2970,8 @@
       salvarEstado();
       renderizarAbaRevisoes();
       renderizarEditalVerticalizado();
+      Object.keys(estado.semanas || {}).forEach(k => gerarSemanaAutomatica(k, true, false));
+      renderizarGrade();
     }
 
     // ---------- Prioridades ----------

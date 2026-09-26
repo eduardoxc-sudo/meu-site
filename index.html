@@ -1119,7 +1119,79 @@
       .slot-card { border: 1px solid #e2e8f0 !important; background: #f8fafc !important; }
       .card-estimativa-edital { border: 1px solid #10b981 !important; background: #f0fdf4 !important; color: #000000 !important; }
     }
-  </style>
+  
+    /* ===== Planejamento moderno ===== */
+    .planejamento-moderno {
+      margin: 12px 0 18px;
+      padding: 18px;
+      border: 1px solid var(--border, #243247);
+      border-radius: 16px;
+      background: linear-gradient(145deg, rgba(56,189,248,.07), rgba(99,102,241,.05));
+    }
+    .planejamento-cabecalho h3 { margin: 5px 0; font-size: 1.12rem; }
+    .planejamento-cabecalho p { margin: 0 0 16px; opacity: .72; font-size: .86rem; }
+    .planejamento-kicker { color: #38bdf8; font-size: .75rem; font-weight: 900; letter-spacing: .4px; }
+    .planejamento-grid-moderno {
+      display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-bottom: 14px;
+    }
+    .campo-planejamento-moderno { display: flex; flex-direction: column; gap: 7px; font-size: .76rem; font-weight: 800; }
+    .campo-planejamento-moderno small { opacity: .55; font-weight: 500; }
+    .campo-planejamento-moderno input {
+      width: 100%; box-sizing: border-box; padding: 11px 12px; border-radius: 10px;
+      border: 1px solid var(--border, #26354b); background: var(--bg-card, #0b1320); color: inherit;
+    }
+    .planejamento-resumo-grid {
+      display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 9px; margin: 14px 0;
+    }
+    .planejamento-stat {
+      padding: 12px; border-radius: 12px; border: 1px solid var(--border, #26354b);
+      background: rgba(10,18,31,.55); text-align: center;
+    }
+    .planejamento-stat span { display: block; font-size: .67rem; opacity: .65; margin-bottom: 5px; }
+    .planejamento-stat strong { color: #38bdf8; font-size: .95rem; }
+    .planejamento-situacao-auto {
+      padding: 12px; border-radius: 11px; background: rgba(56,189,248,.07);
+      border: 1px solid rgba(56,189,248,.22); font-size: .8rem; line-height: 1.45;
+    }
+    .btn-planejamento-aplicar {
+      width: 100%; margin-top: 12px; padding: 12px; border: 0; border-radius: 10px;
+      font-weight: 900; cursor: pointer; color: white;
+      background: linear-gradient(90deg,#38bdf8,#6366f1);
+    }
+    .questao-conteudo-label { display:flex; flex-direction:column; gap:7px; margin-top:12px; }
+    .questao-conteudo-label span { font-size:.76rem; font-weight:800; opacity:.72; }
+    .questao-conteudo-select {
+      width:100%; padding:11px 12px; border-radius:10px; border:1px solid var(--border,#26354b);
+      background:var(--bg-card,#0b1320); color:inherit;
+    }
+
+    /* ===== Impressão/PDF ===== */
+    @media print {
+      @page { size: A4 landscape; margin: 9mm; }
+      body { background: #fff !important; color: #111 !important; font-size: 10pt !important; }
+      aside, nav, .sidebar, .tabs, .top-actions, button, .btn, .cloud-status,
+      .planejamento-moderno, input, select, .timer-box { display: none !important; }
+      main, .main-content, .content { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
+      .week-grid, .grade-semana, .cronograma-grid {
+        display: grid !important; grid-template-columns: repeat(3, 1fr) !important;
+        gap: 6mm !important;
+      }
+      .day-card, .dia-card, .day-column {
+        break-inside: avoid !important; page-break-inside: avoid !important;
+        background: #fff !important; color: #111 !important;
+        border: 1px solid #bbb !important; box-shadow: none !important;
+      }
+      .slot-card, .study-slot {
+        break-inside: avoid !important; background:#fff !important; color:#111 !important;
+        border:1px solid #ddd !important; box-shadow:none !important;
+      }
+      * { text-shadow:none !important; }
+    }
+
+    @media (max-width: 720px) {
+      .planejamento-grid-moderno, .planejamento-resumo-grid { grid-template-columns: 1fr 1fr; }
+    }
+</style>
 </head>
 <body>
 
@@ -1173,9 +1245,7 @@
         <button class="tab-btn" onclick="trocarAba('aba-timer', this)">Timer</button>
         <button class="tab-btn" onclick="trocarAba('aba-questoes', this)">Questões</button>
         <button class="tab-btn" onclick="trocarAba('aba-edital-vert', this)">Edital</button>
-        <button class="tab-btn" onclick="trocarAba('aba-visao-geral', this)">Visão Geral</button>
         <button class="tab-btn" onclick="trocarAba('aba-planejamento', this)">Planeamento</button>
-        <button class="tab-btn" onclick="trocarAba('aba-edital', this)">Edital TXT</button>
         <button class="tab-btn" onclick="trocarAba('aba-senha', this)">Segurança</button>
         <button class="tab-btn" id="btnAbaUsuariosAdmin" onclick="trocarAba('aba-usuarios-admin', this)" style="display:none; color: #f59e0b; font-weight:700;">Gestão Utilizadores 👥</button>
       </nav>
@@ -1377,6 +1447,55 @@
 
       <!-- Aba 9: Planeamento & Previsão -->
       <div id="aba-planejamento" class="tab-content">
+      <div class="planejamento-moderno">
+        <div class="planejamento-cabecalho">
+          <div>
+            <div class="planejamento-kicker">🗓️ PLANEJAMENTO INTELIGENTE</div>
+            <h3>Organize seu estudo automaticamente</h3>
+            <p>Escolha apenas as datas. O sistema usa os tópicos restantes e o ritmo configurado no cronograma.</p>
+          </div>
+        </div>
+
+        <div class="planejamento-grid-moderno">
+          <label class="campo-planejamento-moderno">
+            <span>Início dos estudos</span>
+            <input type="date" id="planejamentoInicioAuto" onchange="atualizarPlanejamentoAutomatico()">
+          </label>
+
+          <label class="campo-planejamento-moderno">
+            <span>Data da prova <small>(opcional)</small></span>
+            <input type="date" id="planejamentoProvaAuto" onchange="atualizarPlanejamentoAutomatico()">
+          </label>
+        </div>
+
+        <div class="planejamento-resumo-grid">
+          <div class="planejamento-stat">
+            <span>Tópicos restantes</span>
+            <strong id="planTopicosRestantes">0</strong>
+          </div>
+          <div class="planejamento-stat">
+            <span>Ritmo atual</span>
+            <strong id="planRitmoAtual">0/dia</strong>
+          </div>
+          <div class="planejamento-stat">
+            <span>Dias estimados</span>
+            <strong id="planDiasEstimados">0</strong>
+          </div>
+          <div class="planejamento-stat">
+            <span>Fechamento previsto</span>
+            <strong id="planFechamentoPrevisto">—</strong>
+          </div>
+        </div>
+
+        <div id="planejamentoSituacaoAuto" class="planejamento-situacao-auto">
+          Selecione a data de início para gerar a estimativa.
+        </div>
+
+        <button class="btn-planejamento-aplicar" onclick="aplicarPlanejamentoAutomatico()">
+          ⚡ Aplicar planejamento ao cronograma
+        </button>
+      </div>
+
         <div class="field">
           <label for="dataInicioEstudos">Início dos Estudos</label>
           <input type="date" id="dataInicioEstudos" onchange="atualizarPainelPlanejamento()">
@@ -3962,6 +4081,109 @@
       const tLogin = document.getElementById('tela-login');
       if (tLogin) tLogin.style.display = 'flex';
     }
-  </script>
+  
+    // ===== Planejamento automático =====
+    function atualizarPlanejamentoAutomatico() {
+      const inicioEl = document.getElementById('planejamentoInicioAuto');
+      const provaEl = document.getElementById('planejamentoProvaAuto');
+      if (!inicioEl) return;
+
+      const status = contarStatusConteudo();
+      const restantes = Math.max(0, status.total - status.concluidos);
+      const ritmo = Math.max(1, parseInt(estado.porDia, 10) || 1);
+      const dias = Math.ceil(restantes / ritmo);
+
+      document.getElementById('planTopicosRestantes').textContent = restantes;
+      document.getElementById('planRitmoAtual').textContent = ritmo + '/dia';
+      document.getElementById('planDiasEstimados').textContent = dias;
+
+      if (!inicioEl.value) {
+        document.getElementById('planFechamentoPrevisto').textContent = '—';
+        document.getElementById('planejamentoSituacaoAuto').textContent =
+          'Selecione a data de início para gerar a estimativa.';
+        return;
+      }
+
+      const p = inicioEl.value.split('-');
+      const inicio = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+      const fechamento = new Date(inicio);
+      fechamento.setDate(fechamento.getDate() + Math.max(0, dias - 1));
+
+      const formatar = d => String(d.getDate()).padStart(2,'0') + '/' +
+        String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
+
+      document.getElementById('planFechamentoPrevisto').textContent = formatar(fechamento);
+
+      let mensagem = `Com ${restantes} tópicos restantes e ritmo de ${ritmo} tópicos/dia, ` +
+        `a estimativa é concluir em ${formatar(fechamento)}.`;
+
+      if (provaEl && provaEl.value) {
+        const q = provaEl.value.split('-');
+        const prova = new Date(Number(q[0]), Number(q[1]) - 1, Number(q[2]));
+        const diferenca = Math.ceil((prova - fechamento) / 86400000);
+
+        if (diferenca >= 0) {
+          mensagem += ` Você termina aproximadamente ${diferenca} dia(s) antes da prova.`;
+        } else {
+          mensagem += ` ⚠️ No ritmo atual, faltariam aproximadamente ${Math.abs(diferenca)} dia(s).`;
+        }
+      }
+
+      document.getElementById('planejamentoSituacaoAuto').textContent = mensagem;
+    }
+
+    function aplicarPlanejamentoAutomatico() {
+      const inicioEl = document.getElementById('planejamentoInicioAuto');
+      const provaEl = document.getElementById('planejamentoProvaAuto');
+      if (!inicioEl || !inicioEl.value) {
+        alert('Escolha a data de início dos estudos.');
+        return;
+      }
+
+      // Compatível com diferentes nomes já usados no estado.
+      estado.dataInicio = inicioEl.value;
+      estado.inicioEstudos = inicioEl.value;
+
+      if (provaEl && provaEl.value) {
+        estado.dataProva = provaEl.value;
+      }
+
+      salvarEstado();
+      atualizarPlanejamentoAutomatico();
+      calcularPrevisaoFechamentoEdital();
+
+      // Atualiza a semana exibida sem apagar cartões concluídos.
+      if (typeof atualizarSemanaAtiva === 'function') atualizarSemanaAtiva();
+    }
+
+    // ===== Questões por conteúdo =====
+    function obterSelectMateriaQuestao() {
+      return document.getElementById('questaoMateria') ||
+             document.getElementById('materiaQuestao') ||
+             document.getElementById('disciplinaQuestao');
+    }
+
+    function atualizarConteudosQuestao() {
+      const selectMateria = obterSelectMateriaQuestao();
+      const selectConteudo = document.getElementById('conteudoQuestao');
+      if (!selectMateria || !selectConteudo) return;
+
+      const materia = selectMateria.value;
+      const chave = resolverChaveMateriaNoEdital(materia);
+      const topicos = chave ? (estado.editalVerticalizado[chave] || []) : [];
+
+      selectConteudo.innerHTML = '<option value="">Selecione o conteúdo</option>' +
+        topicos.map(t =>
+          `<option value="${t.id}">${String(t.titulo || '').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</option>`
+        ).join('');
+    }
+
+    document.addEventListener('change', function(e) {
+      const selectMateria = obterSelectMateriaQuestao();
+      if (selectMateria && e.target === selectMateria) {
+        atualizarConteudosQuestao();
+      }
+    });
+</script>
 </body>
 </html>

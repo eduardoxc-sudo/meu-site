@@ -2191,7 +2191,6 @@
       configurarAbaEditaisProntos();
       configurarPainelAdminUsuarios();
 
-      // Carregamento imediato local
       const chave = chaveArmazenamento(usuarioAtivo);
       const salvos = localStorage.getItem(chave);
       if (salvos) {
@@ -2204,7 +2203,6 @@
       atualizarUIAposCarregar();
       atualizarStatusNuvem("☁️ Pronto", "online");
 
-      // Sincronização em segundo plano com Firebase
       if (rtdb) {
         if (dbRefAtivo) dbRefAtivo.off();
         dbRefAtivo = rtdb.ref("perfis/" + usuarioAtivo.toLowerCase());
@@ -2360,10 +2358,15 @@
       return resultado;
     }
 
+    // VERIFICAÇÃO AUTOMÁTICA DE SESSÃO ATIVA NO ARRUMAR DA PÁGINA
     const sessaoSalva = sessionStorage.getItem('usuario_ativo');
     if (sessaoSalva && sessaoSalva.toLowerCase() === 'eduardo') {
       usuarioAtivo = 'Eduardo';
       abrirApp();
+    } else {
+      // Garante que a tela de login fica visível se não houver sessão ativa
+      const tLogin = document.getElementById('tela-login');
+      if (tLogin) tLogin.style.display = 'flex';
     }
   </script>
 </body>

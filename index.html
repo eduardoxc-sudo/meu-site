@@ -796,20 +796,6 @@
       flex-wrap: wrap;
     }
 
-    .presence-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(239, 68, 68, 0.12);
-      border: 1px solid rgba(239, 68, 68, 0.35);
-      color: #f87171;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
-    }
-
     .week-navigator {
       display: flex;
       align-items: center;
@@ -1035,16 +1021,6 @@
       opacity: 0.93;
       transform: translateY(-1px);
     }
-
-    @media print {
-      body { background: #ffffff !important; color: #000000 !important; }
-      aside, .controls-top, .btn, .btn-sync-action, .btn-play-mini { display: none !important; }
-      main { padding: 0 !important; margin: 0 !important; }
-      .week-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 10px !important; }
-      .day-column { border: 1px solid #cbd5e1 !important; background: #ffffff !important; box-shadow: none !important; page-break-inside: avoid; padding: 10px !important; }
-      .slot-card { border: 1px solid #e2e8f0 !important; background: #f8fafc !important; }
-      .card-estimativa-edital { border: 1px solid #10b981 !important; background: #f0fdf4 !important; color: #000000 !important; }
-    }
   </style>
 </head>
 <body>
@@ -1054,7 +1030,6 @@
       <div class="celebration-icon">🏆✨</div>
       <h2 style="color: var(--success); font-size: 1.5rem; margin-bottom: 6px;">Meta Cumprida!</h2>
       <p style="font-size: 0.95rem; color: var(--text); font-weight: 600;">Parabéns! Finalizou todas as matérias de hoje com sucesso!</p>
-      <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">A consistência é a chave da aprovação.</div>
     </div>
   </div>
 
@@ -1085,8 +1060,8 @@
         <div id="statusSincronizacaoNuvem" class="sync-status">☁️ Pronto</div>
         
         <div class="sync-actions">
-          <button class="btn-sync-action" title="Envia todos os dados locais deste aparelho para a nuvem" onclick="forcarUploadNuvem()">⬆️ Enviar para Nuvem</button>
-          <button class="btn-sync-action" title="Baixa todos os dados salvos na nuvem para este aparelho" onclick="forcarDownloadNuvem()">⬇️ Puxar da Nuvem</button>
+          <button class="btn-sync-action" title="Envia todos os dados locais" onclick="forcarUploadNuvem()">⬆️ Enviar para Nuvem</button>
+          <button class="btn-sync-action" title="Baixa todos os dados da nuvem" onclick="forcarDownloadNuvem()">⬇️ Puxar da Nuvem</button>
         </div>
       </div>
 
@@ -1128,60 +1103,40 @@
       <!-- Aba: Editais Prontos -->
       <div id="aba-editais-prontos" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Clique em qualquer edital pronto da lista abaixo para aplicá-lo instantaneamente ao seu plano de estudos.
+          Clique em qualquer edital pronto da lista abaixo para aplicá-lo instantaneamente.
         </p>
-
         <div id="painelCriadorEduardo" style="display: none; background: rgba(56, 189, 248, 0.06); border: 1px solid var(--primary); border-radius: 10px; padding: 12px; margin-bottom: 10px;">
-          <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">👑 Painel de Administração (Eduardo)</div>
-          <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">
-            Cadastre um novo edital verticalizado aqui. Ele ficará disponível na lista com o botão verde.
-          </p>
-
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">👑 Painel Admin</div>
           <div class="field" style="margin-bottom: 8px;">
-            <label for="tituloNovoEditalPronto">Título do Concurso / Cargo</label>
-            <input type="text" id="tituloNovoEditalPronto" placeholder="Ex: PM-PE 2026 Soldado">
+            <label for="tituloNovoEditalPronto">Título do Concurso</label>
+            <input type="text" id="tituloNovoEditalPronto" placeholder="Ex: PM-PE Soldado">
           </div>
-
           <div class="field" style="margin-bottom: 10px;">
             <label for="textoNovoEditalPronto">Texto do Edital Verticalizado</label>
-            <textarea id="textoNovoEditalPronto" rows="7" placeholder="Língua Portuguesa&#10;1. Compreensão de textos&#10;2. Intertextualidade&#10;3. Figuras de linguagem"></textarea>
+            <textarea id="textoNovoEditalPronto" rows="7" placeholder="Língua Portuguesa&#10;1. Compreensão de textos"></textarea>
           </div>
-
-          <button class="btn btn-primary" style="width: 100%;" onclick="publicarNovoEditalPronto()">Publicar Edital na Nuvem</button>
+          <button class="btn btn-primary" style="width: 100%;" onclick="publicarNovoEditalPronto()">Publicar Edital</button>
           <div id="statusPublicacaoEdital" style="display: none; font-size: 0.78rem; margin-top: 6px; padding: 6px; border-radius: 6px;"></div>
         </div>
-
-        <label>Editais Disponíveis para Carregar</label>
-        <div id="listaBotoesEditaisProntos" style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
-          <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 16px;">Carregando editais da nuvem...</div>
-        </div>
+        <label>Editais Disponíveis</label>
+        <div id="listaBotoesEditaisProntos" style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;"></div>
       </div>
 
       <!-- Aba 2: Prioridades -->
       <div id="aba-prioridades" class="tab-content">
-        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Escolha os assuntos prioritários. O ciclo dará preferência aos tópicos com <strong>🔴 Prioridade</strong>:
-        </p>
-
         <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
           <label style="color: var(--primary);">Filtrar Matéria</label>
           <select id="filtroMateriaPrioridades" onchange="renderizarAbaPrioridades()"></select>
         </div>
-
         <div id="containerListaPrioridades" style="display: flex; flex-direction: column; gap: 8px;"></div>
       </div>
 
       <!-- Aba 3: Revisões Espaçadas -->
       <div id="aba-revisoes" class="tab-content">
-        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Ao marcar 1D, 7D, 15D ou 30D no Edital, a revisão é agendada para a sua data e entra com destaque roxo no cronograma semanal.
-        </p>
-
         <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
           <label style="color: var(--primary);">Filtrar Matéria de Revisão</label>
           <select id="filtroMateriaRevisoes" onchange="renderizarAbaRevisoes()"></select>
         </div>
-
         <div id="containerListaRevisoes" style="display: flex; flex-direction: column; gap: 8px;"></div>
       </div>
 
@@ -1190,211 +1145,107 @@
         <ul class="item-list" id="listaPesos"></ul>
       </div>
 
-      <!-- Aba 5: Timer & Horas Líquidas -->
+      <!-- Aba 5: Timer & Horas -->
       <div id="aba-timer" class="tab-content">
         <div class="field">
           <label>Disciplina em Foco</label>
           <select id="timerSelectMateria"></select>
         </div>
-
         <div class="timer-card">
           <div class="timer-display" id="timerDisplay">00:00:00</div>
           <div class="timer-controls">
             <button class="btn btn-primary" id="btnIniciarTimer" onclick="toggleTimer()">Iniciar</button>
             <button class="btn btn-outline" onclick="resetarTimer()">Zerar</button>
           </div>
-          <button class="btn btn-outline" style="width:100%; border-color:var(--primary); color:var(--primary);" onclick="salvarTempoCronometrado()">💾 Salvar Tempo Estudado</button>
+          <button class="btn btn-outline" style="width:100%; border-color:var(--primary); color:var(--primary);" onclick="salvarTempoCronometrado()">💾 Salvar Tempo</button>
         </div>
-
         <div class="field" style="margin-top: 4px;">
           <label>Filtrar Total por Disciplina</label>
           <select id="filtroMateriaHoras" onchange="atualizarVisualizacaoHoras()"></select>
         </div>
-
         <div class="card-total-horas">
           <div>
-            <div class="label-tot" id="labelFiltroNome">Todas as Disciplinas</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted);">Horas Líquidas Acumuladas</div>
+            <div class="label-tot" id="labelFiltroNome">Todas</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Horas Líquidas</div>
           </div>
           <div class="val-tot" id="displayTotalHorasLiquidas">0h 00m</div>
         </div>
-
-        <button class="btn btn-outline" style="width: 100%; margin-top: 2px;" onclick="abrirModalManualHoras()">➕ Lançar Horas Manualmente</button>
-
-        <label style="margin-top: 4px;">Histórico de Sessões</label>
+        <button class="btn btn-outline" style="width: 100%; margin-top: 2px;" onclick="abrirModalManualHoras()">➕ Lançar Manual</button>
         <div class="historico-container" id="listaHistoricoHoras"></div>
       </div>
 
-      <!-- Aba 6: Registo de Questões -->
+      <!-- Aba 6: Questões -->
       <div id="aba-questoes" class="tab-content">
         <div class="metric-grid-questoes">
-          <div class="metric-box">
-            <div style="font-size:0.72rem; color:var(--text-muted);">Total Feitas</div>
-            <div class="num" id="statQuestoesTotal" style="color:var(--primary);">0</div>
-          </div>
-          <div class="metric-box">
-            <div style="font-size:0.72rem; color:var(--text-muted);">Acertos</div>
-            <div class="num" id="statQuestoesAcertos" style="color:var(--success);">0</div>
-          </div>
-          <div class="metric-box">
-            <div style="font-size:0.72rem; color:var(--text-muted);">Taxa Acerto</div>
-            <div class="num" id="statQuestoesTaxa" style="color:var(--accent);">0%</div>
-          </div>
+          <div class="metric-box"><div style="font-size:0.72rem;">Total</div><div class="num" id="statQuestoesTotal" style="color:var(--primary);">0</div></div>
+          <div class="metric-box"><div style="font-size:0.72rem;">Acertos</div><div class="num" id="statQuestoesAcertos" style="color:var(--success);">0</div></div>
+          <div class="metric-box"><div style="font-size:0.72rem;">Taxa</div><div class="num" id="statQuestoesTaxa" style="color:var(--accent);">0%</div></div>
         </div>
-
-        <div class="field" style="margin-top: 4px;">
-          <label>Filtrar por Matéria</label>
-          <select id="filtroQuestoesMateria" onchange="atualizarVisualizacaoQuestoes()"></select>
-        </div>
-
-        <div class="field">
-          <label>Disciplina da Questão</label>
-          <select id="questoesSelectMateria"></select>
-        </div>
-
+        <div class="field"><label>Filtrar</label><select id="filtroQuestoesMateria" onchange="atualizarVisualizacaoQuestoes()"></select></div>
+        <div class="field"><label>Disciplina</label><select id="questoesSelectMateria"></select></div>
         <div style="display:flex; gap:8px;">
-          <div class="field" style="flex:1;">
-            <label>Acertos</label>
-            <input type="number" id="inputQuestoesAcertos" min="0" value="10">
-          </div>
-          <div class="field" style="flex:1;">
-            <label>Erros</label>
-            <input type="number" id="inputQuestoesErros" min="0" value="2">
-          </div>
+          <div class="field" style="flex:1;"><label>Acertos</label><input type="number" id="inputQuestoesAcertos" min="0" value="10"></div>
+          <div class="field" style="flex:1;"><label>Erros</label><input type="number" id="inputQuestoesErros" min="0" value="2"></div>
         </div>
-
-        <button class="btn btn-primary" onclick="salvarRegistroQuestao()">➕ Registar Questões</button>
+        <button class="btn btn-primary" onclick="salvarRegistroQuestao()">➕ Registar</button>
         <div class="historico-container" id="listaHistoricoQuestoes"></div>
       </div>
 
-      <!-- Aba 7: Edital Verticalizado -->
+      <!-- Aba 7: Edital -->
       <div id="aba-edital-vert" class="tab-content">
         <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
-          <label style="color: var(--primary);">Filtrar Visualização da Matéria</label>
+          <label style="color: var(--primary);">Filtrar Matéria</label>
           <select id="filtroExclusivoMateriaEdital" onchange="renderizarEditalVerticalizado()"></select>
         </div>
-
         <div class="field">
-          <label>Adicionar Tópico/Assunto</label>
+          <label>Adicionar Tópico</label>
           <div style="display: flex; gap: 6px;">
             <select id="selectMateriaNovoTopico" style="flex: 1;"></select>
-            <input type="text" id="inputNovoTopico" placeholder="Ex: Figuras de linguagem" style="flex: 1.4;">
+            <input type="text" id="inputNovoTopico" placeholder="Ex: Tópico" style="flex: 1.4;">
             <button class="btn btn-primary" onclick="adicionarTopicoAoEdital()">+</button>
           </div>
         </div>
-
         <div id="containerEditalVerticalizado" style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;"></div>
       </div>
 
       <!-- Aba 8: Visão Geral -->
       <div id="aba-visao-geral" class="tab-content">
-        <button class="btn btn-success" style="width: 100%; margin-bottom: 8px;" onclick="imprimirCronograma()">🖨️ Imprimir Cronograma (PDF)</button>
-        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;">
-          <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(-1)">◀ Anterior</button>
-          <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
-            <span style="font-size: 0.82rem; font-weight: 700; color: var(--primary);" id="labelSemanaVisaoGeral">-</span>
-            <button class="btn-mini-acao" style="color:var(--primary); font-size:0.75rem; text-decoration:underline;" onclick="irParaHoje()">Voltar para Hoje</button>
-          </div>
-          <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(1)">Próxima ▶</button>
-        </div>
-
+        <button class="btn btn-success" style="width: 100%; margin-bottom: 8px;" onclick="imprimirCronograma()">🖨️ PDF</button>
         <div id="containerVisaoGeral" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
       </div>
 
-      <!-- Aba 9: Planeamento & Previsão -->
+      <!-- Aba 9: Planeamento -->
       <div id="aba-planejamento" class="tab-content">
-        <div class="field">
-          <label for="dataInicioEstudos">Início dos Estudos</label>
-          <input type="date" id="dataInicioEstudos" onchange="atualizarPainelPlanejamento()">
-        </div>
-
-        <div class="field">
-          <label for="dataProvaConcurso">Data da Prova</label>
-          <input type="date" id="dataProvaConcurso" onchange="atualizarPainelPlanejamento()">
-        </div>
-
-        <div class="metric-grid-questoes" style="grid-template-columns: repeat(2, 1fr); margin-top: 4px;">
-          <div class="metric-box">
-            <div style="font-size:0.72rem; color:var(--text-muted);">Dias Até a Prova</div>
-            <div class="num" id="diasAteProva" style="color:var(--primary);">--</div>
-          </div>
-          <div class="metric-box">
-            <div style="font-size:0.72rem; color:var(--text-muted);">Semanas Úteis</div>
-            <div class="num" id="semanasAteProva" style="color:var(--accent);">--</div>
-          </div>
-        </div>
-
-        <div class="sugestao-card">
-          <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem;">🎯 Estimativa de Fechamento do Edital</div>
-          <div class="sugestao-item" id="sugestaoRitmoTopicos">
-            Cadastre ou adquira o edital para calcular a previsão.
-          </div>
-        </div>
+        <div class="field"><label>Início</label><input type="date" id="dataInicioEstudos" onchange="atualizarPainelPlanejamento()"></div>
+        <div class="field"><label>Prova</label><input type="date" id="dataProvaConcurso" onchange="atualizarPainelPlanejamento()"></div>
+        <div class="sugestao-card"><div id="sugestaoRitmoTopicos">Cadastre o edital.</div></div>
       </div>
 
       <!-- Aba 10: Edital TXT -->
       <div id="aba-edital" class="tab-content">
-        <div class="field">
-          <label for="textoEdital">Texto do Edital Verticalizado</label>
-          <textarea id="textoEdital" rows="9" placeholder="Cole o edital aqui..."></textarea>
-        </div>
-
-        <button class="btn btn-primary" id="btnAnalisarEdital" onclick="processarEditalTexto()">✨ Carregar Edital Digitado</button>
-        <button class="btn btn-danger" style="margin-top: 2px;" onclick="redefinirEditalManualmente()">🗑️ Limpar Edital Atual</button>
-        <div id="statusIA" style="display: none; font-size: 0.8rem; padding: 8px; border-radius: 6px;"></div>
+        <div class="field"><label>Texto do Edital</label><textarea id="textoEdital" rows="9" placeholder="Cole aqui..."></textarea></div>
+        <button class="btn btn-primary" onclick="processarEditalTexto()">✨ Carregar</button>
+        <button class="btn btn-danger" style="margin-top: 2px;" onclick="redefinirEditalManualmente()">🗑️ Limpar</button>
       </div>
 
-      <!-- Aba 11: Segurança (Sincronizada na Nuvem) -->
+      <!-- Aba 11: Segurança -->
       <div id="aba-senha" class="tab-content">
-        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          A nova palavra-passe é guardada na nuvem e passa a valer para todos os seus dispositivos (PC e telemóvel).
-        </p>
-        <div class="field">
-          <label for="senhaAtual">Palavra-passe Atual</label>
-          <input type="password" id="senhaAtual">
-        </div>
-        <div class="field">
-          <label for="novaSenha">Nova Palavra-passe</label>
-          <input type="password" id="novaSenha">
-        </div>
-        <div class="field">
-          <label for="confirmaNovaSenha">Confirmar Nova Palavra-passe</label>
-          <input type="password" id="confirmaNovaSenha">
-        </div>
+        <div class="field"><label>Atual</label><input type="password" id="senhaAtual"></div>
+        <div class="field"><label>Nova</label><input type="password" id="novaSenha"></div>
+        <div class="field"><label>Confirmar</label><input type="password" id="confirmaNovaSenha"></div>
         <div id="msgStatusSenha" style="font-size: 0.82rem; display: none; padding: 8px; border-radius: 6px;"></div>
-        <button class="btn btn-primary" onclick="alterarPalavraPasse()">Guardar Nova Senha</button>
+        <button class="btn btn-primary" onclick="alterarPalavraPasse()">Guardar</button>
       </div>
 
-      <!-- Aba 12: Gestão de Utilizadores (Exclusiva para Eduardo) -->
+      <!-- Aba 12: Admin -->
       <div id="aba-usuarios-admin" class="tab-content">
-        <div style="font-size: 0.95rem; font-weight: 700; color: var(--warning); margin-bottom: 4px;">👑 Gestão de Utilizadores (Administrador)</div>
-        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Crie novas contas ou remova utilizadores autorizados a aceder ao painel.
-        </p>
-
-        <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid var(--warning); border-radius: 10px; padding: 14px; margin-top: 4px;">
-          <div style="font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 8px;">Adicionar Novo Acesso</div>
-          <div class="field" style="margin-bottom: 8px;">
-            <label for="inputNovoNomeUsuario">Nome do Utilizador</label>
-            <input type="text" id="inputNovoNomeUsuario" placeholder="Ex: Lucas">
-          </div>
-          <div class="field" style="margin-bottom: 12px;">
-            <label for="inputNovaSenhaUsuario">Palavra-passe</label>
-            <input type="text" id="inputNovaSenhaUsuario" placeholder="Ex: senha123">
-          </div>
-          <button class="btn btn-primary" style="width: 100%;" onclick="adminCriarNovoUsuario()">➕ Registar Novo Utilizador</button>
-        </div>
-
-        <label style="margin-top: 10px;">Utilizadores Registados no Sistema</label>
-        <div id="listaUsuariosCadastradosAdmin" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        <div class="field"><label>Novo Utilizador</label><input type="text" id="inputNovoNomeUsuario"></div>
+        <div class="field"><label>Senha</label><input type="text" id="inputNovaSenhaUsuario"></div>
+        <button class="btn btn-primary" onclick="adminCriarNovoUsuario()">Registar</button>
+        <div id="listaUsuariosCadastradosAdmin" style="margin-top:8px;"></div>
       </div>
 
       <div class="sidebar-footer">
-        <div style="display: flex; gap: 6px;">
-          <button class="btn btn-outline" style="flex: 1; font-size: 0.75rem;" onclick="exportarBackup()">📤 Fazer Backup</button>
-          <button class="btn btn-outline" style="flex: 1; font-size: 0.75rem;" onclick="document.getElementById('inputRestaurarBackup').click()">📥 Restaurar</button>
-        </div>
-        <input type="file" id="inputRestaurarBackup" accept=".json" style="display:none;" onchange="importarBackup(event)">
         <button class="btn btn-outline" style="width: 100%;" onclick="sair()">Terminar Sessão</button>
       </div>
     </aside>
@@ -1403,38 +1254,30 @@
       <header class="main-header">
         <div>
           <h1 id="tituloCronograma">Cronograma Semanal</h1>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Ciclo de matérias com priorização inteligente de tópicos</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Ciclo com priorização inteligente</p>
         </div>
-
         <div class="controls-top">
-          <button class="btn btn-success" onclick="adminMarcarTodosTopicos(true)" title="Marcar todas as caixas de seleção">☑️ Marcar Tudo</button>
-          <button class="btn btn-outline" onclick="adminMarcarTodosTopicos(false)" style="border-color: rgba(239, 68, 68, 0.4); color: var(--danger);" title="Desmarcar todas as caixas">Desmarcar</button>
-          
-          <!-- BOTÃO DE RESETAR EDITAL -->
-          <button class="btn btn-danger" onclick="redefinirEditalManualmente()" title="Limpar todo o edital e voltar ao estado inicial">🔄 Resetar Edital</button>
-
-          <button class="btn btn-outline" onclick="imprimirCronograma()" title="Imprimir ou Salvar em PDF">🖨️ PDF</button>
-
+          <button class="btn btn-success" onclick="adminMarcarTodosTopicos(true)">☑️ Marcar Tudo</button>
+          <button class="btn btn-outline" onclick="adminMarcarTodosTopicos(false)">Desmarcar</button>
+          <button class="btn btn-danger" onclick="redefinirEditalManualmente()">🔄 Resetar</button>
           <div class="week-navigator">
-            <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(-1)">◀</button>
+            <button class="btn btn-outline" onclick="navegarSemana(-1)">◀</button>
             <span class="week-label" id="labelIntervaloSemana">...</span>
-            <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(1)">▶</button>
+            <button class="btn btn-outline" onclick="navegarSemana(1)">▶</button>
           </div>
-          <button class="btn btn-primary" style="padding: 6px 10px;" onclick="forcarSincronizacaoHoje()">↺ Hoje</button>
+          <button class="btn btn-primary" onclick="forcarSincronizacaoHoje()">↺ Hoje</button>
           <button class="btn btn-outline" onclick="alternarTema()" id="btnTema">☀️ Claro</button>
         </div>
       </header>
 
-      <!-- Painel Dinâmico de Previsão de Término do Edital -->
-      <div class="card-estimativa-edital" id="cardPrevisaoTerminoEdital">
+      <div class="card-estimativa-edital">
         <div class="est-info-col">
-          <span class="est-titulo">⏱️ Previsão de Conclusão do Edital</span>
+          <span class="est-titulo">⏱️ Conclusão Estimada</span>
           <span class="est-data-destaque" id="displayDataFechamentoEdital">Calculando...</span>
-          <span class="est-detalhe" id="displayDetalhesRitmoEdital">Ritmo diário baseado no seu ciclo ativo</span>
         </div>
         <div style="text-align: right;" class="est-info-col">
-          <span class="est-titulo" style="color: var(--text-muted);">Status do Conteúdo</span>
-          <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary);" id="displayProgressoTopicosStatus">0 / 0 tópicos</span>
+          <span class="est-titulo">Status</span>
+          <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary);" id="displayProgressoTopicosStatus">0 / 0</span>
         </div>
       </div>
 
@@ -1442,30 +1285,7 @@
     </main>
   </div>
 
-  <div class="modal-overlay" id="modalManualHoras">
-    <div class="modal-box">
-      <h3 style="color:var(--primary); font-size:1.05rem;">Lançar Horas de Estudo</h3>
-      <div class="field">
-        <label>Disciplina</label>
-        <select id="modalHorasSelectMateria"></select>
-      </div>
-      <div style="display:flex; gap:8px;">
-        <div class="field" style="flex:1;">
-          <label>Horas</label>
-          <input type="number" id="modalHorasInputH" min="0" value="1">
-        </div>
-        <div class="field" style="flex:1;">
-          <label>Minutos</label>
-          <input type="number" id="modalHorasInputM" min="0" max="59" value="0">
-        </div>
-      </div>
-      <div style="display:flex; gap:8px; margin-top:6px;">
-        <button class="btn btn-primary" style="flex:1;" onclick="salvarHorasManual()">Salvar</button>
-        <button class="btn btn-outline" style="flex:1;" onclick="fecharModalManualHoras()">Cancelar</button>
-      </div>
-    </div>
-  </div>
-<script>
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyB8vR5ccnYQxc-QiASnxFeYvHpwFWPHXP8",
       authDomain: "estudo-inteligente-f2186.firebaseapp.com",
@@ -1481,14 +1301,9 @@
     try {
       firebase.initializeApp(firebaseConfig);
       rtdb = firebase.database();
-    } catch (e) {
-      console.warn("Firebase local:", e);
-    }
+    } catch (e) {}
 
-    const USUARIOS_PADRAO = {
-      "Eduardo": "333435"
-    };
-
+    const USUARIOS_PADRAO = { "Eduardo": "333435" };
     const DIAS = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
 
     let usuarioAtivo = null;
@@ -1498,74 +1313,6 @@
     let debounceSalvarNuvem = null;
     let dbRefAtivo = null;
     let isReceivingFromCloud = false;
-    let sharedAudioCtx = null;
-
-    function obterOuDesbloquearAudioContext() {
-      try {
-        if (!sharedAudioCtx) {
-          sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (sharedAudioCtx.state === 'suspended') {
-          sharedAudioCtx.resume();
-        }
-        return sharedAudioCtx;
-      } catch (e) {
-        return null;
-      }
-    }
-
-    window.addEventListener('click', () => {
-      obterOuDesbloquearAudioContext();
-    }, { once: true });
-
-    function tocarSomVitoria() {
-      try {
-        const audioCtx = obterOuDesbloquearAudioContext();
-        if (!audioCtx) return;
-
-        const notas = [261.63, 329.63, 392.00, 523.25, 659.25];
-        const agora = audioCtx.currentTime;
-
-        notas.forEach((freq, index) => {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(freq, agora + (index * 0.11));
-
-          gain.gain.setValueAtTime(0.001, agora + (index * 0.11));
-          gain.gain.exponentialRampToValueAtTime(0.25, agora + (index * 0.11) + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.001, agora + (index * 0.11) + 0.38);
-
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-
-          osc.start(agora + (index * 0.11));
-          osc.stop(agora + (index * 0.11) + 0.40);
-        });
-      } catch (e) {}
-    }
-
-    function dispararCelebracao() {
-      tocarSomVitoria();
-      const overlay = document.getElementById('celebrationOverlay');
-      if (overlay) {
-        overlay.style.display = 'flex';
-        setTimeout(() => { overlay.style.display = 'none'; }, 2200);
-      }
-    }
-
-    function imprimirCronograma() {
-      window.print();
-    }
-
-    function atualizarStatusNuvem(texto, statusClass) {
-      const el = document.getElementById('statusSincronizacaoNuvem');
-      if (el) {
-        el.innerText = texto;
-        el.className = 'sync-status ' + (statusClass || '');
-      }
-    }
 
     function obterSenhasLocais() {
       const salvas = localStorage.getItem('usuarios_senhas_personalizadas');
@@ -1582,22 +1329,11 @@
 
     function obterEstadoPadrao() {
       return {
-        tema: 'dark',
-        disciplinas: [],
-        porDia: 2,
-        ponteiroGeral: 0,
-        indicesTopicos: {},
-        semanas: {},
-        historicoHoras: [],
-        historicoQuestoes: [],
-        editalVerticalizado: {},
-        diasCompletosLog: [],
-        planejamento: { inicio: '', prova: '' },
-        collapseEdital: {},
-        materiaFiltroEdital: 'TODAS',
-        filtroPrioridadesMateria: 'TODAS',
-        filtroRevisoesMateria: 'TODAS',
-        agendaRevisoes: []
+        tema: 'dark', disciplinas: [], porDia: 2, ponteiroGeral: 0,
+        indicesTopicos: {}, semanas: {}, historicoHoras: [], historicoQuestoes: [],
+        editalVerticalizado: {}, diasCompletosLog: [], planejamento: { inicio: '', prova: '' },
+        collapseEdital: {}, materiaFiltroEdital: 'TODAS', filtroPrioridadesMateria: 'TODAS',
+        filtroRevisoesMateria: 'TODAS', agendaRevisoes: []
       };
     }
 
@@ -1636,8 +1372,7 @@
     function salvarDisciplinasPorDia() {
       const input = document.getElementById('materiasPorDia');
       let val = parseInt(input.value) || 2;
-      if (val < 1) val = 1;
-      if (val > 8) val = 8;
+      if (val < 1) val = 1; if (val > 8) val = 8;
       estado.porDia = val;
       salvarEstado();
       calcularPrevisaoFechamentoEdital();
@@ -1655,38 +1390,17 @@
       const total = obterTotalTopicosEdital();
       if (total === 0) return null;
       const porDia = parseInt(estado.porDia) || 2;
-      const diasNecessarios = Math.ceil(total / porDia);
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
+      const diasN = Math.ceil(total / porDia);
+      const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
       const dataFim = new Date(hoje);
-      dataFim.setDate(hoje.getDate() + diasNecessarios);
+      dataFim.setDate(hoje.getDate() + diasN);
       return dataFim;
-    }
-
-    function obterDataLimiteNavegacao() {
-      let dataLimite = calcularDataFinalMatematica() || new Date();
-
-      (estado.agendaRevisoes || []).forEach(r => {
-        if (r.dataPrevista) {
-          const partes = r.dataPrevista.split('-');
-          const dRev = new Date(partes[0], partes[1] - 1, partes[2]);
-          if (dRev > dataLimite) {
-            dataLimite = dRev;
-          }
-        }
-      });
-
-      return dataLimite;
     }
 
     function calcularPrevisaoFechamentoEdital() {
       const displayData = document.getElementById('displayDataFechamentoEdital');
-      const displayDetalhes = document.getElementById('displayDetalhesRitmoEdital');
       const displayProgresso = document.getElementById('displayProgressoTopicosStatus');
-      const sugestaoRitmo = document.getElementById('sugestaoRitmoTopicos');
-
-      let totalTopicos = 0;
-      let topicosFeitos = 0;
+      let totalTopicos = 0, topicosFeitos = 0;
 
       Object.keys(estado.editalVerticalizado || {}).forEach(materia => {
         const lista = estado.editalVerticalizado[materia] || [];
@@ -1694,77 +1408,34 @@
         topicosFeitos += lista.filter(t => t.t === true).length;
       });
 
-      if (displayProgresso) {
-        displayProgresso.innerText = `${topicosFeitos} / ${totalTopicos} tópicos`;
-      }
-
+      if (displayProgresso) displayProgresso.innerText = `${topicosFeitos} / ${totalTopicos}`;
       if (totalTopicos === 0) {
-        if (displayData) displayData.innerText = "Nenhum edital ativo";
-        if (displayDetalhes) displayDetalhes.innerText = "Adicione matérias na aba Edital TXT ou adquira na aba Editais Prontos.";
+        if (displayData) displayData.innerText = "Nenhum edital";
         return;
       }
-
-      const topicosRestantes = Math.max(0, totalTopicos - topicosFeitos);
-      const porDia = parseInt(estado.porDia) || 2;
-      const dataTerminoPrevista = calcularDataFinalMatematica();
-      const dataFormatada = dataTerminoPrevista ? formatarDataBR(dataTerminoPrevista) : '--/--/----';
-
-      if (topicosRestantes === 0) {
-        if (displayData) {
-          displayData.innerText = "🎉 Edital 100% Concluído!";
-          displayData.style.color = "var(--success)";
-        }
-        if (displayDetalhes) displayDetalhes.innerText = "Todos os tópicos do edital já foram zerados.";
-      } else {
-        if (displayData) {
-          displayData.innerText = `${dataFormatada}`;
-          displayData.style.color = "var(--success)";
-        }
-        const diasNecessarios = Math.ceil(topicosRestantes / porDia);
-        const semanasNecessarias = Math.ceil(diasNecessarios / 7);
-        let detalhesTexto = `Faltam ${topicosRestantes} tópicos • Ritmo: ${porDia} tópicos/dia (~${diasNecessarios} dias / ${semanasNecessarias} semanas)`;
-
-        if (estado.planejamento && estado.planejamento.prova) {
-          const dProva = new Date(estado.planejamento.prova + 'T00:00:00');
-          if (dataTerminoPrevista <= dProva) {
-            const diasFolga = Math.floor((dProva - dataTerminoPrevista) / (1000 * 60 * 60 * 24));
-            detalhesTexto += ` • ✅ Conclui ${diasFolga} dias ANTES da prova!`;
-          } else {
-            const diasAtraso = Math.ceil((dataTerminoPrevista - dProva) / (1000 * 60 * 60 * 24));
-            detalhesTexto += ` • ⚠️ Ultrapassa a prova em ${diasAtraso} dias.`;
-          }
-        }
-
-        if (displayDetalhes) displayDetalhes.innerText = detalhesTexto;
-        if (sugestaoRitmo) {
-          sugestaoRitmo.innerHTML = `📌 No ritmo de <strong>${porDia} tópicos por dia</strong>, fechará 100% do edital em <strong>${dataFormatada}</strong>.<br>${detalhesTexto}`;
-        }
-      }
+      const dataFim = calcularDataFinalMatematica();
+      if (displayData && dataFim) displayData.innerText = formatarDataBR(dataFim);
     }
 
     function atualizarSemanaAtiva() {
       const segunda = obterSegundaFeira(dataReferencia);
       chaveSemanaAtiva = `semana_${formatarDataChave(segunda)}`;
 
-      const domingo = new Date(segunda);
-      domingo.setDate(segunda.getDate() + 6);
-
+      const domingo = new Date(segunda); domingo.setDate(segunda.getDate() + 6);
       const fSeg = `${String(segunda.getDate()).padStart(2, '0')}/${String(segunda.getMonth() + 1).padStart(2, '0')}`;
-      const fDom = `${String(domingo.getDate()).padStart(2, '0')}/${String(domingo.getMonth() + 1).padStart(2, '0')}`;
-      const anoDom = domingo.getFullYear();
-      const labelFormatado = `${fSeg} - ${fDom}/${anoDom}`;
-
+      const fDom = `${String(domingo.getDate()).padStart(2, '0')}/${String(domingo.getMonth() + 1).padStart(2, '0')}/${domingo.getFullYear()}`;
+      
       const lbl = document.getElementById('labelIntervaloSemana');
-      if (lbl) lbl.innerText = labelFormatado;
+      if (lbl) lbl.innerText = `${fSeg} - ${fDom}`;
       const lblVisao = document.getElementById('labelSemanaVisaoGeral');
-      if (lblVisao) lblVisao.innerText = labelFormatado;
+      if (lblVisao) lblVisao.innerText = `${fSeg} - ${fDom}`;
 
       if (!estado.semanas) estado.semanas = {};
       const slotsSemana = estado.semanas[chaveSemanaAtiva] || {};
-      const totalDisciplinasAgendadas = Object.values(slotsSemana).reduce((acc, curr) => acc + (curr ? curr.length : 0), 0);
+      const totalAgendadas = Object.values(slotsSemana).reduce((acc, curr) => acc + (curr ? curr.length : 0), 0);
 
-      if (totalDisciplinasAgendadas === 0 && estado.disciplinas && estado.disciplinas.length > 0) {
-        gerarSemanaAutomatica(chaveSemanaAtiva, false, false);
+      if (totalAgendadas === 0 && estado.disciplinas && estado.disciplinas.length > 0) {
+        gerarSemanaAutomatica(chaveSemanaAtiva, false);
       }
 
       renderizarGrade();
@@ -1773,29 +1444,8 @@
     }
 
     function navegarSemana(delta) {
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
-      const segundaHoje = obterSegundaFeira(hoje);
-
       const novaData = new Date(dataReferencia);
       novaData.setDate(novaData.getDate() + (delta * 7));
-
-      if (delta < 0 && novaData < segundaHoje) {
-        alert("Esta é a semana atual em que iniciou o cronograma.");
-        return;
-      }
-
-      const dataLimite = obterDataLimiteNavegacao();
-      if (delta > 0 && dataLimite) {
-        const segundaDataLimite = obterSegundaFeira(dataLimite);
-        const segundaNovaSemana = obterSegundaFeira(novaData);
-
-        if (segundaNovaSemana > segundaDataLimite) {
-          alert(`Limite de semanas alcançado! Todas as matérias e revisões agendadas terminam na semana de ${formatarDataBR(dataLimite)}.`);
-          return;
-        }
-      }
-
       dataReferencia = novaData;
       atualizarSemanaAtiva();
     }
@@ -1811,651 +1461,77 @@
     }
 
     function autenticar() {
-      obterOuDesbloquearAudioContext();
       const uInput = document.getElementById('usuario').value.trim();
       const sInput = document.getElementById('senha').value.trim();
       const erro = document.getElementById('msgErro');
-
       const senhasLocais = obterSenhasLocais();
-      const usuarioEncontrado = Object.keys(senhasLocais).find(
-        key => key.toLowerCase() === uInput.toLowerCase()
-      );
+      const usuarioEncontrado = Object.keys(senhasLocais).find(k => k.toLowerCase() === uInput.toLowerCase());
 
-      if (!usuarioEncontrado) {
-        if (erro) {
-          erro.style.display = 'block';
-          erro.innerText = 'Utilizador não autorizado.';
-        }
-        return;
-      }
-
-      if (senhasLocais[usuarioEncontrado] === sInput) {
+      if (usuarioEncontrado && senhasLocais[usuarioEncontrado] === sInput) {
         usuarioAtivo = usuarioEncontrado;
         sessionStorage.setItem('usuario_ativo', usuarioAtivo);
         abrirApp();
-      } else {
-        if (erro) {
-          erro.style.display = 'block';
-          erro.innerText = 'Palavra-passe incorreta!';
-        }
+      } else if (erro) {
+        erro.style.display = 'block';
+        erro.innerText = 'Utilizador ou palavra-passe incorretos!';
       }
-    }
-
-    function alterarPalavraPasse() {
-      const atual = document.getElementById('senhaAtual').value.trim();
-      const nova = document.getElementById('novaSenha').value.trim();
-      const confirma = document.getElementById('confirmaNovaSenha').value.trim();
-      const msg = document.getElementById('msgStatusSenha');
-      const senhas = obterSenhasLocais();
-
-      if (senhas[usuarioAtivo] !== atual) {
-        msg.style.display = 'block';
-        msg.style.color = '#ef4444';
-        msg.style.background = 'rgba(239, 68, 68, 0.1)';
-        msg.innerText = 'A palavra-passe atual está incorreta!';
-        return;
-      }
-      if (!nova || nova.length < 4 || nova !== confirma) {
-        msg.style.display = 'block';
-        msg.style.color = '#ef4444';
-        msg.style.background = 'rgba(239, 68, 68, 0.1)';
-        msg.innerText = 'Nova senha inválida ou confirmação diferente!';
-        return;
-      }
-
-      senhas[usuarioAtivo] = nova;
-      salvarSenhasLocais(senhas);
-
-      if (rtdb) {
-        rtdb.ref("senhas/" + usuarioAtivo.toLowerCase()).set(nova).catch(() => {});
-      }
-
-      msg.style.display = 'block';
-      msg.style.color = '#10b981';
-      msg.style.background = 'rgba(16, 185, 129, 0.1)';
-      msg.innerText = 'Palavra-passe alterada com sucesso!';
-
-      document.getElementById('senhaAtual').value = '';
-      document.getElementById('novaSenha').value = '';
-      document.getElementById('confirmaNovaSenha').value = '';
-    }
-
-    function configurarPainelAdminUsuarios() {
-      const btnAba = document.getElementById('btnAbaUsuariosAdmin');
-      const isEduardo = (usuarioAtivo && usuarioAtivo.toLowerCase() === 'eduardo');
-
-      if (btnAba) {
-        btnAba.style.display = isEduardo ? 'block' : 'none';
-      }
-
-      if (isEduardo) {
-        carregarListaUsuariosAdmin();
-      }
-    }
-
-    function carregarListaUsuariosAdmin() {
-      const container = document.getElementById('listaUsuariosCadastradosAdmin');
-      if (!container) return;
-      const senhasObj = obterSenhasLocais();
-      renderizarListaUsuariosAdminHtml(senhasObj);
-    }
-
-    function renderizarListaUsuariosAdminHtml(senhasObj) {
-      const container = document.getElementById('listaUsuariosCadastradosAdmin');
-      if (!container) return;
-      container.innerHTML = '';
-
-      const usuarios = Object.keys(senhasObj);
-      usuarios.forEach(u => {
-        const item = document.createElement('div');
-        item.className = 'item-card';
-        item.style.padding = '8px 12px';
-
-        const isEduardo = (u.toLowerCase() === 'eduardo');
-        const acaoBtn = isEduardo 
-          ? '<span style="font-size:0.75rem; color:var(--primary); font-weight:800;">ADMIN</span>' 
-          : `<button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="adminExcluirUsuario('${u}')">🗑️ Eliminar</button>`;
-
-        item.innerHTML = `
-          <div>
-            <strong>${u}</strong>
-            <span style="font-size:0.75rem; color:var(--text-muted); margin-left:6px;">(Senha: ${senhasObj[u]})</span>
-          </div>
-          ${acaoBtn}
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    function adminCriarNovoUsuario() {
-      const nomeInput = document.getElementById('inputNovoNomeUsuario');
-      const senhaInput = document.getElementById('inputNovaSenhaUsuario');
-      const nome = nomeInput.value.trim();
-      const senha = senhaInput.value.trim();
-
-      if (!nome || !senha) {
-        alert("Preencha o nome do utilizador e a palavra-passe.");
-        return;
-      }
-
-      const senhas = obterSenhasLocais();
-      senhas[nome] = senha;
-      salvarSenhasLocais(senhas);
-
-      if (rtdb) {
-        rtdb.ref("senhas/" + nome.toLowerCase()).set(senha).catch(() => {});
-      }
-
-      alert(`Utilizador "${nome}" criado com sucesso!`);
-      nomeInput.value = '';
-      senhaInput.value = '';
-      carregarListaUsuariosAdmin();
-    }
-
-    function adminExcluirUsuario(nome) {
-      if (nome.toLowerCase() === 'eduardo') {
-        alert("O utilizador administrador Eduardo não pode ser excluído.");
-        return;
-      }
-
-      if (confirm(`Tem certeza de que deseja eliminar o acesso de "${nome}"?`)) {
-        const senhas = obterSenhasLocais();
-        delete senhas[nome];
-        salvarSenhasLocais(senhas);
-
-        if (rtdb) {
-          rtdb.ref("senhas/" + nome.toLowerCase()).remove().catch(() => {});
-          rtdb.ref("perfis/" + nome.toLowerCase()).remove().catch(() => {});
-        }
-
-        alert(`Utilizador "${nome}" eliminado com sucesso!`);
-        carregarListaUsuariosAdmin();
-      }
-    }
-
-    function adminMarcarTodosTopicos(marcar) {
-      const acao = marcar ? "marcar como CONCLUÍDOS" : "DESMARCAR";
-      if (!confirm(`Deseja realmente ${acao} todos os tópicos e checklists do cronograma?`)) return;
-
-      Object.keys(estado.editalVerticalizado || {}).forEach(m => {
-        (estado.editalVerticalizado[m] || []).forEach(t => {
-          t.t = marcar;
-        });
-      });
-
-      Object.keys(estado.semanas || {}).forEach(semKey => {
-        Object.keys(estado.semanas[semKey] || {}).forEach(dia => {
-          (estado.semanas[semKey][dia] || []).forEach(slot => {
-            slot.feito = marcar;
-          });
-        });
-      });
-
-      (estado.agendaRevisoes || []).forEach(r => {
-        r.concluida = marcar;
-      });
-
-      salvarEstado();
-      renderizarEditalVerticalizado();
-      renderizarGrade();
-      renderizarVisaoGeral();
-      renderizarAbaRevisoes();
-      calcularPrevisaoFechamentoEdital();
-      alert(`Todas as caixas foram ${marcar ? 'marcadas como concluídas' : 'desmarcadas'} com sucesso!`);
-    }
-
-    function configurarAbaEditaisProntos() {
-      const painelAdmin = document.getElementById('painelCriadorEduardo');
-      if (painelAdmin) painelAdmin.style.display = 'block';
-      ouvirEditaisProntosNuvem();
-    }
-
-    function publicarNovoEditalPronto() {
-      const titulo = document.getElementById('tituloNovoEditalPronto').value.trim();
-      const texto = document.getElementById('textoNovoEditalPronto').value.trim();
-      const status = document.getElementById('statusPublicacaoEdital');
-
-      if (!titulo || !texto) {
-        alert("Preencha o título do concurso e cole o texto do edital verticalizado.");
-        return;
-      }
-
-      status.style.display = 'block';
-      status.style.color = '#38bdf8';
-      status.style.background = 'rgba(56, 189, 248, 0.1)';
-      status.innerText = "Processando e enviando para a nuvem...";
-
-      const dadosExtraidos = extrairDisciplinasETopicosUniversal(texto);
-      if (!dadosExtraidos || dadosExtraidos.length === 0) {
-        status.style.color = '#ef4444';
-        status.style.background = 'rgba(239, 68, 68, 0.1)';
-        status.innerText = "Não foi possível extrair as matérias do texto.";
-        return;
-      }
-
-      const idEdital = 'edital_' + Date.now();
-      const objetoEditalPronto = {
-        id: idEdital,
-        titulo: titulo,
-        criadoPor: usuarioAtivo,
-        dataCriacao: new Date().toLocaleDateString('pt-BR'),
-        disciplinas: dadosExtraidos.map(d => ({ nome: d.nome, peso: d.peso || 3 })),
-        editalVerticalizado: {}
-      };
-
-      dadosExtraidos.forEach(d => {
-        const listaTopicos = d.topicos && d.topicos.length > 0 ? d.topicos : ['1. Conteúdo programático.'];
-        objetoEditalPronto.editalVerticalizado[d.nome] = listaTopicos.map((tit, idx) => ({
-          id: 'top_' + Math.random().toString(36).substr(2, 7) + '_' + idx,
-          titulo: sanitizarTopicoLinha(tit),
-          t: false, r1: false, r7: false, r15: false, r30: false,
-          prioridade: 'amarelo'
-        }));
-      });
-
-      if (rtdb) {
-        rtdb.ref("editais_prontos/" + idEdital).set(objetoEditalPronto).then(() => {
-          status.style.color = '#10b981';
-          status.style.background = 'rgba(16, 185, 129, 0.1)';
-          status.innerText = "✅ Edital publicado com sucesso!";
-          document.getElementById('tituloNovoEditalPronto').value = '';
-          document.getElementById('textoNovoEditalPronto').value = '';
-        }).catch(err => {
-          status.style.color = '#ef4444';
-          status.innerText = "Erro ao publicar: " + err.message;
-        });
-      }
-    }
-
-    function ouvirEditaisProntosNuvem() {
-      const container = document.getElementById('listaBotoesEditaisProntos');
-      if (!rtdb || !container) return;
-
-      rtdb.ref("editais_prontos").on("value", snapshot => {
-        const editais = snapshot.val();
-        container.innerHTML = '';
-
-        if (!editais) {
-          container.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 16px;">Nenhum edital pronto cadastrado.</div>`;
-          return;
-        }
-
-        Object.keys(editais).forEach(key => {
-          const item = editais[key];
-          const div = document.createElement('div');
-          div.className = 'edital-pronto-item';
-
-          div.innerHTML = `
-            <button class="btn-edital-verde" onclick="adquirirEditalPronto('${item.id}')">
-              <span>📗 ${item.titulo}</span>
-              <span style="font-size: 0.72rem; font-weight: normal; opacity: 0.9;">Adquirir Edital ➔</span>
-            </button>
-            <button class="btn btn-danger" style="padding: 10px 12px;" title="Excluir este edital" onclick="excluirEditalPronto('${item.id}')">🗑️</button>
-          `;
-          container.appendChild(div);
-        });
-      });
-    }
-
-    function adquirirEditalPronto(idEdital) {
-      if (!confirm("Deseja carregar este edital pronto? O seu cronograma e ciclo atual serão atualizados com essas matérias.")) {
-        return;
-      }
-
-      if (rtdb) {
-        rtdb.ref("editais_prontos/" + idEdital).once("value").then(snapshot => {
-          const dados = snapshot.val();
-          if (dados && dados.disciplinas) {
-            estado.disciplinas = JSON.parse(JSON.stringify(dados.disciplinas));
-            estado.editalVerticalizado = JSON.parse(JSON.stringify(dados.editalVerticalizado));
-            estado.semanas = {};
-            estado.indicesTopicos = {};
-            estado.ponteiroGeral = 0;
-            estado.materiaFiltroEdital = 'TODAS';
-            estado.filtroPrioridadesMateria = 'TODAS';
-            estado.agendaRevisoes = [];
-            estado.diasCompletosLog = [];
-
-            dataReferencia = new Date();
-            const segunda = obterSegundaFeira(dataReferencia);
-            chaveSemanaAtiva = `semana_${formatarDataChave(segunda)}`;
-            gerarSemanaAutomatica(chaveSemanaAtiva, false, true);
-
-            const chave = chaveArmazenamento(usuarioAtivo);
-            localStorage.setItem(chave, JSON.stringify(estado));
-            if (dbRefAtivo) {
-              dbRefAtivo.set({ estado: estado, atualizadoEm: new Date().toISOString() });
-            }
-
-            renderizarPesos();
-            atualizarSelectsMaterias();
-            renderizarEditalVerticalizado();
-            renderizarAbaPrioridades();
-            renderizarAbaRevisoes();
-            atualizarSemanaAtiva();
-            renderizarVisaoGeral();
-            atualizarPainelPlanejamento();
-            atualizarIndicadorPresenca();
-            calcularPrevisaoFechamentoEdital();
-
-            alert(`Parabéns! O edital "${dados.titulo}" foi adquirido com sucesso.`);
-            trocarAba('aba-ciclo', document.querySelectorAll('.tab-btn')[0]);
-          }
-        });
-      }
-    }
-
-    function excluirEditalPronto(idEdital) {
-      if (confirm("Remover este edital pronto da nuvem? Ele deixará de aparecer na lista.")) {
-        if (rtdb) {
-          rtdb.ref("editais_prontos/" + idEdital).remove().then(() => {
-            alert("Edital pronto removido!");
-          });
-        }
-      }
-    }
-
-    function redefinirEditalManualmente() {
-      if (confirm('Tem certeza de que deseja resetar todo o edital e limpar os dados atuais?')) {
-        estado = obterEstadoPadrao();
-        const chave = chaveArmazenamento(usuarioAtivo);
-        localStorage.removeItem(chave);
-        if (rtdb && dbRefAtivo) {
-          dbRefAtivo.remove().catch(() => {});
-        }
-        atualizarUIAposCarregar();
-        alert('Edital resetado com sucesso! Vá na aba Editais Prontos para carregar um novo plano.');
-      }
-    }
-
-    function sair() {
-      if (dbRefAtivo) dbRefAtivo.off();
-      sessionStorage.removeItem('usuario_ativo');
-      location.reload();
     }
 
     function abrirApp() {
-      const telaLogin = document.getElementById('tela-login');
-      const appContainer = document.getElementById('app-container');
-      if (telaLogin) telaLogin.style.display = 'none';
-      if (appContainer) appContainer.style.display = 'flex';
-
-      const lblUser = document.getElementById('labelNomeUsuario');
-      const lblCron = document.getElementById('tituloCronograma');
-      if (lblUser) lblUser.innerText = usuarioAtivo;
-      if (lblCron) lblCron.innerText = `Cronograma de ${usuarioAtivo}`;
-
-      configurarAbaEditaisProntos();
-      configurarPainelAdminUsuarios();
+      document.getElementById('tela-login').style.display = 'none';
+      document.getElementById('app-container').style.display = 'flex';
+      document.getElementById('labelNomeUsuario').innerText = usuarioAtivo;
 
       const chave = chaveArmazenamento(usuarioAtivo);
       const salvos = localStorage.getItem(chave);
-      if (salvos) {
-        try { estado = JSON.parse(salvos); } catch (e) { estado = obterEstadoPadrao(); }
-      } else {
-        estado = obterEstadoPadrao();
-      }
+      estado = salvos ? JSON.parse(salvos) : obterEstadoPadrao();
 
-      dataReferencia = new Date();
       atualizarUIAposCarregar();
-      atualizarStatusNuvem("☁️ Pronto", "online");
-
-      if (rtdb) {
-        if (dbRefAtivo) dbRefAtivo.off();
-        dbRefAtivo = rtdb.ref("perfis/" + usuarioAtivo.toLowerCase());
-
-        dbRefAtivo.once("value", snapshot => {
-          const dadosNuvem = snapshot.val();
-          if (dadosNuvem && dadosNuvem.estado && dadosNuvem.estado.disciplinas && dadosNuvem.estado.disciplinas.length > 0) {
-            estado = dadosNuvem.estado;
-            localStorage.setItem(chave, JSON.stringify(estado));
-            atualizarUIAposCarregar();
-            atualizarStatusNuvem("☁️ Sincronizado", "online");
-          }
-        });
-      }
     }
 
     function salvarEstado() {
       if (!usuarioAtivo || isReceivingFromCloud) return;
-      const chave = chaveArmazenamento(usuarioAtivo);
-      localStorage.setItem(chave, JSON.stringify(estado));
-
-      if (rtdb && dbRefAtivo) {
-        atualizarStatusNuvem("☁️ Enviando...", "syncing");
-        clearTimeout(debounceSalvarNuvem);
-        debounceSalvarNuvem = setTimeout(() => {
-          dbRefAtivo.set({
-            estado: estado,
-            atualizadoEm: new Date().toISOString()
-          }).then(() => {
-            atualizarStatusNuvem("☁️ Sincronizado", "online");
-          });
-        }, 400);
-      }
+      localStorage.setItem(chaveArmazenamento(usuarioAtivo), JSON.stringify(estado));
     }
-
-    function atualizarIndicadorPresenca() {
-      if (!estado.diasCompletosLog) estado.diasCompletosLog = [];
-      const totalDias = estado.diasCompletosLog.length;
-      const el = document.getElementById('txtOfensiva');
-      if (el) el.innerText = `${totalDias} ${totalDias === 1 ? 'dia' : 'dias'}`;
-    }
-
-    function exportarBackup() {
-      const dados = JSON.stringify(estado, null, 2);
-      const blob = new Blob([dados], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `backup_estudos_${usuarioAtivo.toLowerCase()}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function importarBackup(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const importado = JSON.parse(e.target.result);
-          if (importado && importado.disciplinas) {
-            estado = importado;
-            salvarEstado();
-            atualizarUIAposCarregar();
-            alert('Backup restaurado com sucesso!');
-          }
-        } catch (err) {
-          alert('Ficheiro de backup inválido.');
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    function processarEditalTexto() {
-      const texto = document.getElementById('textoEdital').value.trim();
-      if (!texto) return;
-
-      const dadosExtraidos = extrairDisciplinasETopicosUniversal(texto);
-      if (dadosExtraidos && dadosExtraidos.length > 0) {
-        estado.disciplinas = dadosExtraidos.map(d => ({ nome: d.nome, peso: d.peso || 3 }));
-        estado.editalVerticalizado = {};
-        dadosExtraidos.forEach(d => {
-          const listaTopicos = d.topicos && d.topicos.length > 0 ? d.topicos : ['1. Conteúdo programático.'];
-          estado.editalVerticalizado[d.nome] = listaTopicos.map((tit, idx) => ({
-            id: 'top_' + Math.random().toString(36).substr(2, 7) + '_' + idx,
-            titulo: sanitizarTopicoLinha(tit),
-            t: false, r1: false, r7: false, r15: false, r30: false,
-            prioridade: 'amarelo'
-          }));
-        });
-
-        salvarEstado();
-        atualizarUIAposCarregar();
-        calcularPrevisaoFechamentoEdital();
-        alert('Edital carregado com sucesso!');
-      }
-    }
-
-    function sanitizarTopicoLinha(texto) {
-      let t = texto.replace(/[\|\_]{2,}/g, '').trim();
-      const pontoMatch = t.match(/^(.*?[.;])(\s+[A-Za-z0-9\-\s\.\/]{1,30})?$/);
-      if (pontoMatch && pontoMatch[1].length > 8) {
-        t = pontoMatch[1];
-      }
-      t = t.replace(/\s{2,}/g, ' ').trim();
-      if (!t.endsWith('.') && !t.endsWith(';')) t += '.';
-      return t;
-    }
-
-    function extrairDisciplinasETopicosUniversal(texto) {
-      const linhas = texto.split(/[\r\n]+/).map(l => l.trim()).filter(l => l.length > 0);
-      const resultado = [];
-      let mapaMaterias = {};
-      let materiaAtual = null;
-
-      const regexCabecalho = /^(L[IÍ]NGUA PORTUGUESA|PORTUGU[EÊ]S|HIST[OÓ]RIA[A-Z\s]*|GEOGRAFIA[A-Z\s]*|RACIOC[IÍ]NIO L[OÓ]GICO[A-Z\s]*|RLM[A-Z\s\-]*|INFORM[AÁ]TICA|DIREITO[A-Z\s]+|DIREITOS HUMANOS[A-Z\s]*|LEGISLA[CÇ][AÃ]O[A-Z\s]*|ADMINISTRA[CÇ][AÃ]O[A-Z\s]*|NO[CÇ][OÕ]ES DE [A-Z\s]+|CONTABILIDADE[A-Z\s]*|CONHECIMENTOS PEDAG[OÓ]GICOS[A-Z\s]*)/i;
-      const regexTopicoNumerado = /^(\d+[\.\-\)]|\d+\.\d+[\.\-\)]|[a-z]\))\s*(.+)/i;
-
-      linhas.forEach(linha => {
-        if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSUNTO|TEORIA|TOTAL|ERROS|ACERTOS|1º|2º|3º)/i.test(linha)) return;
-
-        const matchDisc = linha.match(regexCabecalho);
-        if ((matchDisc && !regexTopicoNumerado.test(linha)) || (!regexTopicoNumerado.test(linha) && linha.length < 40 && !linha.includes('.'))) {
-          materiaAtual = linha.replace(/^[•\-\*]\s*/, '').trim();
-          materiaAtual = materiaAtual.toLowerCase().replace(/(^|\s)\S/g, l => l.toUpperCase());
-          if (!mapaMaterias[materiaAtual]) {
-            mapaMaterias[materiaAtual] = [];
-          }
-          return;
-        }
-
-        if (!materiaAtual) {
-          materiaAtual = 'Disciplina de Estudo';
-          mapaMaterias[materiaAtual] = [];
-        }
-
-        let itemTexto = sanitizarTopicoLinha(linha);
-        if (itemTexto.length > 3 && !mapaMaterias[materiaAtual].includes(itemTexto)) {
-          mapaMaterias[materiaAtual].push(itemTexto);
-        }
-      });
-
-      Object.keys(mapaMaterias).forEach(nome => {
-        if (mapaMaterias[nome].length > 0) {
-          resultado.push({
-            nome: nome,
-            peso: 3,
-            topicos: mapaMaterias[nome]
-          });
-        }
-      });
-
-      return resultado;
-    }
-
-    let timerInterval = null;
-    let timerSegundos = 0;
-    let timerRodando = false;
 
     function trocarAba(idAba, btnEl) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-      const aba = document.getElementById(idAba);
-      if (aba) aba.classList.add('active');
+      document.getElementById(idAba).classList.add('active');
       if (btnEl) btnEl.classList.add('active');
-
-      if (idAba === 'aba-pesos') renderizarPesos();
-      if (idAba === 'aba-prioridades') renderizarAbaPrioridades();
-      if (idAba === 'aba-revisoes') renderizarAbaRevisoes();
       if (idAba === 'aba-edital-vert') renderizarEditalVerticalizado();
-      if (idAba === 'aba-visao-geral') renderizarVisaoGeral();
-      if (idAba === 'aba-planejamento') atualizarPainelPlanejamento();
-      if (idAba === 'aba-timer') atualizarVisualizacaoHoras();
-      if (idAba === 'aba-questoes') atualizarVisualizacaoQuestoes();
-    }
-
-    function ativarAbaPorId(idAba) {
-      const btn = Array.from(document.querySelectorAll('.tab-btn')).find(
-        b => b.getAttribute('onclick') && b.getAttribute('onclick').includes(idAba)
-      );
-      trocarAba(idAba, btn);
     }
 
     function alternarTema() {
       const atual = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', atual);
       estado.tema = atual;
-      const btn = document.getElementById('btnTema');
-      if (btn) btn.innerText = atual === 'light' ? '🌙 Escuro' : '☀️ Claro';
       salvarEstado();
     }
 
     function atualizarUIAposCarregar() {
-      const padrao = obterEstadoPadrao();
-      Object.keys(padrao).forEach(chave => {
-        if (estado[chave] === undefined) estado[chave] = padrao[chave];
-      });
-
       document.documentElement.setAttribute('data-theme', estado.tema || 'dark');
-      const btnTema = document.getElementById('btnTema');
-      if (btnTema) btnTema.innerText = estado.tema === 'light' ? '🌙 Escuro' : '☀️ Claro';
-
-      const inputPorDia = document.getElementById('materiasPorDia');
-      if (inputPorDia) inputPorDia.value = estado.porDia || 2;
-
+      document.getElementById('materiasPorDia').value = estado.porDia || 2;
       atualizarSelectsMaterias();
-      renderizarPesos();
       renderizarEditalVerticalizado();
-      renderizarAbaPrioridades();
-      renderizarAbaRevisoes();
-      atualizarPainelPlanejamento();
-      atualizarVisualizacaoHoras();
-      atualizarVisualizacaoQuestoes();
-      atualizarIndicadorPresenca();
-
-      dataReferencia = new Date();
       atualizarSemanaAtiva();
     }
 
     function atualizarSelectsMaterias() {
       const nomes = (estado.disciplinas || []).map(d => d.nome);
-      const selects = [
-        { id: 'timerSelectMateria', comTodas: false },
-        { id: 'filtroMateriaHoras', comTodas: true },
-        { id: 'filtroQuestoesMateria', comTodas: true },
-        { id: 'questoesSelectMateria', comTodas: false },
-        { id: 'filtroExclusivoMateriaEdital', comTodas: true },
-        { id: 'selectMateriaNovoTopico', comTodas: false },
-        { id: 'filtroMateriaPrioridades', comTodas: true },
-        { id: 'filtroMateriaRevisoes', comTodas: true },
-        { id: 'modalHorasSelectMateria', comTodas: false }
-      ];
-
-      selects.forEach(cfg => {
-        const sel = document.getElementById(cfg.id);
+      ['timerSelectMateria', 'filtroMateriaHoras', 'filtroQuestoesMateria', 'questoesSelectMateria', 
+       'filtroExclusivoMateriaEdital', 'selectMateriaNovoTopico', 'filtroMateriaPrioridades', 
+       'filtroMateriaRevisoes', 'modalHorasSelectMateria'].forEach(id => {
+        const sel = document.getElementById(id);
         if (!sel) return;
-        const valorAtual = sel.value;
-        sel.innerHTML = '';
-
-        if (cfg.comTodas) {
-          const opt = document.createElement('option');
-          opt.value = 'TODAS';
-          opt.innerText = 'Todas as Disciplinas';
-          sel.appendChild(opt);
-        }
-
+        const cur = sel.value;
+        sel.innerHTML = id.includes('filtro') ? '<option value="TODAS">Todas</option>' : '';
         nomes.forEach(n => {
           const opt = document.createElement('option');
-          opt.value = n;
-          opt.innerText = n;
+          opt.value = n; opt.innerText = n;
           sel.appendChild(opt);
         });
-
-        if (nomes.includes(valorAtual) || (cfg.comTodas && valorAtual === 'TODAS')) {
-          sel.value = valorAtual;
-        }
+        sel.value = cur;
       });
     }
 
@@ -2463,78 +1539,20 @@
       const input = document.getElementById('novaMateria');
       const nome = input.value.trim();
       if (!nome) return;
-
       if (!estado.disciplinas) estado.disciplinas = [];
-      if (estado.disciplinas.some(d => d.nome.toLowerCase() === nome.toLowerCase())) {
-        alert('Essa disciplina já existe.');
-        return;
-      }
-
       estado.disciplinas.push({ nome, peso: 3 });
       if (!estado.editalVerticalizado) estado.editalVerticalizado = {};
       if (!estado.editalVerticalizado[nome]) estado.editalVerticalizado[nome] = [];
-
       input.value = '';
       salvarEstado();
       atualizarSelectsMaterias();
-      renderizarPesos();
       renderizarEditalVerticalizado();
-      calcularPrevisaoFechamentoEdital();
-    }
-
-    function excluirMateria(idx) {
-      const d = estado.disciplinas[idx];
-      if (!d) return;
-      if (!confirm(`Remover a disciplina "${d.nome}" e todo o seu conteúdo do edital?`)) return;
-
-      delete estado.editalVerticalizado[d.nome];
-      estado.disciplinas.splice(idx, 1);
-
-      salvarEstado();
-      atualizarSelectsMaterias();
-      renderizarPesos();
-      renderizarEditalVerticalizado();
-      atualizarSemanaAtiva();
-      calcularPrevisaoFechamentoEdital();
-    }
-
-    function atualizarPesoMateria(idx, val) {
-      if (estado.disciplinas[idx]) {
-        estado.disciplinas[idx].peso = parseInt(val);
-        salvarEstado();
-      }
-    }
-
-    function renderizarPesos() {
-      const lista = document.getElementById('listaPesos');
-      if (!lista) return;
-      lista.innerHTML = '';
-
-      (estado.disciplinas || []).forEach((d, idx) => {
-        const li = document.createElement('li');
-        li.className = 'item-card';
-        li.innerHTML = `
-          <span>${d.nome}</span>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <select onchange="atualizarPesoMateria(${idx}, this.value)" style="padding:4px 6px; font-size:0.8rem;">
-              ${[1, 2, 3, 4, 5].map(v => `<option value="${v}" ${d.peso == v ? 'selected' : ''}>${v}</option>`).join('')}
-            </select>
-            <button class="btn-mini-acao" title="Remover disciplina" onclick="excluirMateria(${idx})">🗑️</button>
-          </div>
-        `;
-        lista.appendChild(li);
-      });
-
-      if ((estado.disciplinas || []).length === 0) {
-        lista.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:16px; font-size:0.82rem;">Nenhuma disciplina cadastrada.</div>`;
-      }
     }
 
     function construirListaCicloPonderada() {
       let lista = [];
       (estado.disciplinas || []).forEach(d => {
-        const peso = d.peso || 3;
-        for (let i = 0; i < peso; i++) lista.push(d.nome);
+        for (let i = 0; i < (d.peso || 3); i++) lista.push(d.nome);
       });
       return lista;
     }
@@ -2542,12 +1560,10 @@
     function obterProximoTopicoParaMateria(materia) {
       const lista = (estado.editalVerticalizado[materia] || []).filter(t => !t.t);
       if (lista.length === 0) return null;
-      const ordemPrioridade = { vermelho: 0, amarelo: 1, verde: 2 };
-      lista.sort((a, b) => (ordemPrioridade[a.prioridade] ?? 1) - (ordemPrioridade[b.prioridade] ?? 1));
       return lista[0];
     }
 
-    function gerarSemanaAutomatica(chaveSemana, forcarRegenerar, resetarProgresso) {
+    function gerarSemanaAutomatica(chaveSemana, forcarRegenerar) {
       if (!estado.disciplinas || estado.disciplinas.length === 0) return;
       if (!estado.semanas) estado.semanas = {};
       if (estado.semanas[chaveSemana] && !forcarRegenerar) return;
@@ -2557,13 +1573,10 @@
 
       const porDia = parseInt(estado.porDia) || 2;
       const novaSemana = {};
-
       const partesChave = chaveSemana.replace('semana_', '').split('-');
       const segundaRef = new Date(partesChave[0], partesChave[1] - 1, partesChave[2]);
 
       let ponteiro = estado.ponteiroGeral || 0;
-      const hojeCorrente = new Date();
-      hojeCorrente.setHours(0, 0, 0, 0);
 
       DIAS.forEach((nomeDia, idxDia) => {
         const dataDia = new Date(segundaRef);
@@ -2572,12 +1585,12 @@
 
         const slotsDoDia = [];
 
-        // Inserir APENAS revisões agendadas para o dia sem duplicar ciclos passados
+        // Inserir APENAS a revisão agendada exata para esta data sem gerar blocos extras
         (estado.agendaRevisoes || []).forEach(rev => {
           if (rev.dataPrevista === chaveDataDia && !rev.concluida) {
             slotsDoDia.push({
               materia: rev.materia,
-              assunto: `🔁 Revisão: ${rev.topicoTitulo}`,
+              assunto: `🔁 Revisão (${rev.tipo}): ${rev.topicoTitulo}`,
               feito: false,
               revisaoId: rev.id,
               tipoRevisao: rev.tipo
@@ -2585,19 +1598,17 @@
           }
         });
 
-        // Bloquear preenchimento de slots de estudo para dias já passados
-        if (dataDia >= hojeCorrente) {
-          for (let i = 0; i < porDia; i++) {
-            const materia = cicloPonderado[ponteiro % cicloPonderado.length];
-            ponteiro++;
-            const topico = obterProximoTopicoParaMateria(materia);
-            slotsDoDia.push({
-              materia,
-              assunto: topico ? topico.titulo : 'Revisão livre / Questões',
-              feito: false,
-              topicoId: topico ? topico.id : null
-            });
-          }
+        // Adicionar slots normais de estudo
+        for (let i = 0; i < porDia; i++) {
+          const materia = cicloPonderado[ponteiro % cicloPonderado.length];
+          ponteiro++;
+          const topico = obterProximoTopicoParaMateria(materia);
+          slotsDoDia.push({
+            materia,
+            assunto: topico ? topico.titulo : 'Revisão livre',
+            feito: false,
+            topicoId: topico ? topico.id : null
+          });
         }
 
         novaSemana[nomeDia] = slotsDoDia;
@@ -2609,23 +1620,9 @@
     }
 
     function gerarCronogramaSemanaAtual(regenerar, notificar) {
-      gerarSemanaAutomatica(chaveSemanaAtiva, regenerar === true, false);
+      gerarSemanaAutomatica(chaveSemanaAtiva, regenerar === true);
       renderizarGrade();
-      renderizarVisaoGeral();
-      calcularPrevisaoFechamentoEdital();
-      if (notificar) alert('Cronograma da semana atual regenerado!');
-    }
-
-    function reiniciarProgressoSemana() {
-      if (!confirm('Deseja limpar todas as marcações de concluído desta semana?')) return;
-      const semana = estado.semanas[chaveSemanaAtiva];
-      if (semana) {
-        Object.keys(semana).forEach(dia => {
-          semana[dia].forEach(slot => (slot.feito = false));
-        });
-      }
-      salvarEstado();
-      renderizarGrade();
+      if (notificar) alert('Semana regenerada!');
     }
 
     function renderizarGrade() {
@@ -2644,8 +1641,6 @@
         const col = document.createElement('div');
         col.className = 'day-column';
         if (chaveDia === hojeChave) col.classList.add('today');
-        const todosFeitos = slots.length > 0 && slots.every(s => s.feito);
-        if (todosFeitos) col.classList.add('day-completed');
 
         let slotsHtml = '';
         slots.forEach((slot, idxSlot) => {
@@ -2662,13 +1657,12 @@
                   <span class="slot-assunto-sub">${slot.assunto || ''}</span>
                 </div>
               </div>
-              <button class="btn-play-mini" title="Estudar agora (abrir timer)" onclick="irParaTimerComMateria('${slot.materia}')">▶️</button>
             </div>
           `;
         });
 
         if (slots.length === 0) {
-          slotsHtml = `<div style="font-size:0.78rem; color:var(--text-muted); text-align:center; padding:12px;">Sem atividades agendadas.</div>`;
+          slotsHtml = `<div style="font-size:0.78rem; color:var(--text-muted); text-align:center; padding:12px;">Sem atividades.</div>`;
         }
 
         col.innerHTML = `
@@ -2685,123 +1679,9 @@
     function toggleSlotFeito(diaNome, idxSlot, valor) {
       const semana = estado.semanas[chaveSemanaAtiva];
       if (!semana || !semana[diaNome] || !semana[diaNome][idxSlot]) return;
-
-      const slot = semana[diaNome][idxSlot];
-      slot.feito = valor;
-
-      if (slot.revisaoId) {
-        const rev = (estado.agendaRevisoes || []).find(r => r.id === slot.revisaoId);
-        if (rev) rev.concluida = valor;
-      }
-
+      semana[diaNome][idxSlot].feito = valor;
       salvarEstado();
       renderizarGrade();
-      renderizarVisaoGeral();
-      renderizarAbaRevisoes();
-
-      const todosFeitos = semana[diaNome].length > 0 && semana[diaNome].every(s => s.feito);
-      if (todosFeitos && valor) {
-        const segunda = obterSegundaFeira(dataReferencia);
-        const idxDia = DIAS.indexOf(diaNome);
-        const dataDia = new Date(segunda);
-        dataDia.setDate(segunda.getDate() + idxDia);
-        const chaveDia = formatarDataChave(dataDia);
-
-        if (!estado.diasCompletosLog) estado.diasCompletosLog = [];
-        if (!estado.diasCompletosLog.includes(chaveDia)) {
-          estado.diasCompletosLog.push(chaveDia);
-          salvarEstado();
-        }
-        atualizarIndicadorPresenca();
-        dispararCelebracao();
-      }
-    }
-
-    function irParaTimerComMateria(materia) {
-      ativarAbaPorId('aba-timer');
-      const sel = document.getElementById('timerSelectMateria');
-      if (sel) sel.value = materia;
-    }
-
-    function renderizarVisaoGeral() {
-      const container = document.getElementById('containerVisaoGeral');
-      if (!container) return;
-      container.innerHTML = '';
-
-      const segunda = obterSegundaFeira(dataReferencia);
-      const dias = obterDiasDaSemana(segunda);
-      const semana = (estado.semanas && estado.semanas[chaveSemanaAtiva]) || {};
-
-      dias.forEach(diaInfo => {
-        const slots = semana[diaInfo.nome] || [];
-        const card = document.createElement('div');
-        card.className = 'agenda-card';
-
-        let itensHtml = slots.length
-          ? slots.map(s => `
-              <div class="agenda-item-slot">
-                <span>${s.feito ? '✅' : '⬜'} ${s.materia}</span>
-                <span style="color:var(--text-muted); font-size:0.75rem;">${s.assunto || ''}</span>
-              </div>
-            `).join('')
-          : '<div style="font-size:0.78rem;color:var(--text-muted);">Sem atividades.</div>';
-
-        card.innerHTML = `
-          <div class="agenda-dia-header">
-            <span>${diaInfo.nome}</span>
-            <span>${diaInfo.data}</span>
-          </div>
-          ${itensHtml}
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    function adicionarTopicoAoEdital() {
-      const selectMateria = document.getElementById('selectMateriaNovoTopico');
-      const inputTopico = document.getElementById('inputNovoTopico');
-      const materia = selectMateria.value;
-      const texto = inputTopico.value.trim();
-      if (!materia || !texto) return;
-
-      if (!estado.editalVerticalizado[materia]) estado.editalVerticalizado[materia] = [];
-      estado.editalVerticalizado[materia].push({
-        id: 'top_' + Math.random().toString(36).substr(2, 7),
-        titulo: texto, t: false, r1: false, r7: false, r15: false, r30: false,
-        prioridade: 'amarelo'
-      });
-
-      inputTopico.value = '';
-      salvarEstado();
-      renderizarEditalVerticalizado();
-      renderizarAbaPrioridades();
-      calcularPrevisaoFechamentoEdital();
-    }
-
-    function alternarColapsoEdital(materia) {
-      if (!estado.collapseEdital) estado.collapseEdital = {};
-      estado.collapseEdital[materia] = !estado.collapseEdital[materia];
-      salvarEstado();
-      renderizarEditalVerticalizado();
-    }
-
-    function atualizarTopicoCampo(materia, topicoId, campo, valor) {
-      const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
-      if (!topico) return;
-      topico[campo] = valor;
-      salvarEstado();
-      renderizarEditalVerticalizado();
-      calcularPrevisaoFechamentoEdital();
-    }
-
-    function excluirTopicoEdital(materia, topicoId) {
-      if (!confirm('Remover este tópico do edital?')) return;
-      estado.editalVerticalizado[materia] = (estado.editalVerticalizado[materia] || []).filter(t => t.id !== topicoId);
-      estado.agendaRevisoes = (estado.agendaRevisoes || []).filter(r => r.topicoId !== topicoId);
-      salvarEstado();
-      renderizarEditalVerticalizado();
-      renderizarAbaRevisoes();
-      calcularPrevisaoFechamentoEdital();
     }
 
     function renderizarEditalVerticalizado() {
@@ -2823,33 +1703,27 @@
 
         const bloco = document.createElement('div');
         bloco.className = 'subject-block';
-        const colapsado = estado.collapseEdital && estado.collapseEdital[materia];
 
         let linhasHtml = topicos.map(t => {
           const numeroFormatado = String(contadorGlobal++).padStart(2, '0');
+          // Remove numerações antigas duplicadas do texto do tópico para exibir limpo
+          let tituloLimpo = t.titulo.replace(/^\d+[\.\-\)]\s*/, '').trim();
           return `
             <tr>
-              <td class="topic-cell"><strong>${numeroFormatado}.</strong> ${t.titulo} <span class="tag-badge-prioridade ${t.prioridade}">${t.prioridade === 'vermelho' ? 'Alta' : t.prioridade === 'verde' ? 'Baixa' : 'Média'}</span></td>
+              <td class="topic-cell"><strong>${numeroFormatado}.</strong> ${tituloLimpo}</td>
               <td><input type="checkbox" ${t.t ? 'checked' : ''} onchange="atualizarTopicoCampo('${materia}','${t.id}','t', this.checked)"></td>
               <td><input type="checkbox" ${t.r1 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','1D', this.checked)"></td>
               <td><input type="checkbox" ${t.r7 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','7D', this.checked)"></td>
               <td><input type="checkbox" ${t.r15 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','15D', this.checked)"></td>
               <td><input type="checkbox" ${t.r30 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','30D', this.checked)"></td>
-              <td><button class="btn-mini-acao" title="Remover tópico" onclick="excluirTopicoEdital('${materia}','${t.id}')">🗑️</button></td>
+              <td><button class="btn-mini-acao" onclick="excluirTopicoEdital('${materia}','${t.id}')">🗑️</button></td>
             </tr>
           `;
         }).join('');
 
-        if (topicos.length === 0) {
-          linhasHtml = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:10px;">Nenhum tópico cadastrado.</td></tr>`;
-        }
-
         bloco.innerHTML = `
-          <div class="subject-header-ev" onclick="alternarColapsoEdital('${materia}')">
-            <span>${materia} (${topicos.filter(t => t.t).length}/${topicos.length})</span>
-            <span>${colapsado ? '▸' : '▾'}</span>
-          </div>
-          <div class="subject-body-ev" style="display:${colapsado ? 'none' : 'block'};">
+          <div class="subject-header-ev"><span>${materia} (${topicos.length})</span></div>
+          <div class="subject-body-ev">
             <table class="ev-table">
               <thead><tr><th>Tópico</th><th>Feito</th><th>1D</th><th>7D</th><th>15D</th><th>30D</th><th></th></tr></thead>
               <tbody>${linhasHtml}</tbody>
@@ -2858,10 +1732,6 @@
         `;
         container.appendChild(bloco);
       });
-
-      if (materias.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;">Nenhuma disciplina cadastrada ainda.</div>`;
-      }
     }
 
     function alternarRevisaoTopico(materia, topicoId, tipo, ativo) {
@@ -2884,377 +1754,37 @@
       } else {
         estado.agendaRevisoes = estado.agendaRevisoes.filter(r => !(r.topicoId === topicoId && r.tipo === tipo));
       }
-
       salvarEstado();
       renderizarEditalVerticalizado();
-      renderizarAbaRevisoes();
     }
 
-    function renderizarAbaRevisoes() {
-      const container = document.getElementById('containerListaRevisoes');
-      const filtro = document.getElementById('filtroMateriaRevisoes');
-      if (!container) return;
-      const filtroVal = filtro ? filtro.value : 'TODAS';
-      container.innerHTML = '';
-
-      const hojeChave = formatarDataChave(new Date());
-      let lista = [...(estado.agendaRevisoes || [])];
-      if (filtroVal !== 'TODAS') lista = lista.filter(r => r.materia === filtroVal);
-      lista.sort((a, b) => a.dataPrevista.localeCompare(b.dataPrevista));
-
-      if (lista.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:16px; font-size:0.82rem;">Nenhuma revisão agendada.</div>`;
-        return;
-      }
-
-      lista.forEach(rev => {
-        let tag = 'futura', tagTexto = 'Agendada';
-        if (rev.concluida) { tag = 'concluida'; tagTexto = 'Concluída'; }
-        else if (rev.dataPrevista < hojeChave) { tag = 'atrasada'; tagTexto = 'Atrasada'; }
-        else if (rev.dataPrevista === hojeChave) { tag = 'hoje'; tagTexto = 'Hoje'; }
-
-        const item = document.createElement('div');
-        item.className = 'revisao-card-item';
-        item.innerHTML = `
-          <span class="badge-revisao-tag ${tag}">${tagTexto} • ${rev.tipo}</span>
-          <div style="font-size:0.82rem; font-weight:600;">${rev.materia}</div>
-          <div style="font-size:0.78rem; color:var(--text-muted);">${rev.topicoTitulo}</div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-            <span style="font-size:0.75rem; color:var(--text-muted);">📅 ${formatarDataBR(new Date(rev.dataPrevista + 'T00:00:00'))}</span>
-            <div style="display:flex; gap:6px;">
-              <button class="btn-mini-acao" title="Marcar como concluída" onclick="alternarConclusaoRevisao('${rev.id}')">${rev.concluida ? '↩️' : '✅'}</button>
-              <button class="btn-mini-acao" title="Remover" onclick="excluirRevisaoAgendada('${rev.id}')">🗑️</button>
-            </div>
-          </div>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    function alternarConclusaoRevisao(revId) {
-      const rev = (estado.agendaRevisoes || []).find(r => r.id === revId);
-      if (!rev) return;
-      rev.concluida = !rev.concluida;
+    function processarEditalTexto() {
+      const texto = document.getElementById('textoEdital').value.trim();
+      if (!texto) return;
+      const linhas = texto.split(/[\r\n]+/).map(l => l.trim()).filter(l => l.length > 0);
+      estado.disciplinas = [{ nome: 'Conteúdo Programático', peso: 3 }];
+      estado.editalVerticalizado = {
+        'Conteúdo Programático': linhas.map((tit, idx) => ({
+          id: 'top_' + Math.random().toString(36).substr(2, 7),
+          titulo: tit, t: false, r1: false, r7: false, r15: false, r30: false, prioridade: 'amarelo'
+        }))
+      };
       salvarEstado();
-      renderizarAbaRevisoes();
-      renderizarGrade();
+      atualizarUIAposCarregar();
+      alert('Edital carregado com sucesso!');
     }
 
-    function excluirRevisaoAgendada(revId) {
-      const rev = (estado.agendaRevisoes || []).find(r => r.id === revId);
-      if (rev) {
-        const topico = (estado.editalVerticalizado[rev.materia] || []).find(t => t.id === rev.topicoId);
-        if (topico) {
-          const campo = 'r' + rev.tipo.replace('D', '');
-          topico[campo] = false;
-        }
-      }
-      estado.agendaRevisoes = (estado.agendaRevisoes || []).filter(r => r.id !== revId);
-      salvarEstado();
-      renderizarAbaRevisoes();
-      renderizarEditalVerticalizado();
-    }
-
-    function renderizarAbaPrioridades() {
-      const container = document.getElementById('containerListaPrioridades');
-      const filtro = document.getElementById('filtroMateriaPrioridades');
-      if (!container) return;
-      const filtroVal = filtro ? filtro.value : 'TODAS';
-      container.innerHTML = '';
-
-      let algumTopico = false;
-      Object.keys(estado.editalVerticalizado || {}).forEach(materia => {
-        if (filtroVal !== 'TODAS' && filtroVal !== materia) return;
-        (estado.editalVerticalizado[materia] || []).forEach(t => {
-          algumTopico = true;
-          const card = document.createElement('div');
-          card.className = 'prio-item-card';
-          card.innerHTML = `
-            <div class="prio-topic-title">${materia} — ${t.titulo}</div>
-            <div class="prio-options">
-              <button class="btn-prio-tag vermelho ${t.prioridade === 'vermelho' ? 'active' : ''}" onclick="definirPrioridadeTopico('${materia}','${t.id}','vermelho')">🔴 Alta</button>
-              <button class="btn-prio-tag amarelo ${t.prioridade === 'amarelo' ? 'active' : ''}" onclick="definirPrioridadeTopico('${materia}','${t.id}','amarelo')">🟡 Média</button>
-              <button class="btn-prio-tag verde ${t.prioridade === 'verde' ? 'active' : ''}" onclick="definirPrioridadeTopico('${materia}','${t.id}','verde')">🟢 Baixa</button>
-            </div>
-          `;
-          container.appendChild(card);
-        });
-      });
-
-      if (!algumTopico) {
-        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:16px; font-size:0.82rem;">Nenhum tópico encontrado.</div>`;
+    function redefinirEditalManualmente() {
+      if (confirm('Resetar edital?')) {
+        estado = obterEstadoPadrao();
+        salvarEstado();
+        atualizarUIAposCarregar();
       }
     }
 
-    function definirPrioridadeTopico(materia, topicoId, prioridade) {
-      const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
-      if (!topico) return;
-      topico.prioridade = prioridade;
-      salvarEstado();
-      renderizarAbaPrioridades();
-      renderizarEditalVerticalizado();
-    }
-
-    function formatarTempo(segundosTotais) {
-      const h = Math.floor(segundosTotais / 3600);
-      const m = Math.floor((segundosTotais % 3600) / 60);
-      const s = segundosTotais % 60;
-      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    }
-
-    function toggleTimer() {
-      const btn = document.getElementById('btnIniciarTimer');
-      if (!timerRodando) {
-        timerRodando = true;
-        if (btn) { btn.innerText = 'Pausar'; btn.classList.remove('btn-primary'); btn.classList.add('btn-outline'); }
-        timerInterval = setInterval(() => {
-          timerSegundos++;
-          const display = document.getElementById('timerDisplay');
-          if (display) display.innerText = formatarTempo(timerSegundos);
-        }, 1000);
-      } else {
-        timerRodando = false;
-        clearInterval(timerInterval);
-        if (btn) { btn.innerText = 'Continuar'; btn.classList.add('btn-primary'); btn.classList.remove('btn-outline'); }
-      }
-    }
-
-    function resetarTimer() {
-      timerRodando = false;
-      clearInterval(timerInterval);
-      timerSegundos = 0;
-      const display = document.getElementById('timerDisplay');
-      if (display) display.innerText = '00:00:00';
-      const btn = document.getElementById('btnIniciarTimer');
-      if (btn) { btn.innerText = 'Iniciar'; btn.classList.add('btn-primary'); btn.classList.remove('btn-outline'); }
-    }
-
-    function registrarHoraEstudo(materia, minutos) {
-      if (!estado.historicoHoras) estado.historicoHoras = [];
-      estado.historicoHoras.push({
-        id: 'hr_' + Math.random().toString(36).substr(2, 7),
-        materia, data: new Date().toISOString(), minutos
-      });
-      salvarEstado();
-      atualizarVisualizacaoHoras();
-    }
-
-    function salvarTempoCronometrado() {
-      if (timerSegundos < 60) {
-        alert('Estude por pelo menos 1 minuto antes de salvar.');
-        return;
-      }
-      const sel = document.getElementById('timerSelectMateria');
-      const materia = sel ? sel.value : null;
-      if (!materia) { alert('Selecione uma disciplina.'); return; }
-
-      const minutos = Math.round(timerSegundos / 60);
-      registrarHoraEstudo(materia, minutos);
-      resetarTimer();
-      alert('Tempo salvo com sucesso!');
-    }
-
-    function abrirModalManualHoras() {
-      const modal = document.getElementById('modalManualHoras');
-      if (modal) modal.style.display = 'flex';
-    }
-
-    function fecharModalManualHoras() {
-      const modal = document.getElementById('modalManualHoras');
-      if (modal) modal.style.display = 'none';
-    }
-
-    function salvarHorasManual() {
-      const sel = document.getElementById('modalHorasSelectMateria');
-      const h = parseInt(document.getElementById('modalHorasInputH').value) || 0;
-      const m = parseInt(document.getElementById('modalHorasInputM').value) || 0;
-      const materia = sel ? sel.value : null;
-      if (!materia) { alert('Selecione uma disciplina.'); return; }
-
-      const minutosTotais = (h * 60) + m;
-      if (minutosTotais <= 0) { alert('Informe um tempo válido.'); return; }
-
-      registrarHoraEstudo(materia, minutosTotais);
-      fecharModalManualHoras();
-    }
-
-    function atualizarVisualizacaoHoras() {
-      const filtro = document.getElementById('filtroMateriaHoras');
-      const filtroVal = filtro ? filtro.value : 'TODAS';
-      const lista = (estado.historicoHoras || []).filter(h => filtroVal === 'TODAS' || h.materia === filtroVal);
-
-      const totalMinutos = lista.reduce((acc, h) => acc + h.minutos, 0);
-      const horas = Math.floor(totalMinutos / 60);
-      const minutos = totalMinutos % 60;
-
-      const displayTotal = document.getElementById('displayTotalHorasLiquidas');
-      if (displayTotal) displayTotal.innerText = `${horas}h ${String(minutos).padStart(2, '0')}m`;
-
-      const labelFiltro = document.getElementById('labelFiltroNome');
-      if (labelFiltro) labelFiltro.innerText = filtroVal === 'TODAS' ? 'Todas as Disciplinas' : filtroVal;
-
-      const container = document.getElementById('listaHistoricoHoras');
-      if (!container) return;
-      container.innerHTML = '';
-
-      const ordenado = [...lista].sort((a, b) => new Date(b.data) - new Date(a.data));
-
-      if (ordenado.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:12px; font-size:0.8rem;">Nenhum registro encontrado.</div>`;
-        return;
-      }
-
-      ordenado.forEach(h => {
-        const d = new Date(h.data);
-        const hh = Math.floor(h.minutos / 60);
-        const mm = h.minutos % 60;
-        const item = document.createElement('div');
-        item.className = 'registro-item';
-        item.innerHTML = `
-          <div class="reg-info">
-            <span class="reg-materia">${h.materia}</span>
-            <span class="reg-data-tempo">${formatarDataBR(d)} • ${hh}h ${String(mm).padStart(2, '0')}m</span>
-          </div>
-          <button class="btn-mini-acao" title="Remover" onclick="excluirRegistroHora('${h.id}')">🗑️</button>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    function excluirRegistroHora(id) {
-      estado.historicoHoras = (estado.historicoHoras || []).filter(h => h.id !== id);
-      salvarEstado();
-      atualizarVisualizacaoHoras();
-    }
-
-    function salvarRegistroQuestao() {
-      const sel = document.getElementById('questoesSelectMateria');
-      const acertos = parseInt(document.getElementById('inputQuestoesAcertos').value) || 0;
-      const erros = parseInt(document.getElementById('inputQuestoesErros').value) || 0;
-      const materia = sel ? sel.value : null;
-      if (!materia) { alert('Selecione uma disciplina.'); return; }
-      if (acertos === 0 && erros === 0) { alert('Informe ao menos um acerto ou erro.'); return; }
-
-      if (!estado.historicoQuestoes) estado.historicoQuestoes = [];
-      estado.historicoQuestoes.push({
-        id: 'qz_' + Math.random().toString(36).substr(2, 7),
-        materia, data: new Date().toISOString(), acertos, erros
-      });
-      salvarEstado();
-      atualizarVisualizacaoQuestoes();
-    }
-
-    function atualizarVisualizacaoQuestoes() {
-      const filtro = document.getElementById('filtroQuestoesMateria');
-      const filtroVal = filtro ? filtro.value : 'TODAS';
-      const lista = (estado.historicoQuestoes || []).filter(q => filtroVal === 'TODAS' || q.materia === filtroVal);
-
-      const totalAcertos = lista.reduce((acc, q) => acc + q.acertos, 0);
-      const totalErros = lista.reduce((acc, q) => acc + q.erros, 0);
-      const totalFeitas = totalAcertos + totalErros;
-      const taxa = totalFeitas > 0 ? Math.round((totalAcertos / totalFeitas) * 100) : 0;
-
-      const elTotal = document.getElementById('statQuestoesTotal');
-      const elAcertos = document.getElementById('statQuestoesAcertos');
-      const elTaxa = document.getElementById('statQuestoesTaxa');
-      if (elTotal) elTotal.innerText = totalFeitas;
-      if (elAcertos) elAcertos.innerText = totalAcertos;
-      if (elTaxa) elTaxa.innerText = taxa + '%';
-
-      const container = document.getElementById('listaHistoricoQuestoes');
-      if (!container) return;
-      container.innerHTML = '';
-
-      const ordenado = [...lista].sort((a, b) => new Date(b.data) - new Date(a.data));
-
-      if (ordenado.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:12px; font-size:0.8rem;">Nenhum registro encontrado.</div>`;
-        return;
-      }
-
-      ordenado.forEach(q => {
-        const d = new Date(q.data);
-        const taxaItem = (q.acertos + q.erros) > 0 ? Math.round((q.acertos / (q.acertos + q.erros)) * 100) : 0;
-        const item = document.createElement('div');
-        item.className = 'registro-item';
-        item.innerHTML = `
-          <div class="reg-info">
-            <span class="reg-materia">${q.materia}</span>
-            <span class="reg-data-tempo">${formatarDataBR(d)} • ✅${q.acertos} ❌${q.erros} (${taxaItem}%)</span>
-          </div>
-          <button class="btn-mini-acao" title="Remover" onclick="excluirRegistroQuestao('${q.id}')">🗑️</button>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    function excluirRegistroQuestao(id) {
-      estado.historicoQuestoes = (estado.historicoQuestoes || []).filter(q => q.id !== id);
-      salvarEstado();
-      atualizarVisualizacaoQuestoes();
-    }
-
-    function atualizarPainelPlanejamento() {
-      if (!estado.planejamento) estado.planejamento = { inicio: '', prova: '' };
-      const inputInicio = document.getElementById('dataInicioEstudos');
-      const inputProva = document.getElementById('dataProvaConcurso');
-
-      if (inputInicio && !inputInicio.value) inputInicio.value = estado.planejamento.inicio || '';
-      if (inputProva && !inputProva.value) inputProva.value = estado.planejamento.prova || '';
-
-      estado.planejamento.inicio = inputInicio ? inputInicio.value : estado.planejamento.inicio;
-      estado.planejamento.prova = inputProva ? inputProva.value : estado.planejamento.prova;
-      salvarEstado();
-
-      const elDias = document.getElementById('diasAteProva');
-      const elSemanas = document.getElementById('semanasAteProva');
-
-      if (estado.planejamento.prova) {
-        const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
-        const dProva = new Date(estado.planejamento.prova + 'T00:00:00');
-        const diffDias = Math.ceil((dProva - hoje) / (1000 * 60 * 60 * 24));
-        if (elDias) elDias.innerText = diffDias >= 0 ? diffDias : '0';
-        if (elSemanas) elSemanas.innerText = diffDias >= 0 ? Math.ceil(diffDias / 7) : '0';
-      } else {
-        if (elDias) elDias.innerText = '--';
-        if (elSemanas) elSemanas.innerText = '--';
-      }
-
-      calcularPrevisaoFechamentoEdital();
-    }
-
-    function forcarUploadNuvem() {
-      if (!rtdb || !dbRefAtivo) { alert('Sem conexão com a nuvem.'); return; }
-      atualizarStatusNuvem('☁️ Enviando...', 'syncing');
-      dbRefAtivo.set({ estado: estado, atualizadoEm: new Date().toISOString() }).then(() => {
-        atualizarStatusNuvem('☁️ Sincronizado', 'online');
-        alert('Dados enviados para a nuvem com sucesso!');
-      }).catch(err => {
-        alert('Erro ao enviar: ' + err.message);
-      });
-    }
-
-    function forcarDownloadNuvem() {
-      if (!rtdb || !dbRefAtivo) { alert('Sem conexão com a nuvem.'); return; }
-      if (!confirm('Isso substituirá os dados locais deste aparelho pelos dados da nuvem. Continuar?')) return;
-
-      atualizarStatusNuvem('☁️ Baixando...', 'syncing');
-      dbRefAtivo.once('value').then(snapshot => {
-        const dados = snapshot.val();
-        if (dados && dados.estado) {
-          isReceivingFromCloud = true;
-          estado = dados.estado;
-          const chave = chaveArmazenamento(usuarioAtivo);
-          localStorage.setItem(chave, JSON.stringify(estado));
-          isReceivingFromCloud = false;
-          atualizarUIAposCarregar();
-          atualizarStatusNuvem('☁️ Sincronizado', 'online');
-          alert('Dados da nuvem carregados com sucesso!');
-        } else {
-          alert('Nenhum dado encontrado na nuvem.');
-          atualizarStatusNuvem('☁️ Pronto', 'online');
-        }
-      });
+    function sair() {
+      sessionStorage.removeItem('usuario_ativo');
+      location.reload();
     }
 
     const sessaoSalva = sessionStorage.getItem('usuario_ativo');
@@ -3262,8 +1792,7 @@
       usuarioAtivo = sessaoSalva;
       abrirApp();
     } else {
-      const tLogin = document.getElementById('tela-login');
-      if (tLogin) tLogin.style.display = 'flex';
+      document.getElementById('tela-login').style.display = 'flex';
     }
   </script>
 </body>

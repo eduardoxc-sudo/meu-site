@@ -648,6 +648,18 @@
       letter-spacing: 0.04em;
     }
 
+    .badge-numero-cartao {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--primary);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
     .agenda-card {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -1324,7 +1336,7 @@
       <!-- Aba 11: Segurança (Sincronizada na Nuvem) -->
       <div id="aba-senha" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          A nova palavra-passe é guardada na nuvem e passa a valer para todos los seus dispositivos (PC e telemóvel).
+          A nova palavra-passe é guardada na nuvem e passa a valer para todos os seus dispositivos (PC e telemóvel).
         </p>
         <div class="field">
           <label for="senhaAtual">Palavra-passe Atual</label>
@@ -2550,7 +2562,7 @@
       }
     }
 
-    // ---------- Geração do ciclo semanal (Substituição inteligente do slot para 30D) ----------
+    // ---------- Geração do ciclo semanal (Preserva dias passados e checklists marcados) ----------
     function construirListaCicloPonderada() {
       let lista = [];
       (estado.disciplinas || []).forEach(d => {
@@ -2571,16 +2583,20 @@
     function gerarSemanaAutomatica(chaveSemana, forcarRegenerar, resetarProgresso) {
       if (!estado.disciplinas || estado.disciplinas.length === 0) return;
       if (!estado.semanas) estado.semanas = {};
-      if (estado.semanas[chaveSemana] && !forcarRegenerar) return;
 
       const cicloPonderado = construirListaCicloPonderada();
       if (cicloPonderado.length === 0) return;
 
       const porDia = parseInt(estado.porDia) || 2;
-      const novaSemana = {};
+      
+      if (!estado.semanas[chaveSemana]) {
+        estado.semanas[chaveSemana] = {};
+      }
+      const semanaAtualObj = estado.semanas[chaveSemana];
 
       const partesChave = chaveSemana.replace('semana_', '').split('-');
       const segundaRef = new Date(partesChave[0], partesChave[1] - 1, partesChave[2]);
+      const hojeChave = formatarDataChave(new Date());
 
       let ponteiro = estado.ponteiroGeral || 0;
 
@@ -2589,9 +2605,18 @@
         dataDia.setDate(segundaRef.getDate() + idxDia);
         const chaveDataDia = formatarDataChave(dataDia);
 
+        // Se o dia for no PASSADO, ou se o dia já tiver slots gerados e pelo menos um item marcado com checkbox, NUNCA sobrescreve para não perder o progresso
+        const slotsExistentes = semanaAtualObj[nomeDia] || [];
+        const diaPassado = chaveDataDia < hojeChave;
+        const temChecklistMarcado = slotsExistentes.some(s => s.feito);
+
+        if (diaPassado || (slotsExistentes.length > 0 && (temChecklistMarcado && !forcarRegenerar))) {
+          return; // Preserva exatamente como está
+        }
+
         const slotsDoDia = [];
 
-        // Gera os slots normais do ciclo baseado no "porDia"
+        // Gera os slots normais do ciclo
         for (let i = 0; i < porDia; i++) {
           const materia = cicloPonderado[ponteiro % cicloPonderado.length];
           ponteiro++;
@@ -2604,7 +2629,7 @@
           });
         }
 
-        // Se houver revisão de 30D agendada para este dia, substitui o primeiro slot em vez de criar outro
+        // Injeta revisão de 30D se programada para este dia futuro
         (estado.agendaRevisoes || []).forEach(rev => {
           if (rev.dataPrevista === chaveDataDia && !rev.concluida && rev.tipo === '30D' && slotsDoDia.length > 0) {
             slotsDoDia[0] = {
@@ -2617,11 +2642,10 @@
           }
         });
 
-        novaSemana[nomeDia] = slotsDoDia;
+        semanaAtualObj[nomeDia] = slotsDoDia;
       });
 
       estado.ponteiroGeral = ponteiro;
-      estado.semanas[chaveSemana] = novaSemana;
       salvarEstado();
     }
 
@@ -2630,7 +2654,7 @@
       renderizarGrade();
       renderizarVisaoGeral();
       calcularPrevisaoFechamentoEdital();
-      if (notificar) alert('Cronograma da semana atual regenerado!');
+      if (notificar) alert('Cronograma da semana atual regenerado com sucesso (cartões passados e marcados foram preservados)!');
     }
 
     function reiniciarProgressoSemana() {
@@ -2645,7 +2669,7 @@
       renderizarGrade();
     }
 
-    // ---------- Renderização da grade semanal ----------
+    // ---------- Renderização da grade semanal com Numeração dos Cartões ----------
     function renderizarGrade() {
       const grade = document.getElementById('gradeSemana');
       if (!grade) return;
@@ -2668,12 +2692,14 @@
         let slotsHtml = '';
         slots.forEach((slot, idxSlot) => {
           const isRevisao = !!slot.revisaoId;
+          const numeroCartao = idxSlot + 1;
           slotsHtml += `
             <div class="slot-card ${slot.feito ? 'done' : ''} ${isRevisao ? 'cartao-revisao-espacada' : ''}">
               <div class="slot-left">
                 <input type="checkbox" ${slot.feito ? 'checked' : ''} onchange="toggleSlotFeito('${diaInfo.nome}', ${idxSlot}, this.checked)">
                 <div class="slot-texts">
                   <div class="slot-header-row">
+                    <span class="badge-numero-cartao">#${numeroCartao}</span>
                     <span class="slot-materia-title">${slot.materia}</span>
                     ${isRevisao ? '<span class="tag-badge-revisao-espacada">' + slot.tipoRevisao + '</span>' : ''}
                   </div>
@@ -2757,9 +2783,9 @@
         card.className = 'agenda-card';
 
         let itensHtml = slots.length
-          ? slots.map(s => `
+          ? slots.map((s, idx) => `
               <div class="agenda-item-slot">
-                <span>${s.feito ? '✅' : '⬜'} ${s.materia}</span>
+                <span>${s.feito ? '✅' : '⬜'} #${idx+1} ${s.materia}</span>
                 <span style="color:var(--text-muted); font-size:0.75rem;">${s.assunto || ''}</span>
               </div>
             `).join('')
@@ -2901,8 +2927,7 @@
       salvarEstado();
       renderizarEditalVerticalizado();
       renderizarAbaRevisoes();
-      // Regenera semanas para aplicar/remover a revisão de 30D substituindo o slot normal sem criar novas matérias
-      Object.keys(estado.semanas || {}).forEach(k => gerarSemanaAutomatica(k, true, false));
+      Object.keys(estado.semanas || {}).forEach(k => gerarSemanaAutomatica(k, false, false));
       renderizarGrade();
     }
 

@@ -1542,6 +1542,16 @@
     }
     .progresso-legenda-v18 span{display:flex;align-items:center;gap:5px}
     .progresso-legenda-v18 i{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+    /* V19 — assunto no histórico de questões */
+    .assunto-historico-v19 {
+      margin-top:3px;
+      margin-bottom:3px;
+      color:var(--primary);
+      font-size:.72rem;
+      font-weight:700;
+      line-height:1.25;
+    }
 </style>
 </head>
 <body>
@@ -4984,6 +4994,112 @@
       if (/Planejamento/i.test(btn.textContent || '')) {
         setTimeout(ativarDatasUsuarioV17, 30);
       }
+    });
+
+    // ===== V19: salvar e exibir o assunto selecionado no histórico =====
+    function obterTextoAssuntoSelecionadoV19() {
+      const sel = document.getElementById('questoesSelectAssunto');
+      if (!sel || !sel.value) return '';
+      const opt = sel.options[sel.selectedIndex];
+      return (opt?.textContent || '').trim();
+    }
+
+    function obterListaQuestoesV19() {
+      if (typeof estado === 'undefined' || !estado) return null;
+      if (Array.isArray(estado.registrosQuestoes)) return estado.registrosQuestoes;
+      if (Array.isArray(estado.questoes)) return estado.questoes;
+      if (Array.isArray(estado.historicoQuestoes)) return estado.historicoQuestoes;
+      return null;
+    }
+
+    // Captura o assunto ANTES da função antiga limpar os campos.
+    let assuntoPendenteV19 = '';
+    let assuntoIdPendenteV19 = '';
+
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('button');
+      if (!btn || !/Registrar Questões/i.test(btn.textContent || '')) return;
+
+      const sel = document.getElementById('questoesSelectAssunto');
+      assuntoPendenteV19 = obterTextoAssuntoSelecionadoV19();
+      assuntoIdPendenteV19 = sel?.value || '';
+
+      // A função original registra primeiro. Logo depois completamos o registro.
+      setTimeout(function() {
+        if (!assuntoPendenteV19) return;
+
+        const lista = obterListaQuestoesV19();
+        if (!lista || !lista.length) return;
+
+        const ultimo = lista[lista.length - 1];
+        if (ultimo && typeof ultimo === 'object') {
+          ultimo.assunto = assuntoPendenteV19;
+          ultimo.nomeAssunto = assuntoPendenteV19;
+          if (assuntoIdPendenteV19) ultimo.assuntoId = assuntoIdPendenteV19;
+
+          if (typeof salvarEstado === 'function') {
+            try { salvarEstado(); } catch(e) {}
+          }
+        }
+
+        // Atualiza a lista da aba Questões e o Progresso.
+        if (typeof atualizarVisualizacaoQuestoes === 'function') {
+          try { atualizarVisualizacaoQuestoes(); } catch(e) {}
+        }
+        if (typeof renderizarProgressoV11 === 'function') {
+          try { renderizarProgressoV11(); } catch(e) {}
+        }
+
+        assuntoPendenteV19 = '';
+        assuntoIdPendenteV19 = '';
+      }, 20);
+    }, true);
+
+    // Acrescenta o assunto aos cartões já renderizados no histórico de questões.
+    function mostrarAssuntoHistoricoV19() {
+      const lista = obterListaQuestoesV19();
+      if (!lista || !lista.length) return;
+
+      // Procura os cartões do histórico pelo botão de lixeira.
+      const aba = document.getElementById('aba-questoes');
+      if (!aba) return;
+
+      const cards = Array.from(aba.querySelectorAll('div')).filter(el => {
+        const txt = el.textContent || '';
+        return /✓|✗|%/.test(txt) && el.querySelector('button');
+      });
+
+      // Prefere os containers menores.
+      const unicos = cards.filter(el =>
+        !Array.from(el.children).some(c => /✓|✗|%/.test(c.textContent || '') && c.querySelector?.('button'))
+      );
+
+      unicos.slice(-lista.length).forEach((card, i) => {
+        const reg = lista[Math.max(0, lista.length - unicos.length) + i];
+        const assunto =
+          reg?.assunto || reg?.nomeAssunto || reg?.conteudo || reg?.topico || '';
+        if (!assunto || card.querySelector('.assunto-historico-v19')) return;
+
+        const titulo = card.querySelector('strong,b');
+        const linha = document.createElement('div');
+        linha.className = 'assunto-historico-v19';
+        linha.textContent = assunto;
+
+        if (titulo) titulo.insertAdjacentElement('afterend', linha);
+        else card.prepend(linha);
+      });
+    }
+
+    // Observa renderizações da aba para inserir o assunto.
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('button');
+      if (btn && /Questões/i.test(btn.textContent || '')) {
+        setTimeout(mostrarAssuntoHistoricoV19, 80);
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(mostrarAssuntoHistoricoV19, 200);
     });
 </script>
 

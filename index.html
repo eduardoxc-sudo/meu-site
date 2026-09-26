@@ -1407,10 +1407,10 @@
         </div>
 
         <div class="controls-top">
-          <button class="btn btn-success" onclick="adminMarcarTodosTopicos(true)" title="Marcar todas as caixas de seleção do edital e do cronograma">☑️ Marcar Tudo</button>
+          <button class="btn btn-success" onclick="adminMarcarTodosTopicos(true)" title="Marcar todas as caixas de seleção">☑️ Marcar Tudo</button>
           <button class="btn btn-outline" onclick="adminMarcarTodosTopicos(false)" style="border-color: rgba(239, 68, 68, 0.4); color: var(--danger);" title="Desmarcar todas as caixas">Desmarcar</button>
           
-          <!-- BOTÃO DE RESETAR EDITAL ADICIONADO AO LADO -->
+          <!-- BOTÃO DE RESETAR EDITAL -->
           <button class="btn btn-danger" onclick="redefinirEditalManualmente()" title="Limpar todo o edital e voltar ao estado inicial">🔄 Resetar Edital</button>
 
           <button class="btn btn-outline" onclick="imprimirCronograma()" title="Imprimir ou Salvar em PDF">🖨️ PDF</button>
@@ -1701,7 +1701,7 @@
 
       if (totalTopicos === 0) {
         if (displayData) displayData.innerText = "Nenhum edital ativo";
-        if (displayDetalhes) displayDetalhes.innerText = "Cadastre ou adquira um edital para ver a estimativa.";
+        if (displayDetalhes) displayDetalhes.innerText = "Adicione matérias na aba Edital TXT ou adquira na aba Editais Prontos.";
         return;
       }
 
@@ -2165,7 +2165,7 @@
           dbRefAtivo.remove().catch(() => {});
         }
         atualizarUIAposCarregar();
-        alert('Edital resetado com sucesso!');
+        alert('Edital resetado com sucesso! Vá na aba Editais Prontos para carregar um novo plano.');
       }
     }
 
@@ -2176,10 +2176,16 @@
     }
 
     function abrirApp() {
-      document.getElementById('tela-login').style.display = 'none';
-      document.getElementById('app-container').style.display = 'flex';
-      document.getElementById('labelNomeUsuario').innerText = usuarioAtivo;
-      document.getElementById('tituloCronograma').innerText = `Cronograma de ${usuarioAtivo}`;
+      const telaLogin = document.getElementById('tela-login');
+      const appContainer = document.getElementById('app-container');
+      if (telaLogin) telaLogin.style.display = 'none';
+      if (appContainer) appContainer.style.display = 'flex';
+
+      const lblUser = document.getElementById('labelNomeUsuario');
+      const lblCron = document.getElementById('tituloCronograma');
+      if (lblUser) lblUser.innerText = usuarioAtivo;
+      if (lblCron) lblCron.innerText = `Cronograma de ${usuarioAtivo}`;
+
       configurarAbaEditaisProntos();
       configurarPainelAdminUsuarios();
 

@@ -1103,6 +1103,7 @@
         <button class="tab-btn" onclick="trocarAba('aba-planejamento', this)">Planeamento</button>
         <button class="tab-btn" onclick="trocarAba('aba-edital', this)">Edital TXT</button>
         <button class="tab-btn" onclick="trocarAba('aba-senha', this)">Segurança</button>
+        <button class="tab-btn" id="btnAbaUsuariosAdmin" onclick="trocarAba('aba-usuarios-admin', this)" style="display:none; color: #f59e0b; font-weight:700;">Gestão Utilizadores 👥</button>
       </nav>
 
       <!-- Aba 1: Ciclo -->
@@ -1362,6 +1363,30 @@
         </div>
         <div id="msgStatusSenha" style="font-size: 0.82rem; display: none; padding: 8px; border-radius: 6px;"></div>
         <button class="btn btn-primary" onclick="alterarPalavraPasse()">Guardar Nova Senha</button>
+      </div>
+
+      <!-- Aba 12: Gestão de Utilizadores (Exclusiva para Eduardo) -->
+      <div id="aba-usuarios-admin" class="tab-content">
+        <div style="font-size: 0.95rem; font-weight: 700; color: var(--warning); margin-bottom: 4px;">👑 Gestão de Utilizadores (Administrador)</div>
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+          Crie novas contas ou remova utilizadores autorizados a aceder ao painel.
+        </p>
+
+        <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid var(--warning); border-radius: 10px; padding: 14px; margin-top: 4px;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 8px;">Adicionar Novo Acesso</div>
+          <div class="field" style="margin-bottom: 8px;">
+            <label for="inputNovoNomeUsuario">Nome do Utilizador</label>
+            <input type="text" id="inputNovoNomeUsuario" placeholder="Ex: Lucas">
+          </div>
+          <div class="field" style="margin-bottom: 12px;">
+            <label for="inputNovaSenhaUsuario">Palavra-passe</label>
+            <input type="text" id="inputNovaSenhaUsuario" placeholder="Ex: senha123">
+          </div>
+          <button class="btn btn-primary" style="width: 100%;" onclick="adminCriarNovoUsuario()">➕ Registar Novo Utilizador</button>
+        </div>
+
+        <label style="margin-top: 10px;">Utilizadores Registados no Sistema</label>
+        <div id="listaUsuariosCadastradosAdmin" style="display: flex; flex-direction: column; gap: 6px;"></div>
       </div>
 
       <div class="sidebar-footer">
@@ -1893,6 +1918,120 @@
       document.getElementById('confirmaNovaSenha').value = '';
     }
 
+    function configurarPainelAdminUsuarios() {
+      const btnAba = document.getElementById('btnAbaUsuariosAdmin');
+      const isEduardo = (usuarioAtivo && usuarioAtivo.toLowerCase() === 'eduardo');
+
+      if (btnAba) {
+        btnAba.style.display = isEduardo ? 'block' : 'none';
+      }
+
+      if (isEduardo) {
+        carregarListaUsuariosAdmin();
+      }
+    }
+
+    function carregarListaUsuariosAdmin() {
+      const container = document.getElementById('listaUsuariosCadastradosAdmin');
+      if (!container) return;
+
+      if (rtdb) {
+        rtdb.ref("senhas").on("value", snapshot => {
+          const senhasNuvem = snapshot.val() || {};
+          if (!senhasNuvem['Eduardo'] && !senhasNuvem['eduardo']) {
+            senhasNuvem['Eduardo'] = '333435';
+          }
+          renderizarListaUsuariosAdminHtml(senhasNuvem);
+        });
+      } else {
+        renderizarListaUsuariosAdminHtml(obterSenhasLocais());
+      }
+    }
+
+    function renderizarListaUsuariosAdminHtml(senhasObj) {
+      const container = document.getElementById('listaUsuariosCadastradosAdmin');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const usuarios = Object.keys(senhasObj);
+      if (usuarios.length === 0) {
+        container.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:12px;">Nenhum utilizador encontrado.</div>';
+        return;
+      }
+
+      usuarios.forEach(u => {
+        const item = document.createElement('div');
+        item.className = 'item-card';
+        item.style.padding = '8px 12px';
+
+        const isEduardo = (u.toLowerCase() === 'eduardo');
+        const acaoBtn = isEduardo 
+          ? '<span style="font-size:0.75rem; color:var(--primary); font-weight:800;">ADMIN</span>' 
+          : `<button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="adminExcluirUsuario('${u}')">🗑️ Eliminar</button>`;
+
+        item.innerHTML = `
+          <div>
+            <strong>${u}</strong>
+            <span style="font-size:0.75rem; color:var(--text-muted); margin-left:6px;">(Senha: ${senhasObj[u]})</span>
+          </div>
+          ${acaoBtn}
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function adminCriarNovoUsuario() {
+      const nomeInput = document.getElementById('inputNovoNomeUsuario');
+      const senhaInput = document.getElementById('inputNovaSenhaUsuario');
+      const nome = nomeInput.value.trim();
+      const senha = senhaInput.value.trim();
+
+      if (!nome || !senha) {
+        alert("Preencha o nome do utilizador e a palavra-passe.");
+        return;
+      }
+
+      const senhas = obterSenhasLocais();
+      senhas[nome] = senha;
+      salvarSenhasLocais(senhas);
+
+      if (rtdb) {
+        rtdb.ref("senhas/" + nome.toLowerCase()).set(senha).then(() => {
+          alert(`Utilizador "${nome}" criado com sucesso!`);
+          nomeInput.value = '';
+          senhaInput.value = '';
+        });
+      } else {
+        alert(`Utilizador "${nome}" registado localmente.`);
+        nomeInput.value = '';
+        senhaInput.value = '';
+        carregarListaUsuariosAdmin();
+      }
+    }
+
+    function adminExcluirUsuario(nome) {
+      if (nome.toLowerCase() === 'eduardo') {
+        alert("O utilizador administrador Eduardo não pode ser excluído.");
+        return;
+      }
+
+      if (confirm(`Tem certeza de que deseja eliminar o acesso de "${nome}"?`)) {
+        const senhas = obterSenhasLocais();
+        delete senhas[nome];
+        salvarSenhasLocais(senhas);
+
+        if (rtdb) {
+          rtdb.ref("senhas/" + nome.toLowerCase()).remove().then(() => {
+            rtdb.ref("perfis/" + nome.toLowerCase()).remove();
+            alert(`Utilizador "${nome}" eliminado com sucesso!`);
+          });
+        } else {
+          alert(`Utilizador "${nome}" eliminado localmente.`);
+          carregarListaUsuariosAdmin();
+        }
+      }
+    }
+
     function adminMarcarTodosTopicos(marcar) {
       const acao = marcar ? "marcar como CONCLUÍDOS" : "DESMARCAR";
       if (!confirm(`Deseja realmente ${acao} todos os tópicos e checklists do cronograma?`)) return;
@@ -2111,6 +2250,7 @@
       document.getElementById('labelNomeUsuario').innerText = usuarioAtivo;
       document.getElementById('tituloCronograma').innerText = `Cronograma de ${usuarioAtivo}`;
       configurarAbaEditaisProntos();
+      configurarPainelAdminUsuarios();
       iniciarSincronizacaoPerfil();
     }
 
@@ -2170,6 +2310,7 @@
         dbRefAtivo.once("value", snapshot => {
           clearTimeout(timerFallback);
           const dadosNuvem = snapshot.val();
+          // Condição segura para não sobrescrever dados locais válidos com dados vazios da nuvem
           if (dadosNuvem && dadosNuvem.estado && dadosNuvem.estado.disciplinas && dadosNuvem.estado.disciplinas.length > 0) {
             isReceivingFromCloud = true;
             estado = dadosNuvem.estado;
@@ -2186,7 +2327,7 @@
 
           dbRefAtivo.on("value", snap => {
             const val = snap.val();
-            if (val && val.estado && !isReceivingFromCloud) {
+            if (val && val.estado && val.estado.disciplinas && val.estado.disciplinas.length > 0 && !isReceivingFromCloud) {
               const strLocal = JSON.stringify(estado);
               const strNuvem = JSON.stringify(val.estado);
               if (strLocal !== strNuvem) {
@@ -2346,53 +2487,6 @@
 
       return resultado;
     }
-
-    function atualizarUIAposCarregar() {
-      if (!estado.disciplinas) estado.disciplinas = [];
-      if (!estado.editalVerticalizado) estado.editalVerticalizado = {};
-      if (!estado.semanas) estado.semanas = {};
-      if (!estado.historicoHoras) estado.historicoHoras = [];
-      if (!estado.historicoQuestoes) estado.historicoQuestoes = [];
-
-      document.body.setAttribute('data-theme', estado.tema || 'dark');
-      const btnT = document.getElementById('btnTema');
-      if (btnT) btnT.innerText = estado.tema === 'dark' ? '☀️ Claro' : '🌙 Escuro';
-
-      const inpDia = document.getElementById('materiasPorDia');
-      if (inpDia) inpDia.value = estado.porDia || 2;
-
-      renderizarPesos();
-      atualizarSelectsMaterias();
-      atualizarVisualizacaoHoras();
-      atualizarVisualizacaoQuestoes();
-      renderizarEditalVerticalizado();
-      renderizarAbaPrioridades();
-      renderizarAbaRevisoes();
-      atualizarPainelPlanejamento();
-      atualizarIndicadorPresenca();
-      atualizarSemanaAtiva();
-      calcularPrevisaoFechamentoEdital();
-    }
-
-    function trocarAba(abaId, botao) {
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      const alvo = document.getElementById(abaId);
-      if (alvo) alvo.classList.add('active');
-      if (botao) botao.classList.add('active');
-    }
-
-    function alternarTema() {
-      estado.tema = estado.tema === 'dark' ? 'light' : 'dark';
-      document.body.setAttribute('data-theme', estado.tema);
-      const btnT = document.getElementById('btnTema');
-      if (btnT) btnT.innerText = estado.tema === 'dark' ? '☀️ Claro' : '🌙 Escuro';
-      salvarEstado();
-    }
-
-    window.addEventListener('resize', () => {
-      renderizarGrade();
-    });
 
     const sessaoSalva = sessionStorage.getItem('usuario_ativo');
     if (sessaoSalva && sessaoSalva.toLowerCase() === 'eduardo') {

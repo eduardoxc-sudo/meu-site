@@ -1407,9 +1407,12 @@
         </div>
 
         <div class="controls-top">
-          <button class="btn btn-success" onclick="adminMarcarTodosTopicos(true)" title="Marcar todas as caixas de seleção do edital e do cronograma">☑️ Marcar Tudo como Feito</button>
-          <button class="btn btn-outline" onclick="adminMarcarTodosTopicos(false)" style="border-color: rgba(239, 68, 68, 0.4); color: var(--danger);" title="Desmarcar todas as caixas">Desmarcar Tudo</button>
+          <button class="btn btn-success" onclick="adminMarcarTodosTopicos(true)" title="Marcar todas as caixas de seleção do edital e do cronograma">☑️ Marcar Tudo</button>
+          <button class="btn btn-outline" onclick="adminMarcarTodosTopicos(false)" style="border-color: rgba(239, 68, 68, 0.4); color: var(--danger);" title="Desmarcar todas as caixas">Desmarcar</button>
           
+          <!-- BOTÃO DE RESETAR EDITAL ADICIONADO AO LADO -->
+          <button class="btn btn-danger" onclick="redefinirEditalManualmente()" title="Limpar todo o edital e voltar ao estado inicial">🔄 Resetar Edital</button>
+
           <button class="btn btn-outline" onclick="imprimirCronograma()" title="Imprimir ou Salvar em PDF">🖨️ PDF</button>
 
           <div class="week-navigator">
@@ -1417,7 +1420,7 @@
             <span class="week-label" id="labelIntervaloSemana">...</span>
             <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(1)">▶</button>
           </div>
-          <button class="btn btn-primary" style="padding: 6px 10px;" onclick="forcarSincronizacaoHoje()">↺ Forçar Data de Hoje</button>
+          <button class="btn btn-primary" style="padding: 6px 10px;" onclick="forcarSincronizacaoHoje()">↺ Hoje</button>
           <button class="btn btn-outline" onclick="alternarTema()" id="btnTema">☀️ Claro</button>
         </div>
       </header>
@@ -2154,26 +2157,15 @@
     }
 
     function redefinirEditalManualmente() {
-      if (confirm('Limpar todas as matérias e começar do zero?')) {
-        estado.disciplinas = [];
-        estado.editalVerticalizado = {};
-        estado.semanas = {};
-        estado.indicesTopicos = {};
-        estado.ponteiroGeral = 0;
-        estado.agendaRevisoes = [];
-        estado.diasCompletosLog = [];
-
-        salvarEstado();
-        renderizarPesos();
-        atualizarSelectsMaterias();
-        renderizarEditalVerticalizado();
-        renderizarAbaPrioridades();
-        renderizarAbaRevisoes();
-        forcarSincronizacaoHoje();
-        renderizarVisaoGeral();
-        atualizarPainelPlanejamento();
-        atualizarIndicadorPresenca();
-        calcularPrevisaoFechamentoEdital();
+      if (confirm('Tem certeza de que deseja resetar todo o edital e limpar os dados atuais?')) {
+        estado = obterEstadoPadrao();
+        const chave = chaveArmazenamento(usuarioAtivo);
+        localStorage.removeItem(chave);
+        if (rtdb && dbRefAtivo) {
+          dbRefAtivo.remove().catch(() => {});
+        }
+        atualizarUIAposCarregar();
+        alert('Edital resetado com sucesso!');
       }
     }
 
@@ -2358,13 +2350,11 @@
       return resultado;
     }
 
-    // VERIFICAÇÃO AUTOMÁTICA DE SESSÃO ATIVA NO ARRUMAR DA PÁGINA
     const sessaoSalva = sessionStorage.getItem('usuario_ativo');
     if (sessaoSalva && sessaoSalva.toLowerCase() === 'eduardo') {
       usuarioAtivo = 'Eduardo';
       abrirApp();
     } else {
-      // Garante que a tela de login fica visível se não houver sessão ativa
       const tLogin = document.getElementById('tela-login');
       if (tLogin) tLogin.style.display = 'flex';
     }

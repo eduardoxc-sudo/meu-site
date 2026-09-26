@@ -1711,9 +1711,11 @@
       const lblVisao = document.getElementById('labelSemanaVisaoGeral');
       if (lblVisao) lblVisao.innerText = labelFormatado;
 
-      // Se a semana ainda não existir e existirem matérias, gera a estrutura
-      const semanaJaExiste = estado.semanas && estado.semanas[chaveSemanaAtiva] && Object.values(estado.semanas[chaveSemanaAtiva]).some(arr => arr && arr.length > 0);
-      if (!semanaJaExiste && estado.disciplinas && estado.disciplinas.length > 0) {
+      // Verificação estrutural com regeneração segura
+      const slotsSemana = (estado.semanas && estado.semanas[chaveSemanaAtiva]) || {};
+      const totalDisciplinasAgendadas = Object.values(slotsSemana).reduce((acc, curr) => acc + (curr ? curr.length : 0), 0);
+
+      if (totalDisciplinasAgendadas === 0 && estado.disciplinas && estado.disciplinas.length > 0) {
         gerarSemanaAutomatica(chaveSemanaAtiva, false);
       }
 
@@ -2116,6 +2118,7 @@
         estado = obterEstadoPadrao();
       }
 
+      // Renderização inicial prioritária
       isReceivingFromCloud = true;
       atualizarUIAposCarregar();
       isReceivingFromCloud = false;
@@ -2124,7 +2127,14 @@
         if (dbRefAtivo) dbRefAtivo.off();
         dbRefAtivo = rtdb.ref("perfis/" + usuarioAtivo.toLowerCase());
 
+        let timeoutAlcancado = false;
+        const timerFallback = setTimeout(() => {
+          timeoutAlcancado = true;
+          atualizarStatusNuvem("☁️ Pronto (Local)", "online");
+        }, 1500);
+
         dbRefAtivo.once("value", snapshot => {
+          clearTimeout(timerFallback);
           const dadosNuvem = snapshot.val();
           if (dadosNuvem && dadosNuvem.estado && dadosNuvem.estado.disciplinas && dadosNuvem.estado.disciplinas.length > 0) {
             isReceivingFromCloud = true;
@@ -2155,7 +2165,12 @@
               }
             }
           });
+        }, () => {
+          clearTimeout(timerFallback);
+          atualizarStatusNuvem("☁️ Pronto (Modo Local)", "online");
         });
+      } else {
+        atualizarStatusNuvem("☁️ Pronto (Modo Local)", "online");
       }
     }
 
@@ -2342,7 +2357,6 @@
       };
     }
 
-    /* CORREÇÃO DO CRONOGRAMA: NÃO ZERA DIAS DA SEMANA ATIVA */
     function gerarSemanaAutomatica(chaveSemana, deveSalvar) {
       if (!estado.disciplinas || estado.disciplinas.length === 0) return;
 
@@ -2368,7 +2382,6 @@
 
         const slotChaveStr = formatarDataChave(d.dataCompleta);
 
-        // Apenas dias estritamente anteriores à data de hoje ficam vazios (se não houver matéria já feita)
         if (slotChaveStr < hojeChaveStr) {
           estado.semanas[chaveSemana][d.nome] = slotsAntigos.filter(s => s.feito);
           return;

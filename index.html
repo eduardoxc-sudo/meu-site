@@ -1067,7 +1067,7 @@
         <div class="user-tag">
           Perfil: <span id="labelNomeUsuario" class="user-badge">-</span>
         </div>
-        <div id="statusSincronizacaoNuvem" class="sync-status">☁️ Conectando à nuvem...</div>
+        <div id="statusSincronizacaoNuvem" class="sync-status">☁️ Inicializando nuvem...</div>
         
         <div class="sync-actions">
           <button class="btn-sync-action" title="Envia todos os dados locais deste aparelho para a nuvem" onclick="forcarUploadNuvem()">⬆️ Enviar para Nuvem</button>
@@ -1115,7 +1115,7 @@
           Clique em qualquer edital pronto da lista abaixo para aplicá-lo instantaneamente ao seu plano de estudos.
         </p>
 
-        <!-- Formulário exibido EXCLUSIVAMENTE para o usuário Eduardo -->
+        <!-- Formulário exclusivo de Eduardo -->
         <div id="painelCriadorEduardo" style="display: none; background: rgba(56, 189, 248, 0.06); border: 1px solid var(--primary); border-radius: 10px; padding: 12px; margin-bottom: 10px;">
           <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">👑 Painel de Administração (Eduardo)</div>
           <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">
@@ -1475,10 +1475,7 @@
 
     let diaMobileIndex = (new Date().getDay() + 6) % 7;
     let modoMobileApenasHoje = true;
-
-    // Variável para guardar a data final exata em que o edital termina
     let dataLimiteFinalEdital = null;
-
     let sharedAudioCtx = null;
 
     function obterOuDesbloquearAudioContext() {
@@ -1626,7 +1623,6 @@
       calcularPrevisaoFechamentoEdital();
     }
 
-    /* CALCULA A PREVISÃO EXATA E DEFINE O LIMITE DE NAVEGAÇÃO */
     function calcularPrevisaoFechamentoEdital() {
       const displayData = document.getElementById('displayDataFechamentoEdital');
       const displayDetalhes = document.getElementById('displayDetalhesRitmoEdital');
@@ -1673,9 +1669,7 @@
       const dataTerminoPrevista = new Date(hoje);
       dataTerminoPrevista.setDate(hoje.getDate() + diasNecessarios);
 
-      // Trava o limite final na semana de fechamento do edital
       dataLimiteFinalEdital = new Date(dataTerminoPrevista);
-
       const dataFormatada = formatarDataBR(dataTerminoPrevista);
 
       if (displayData) {
@@ -1696,15 +1690,9 @@
         }
       }
 
-      if (displayDetalhes) {
-        displayDetalhes.innerText = detalhesTexto;
-      }
-
+      if (displayDetalhes) displayDetalhes.innerText = detalhesTexto;
       if (sugestaoRitmo) {
-        sugestaoRitmo.innerHTML = `
-          📌 No ritmo de <strong>${porDia} tópicos por dia</strong>, fechará 100% do edital em <strong>${dataFormatada}</strong>.<br>
-          ${detalhesTexto}
-        `;
+        sugestaoRitmo.innerHTML = `📌 No ritmo de <strong>${porDia} tópicos por dia</strong>, fechará 100% do edital em <strong>${dataFormatada}</strong>.<br>${detalhesTexto}`;
       }
     }
 
@@ -1725,7 +1713,8 @@
       const lblVisao = document.getElementById('labelSemanaVisaoGeral');
       if (lblVisao) lblVisao.innerText = labelFormatado;
 
-      if (!estado.semanas[chaveSemanaAtiva] && estado.disciplinas.length > 0) {
+      // Se a semana ainda não existir e existirem matérias, gera a estrutura
+      if (!estado.semanas[chaveSemanaAtiva] && estado.disciplinas && estado.disciplinas.length > 0) {
         gerarSemanaAutomatica(chaveSemanaAtiva, false);
       }
 
@@ -1734,7 +1723,6 @@
       calcularPrevisaoFechamentoEdital();
     }
 
-    /* NAVEGAÇÃO COM TRAVA ESTITA: NÃO DEIXA IR PARA ANOS FUTUROS ALÉM DO FECHAMENTO DO EDITAL */
     function navegarSemana(delta) {
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
@@ -1743,19 +1731,17 @@
       const novaData = new Date(dataReferencia);
       novaData.setDate(novaData.getDate() + (delta * 7));
 
-      // Bloqueio para o passado: não deixa ir para semanas anteriores ao início de hoje
       if (delta < 0 && novaData < segundaHoje) {
         alert("Esta é a semana atual em que iniciou o cronograma.");
         return;
       }
 
-      // Bloqueio para o futuro: não deixa avançar para além da data final de fechamento do edital
       if (delta > 0 && dataLimiteFinalEdital) {
         const domingoNovaSemana = new Date(obterSegundaFeira(novaData));
         domingoNovaSemana.setDate(domingoNovaSemana.getDate() + 6);
 
         if (novaData > dataLimiteFinalEdital && domingoNovaSemana > dataLimiteFinalEdital) {
-          alert(`Você já chegou ao fim do edital! No ritmo atual, você conclui todos os tópicos em ${formatarDataBR(dataLimiteFinalEdital)}.`);
+          alert(`Chegou ao fim do edital! Todos os tópicos terminam em ${formatarDataBR(dataLimiteFinalEdital)}.`);
           return;
         }
       }
@@ -1884,7 +1870,7 @@
         }).catch(() => {
           msg.style.display = 'block';
           msg.style.color = '#10b981';
-          msg.innerText = 'Salva localmente (Nuvem indisponível no momento).';
+          msg.innerText = 'Salva localmente.';
         });
       } else {
         msg.style.display = 'block';
@@ -1926,7 +1912,7 @@
       if (!dadosExtraidos || dadosExtraidos.length === 0) {
         status.style.color = '#ef4444';
         status.style.background = 'rgba(239, 68, 68, 0.1)';
-        status.innerText = "Não foi possível extrair as matérias do texto. Verifique a formatação.";
+        status.innerText = "Não foi possível extrair as matérias do texto.";
         return;
       }
 
@@ -1973,7 +1959,7 @@
         container.innerHTML = '';
 
         if (!editais) {
-          container.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 16px;">Nenhum edital pronto cadastrado no momento.</div>`;
+          container.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 16px;">Nenhum edital pronto cadastrado.</div>`;
           return;
         }
 
@@ -2032,7 +2018,7 @@
             atualizarIndicadorPresenca();
             calcularPrevisaoFechamentoEdital();
 
-            alert(`Parabéns! O edital "${dados.titulo}" foi adquirido e carregado com sucesso.`);
+            alert(`Parabéns! O edital "${dados.titulo}" foi adquirido com sucesso.`);
             trocarAba('aba-ciclo', document.querySelectorAll('.tab-btn')[0]);
           }
         });
@@ -2045,10 +2031,10 @@
         return;
       }
 
-      if (confirm("Tem certeza de que deseja remover este edital pronto da nuvem? Ele deixará de aparecer para todos.")) {
+      if (confirm("Remover este edital pronto da nuvem? Ele deixará de aparecer para todos.")) {
         if (rtdb) {
           rtdb.ref("editais_prontos/" + idEdital).remove().then(() => {
-            alert("Edital pronto removido com sucesso!");
+            alert("Edital pronto removido!");
           });
         }
       }
@@ -2131,6 +2117,7 @@
         estado = obterEstadoPadrao();
       }
 
+      // Renderiza imediatamente com a memória local para não deixar a tela vazia
       isReceivingFromCloud = true;
       atualizarUIAposCarregar();
       isReceivingFromCloud = false;
@@ -2155,6 +2142,7 @@
             atualizarStatusNuvem("☁️ Nuvem pronta", "online");
           }
 
+          // Listener de tempo real protegido contra recursividade
           dbRefAtivo.on("value", snap => {
             const val = snap.val();
             if (val && val.estado && !isReceivingFromCloud) {

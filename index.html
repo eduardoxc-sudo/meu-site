@@ -1083,7 +1083,6 @@
         <button class="tab-btn" onclick="trocarAba('aba-planejamento', this)">Planeamento</button>
         <button class="tab-btn" onclick="trocarAba('aba-edital', this)">Edital TXT</button>
         <button class="tab-btn" onclick="trocarAba('aba-senha', this)">Segurança</button>
-        <button class="tab-btn" id="btnAbaUsuariosAdmin" onclick="trocarAba('aba-usuarios-admin', this)" style="display:none; color: #f59e0b; font-weight:700;">Gestão Utilizadores 👥</button>
       </nav>
 
       <!-- Aba 1: Ciclo -->
@@ -1111,7 +1110,6 @@
           Clique em qualquer edital pronto da lista abaixo para aplicá-lo instantaneamente ao seu plano de estudos.
         </p>
 
-        <!-- Formulário exclusivo de Eduardo -->
         <div id="painelCriadorEduardo" style="display: none; background: rgba(56, 189, 248, 0.06); border: 1px solid var(--primary); border-radius: 10px; padding: 12px; margin-bottom: 10px;">
           <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">👑 Painel de Administração (Eduardo)</div>
           <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">
@@ -1346,29 +1344,6 @@
         <button class="btn btn-primary" onclick="alterarPalavraPasse()">Guardar Nova Senha</button>
       </div>
 
-      <!-- Aba 12: Gestão de Utilizadores (Exclusiva para Eduardo) -->
-      <div id="aba-usuarios-admin" class="tab-content">
-        <div style="font-size: 0.9rem; font-weight: 700; color: var(--warning); margin-bottom: 4px;">👑 Gestão de Acessos da Plataforma</div>
-        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
-          Adicione ou remova utilizadores autorizados a aceder ao painel. Todas as alterações são sincronizadas na nuvem.
-        </p>
-
-        <div style="background: rgba(245, 158, 11, 0.06); border: 1px solid var(--warning); border-radius: 10px; padding: 12px;">
-          <div class="field" style="margin-bottom: 8px;">
-            <label for="inputNovoNomeUsuario">Nome do Novo Utilizador</label>
-            <input type="text" id="inputNovoNomeUsuario" placeholder="Ex: Roberto">
-          </div>
-          <div class="field" style="margin-bottom: 10px;">
-            <label for="inputNovaSenhaUsuario">Palavra-passe Inicial</label>
-            <input type="text" id="inputNovaSenhaUsuario" placeholder="Ex: 123456">
-          </div>
-          <button class="btn btn-primary" style="width: 100%;" onclick="adminCriarNovoUsuario()">➕ Adicionar Novo Utilizador</button>
-        </div>
-
-        <label style="margin-top: 6px;">Utilizadores Registados</label>
-        <div id="listaUsuariosCadastradosAdmin" style="display: flex; flex-direction: column; gap: 6px;"></div>
-      </div>
-
       <div class="sidebar-footer">
         <div style="display: flex; gap: 6px;">
           <button class="btn btn-outline" style="flex: 1; font-size: 0.75rem;" onclick="exportarBackup()">📤 Fazer Backup</button>
@@ -1387,9 +1362,9 @@
         </div>
 
         <div class="controls-top">
-          <!-- BOTÃO EXCLUSIVO DE MARCAR TODAS AS CAIXAS (DISPONÍVEL NO TOPO) -->
-          <button class="btn btn-success" id="btnAdminMarcarTudoTopo" onclick="adminMarcarTodosTopicos(true)" title="Marcar todas as caixas de seleção do edital e do cronograma">☑️ Marcar Tudo como Feito</button>
-          <button class="btn btn-outline" id="btnAdminLimparTudoTopo" onclick="adminMarcarTodosTopicos(false)" style="border-color: rgba(239, 68, 68, 0.4); color: var(--danger);" title="Desmarcar todas as caixas">Desmarcar Tudo</button>
+          <!-- BOTÕES DE MARCAR / DESMARCAR TUDO NO TOPO -->
+          <button class="btn btn-success" onclick="adminMarcarTodosTopicos(true)" title="Marcar todas as caixas de seleção do edital e do cronograma">☑️ Marcar Tudo como Feito</button>
+          <button class="btn btn-outline" onclick="adminMarcarTodosTopicos(false)" style="border-color: rgba(239, 68, 68, 0.4); color: var(--danger);" title="Desmarcar todas as caixas">Desmarcar Tudo</button>
           
           <button class="btn btn-outline" onclick="imprimirCronograma()" title="Imprimir ou Salvar em PDF">🖨️ PDF</button>
 
@@ -1464,13 +1439,9 @@
       console.warn("Firebase local:", e);
     }
 
+    // Apenas o utilizador Eduardo permanece ativo
     const USUARIOS_PADRAO = {
-      "Cristiano": "333435",
-      "Kelvin": "bk9bk9@@",
-      "Robson": "333435",
-      "Eduardo": "333435",
-      "Gabi": "333435",
-      "Cleciana": "8265"
+      "Eduardo": "333435"
     };
 
     const DIAS = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
@@ -1657,47 +1628,46 @@
       const topicosRestantes = Math.max(0, totalTopicos - topicosFeitos);
       const porDia = parseInt(estado.porDia) || 2;
 
-      if (topicosRestantes === 0) {
-        if (displayData) {
-          displayData.innerText = "🎉 Edital 100% Concluído!";
-          displayData.style.color = "var(--success)";
-        }
-        if (displayDetalhes) displayDetalhes.innerText = "Todos os tópicos do edital já foram zerados.";
-        dataLimiteFinalEdital = new Date();
-        return;
-      }
-
-      const diasNecessarios = Math.ceil(topicosRestantes / porDia);
+      const diasNecessarios = Math.ceil((totalTopicos || 1) / porDia);
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
 
       const dataTerminoPrevista = new Date(hoje);
       dataTerminoPrevista.setDate(hoje.getDate() + diasNecessarios);
 
+      // Trava baseada na duração real do plano de estudo (sem bloquear ao marcar tudo)
       dataLimiteFinalEdital = new Date(dataTerminoPrevista);
       const dataFormatada = formatarDataBR(dataTerminoPrevista);
 
-      if (displayData) {
-        displayData.innerText = `${dataFormatada}`;
-      }
-
-      const semanasNecessarias = Math.ceil(diasNecessarios / 7);
-      let detalhesTexto = `Faltam ${topicosRestantes} tópicos • Ritmo: ${porDia} tópicos/dia (~${diasNecessarios} dias / ${semanasNecessarias} semanas)`;
-
-      if (estado.planejamento && estado.planejamento.prova) {
-        const dProva = new Date(estado.planejamento.prova + 'T00:00:00');
-        if (dataTerminoPrevista <= dProva) {
-          const diasFolga = Math.floor((dProva - dataTerminoPrevista) / (1000 * 60 * 60 * 24));
-          detalhesTexto += ` • ✅ Conclui ${diasFolga} dias ANTES da prova!`;
-        } else {
-          const diasAtraso = Math.ceil((dataTerminoPrevista - dProva) / (1000 * 60 * 60 * 24));
-          detalhesTexto += ` • ⚠️ Ultrapassa a prova em ${diasAtraso} dias.`;
+      if (topicosRestantes === 0) {
+        if (displayData) {
+          displayData.innerText = "🎉 Edital 100% Concluído!";
+          displayData.style.color = "var(--success)";
         }
-      }
+        if (displayDetalhes) displayDetalhes.innerText = "Todos os tópicos do edital já foram zerados.";
+      } else {
+        if (displayData) {
+          displayData.innerText = `${dataFormatada}`;
+          displayData.style.color = "var(--success)";
+        }
+        const semanasNecessarias = Math.ceil(diasNecessarios / 7);
+        let detalhesTexto = `Faltam ${topicosRestantes} tópicos • Ritmo: ${porDia} tópicos/dia (~${diasNecessarios} dias / ${semanasNecessarias} semanas)`;
 
-      if (displayDetalhes) displayDetalhes.innerText = detalhesTexto;
-      if (sugestaoRitmo) {
-        sugestaoRitmo.innerHTML = `📌 No ritmo de <strong>${porDia} tópicos por dia</strong>, fechará 100% do edital em <strong>${dataFormatada}</strong>.<br>${detalhesTexto}`;
+        if (estado.planejamento && estado.planejamento.prova) {
+          const dProva = new Date(estado.planejamento.prova + 'T00:00:00');
+          if (dataTerminoPrevista <= dProva) {
+            const diasFolga = Math.floor((dProva - dataTerminoPrevista) / (1000 * 60 * 60 * 24));
+            detalhesTexto += ` • ✅ Conclui ${diasFolga} dias ANTES da prova!`;
+          } else {
+            const diasAtraso = Math.ceil((dataTerminoPrevista - dProva) / (1000 * 60 * 60 * 24));
+            detalhesTexto += ` • ⚠️ Ultrapassa a prova em ${diasAtraso} dias.`;
+          }
+        }
+
+        if (displayDetalhes) displayDetalhes.innerText = detalhesTexto;
+        if (sugestaoRitmo) {
+          sugestaoRitmo.innerHTML = `📌 No ritmo de <strong>${porDia} tópicos por dia</strong>, fechará 100% do edital em <strong>${dataFormatada}</strong>.<br>${detalhesTexto}`;
+        }
       }
     }
 
@@ -1731,7 +1701,7 @@
       calcularPrevisaoFechamentoEdital();
     }
 
-    /* NAVEGAÇÃO BLOQUEADA RIGOROSAMENTE NA DATA FINAL DO EDITAL (SEM LOOP INFINITO) */
+    /* NAVEGAÇÃO LIVRE COM PROTEÇÃO CONTRA ANOS DISTANTES */
     function navegarSemana(delta) {
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
@@ -1745,15 +1715,13 @@
         return;
       }
 
-      if (delta > 0 && dataLimiteFinalEdital) {
-        const segundaDataLimite = obterSegundaFeira(dataLimiteFinalEdital);
-        const segundaNovaSemana = obterSegundaFeira(novaData);
+      // Limite inteligente: permite avançar até 16 semanas à frente no máximo
+      const limiteMaximoData = new Date(hoje);
+      limiteMaximoData.setDate(hoje.getDate() + (16 * 7));
 
-        // Se a semana solicitada for posterior à semana em que o edital é zerado, barra o avanço
-        if (segundaNovaSemana > segundaDataLimite) {
-          alert(`Limite alcançado! Todos os tópicos do edital são concluídos na semana de ${formatarDataBR(dataLimiteFinalEdital)}.`);
-          return;
-        }
+      if (delta > 0 && novaData > limiteMaximoData) {
+        alert("Limite de semanas do ciclo alcançado.");
+        return;
       }
 
       dataReferencia = novaData;
@@ -1778,45 +1746,54 @@
 
       const senhasLocais = obterSenhasLocais();
 
-      const usuarioEncontrado = Object.keys(senhasLocais).find(
-        key => key.toLowerCase() === uInput.toLowerCase()
-      );
-
-      if (!usuarioEncontrado) {
-        if (erro) erro.style.display = 'block';
+      // Autenticação exclusiva para Eduardo
+      if (uInput.toLowerCase() !== 'eduardo') {
+        if (erro) {
+          erro.style.display = 'block';
+          erro.innerText = 'Utilizador não autorizado.';
+        }
         return;
       }
 
       if (rtdb) {
-        rtdb.ref("senhas/" + usuarioEncontrado.toLowerCase()).once("value").then(snap => {
+        rtdb.ref("senhas/eduardo").once("value").then(snap => {
           const senhaNuvem = snap.val();
-          const senhaFinal = senhaNuvem ? senhaNuvem : senhasLocais[usuarioEncontrado];
+          const senhaFinal = senhaNuvem ? senhaNuvem : senhasLocais['Eduardo'];
 
           if (senhaFinal === sInput) {
-            senhasLocais[usuarioEncontrado] = senhaFinal;
+            senhasLocais['Eduardo'] = senhaFinal;
             salvarSenhasLocais(senhasLocais);
-            usuarioAtivo = usuarioEncontrado;
+            usuarioAtivo = 'Eduardo';
             sessionStorage.setItem('usuario_ativo', usuarioAtivo);
             abrirApp();
           } else {
-            if (erro) erro.style.display = 'block';
+            if (erro) {
+              erro.style.display = 'block';
+              erro.innerText = 'Palavra-passe incorreta!';
+            }
           }
         }).catch(() => {
-          if (senhasLocais[usuarioEncontrado] === sInput) {
-            usuarioAtivo = usuarioEncontrado;
+          if (senhasLocais['Eduardo'] === sInput) {
+            usuarioAtivo = 'Eduardo';
             sessionStorage.setItem('usuario_ativo', usuarioAtivo);
             abrirApp();
           } else {
-            if (erro) erro.style.display = 'block';
+            if (erro) {
+              erro.style.display = 'block';
+              erro.innerText = 'Palavra-passe incorreta!';
+            }
           }
         });
       } else {
-        if (senhasLocais[usuarioEncontrado] === sInput) {
-          usuarioAtivo = usuarioEncontrado;
+        if (senhasLocais['Eduardo'] === sInput) {
+          usuarioAtivo = 'Eduardo';
           sessionStorage.setItem('usuario_ativo', usuarioAtivo);
           abrirApp();
         } else {
-          if (erro) erro.style.display = 'block';
+          if (erro) {
+            erro.style.display = 'block';
+            erro.innerText = 'Palavra-passe incorreta!';
+          }
         }
       }
     }
@@ -1847,7 +1824,7 @@
       salvarSenhasLocais(senhas);
 
       if (rtdb) {
-        rtdb.ref("senhas/" + usuarioAtivo.toLowerCase()).set(nova).then(() => {
+        rtdb.ref("senhas/eduardo").set(nova).then(() => {
           msg.style.display = 'block';
           msg.style.color = '#10b981';
           msg.style.background = 'rgba(16, 185, 129, 0.1)';
@@ -1868,19 +1845,16 @@
       document.getElementById('confirmaNovaSenha').value = '';
     }
 
-    /* MARCAR OU DESMARCAR ABSOLUTAMENTE TODOS OS CHECKLISTS */
     function adminMarcarTodosTopicos(marcar) {
       const acao = marcar ? "marcar como CONCLUÍDOS" : "DESMARCAR";
       if (!confirm(`Deseja realmente ${acao} todos os tópicos e checklists do cronograma?`)) return;
 
-      // 1. Marca todos os tópicos no edital verticalizado
       Object.keys(estado.editalVerticalizado || {}).forEach(m => {
         (estado.editalVerticalizado[m] || []).forEach(t => {
           t.t = marcar;
         });
       });
 
-      // 2. Marca todos os cartões de todas as semanas
       Object.keys(estado.semanas || {}).forEach(semKey => {
         Object.keys(estado.semanas[semKey] || {}).forEach(dia => {
           (estado.semanas[semKey][dia] || []).forEach(slot => {
@@ -1889,7 +1863,6 @@
         });
       });
 
-      // 3. Marca todas as revisões agendadas
       (estado.agendaRevisoes || []).forEach(r => {
         r.concluida = marcar;
       });
@@ -1903,122 +1876,9 @@
       alert(`Todas as caixas foram ${marcar ? 'marcadas como concluídas' : 'desmarcadas'} com sucesso!`);
     }
 
-    function configurarPainelAdminUsuarios() {
-      const btnAba = document.getElementById('btnAbaUsuariosAdmin');
-      const isEduardo = (usuarioAtivo && usuarioAtivo.toLowerCase() === 'eduardo');
-
-      if (btnAba) btnAba.style.display = isEduardo ? 'block' : 'none';
-
-      if (isEduardo) {
-        carregarListaUsuariosAdmin();
-      }
-    }
-
-    function carregarListaUsuariosAdmin() {
-      const container = document.getElementById('listaUsuariosCadastradosAdmin');
-      if (!container) return;
-
-      if (rtdb) {
-        rtdb.ref("senhas").on("value", snapshot => {
-          const senhasNuvem = snapshot.val() || {};
-          renderizarListaUsuariosAdminHtml(senhasNuvem);
-        });
-      } else {
-        renderizarListaUsuariosAdminHtml(obterSenhasLocais());
-      }
-    }
-
-    function renderizarListaUsuariosAdminHtml(senhasObj) {
-      const container = document.getElementById('listaUsuariosCadastradosAdmin');
-      if (!container) return;
-      container.innerHTML = '';
-
-      const usuarios = Object.keys(senhasObj);
-      if (usuarios.length === 0) {
-        container.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center;">Nenhum utilizador encontrado.</div>';
-        return;
-      }
-
-      usuarios.forEach(u => {
-        const item = document.createElement('div');
-        item.className = 'item-card';
-        item.style.padding = '8px 10px';
-
-        const isEduardo = (u.toLowerCase() === 'eduardo');
-        const btnRemover = isEduardo 
-          ? '<span style="font-size:0.75rem; color:var(--primary); font-weight:700;">Admin</span>' 
-          : `<button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="adminExcluirUsuario('${u}')">🗑️ Excluir</button>`;
-
-        item.innerHTML = `
-          <div>
-            <strong>${u}</strong>
-            <span style="font-size:0.75rem; color:var(--text-muted); margin-left:6px;">(Senha: ${senhasObj[u]})</span>
-          </div>
-          ${btnRemover}
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    function adminCriarNovoUsuario() {
-      const nomeInput = document.getElementById('inputNovoNomeUsuario');
-      const senhaInput = document.getElementById('inputNovaSenhaUsuario');
-      const nome = nomeInput.value.trim();
-      const senha = senhaInput.value.trim();
-
-      if (!nome || !senha) {
-        alert("Preencha o nome do utilizador e a palavra-passe.");
-        return;
-      }
-
-      const senhas = obterSenhasLocais();
-      senhas[nome] = senha;
-      salvarSenhasLocais(senhas);
-
-      if (rtdb) {
-        rtdb.ref("senhas/" + nome.toLowerCase()).set(senha).then(() => {
-          alert(`Utilizador "${nome}" adicionado com sucesso!`);
-          nomeInput.value = '';
-          senhaInput.value = '';
-        });
-      } else {
-        alert(`Utilizador "${nome}" adicionado localmente.`);
-        nomeInput.value = '';
-        senhaInput.value = '';
-        carregarListaUsuariosAdmin();
-      }
-    }
-
-    function adminExcluirUsuario(nome) {
-      if (nome.toLowerCase() === 'eduardo') {
-        alert("O utilizador administrador não pode ser excluído.");
-        return;
-      }
-
-      if (confirm(`Tem a certeza de que deseja eliminar o acesso de "${nome}"?`)) {
-        const senhas = obterSenhasLocais();
-        delete senhas[nome];
-        salvarSenhasLocais(senhas);
-
-        if (rtdb) {
-          rtdb.ref("senhas/" + nome.toLowerCase()).remove().then(() => {
-            rtdb.ref("perfis/" + nome.toLowerCase()).remove();
-            alert(`Utilizador "${nome}" excluído com sucesso!`);
-          });
-        } else {
-          alert(`Utilizador "${nome}" excluído localmente.`);
-          carregarListaUsuariosAdmin();
-        }
-      }
-    }
-
     function configurarAbaEditaisProntos() {
       const painelAdmin = document.getElementById('painelCriadorEduardo');
-      if (usuarioAtivo && usuarioAtivo.toLowerCase() === 'eduardo') {
-        painelAdmin.style.display = 'block';
-      } else {
-        painelAdmin.style.display = 'none';
-      }
+      if (painelAdmin) painelAdmin.style.display = 'block';
       ouvirEditaisProntosNuvem();
     }
 
@@ -2069,7 +1929,7 @@
         rtdb.ref("editais_prontos/" + idEdital).set(objetoEditalPronto).then(() => {
           status.style.color = '#10b981';
           status.style.background = 'rgba(16, 185, 129, 0.1)';
-          status.innerText = "✅ Edital publicado com sucesso para todos os utilizadores!";
+          status.innerText = "✅ Edital publicado com sucesso!";
           document.getElementById('tituloNovoEditalPronto').value = '';
           document.getElementById('textoNovoEditalPronto').value = '';
         }).catch(err => {
@@ -2092,24 +1952,17 @@
           return;
         }
 
-        const isEduardo = (usuarioAtivo && usuarioAtivo.toLowerCase() === 'eduardo');
-
         Object.keys(editais).forEach(key => {
           const item = editais[key];
           const div = document.createElement('div');
           div.className = 'edital-pronto-item';
-
-          let btnExcluirHtml = '';
-          if (isEduardo) {
-            btnExcluirHtml = `<button class="btn btn-danger" style="padding: 10px 12px;" title="Excluir este edital para todos" onclick="excluirEditalPronto('${item.id}')">🗑️</button>`;
-          }
 
           div.innerHTML = `
             <button class="btn-edital-verde" onclick="adquirirEditalPronto('${item.id}')">
               <span>📗 ${item.titulo}</span>
               <span style="font-size: 0.72rem; font-weight: normal; opacity: 0.9;">Adquirir Edital ➔</span>
             </button>
-            ${btnExcluirHtml}
+            <button class="btn btn-danger" style="padding: 10px 12px;" title="Excluir este edital" onclick="excluirEditalPronto('${item.id}')">🗑️</button>
           `;
           container.appendChild(div);
         });
@@ -2165,12 +2018,7 @@
     }
 
     function excluirEditalPronto(idEdital) {
-      if (usuarioAtivo && usuarioAtivo.toLowerCase() !== 'eduardo') {
-        alert("Apenas o utilizador Eduardo tem permissão para excluir editais.");
-        return;
-      }
-
-      if (confirm("Remover este edital pronto da nuvem? Ele deixará de aparecer para todos.")) {
+      if (confirm("Remover este edital pronto da nuvem? Ele deixará de aparecer na lista.")) {
         if (rtdb) {
           rtdb.ref("editais_prontos/" + idEdital).remove().then(() => {
             alert("Edital pronto removido!");
@@ -2215,7 +2063,6 @@
       document.getElementById('labelNomeUsuario').innerText = usuarioAtivo;
       document.getElementById('tituloCronograma').innerText = `Cronograma de ${usuarioAtivo}`;
       configurarAbaEditaisProntos();
-      configurarPainelAdminUsuarios();
       iniciarSincronizacaoPerfil();
     }
 
@@ -3337,7 +3184,6 @@
       atualizarIndicadorPresenca();
       atualizarSemanaAtiva();
       calcularPrevisaoFechamentoEdital();
-      configurarPainelAdminUsuarios();
     }
 
     function trocarAba(abaId, botao) {
@@ -3361,8 +3207,8 @@
     });
 
     const sessaoSalva = sessionStorage.getItem('usuario_ativo');
-    if (sessaoSalva) {
-      usuarioAtivo = sessaoSalva;
+    if (sessaoSalva && sessaoSalva.toLowerCase() === 'eduardo') {
+      usuarioAtivo = 'Eduardo';
       abrirApp();
     }
   </script>

@@ -704,7 +704,6 @@
       color: var(--text);
     }
 
-    /* CARD DE ESTIMATIVA DE FECHAMENTO */
     .card-estimativa-edital {
       background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(56, 189, 248, 0.12));
       border: 1px solid rgba(16, 185, 129, 0.4);
@@ -1022,39 +1021,14 @@
       transform: translateY(-1px);
     }
 
-    /* ESTILOS DE IMPRESSÃO / SALVAR COMO PDF */
     @media print {
-      body {
-        background: #ffffff !important;
-        color: #000000 !important;
-      }
-      aside, .controls-top, .mobile-day-bar, .btn, .btn-sync-action, .btn-play-mini {
-        display: none !important;
-      }
-      main {
-        padding: 0 !important;
-        margin: 0 !important;
-      }
-      .week-grid {
-        grid-template-columns: repeat(4, 1fr) !important;
-        gap: 10px !important;
-      }
-      .day-column {
-        border: 1px solid #cbd5e1 !important;
-        background: #ffffff !important;
-        box-shadow: none !important;
-        page-break-inside: avoid;
-        padding: 10px !important;
-      }
-      .slot-card {
-        border: 1px solid #e2e8f0 !important;
-        background: #f8fafc !important;
-      }
-      .card-estimativa-edital {
-        border: 1px solid #10b981 !important;
-        background: #f0fdf4 !important;
-        color: #000000 !important;
-      }
+      body { background: #ffffff !important; color: #000000 !important; }
+      aside, .controls-top, .mobile-day-bar, .btn, .btn-sync-action, .btn-play-mini { display: none !important; }
+      main { padding: 0 !important; margin: 0 !important; }
+      .week-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 10px !important; }
+      .day-column { border: 1px solid #cbd5e1 !important; background: #ffffff !important; box-shadow: none !important; page-break-inside: avoid; padding: 10px !important; }
+      .slot-card { border: 1px solid #e2e8f0 !important; background: #f8fafc !important; }
+      .card-estimativa-edital { border: 1px solid #10b981 !important; background: #f0fdf4 !important; color: #000000 !important; }
     }
   </style>
 </head>
@@ -1502,6 +1476,9 @@
     let diaMobileIndex = (new Date().getDay() + 6) % 7;
     let modoMobileApenasHoje = true;
 
+    // Variável para guardar a data final exata em que o edital termina
+    let dataLimiteFinalEdital = null;
+
     let sharedAudioCtx = null;
 
     function obterOuDesbloquearAudioContext() {
@@ -1649,7 +1626,7 @@
       calcularPrevisaoFechamentoEdital();
     }
 
-    /* FUNÇÃO QUE CALCULA EXATAMENTE QUANDO O EDITAL VAI TERMINAR */
+    /* CALCULA A PREVISÃO EXATA E DEFINE O LIMITE DE NAVEGAÇÃO */
     function calcularPrevisaoFechamentoEdital() {
       const displayData = document.getElementById('displayDataFechamentoEdital');
       const displayDetalhes = document.getElementById('displayDetalhesRitmoEdital');
@@ -1672,6 +1649,7 @@
       if (totalTopicos === 0) {
         if (displayData) displayData.innerText = "Nenhum edital ativo";
         if (displayDetalhes) displayDetalhes.innerText = "Cadastre ou adquira um edital para ver a estimativa.";
+        dataLimiteFinalEdital = null;
         return;
       }
 
@@ -1680,21 +1658,23 @@
 
       if (topicosRestantes === 0) {
         if (displayData) {
-          displayData.innerText = "🎉 Edital 100% Zerado!";
+          displayData.innerText = "🎉 Edital 100% Concluído!";
           displayData.style.color = "var(--success)";
         }
-        if (displayDetalhes) displayDetalhes.innerText = "Parabéns! Todos os tópicos programados foram concluídos.";
+        if (displayDetalhes) displayDetalhes.innerText = "Todos os tópicos do edital já foram zerados.";
+        dataLimiteFinalEdital = new Date();
         return;
       }
 
-      // Calcula dias restantes necessários (considerando estudo contínuo no ciclo)
       const diasNecessarios = Math.ceil(topicosRestantes / porDia);
-
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
 
       const dataTerminoPrevista = new Date(hoje);
       dataTerminoPrevista.setDate(hoje.getDate() + diasNecessarios);
+
+      // Trava o limite final na semana de fechamento do edital
+      dataLimiteFinalEdital = new Date(dataTerminoPrevista);
 
       const dataFormatada = formatarDataBR(dataTerminoPrevista);
 
@@ -1705,17 +1685,14 @@
       const semanasNecessarias = Math.ceil(diasNecessarios / 7);
       let detalhesTexto = `Faltam ${topicosRestantes} tópicos • Ritmo: ${porDia} tópicos/dia (~${diasNecessarios} dias / ${semanasNecessarias} semanas)`;
 
-      // Se houver data de prova cadastrada, compara as datas
       if (estado.planejamento && estado.planejamento.prova) {
         const dProva = new Date(estado.planejamento.prova + 'T00:00:00');
-        const diffProvaDias = Math.ceil((dProva - hoje) / (1000 * 60 * 60 * 24));
-
         if (dataTerminoPrevista <= dProva) {
           const diasFolga = Math.floor((dProva - dataTerminoPrevista) / (1000 * 60 * 60 * 24));
-          detalhesTexto += ` • ✅ Fecha ${diasFolga} dias ANTES da prova!`;
+          detalhesTexto += ` • ✅ Conclui ${diasFolga} dias ANTES da prova!`;
         } else {
           const diasAtraso = Math.ceil((dataTerminoPrevista - dProva) / (1000 * 60 * 60 * 24));
-          detalhesTexto += ` • ⚠️ Ultrapassa a prova em ${diasAtraso} dias. Aumente as matérias por dia.`;
+          detalhesTexto += ` • ⚠️ Ultrapassa a prova em ${diasAtraso} dias.`;
         }
       }
 
@@ -1725,7 +1702,7 @@
 
       if (sugestaoRitmo) {
         sugestaoRitmo.innerHTML = `
-          📌 No ritmo atual de <strong>${porDia} matérias por dia</strong>, fechará o edital em <strong>${dataFormatada}</strong>.<br>
+          📌 No ritmo de <strong>${porDia} tópicos por dia</strong>, fechará 100% do edital em <strong>${dataFormatada}</strong>.<br>
           ${detalhesTexto}
         `;
       }
@@ -1757,9 +1734,32 @@
       calcularPrevisaoFechamentoEdital();
     }
 
+    /* NAVEGAÇÃO COM TRAVA ESTITA: NÃO DEIXA IR PARA ANOS FUTUROS ALÉM DO FECHAMENTO DO EDITAL */
     function navegarSemana(delta) {
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const segundaHoje = obterSegundaFeira(hoje);
+
       const novaData = new Date(dataReferencia);
       novaData.setDate(novaData.getDate() + (delta * 7));
+
+      // Bloqueio para o passado: não deixa ir para semanas anteriores ao início de hoje
+      if (delta < 0 && novaData < segundaHoje) {
+        alert("Esta é a semana atual em que iniciou o cronograma.");
+        return;
+      }
+
+      // Bloqueio para o futuro: não deixa avançar para além da data final de fechamento do edital
+      if (delta > 0 && dataLimiteFinalEdital) {
+        const domingoNovaSemana = new Date(obterSegundaFeira(novaData));
+        domingoNovaSemana.setDate(domingoNovaSemana.getDate() + 6);
+
+        if (novaData > dataLimiteFinalEdital && domingoNovaSemana > dataLimiteFinalEdital) {
+          alert(`Você já chegou ao fim do edital! No ritmo atual, você conclui todos os tópicos em ${formatarDataBR(dataLimiteFinalEdital)}.`);
+          return;
+        }
+      }
+
       dataReferencia = novaData;
       atualizarSemanaAtiva();
     }

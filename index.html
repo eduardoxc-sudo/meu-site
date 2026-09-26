@@ -1191,6 +1191,49 @@
     @media (max-width: 720px) {
       .planejamento-grid-moderno, .planejamento-resumo-grid { grid-template-columns: 1fr 1fr; }
     }
+
+    /* ===== V10: Edital / Questões / Progresso ===== */
+    .filtro-assunto-edital-box { margin-top:12px; }
+    .filtro-assunto-edital-box label, .questao-assunto-box label {
+      display:block; margin-bottom:7px; font-size:.75rem; font-weight:900; color:#8ea3bf;
+    }
+    #filtroAssuntoEdital, #conteudoQuestao {
+      width:100%; box-sizing:border-box; padding:11px 12px; border-radius:10px;
+      border:1px solid #26364d; background:#09111e; color:inherit; outline:none;
+    }
+    #filtroAssuntoEdital:focus, #conteudoQuestao:focus { border-color:#38bdf8; }
+    .contador-filtro-assunto { margin-top:6px; font-size:.7rem; color:#7f93ad; }
+    .questao-assunto-box { margin-top:12px; }
+
+    .progresso-dashboard { padding:10px 0 24px; }
+    .progresso-kicker { color:#38bdf8; font-size:.75rem; font-weight:900; letter-spacing:.35px; }
+    .progresso-header h2 { margin:5px 0 4px; }
+    .progresso-header p { margin:0 0 15px; color:#8fa2bb; font-size:.84rem; }
+    .progresso-cards {
+      display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; margin-bottom:14px;
+    }
+    .progresso-card {
+      padding:14px 10px; border-radius:12px; border:1px solid #26364d;
+      background:#101a2b; text-align:center;
+    }
+    .progresso-card span { display:block; color:#8fa2bb; font-size:.69rem; margin-bottom:5px; }
+    .progresso-card strong { color:#38bdf8; font-size:1.15rem; }
+    .progresso-painel {
+      padding:14px; margin-top:12px; border:1px solid #26364d; border-radius:13px; background:#101a2b;
+    }
+    .progresso-painel h3 { margin:0 0 10px; font-size:.92rem; }
+    .progresso-ajuda { color:#8195ae; font-size:.73rem; margin:-4px 0 10px; }
+    .progresso-item { padding:10px 0; border-bottom:1px solid rgba(120,145,175,.15); }
+    .progresso-item:last-child { border-bottom:0; }
+    .progresso-item-topo { display:flex; justify-content:space-between; gap:10px; font-size:.78rem; margin-bottom:6px; }
+    .progresso-item-topo b { overflow:hidden; text-overflow:ellipsis; }
+    .progresso-barra { height:8px; border-radius:99px; background:#07101c; overflow:hidden; }
+    .progresso-barra > span { display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#38bdf8,#6366f1); }
+    .progresso-vazio { padding:18px; text-align:center; color:#8296ae; font-size:.8rem; }
+
+    @media (max-width:720px) {
+      .progresso-cards { grid-template-columns:1fr 1fr; }
+    }
 </style>
 </head>
 <body>
@@ -1394,6 +1437,13 @@
         <div class="field">
           <label>Disciplina da Questão</label>
           <select id="questoesSelectMateria"></select>
+          <div class="questao-assunto-box">
+            <label>ASSUNTO / CONTEÚDO</label>
+            <select id="conteudoQuestao">
+              <option value="">Selecione a disciplina primeiro</option>
+            </select>
+          </div>
+
         </div>
 
         <div style="display:flex; gap:8px;">
@@ -1419,207 +1469,7 @@
         </div>
 
         <div class="field">
-          <label>Adicionar Tópico/Assunto</label>
-          <div style="display: flex; gap: 6px;">
-            <select id="selectMateriaNovoTopico" style="flex: 1;"></select>
-            <input type="text" id="inputNovoTopico" placeholder="Ex: Figuras de linguagem" style="flex: 1.4;">
-            <button class="btn btn-primary" onclick="adicionarTopicoAoEdital()">+</button>
-          </div>
-        </div>
-
-        <div id="containerEditalVerticalizado" style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;"></div>
-      </div>
-
-      <!-- Aba 8: Visão Geral -->
-      <div id="aba-visao-geral" class="tab-content">
-        <button class="btn btn-success" style="width: 100%; margin-bottom: 8px;" onclick="imprimirCronograma()">🖨️ Imprimir Cronograma (PDF)</button>
-        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;">
-          <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(-1)">◀ Anterior</button>
-          <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
-            <span style="font-size: 0.82rem; font-weight: 700; color: var(--primary);" id="labelSemanaVisaoGeral">-</span>
-            <button class="btn-mini-acao" style="color:var(--primary); font-size:0.75rem; text-decoration:underline;" onclick="irParaHoje()">Voltar para Hoje</button>
-          </div>
-          <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(1)">Próxima ▶</button>
-        </div>
-
-        <div id="containerVisaoGeral" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
-      </div>
-
-      <!-- Aba 9: Planeamento & Previsão -->
-      <div id="aba-planejamento" class="tab-content">
-      <div class="planejamento-moderno">
-        <div class="planejamento-cabecalho">
-          <div>
-            <div class="planejamento-kicker">🗓️ PLANEJAMENTO INTELIGENTE</div>
-            <h3>Organize seu estudo automaticamente</h3>
-            <p>Escolha apenas as datas. O sistema usa os tópicos restantes e o ritmo configurado no cronograma.</p>
-          </div>
-        </div>
-
-        <div class="planejamento-grid-moderno">
-          <label class="campo-planejamento-moderno">
-            <span>Início dos estudos</span>
-            <input type="date" id="planejamentoInicioAuto" onchange="atualizarPlanejamentoAutomatico()">
-          </label>
-
-          <label class="campo-planejamento-moderno">
-            <span>Data da prova <small>(opcional)</small></span>
-            <input type="date" id="planejamentoProvaAuto" onchange="atualizarPlanejamentoAutomatico()">
-          </label>
-        </div>
-
-        <div class="planejamento-resumo-grid">
-          <div class="planejamento-stat">
-            <span>Tópicos restantes</span>
-            <strong id="planTopicosRestantes">0</strong>
-          </div>
-          <div class="planejamento-stat">
-            <span>Ritmo atual</span>
-            <strong id="planRitmoAtual">0/dia</strong>
-          </div>
-          <div class="planejamento-stat">
-            <span>Dias estimados</span>
-            <strong id="planDiasEstimados">0</strong>
-          </div>
-          <div class="planejamento-stat">
-            <span>Fechamento previsto</span>
-            <strong id="planFechamentoPrevisto">—</strong>
-          </div>
-        </div>
-
-        <div id="planejamentoSituacaoAuto" class="planejamento-situacao-auto">
-          Selecione a data de início para gerar a estimativa.
-        </div>
-
-        <button class="btn-planejamento-aplicar" onclick="aplicarPlanejamentoAutomatico()">
-          ⚡ Aplicar planejamento ao cronograma
-        </button>
-      </div>
-
-        <div class="field">
-          <label for="dataInicioEstudos">Início dos Estudos</label>
-          <input type="date" id="dataInicioEstudos" onchange="atualizarPainelPlanejamento()">
-        </div>
-
-        <div class="field">
-          <label for="dataProvaConcurso">Data da Prova</label>
-          <input type="date" id="dataProvaConcurso" onchange="atualizarPainelPlanejamento()">
-        </div>
-
-        <div class="metric-grid-questoes" style="grid-template-columns: repeat(2, 1fr); margin-top: 4px;">
-          <div class="metric-box">
-            <div style="font-size:0.72rem; color:var(--text-muted);">Dias Até a Prova</div>
-            <div class="num" id="diasAteProva" style="color:var(--primary);">--</div>
-          </div>
-          <div class="metric-box">
-            <div style="font-size:0.72rem; color:var(--text-muted);">Semanas Úteis</div>
-            <div class="num" id="semanasAteProva" style="color:var(--accent);">--</div>
-          </div>
-        </div>
-
-        <div class="sugestao-card">
-          <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem;">🎯 Estimativa de Fechamento do Edital</div>
-          <div class="sugestao-item" id="sugestaoRitmoTopicos">
-            Cadastre ou adquira o edital para calcular a previsão.
-          </div>
-        </div>
-      </div>
-
-      <!-- Aba 10: Edital TXT -->
-      <div id="aba-edital" class="tab-content">
-        <div class="field">
-          <label for="textoEdital">Texto do Edital Verticalizado</label>
-          <textarea id="textoEdital" rows="9" placeholder="Cole o edital aqui..."></textarea>
-        </div>
-
-        <button class="btn btn-primary" id="btnAnalisarEdital" onclick="processarEditalTexto()">✨ Carregar Edital Digitado</button>
-        <button class="btn btn-danger" style="margin-top: 2px;" onclick="redefinirEditalManualmente()">🗑️ Limpar Edital Atual</button>
-        <div id="statusIA" style="display: none; font-size: 0.8rem; padding: 8px; border-radius: 6px;"></div>
-      </div>
-
-      <!-- Aba 11: Segurança (Sincronizada na Nuvem) -->
-      <div id="aba-senha" class="tab-content">
-        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          A nova palavra-passe é guardada na nuvem e passa a valer para todos os seus dispositivos (PC e telemóvel).
-        </p>
-        <div class="field">
-          <label for="senhaAtual">Palavra-passe Atual</label>
-          <input type="password" id="senhaAtual">
-        </div>
-        <div class="field">
-          <label for="novaSenha">Nova Palavra-passe</label>
-          <input type="password" id="novaSenha">
-        </div>
-        <div class="field">
-          <label for="confirmaNovaSenha">Confirmar Nova Palavra-passe</label>
-          <input type="password" id="confirmaNovaSenha">
-        </div>
-        <div id="msgStatusSenha" style="font-size: 0.82rem; display: none; padding: 8px; border-radius: 6px;"></div>
-        <button class="btn btn-primary" onclick="alterarPalavraPasse()">Guardar Nova Senha</button>
-      </div>
-
-      <!-- Aba 12: Gestão de Utilizadores (Exclusiva para Eduardo) -->
-      <div id="aba-usuarios-admin" class="tab-content">
-        <div style="font-size: 0.95rem; font-weight: 700; color: var(--warning); margin-bottom: 4px;">👑 Gestão de Utilizadores (Administrador)</div>
-        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Crie novas contas ou remova utilizadores autorizados a aceder ao painel.
-        </p>
-
-        <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid var(--warning); border-radius: 10px; padding: 14px; margin-top: 4px;">
-          <div style="font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 8px;">Adicionar Novo Acesso</div>
-          <div class="field" style="margin-bottom: 8px;">
-            <label for="inputNovoNomeUsuario">Nome do Utilizador</label>
-            <input type="text" id="inputNovoNomeUsuario" placeholder="Ex: Lucas">
-          </div>
-          <div class="field" style="margin-bottom: 12px;">
-            <label for="inputNovaSenhaUsuario">Palavra-passe</label>
-            <input type="text" id="inputNovaSenhaUsuario" placeholder="Ex: senha123">
-          </div>
-          <button class="btn btn-primary" style="width: 100%;" onclick="adminCriarNovoUsuario()">➕ Registar Novo Utilizador</button>
-        </div>
-
-        <label style="margin-top: 10px;">Utilizadores Registados no Sistema</label>
-        <div id="listaUsuariosCadastradosAdmin" style="display: flex; flex-direction: column; gap: 6px;"></div>
-      </div>
-
-      <div class="sidebar-footer">
-        <div style="display: flex; gap: 6px;">
-          <button class="btn btn-outline" style="flex: 1; font-size: 0.75rem;" onclick="exportarBackup()">📤 Fazer Backup</button>
-          <button class="btn btn-outline" style="flex: 1; font-size: 0.75rem;" onclick="document.getElementById('inputRestaurarBackup').click()">📥 Restaurar</button>
-        </div>
-        <input type="file" id="inputRestaurarBackup" accept=".json" style="display:none;" onchange="importarBackup(event)">
-        <button class="btn btn-outline" style="width: 100%;" onclick="sair()">Terminar Sessão</button>
-      </div>
-    </aside>
-
-    <main>
-      <header class="main-header">
-        <div>
-          <h1 id="tituloCronograma">Cronograma Semanal</h1>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Ciclo de matérias com priorização inteligente de tópicos</p>
-        </div>
-
-        <div class="controls-top">
-          <button class="btn btn-success" onclick="adminMarcarTodosTopicos(true)" title="Marcar todas as caixas de seleção">☑️ Marcar Tudo</button>
-          <button class="btn btn-outline" onclick="adminMarcarTodosTopicos(false)" style="border-color: rgba(239, 68, 68, 0.4); color: var(--danger);" title="Desmarcar todas as caixas">Desmarcar</button>
-          
-          <!-- BOTÃO DE RESETAR EDITAL -->
-          <button class="btn btn-danger" onclick="redefinirEditalManualmente()" title="Limpar todo o edital e voltar ao estado inicial">🔄 Resetar Edital</button>
-
-          <button class="btn btn-outline" onclick="imprimirCronograma()" title="Imprimir ou Salvar em PDF">🖨️ PDF</button>
-
-          <div class="week-navigator">
-            <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(-1)">◀</button>
-            <span class="week-label" id="labelIntervaloSemana">...</span>
-            <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(1)">▶</button>
-          </div>
-          <button class="btn btn-primary" style="padding: 6px 10px;" onclick="forcarSincronizacaoHoje()">↺ Hoje</button>
-          <button class="btn btn-outline" onclick="alternarTema()" id="btnTema">☀️ Claro</button>
-        </div>
-      </header>
-
-      <!-- Painel Dinâmico de Previsão de Término do Edital -->
-      <div class="card-estimativa-edital" id="cardPrevisaoTerminoEdital">
+          <div class="card-estimativa-edital" id="cardPrevisaoTerminoEdital">
         <div class="est-info-col">
           <span class="est-titulo">⏱️ Previsão de Conclusão do Edital</span>
           <span class="est-data-destaque" id="displayDataFechamentoEdital">Calculando...</span>
@@ -4086,47 +3936,69 @@
     function atualizarPlanejamentoAutomatico() {
       const inicioEl = document.getElementById('planejamentoInicioAuto');
       const provaEl = document.getElementById('planejamentoProvaAuto');
-      if (!inicioEl) return;
+      if (!inicioEl || !provaEl) return;
 
       const status = contarStatusConteudo();
       const restantes = Math.max(0, status.total - status.concluidos);
-      const ritmo = Math.max(1, parseInt(estado.porDia, 10) || 1);
-      const dias = Math.ceil(restantes / ritmo);
+      const ritmoAtual = Math.max(1, parseInt(estado.porDia, 10) || 1);
+      const diasEstimados = restantes > 0 ? Math.ceil(restantes / ritmoAtual) : 0;
 
-      document.getElementById('planTopicosRestantes').textContent = restantes;
-      document.getElementById('planRitmoAtual').textContent = ritmo + '/dia';
-      document.getElementById('planDiasEstimados').textContent = dias;
-
-      if (!inicioEl.value) {
-        document.getElementById('planFechamentoPrevisto').textContent = '—';
-        document.getElementById('planejamentoSituacaoAuto').textContent =
-          'Selecione a data de início para gerar a estimativa.';
-        return;
-      }
-
-      const p = inicioEl.value.split('-');
-      const inicio = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
-      const fechamento = new Date(inicio);
-      fechamento.setDate(fechamento.getDate() + Math.max(0, dias - 1));
+      const elRest = document.getElementById('planTopicosRestantes');
+      const elRitmo = document.getElementById('planRitmoAtual');
+      const elDias = document.getElementById('planDiasEstimados');
+      if (elRest) elRest.textContent = restantes;
+      if (elRitmo) elRitmo.textContent = ritmoAtual + '/dia';
+      if (elDias) elDias.textContent = diasEstimados;
 
       const formatar = d => String(d.getDate()).padStart(2,'0') + '/' +
         String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
 
-      document.getElementById('planFechamentoPrevisto').textContent = formatar(fechamento);
+      if (!inicioEl.value || !provaEl.value) {
+        const f = document.getElementById('planFechamentoPrevisto');
+        const dap = document.getElementById('planDiasAteProva');
+        const rn = document.getElementById('planRitmoNecessario');
+        if (f) f.textContent = '—';
+        if (dap) dap.textContent = '—';
+        if (rn) rn.textContent = '—';
+        document.getElementById('planejamentoSituacaoAuto').textContent =
+          'Escolha a data de início e a data da prova para calcular o planejamento.';
+        return;
+      }
 
-      let mensagem = `Com ${restantes} tópicos restantes e ritmo de ${ritmo} tópicos/dia, ` +
-        `a estimativa é concluir em ${formatar(fechamento)}.`;
+      const p = inicioEl.value.split('-');
+      const q = provaEl.value.split('-');
+      const inicio = new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));
+      const prova = new Date(Number(q[0]), Number(q[1])-1, Number(q[2]));
+      inicio.setHours(0,0,0,0);
+      prova.setHours(0,0,0,0);
 
-      if (provaEl && provaEl.value) {
-        const q = provaEl.value.split('-');
-        const prova = new Date(Number(q[0]), Number(q[1]) - 1, Number(q[2]));
-        const diferenca = Math.ceil((prova - fechamento) / 86400000);
+      if (prova < inicio) {
+        document.getElementById('planejamentoSituacaoAuto').textContent =
+          '⚠️ A data da prova precisa ser posterior à data de início.';
+        return;
+      }
 
-        if (diferenca >= 0) {
-          mensagem += ` Você termina aproximadamente ${diferenca} dia(s) antes da prova.`;
-        } else {
-          mensagem += ` ⚠️ No ritmo atual, faltariam aproximadamente ${Math.abs(diferenca)} dia(s).`;
-        }
+      // Conta todos os dias do intervalo; o cronograma decide os dias efetivamente usados.
+      const diasAteProva = Math.floor((prova - inicio) / 86400000) + 1;
+      const ritmoNecessario = restantes > 0 ? Math.ceil(restantes / Math.max(1, diasAteProva)) : 0;
+
+      const fechamento = new Date(inicio);
+      fechamento.setDate(fechamento.getDate() + Math.max(0, diasEstimados - 1));
+
+      document.getElementById('planFechamentoPrevisto').textContent =
+        restantes === 0 ? 'Concluído' : formatar(fechamento);
+      document.getElementById('planDiasAteProva').textContent = diasAteProva;
+      document.getElementById('planRitmoNecessario').textContent = ritmoNecessario + '/dia';
+
+      const folga = Math.ceil((prova - fechamento) / 86400000);
+      let mensagem = `Você tem ${diasAteProva} dia(s) até a prova e ${restantes} tópico(s) restante(s). `;
+
+      if (restantes === 0) {
+        mensagem += '✅ Edital concluído.';
+      } else if (folga >= 0) {
+        mensagem += `No ritmo atual de ${ritmoAtual}/dia, a previsão é concluir em ${formatar(fechamento)}, aproximadamente ${folga} dia(s) antes da prova.`;
+      } else {
+        mensagem += `No ritmo atual, a conclusão ultrapassaria a prova em ${Math.abs(folga)} dia(s). Ritmo mínimo estimado: ${ritmoNecessario}/dia.`;
       }
 
       document.getElementById('planejamentoSituacaoAuto').textContent = mensagem;
@@ -4135,8 +4007,8 @@
     function aplicarPlanejamentoAutomatico() {
       const inicioEl = document.getElementById('planejamentoInicioAuto');
       const provaEl = document.getElementById('planejamentoProvaAuto');
-      if (!inicioEl || !inicioEl.value) {
-        alert('Escolha a data de início dos estudos.');
+      if (!inicioEl || !inicioEl.value || !provaEl || !provaEl.value) {
+        alert('Escolha a data de início e a data da prova.');
         return;
       }
 
@@ -4184,6 +4056,191 @@
         atualizarConteudosQuestao();
       }
     });
+
+    // ===== V10: filtro de assuntos do Edital =====
+    function filtrarAssuntosEdital(termo) {
+      const alvo = normalizarTextoChave(termo || '');
+      let visiveis = 0;
+
+      // Localiza linhas que possuem tópicos pelo checkbox/célula e filtra pelo texto.
+      const candidatos = document.querySelectorAll(
+        '#aba-edital tr, #edital tr, .edital-table tr, .topico-row, .edital-topico'
+      );
+
+      candidatos.forEach(el => {
+        const texto = normalizarTextoChave(el.textContent || '');
+        const mostrar = !alvo || texto.includes(alvo);
+        el.style.display = mostrar ? '' : 'none';
+        if (mostrar && alvo) visiveis++;
+      });
+
+      const contador = document.getElementById('contadorFiltroAssunto');
+      if (contador) {
+        contador.textContent = alvo ? `${visiveis} resultado(s) localizado(s)` : '';
+      }
+    }
+
+    // Remove visualmente o antigo bloco "Adicionar tópico/assunto", caso alguma
+    // versão antiga do HTML ainda o tenha preservado.
+    function ocultarAdicionarTopicoAntigo() {
+      const todos = Array.from(document.querySelectorAll('body *'));
+      const titulo = todos.find(el =>
+        el.children.length === 0 &&
+        /ADICIONAR TÓPICO\/ASSUNTO/i.test(el.textContent || '')
+      );
+      if (!titulo) return;
+
+      const bloco = titulo.parentElement;
+      if (bloco) bloco.style.display = 'none';
+    }
+
+    // ===== V10: matéria -> assunto na aba Questões =====
+    function localizarSelectDisciplinaQuestao() {
+      const direto = obterSelectMateriaQuestao ? obterSelectMateriaQuestao() : null;
+      if (direto) return direto;
+
+      const selects = Array.from(document.querySelectorAll('#aba-questoes select, #questoes select'));
+      return selects.find(s => {
+        const anterior = s.previousElementSibling;
+        return /DISCIPLINA DA QUESTÃO/i.test((anterior && anterior.textContent) || '');
+      }) || selects[1] || null;
+    }
+
+    function atualizarAssuntosDaQuestao() {
+      const materiaSelect = localizarSelectDisciplinaQuestao();
+      const assuntoSelect = document.getElementById('conteudoQuestao');
+      if (!materiaSelect || !assuntoSelect) return;
+
+      const materia = materiaSelect.value;
+      const chave = resolverChaveMateriaNoEdital(materia);
+      const topicos = chave ? (estado.editalVerticalizado[chave] || []) : [];
+
+      assuntoSelect.innerHTML =
+        '<option value="">Selecione o assunto</option>' +
+        topicos.map(t =>
+          `<option value="${t.id}">${String(t.titulo || '')
+            .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</option>`
+        ).join('');
+    }
+
+    document.addEventListener('change', function(e) {
+      const materiaSelect = localizarSelectDisciplinaQuestao();
+      if (materiaSelect && e.target === materiaSelect) {
+        atualizarAssuntosDaQuestao();
+      }
+    });
+
+    // ===== V10: Progresso de Questões =====
+    function obterRegistrosQuestoes() {
+      const candidatos = [
+        estado.registrosQuestoes,
+        estado.questoes,
+        estado.historicoQuestoes,
+        estado.desempenhoQuestoes
+      ];
+      const lista = candidatos.find(v => Array.isArray(v));
+      return lista || [];
+    }
+
+    function nomeTopicoPorId(id) {
+      if (!id) return 'Sem assunto informado';
+      for (const materia of Object.keys(estado.editalVerticalizado || {})) {
+        const t = (estado.editalVerticalizado[materia] || []).find(x => x.id === id);
+        if (t) return t.titulo;
+      }
+      return 'Assunto não encontrado';
+    }
+
+    function renderizarProgressoQuestoes() {
+      const registros = obterRegistrosQuestoes();
+      let total = 0, acertos = 0, erros = 0;
+      const porMateria = {};
+      const porAssunto = {};
+
+      registros.forEach(r => {
+        const a = Number(r.acertos || r.certas || 0);
+        const e = Number(r.erros || r.erradas || 0);
+        const qtd = a + e;
+        total += qtd; acertos += a; erros += e;
+
+        const materia = r.materia || r.disciplina || 'Sem matéria';
+        const assuntoId = r.topicoId || r.conteudoId || r.assuntoId || '';
+        const assuntoNome = r.assunto || r.conteudo || nomeTopicoPorId(assuntoId);
+
+        if (!porMateria[materia]) porMateria[materia] = { total:0, acertos:0 };
+        porMateria[materia].total += qtd;
+        porMateria[materia].acertos += a;
+
+        const chaveAssunto = materia + '||' + assuntoNome;
+        if (!porAssunto[chaveAssunto]) {
+          porAssunto[chaveAssunto] = { materia, assunto:assuntoNome, total:0, acertos:0 };
+        }
+        porAssunto[chaveAssunto].total += qtd;
+        porAssunto[chaveAssunto].acertos += a;
+      });
+
+      const taxa = total ? Math.round(acertos * 100 / total) : 0;
+      const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+      set('progTotalQuestoes', total);
+      set('progTotalAcertos', acertos);
+      set('progTotalErros', erros);
+      set('progTaxaAcerto', taxa + '%');
+
+      const renderLista = (containerId, itens, tituloFn) => {
+        const box = document.getElementById(containerId);
+        if (!box) return;
+        if (!itens.length) {
+          box.innerHTML = '<div class="progresso-vazio">Registre questões para começar a acompanhar sua evolução.</div>';
+          return;
+        }
+        box.innerHTML = itens.map(item => {
+          const pct = item.total ? Math.round(item.acertos*100/item.total) : 0;
+          return `<div class="progresso-item">
+            <div class="progresso-item-topo">
+              <b>${tituloFn(item)}</b>
+              <span>${item.acertos}/${item.total} • ${pct}%</span>
+            </div>
+            <div class="progresso-barra"><span style="width:${pct}%"></span></div>
+          </div>`;
+        }).join('');
+      };
+
+      const materias = Object.entries(porMateria)
+        .map(([nome,d]) => ({ nome, ...d }))
+        .sort((a,b) => (b.total ? b.acertos/b.total : 0) - (a.total ? a.acertos/a.total : 0));
+
+      const assuntos = Object.values(porAssunto)
+        .sort((a,b) => (a.total ? a.acertos/a.total : 0) - (b.total ? b.acertos/b.total : 0));
+
+      renderLista('progressoPorMateria', materias, x => x.nome);
+      renderLista('progressoPorAssunto', assuntos, x => `${x.materia} — ${x.assunto}`);
+    }
+
+    // Atualizações auxiliares ao abrir a aplicação/abas.
+    document.addEventListener('DOMContentLoaded', function() {
+      ocultarAdicionarTopicoAntigo();
+      setTimeout(() => {
+        atualizarPlanejamentoAutomatico();
+        atualizarAssuntosDaQuestao();
+        renderizarProgressoQuestoes();
+      }, 0);
+    });
+
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('button');
+      if (!btn || !/Registrar Questões/i.test(btn.textContent || '')) return;
+
+      const assuntoSelect = document.getElementById('conteudoQuestao');
+      const materiaSelect = localizarSelectDisciplinaQuestao();
+      if (!estado.ultimaSelecaoQuestao) estado.ultimaSelecaoQuestao = {};
+      estado.ultimaSelecaoQuestao = {
+        materia: materiaSelect ? materiaSelect.value : '',
+        topicoId: assuntoSelect ? assuntoSelect.value : '',
+        assunto: assuntoSelect && assuntoSelect.selectedIndex >= 0
+          ? assuntoSelect.options[assuntoSelect.selectedIndex].text
+          : ''
+      };
+    }, true);
 </script>
 </body>
 </html>

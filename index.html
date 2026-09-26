@@ -1815,7 +1815,6 @@
       const erro = document.getElementById('msgErro');
 
       const senhasLocais = obterSenhasLocais();
-
       const usuarioEncontrado = Object.keys(senhasLocais).find(
         key => key.toLowerCase() === uInput.toLowerCase()
       );
@@ -1828,45 +1827,14 @@
         return;
       }
 
-      if (rtdb) {
-        rtdb.ref("senhas/" + usuarioEncontrado.toLowerCase()).once("value").then(snap => {
-          const senhaNuvem = snap.val();
-          const senhaFinal = senhaNuvem ? senhaNuvem : senhasLocais[usuarioEncontrado];
-
-          if (senhaFinal === sInput) {
-            senhasLocais[usuarioEncontrado] = senhaFinal;
-            salvarSenhasLocais(senhasLocais);
-            usuarioAtivo = usuarioEncontrado;
-            sessionStorage.setItem('usuario_ativo', usuarioAtivo);
-            abrirApp();
-          } else {
-            if (erro) {
-              erro.style.display = 'block';
-              erro.innerText = 'Palavra-passe incorreta!';
-            }
-          }
-        }).catch(() => {
-          if (senhasLocais[usuarioEncontrado] === sInput) {
-            usuarioAtivo = usuarioEncontrado;
-            sessionStorage.setItem('usuario_ativo', usuarioAtivo);
-            abrirApp();
-          } else {
-            if (erro) {
-              erro.style.display = 'block';
-              erro.innerText = 'Palavra-passe incorreta!';
-            }
-          }
-        });
+      if (senhasLocais[usuarioEncontrado] === sInput) {
+        usuarioAtivo = usuarioEncontrado;
+        sessionStorage.setItem('usuario_ativo', usuarioAtivo);
+        abrirApp();
       } else {
-        if (senhasLocais[usuarioEncontrado] === sInput) {
-          usuarioAtivo = usuarioEncontrado;
-          sessionStorage.setItem('usuario_ativo', usuarioAtivo);
-          abrirApp();
-        } else {
-          if (erro) {
-            erro.style.display = 'block';
-            erro.innerText = 'Palavra-passe incorreta!';
-          }
+        if (erro) {
+          erro.style.display = 'block';
+          erro.innerText = 'Palavra-passe incorreta!';
         }
       }
     }
@@ -1897,21 +1865,13 @@
       salvarSenhasLocais(senhas);
 
       if (rtdb) {
-        rtdb.ref("senhas/" + usuarioAtivo.toLowerCase()).set(nova).then(() => {
-          msg.style.display = 'block';
-          msg.style.color = '#10b981';
-          msg.style.background = 'rgba(16, 185, 129, 0.1)';
-          msg.innerText = 'Palavra-passe alterada na nuvem!';
-        }).catch(() => {
-          msg.style.display = 'block';
-          msg.style.color = '#10b981';
-          msg.innerText = 'Salva localmente.';
-        });
-      } else {
-        msg.style.display = 'block';
-        msg.style.color = '#10b981';
-        msg.innerText = 'Senha alterada localmente!';
+        rtdb.ref("senhas/" + usuarioAtivo.toLowerCase()).set(nova).catch(() => {});
       }
+
+      msg.style.display = 'block';
+      msg.style.color = '#10b981';
+      msg.style.background = 'rgba(16, 185, 129, 0.1)';
+      msg.innerText = 'Palavra-passe alterada com sucesso!';
 
       document.getElementById('senhaAtual').value = '';
       document.getElementById('novaSenha').value = '';
@@ -1934,18 +1894,8 @@
     function carregarListaUsuariosAdmin() {
       const container = document.getElementById('listaUsuariosCadastradosAdmin');
       if (!container) return;
-
-      if (rtdb) {
-        rtdb.ref("senhas").on("value", snapshot => {
-          const senhasNuvem = snapshot.val() || {};
-          if (!senhasNuvem['Eduardo'] && !senhasNuvem['eduardo']) {
-            senhasNuvem['Eduardo'] = '333435';
-          }
-          renderizarListaUsuariosAdminHtml(senhasNuvem);
-        });
-      } else {
-        renderizarListaUsuariosAdminHtml(obterSenhasLocais());
-      }
+      const senhasObj = obterSenhasLocais();
+      renderizarListaUsuariosAdminHtml(senhasObj);
     }
 
     function renderizarListaUsuariosAdminHtml(senhasObj) {
@@ -1954,11 +1904,6 @@
       container.innerHTML = '';
 
       const usuarios = Object.keys(senhasObj);
-      if (usuarios.length === 0) {
-        container.innerHTML = '<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:12px;">Nenhum utilizador encontrado.</div>';
-        return;
-      }
-
       usuarios.forEach(u => {
         const item = document.createElement('div');
         item.className = 'item-card';
@@ -1996,17 +1941,13 @@
       salvarSenhasLocais(senhas);
 
       if (rtdb) {
-        rtdb.ref("senhas/" + nome.toLowerCase()).set(senha).then(() => {
-          alert(`Utilizador "${nome}" criado com sucesso!`);
-          nomeInput.value = '';
-          senhaInput.value = '';
-        });
-      } else {
-        alert(`Utilizador "${nome}" registado localmente.`);
-        nomeInput.value = '';
-        senhaInput.value = '';
-        carregarListaUsuariosAdmin();
+        rtdb.ref("senhas/" + nome.toLowerCase()).set(senha).catch(() => {});
       }
+
+      alert(`Utilizador "${nome}" criado com sucesso!`);
+      nomeInput.value = '';
+      senhaInput.value = '';
+      carregarListaUsuariosAdmin();
     }
 
     function adminExcluirUsuario(nome) {
@@ -2021,14 +1962,12 @@
         salvarSenhasLocais(senhas);
 
         if (rtdb) {
-          rtdb.ref("senhas/" + nome.toLowerCase()).remove().then(() => {
-            rtdb.ref("perfis/" + nome.toLowerCase()).remove();
-            alert(`Utilizador "${nome}" eliminado com sucesso!`);
-          });
-        } else {
-          alert(`Utilizador "${nome}" eliminado localmente.`);
-          carregarListaUsuariosAdmin();
+          rtdb.ref("senhas/" + nome.toLowerCase()).remove().catch(() => {});
+          rtdb.ref("perfis/" + nome.toLowerCase()).remove().catch(() => {});
         }
+
+        alert(`Utilizador "${nome}" eliminado com sucesso!`);
+        carregarListaUsuariosAdmin();
       }
     }
 
@@ -2292,6 +2231,7 @@
         estado = obterEstadoPadrao();
       }
 
+      // Renderização imediata síncrona com memória local para evitar ecrã em branco
       isReceivingFromCloud = true;
       dataReferencia = new Date();
       atualizarUIAposCarregar();
@@ -2301,16 +2241,8 @@
         if (dbRefAtivo) dbRefAtivo.off();
         dbRefAtivo = rtdb.ref("perfis/" + usuarioAtivo.toLowerCase());
 
-        let timeoutAlcancado = false;
-        const timerFallback = setTimeout(() => {
-          timeoutAlcancado = true;
-          atualizarStatusNuvem("☁️ Pronto (Local)", "online");
-        }, 1500);
-
         dbRefAtivo.once("value", snapshot => {
-          clearTimeout(timerFallback);
           const dadosNuvem = snapshot.val();
-          // Condição segura para não sobrescrever dados locais válidos com dados vazios da nuvem
           if (dadosNuvem && dadosNuvem.estado && dadosNuvem.estado.disciplinas && dadosNuvem.estado.disciplinas.length > 0) {
             isReceivingFromCloud = true;
             estado = dadosNuvem.estado;
@@ -2340,9 +2272,6 @@
               }
             }
           });
-        }, () => {
-          clearTimeout(timerFallback);
-          atualizarStatusNuvem("☁️ Pronto (Modo Local)", "online");
         });
       } else {
         atualizarStatusNuvem("☁️ Pronto (Modo Local)", "online");

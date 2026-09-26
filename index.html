@@ -1594,7 +1594,7 @@
         <button class="tab-btn" onclick="trocarAba('aba-questoes', this)">Questões</button>
         <button class="tab-btn" onclick="trocarAba('aba-edital-vert', this)">Edital</button>
         <button class="tab-btn" onclick="trocarAba('aba-progresso', this)">📈 Progresso</button>
-        <button class="tab-btn" onclick="trocarAba('aba-planejamento', this)">Planeamento</button>
+        <button class="tab-btn" onclick="trocarAba('aba-planejamento', this)">Planejamento</button>
         <button class="tab-btn" onclick="trocarAba('aba-edital', this)">Edital TXT</button>
         <button class="tab-btn" onclick="trocarAba('aba-senha', this)">Segurança</button>
         <button class="tab-btn" id="btnAbaUsuariosAdmin" onclick="trocarAba('aba-usuarios-admin', this)" style="display:none; color: #f59e0b; font-weight:700;">Gestão Utilizadores 👥</button>
@@ -1834,11 +1834,11 @@
           <div class="planejamento-datas">
             <div class="field">
               <label>INÍCIO DOS ESTUDOS</label>
-              <input type="date" id="planejamentoInicioAuto" onchange="calcularDiasAteProvaV14()" oninput="calcularDiasAteProvaV14()">
+              <input type="date" id="planejamentoInicioAuto" onchange="salvarDatasPlanejamentoV16()" oninput="salvarDatasPlanejamentoV16()">
             </div>
             <div class="field">
               <label>DATA DA PROVA</label>
-              <input type="date" id="planejamentoProvaAuto" onchange="calcularDiasAteProvaV14()" oninput="calcularDiasAteProvaV14()">
+              <input type="date" id="planejamentoProvaAuto" onchange="salvarDatasPlanejamentoV16()" oninput="salvarDatasPlanejamentoV16()">
             </div>
           </div>
 
@@ -4650,6 +4650,120 @@
     window.addEventListener('resize', function() {
       if (window.innerWidth > 768) {
         fecharMenuMobile();
+      }
+    });
+
+    // ===== V16: persistência das datas do Planejamento =====
+    function chaveDatasPlanejamentoV16() {
+      // Usa o usuário/perfil ativo para não misturar datas entre usuários.
+      const perfil =
+        (typeof usuarioAtual !== 'undefined' && usuarioAtual) ||
+        (typeof estado !== 'undefined' && (
+          estado.usuarioAtual || estado.perfilAtual || estado.nomeUsuario || estado.perfil
+        )) ||
+        'padrao';
+
+      const id = typeof perfil === 'object'
+        ? (perfil.id || perfil.uid || perfil.nome || perfil.name || 'padrao')
+        : perfil;
+
+      return 'estudoInteligente_planejamentoDatas_' + String(id);
+    }
+
+    function calcularDiasPlanejamentoV16() {
+      const inicio = document.getElementById('planejamentoInicioAuto');
+      const prova = document.getElementById('planejamentoProvaAuto');
+      const saida = document.getElementById('pvDiasFaltando');
+      if (!inicio || !prova || !saida) return;
+
+      if (!inicio.value || !prova.value) {
+        saida.textContent = '—';
+        return;
+      }
+
+      const a = inicio.value.split('-').map(Number);
+      const b = prova.value.split('-').map(Number);
+      const inicioMs = Date.UTC(a[0], a[1] - 1, a[2]);
+      const provaMs = Date.UTC(b[0], b[1] - 1, b[2]);
+      const dias = Math.round((provaMs - inicioMs) / 86400000);
+
+      if (!Number.isFinite(dias) || dias < 0) {
+        saida.textContent = 'Data inválida';
+        return;
+      }
+
+      saida.textContent = dias === 0 ? 'Hoje' : `${dias} ${dias === 1 ? 'dia' : 'dias'}`;
+    }
+
+    function salvarDatasPlanejamentoV16() {
+      const inicio = document.getElementById('planejamentoInicioAuto');
+      const prova = document.getElementById('planejamentoProvaAuto');
+      if (!inicio || !prova) return;
+
+      const dados = {
+        inicio: inicio.value || '',
+        prova: prova.value || ''
+      };
+
+      // Salva no estado normal do usuário.
+      if (typeof estado !== 'undefined' && estado) {
+        estado.dataInicio = dados.inicio;
+        estado.inicioEstudos = dados.inicio;
+        estado.dataProva = dados.prova;
+      }
+
+      // Backup local por perfil: continua disponível após "Encerrar Sessão".
+      try {
+        localStorage.setItem(chaveDatasPlanejamentoV16(), JSON.stringify(dados));
+      } catch (e) {}
+
+      if (typeof salvarEstado === 'function') {
+        try { salvarEstado(); } catch (e) {}
+      }
+
+      calcularDiasPlanejamentoV16();
+    }
+
+    function restaurarDatasPlanejamentoV16() {
+      const inicio = document.getElementById('planejamentoInicioAuto');
+      const prova = document.getElementById('planejamentoProvaAuto');
+      if (!inicio || !prova) return;
+
+      let dados = null;
+
+      // Primeiro tenta os dados do perfil carregado.
+      if (typeof estado !== 'undefined' && estado) {
+        const i = estado.dataInicio || estado.inicioEstudos || '';
+        const p = estado.dataProva || '';
+        if (i || p) dados = { inicio: i, prova: p };
+      }
+
+      // Se o encerramento da sessão limpou o estado, recupera o backup do perfil.
+      if (!dados || (!dados.inicio && !dados.prova)) {
+        try {
+          const salvo = localStorage.getItem(chaveDatasPlanejamentoV16());
+          if (salvo) dados = JSON.parse(salvo);
+        } catch (e) {}
+      }
+
+      if (dados) {
+        if (dados.inicio) inicio.value = dados.inicio;
+        if (dados.prova) prova.value = dados.prova;
+      }
+
+      calcularDiasPlanejamentoV16();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(restaurarDatasPlanejamentoV16, 50);
+    });
+
+    // Ao abrir Planejamento novamente, restaura/recalcula.
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      if (/Planejamento/i.test(btn.textContent || '')) {
+        setTimeout(restaurarDatasPlanejamentoV16, 50);
       }
     });
 </script>

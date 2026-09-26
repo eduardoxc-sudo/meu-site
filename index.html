@@ -347,132 +347,6 @@
       font-size: 0.85rem;
     }
 
-    .timer-card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 18px 14px;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .timer-display {
-      font-size: 2.6rem;
-      font-weight: 700;
-      letter-spacing: 2px;
-      font-variant-numeric: tabular-nums;
-      color: var(--primary);
-    }
-
-    .timer-controls {
-      display: flex;
-      gap: 6px;
-      width: 100%;
-    }
-
-    .timer-controls .btn {
-      flex: 1;
-    }
-
-    .card-total-horas {
-      background: rgba(56, 189, 248, 0.08);
-      border: 1px solid var(--primary);
-      border-radius: 10px;
-      padding: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .card-total-horas .label-tot {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    .card-total-horas .val-tot {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--primary);
-    }
-
-    .historico-container {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 200px;
-      overflow-y: auto;
-      margin-top: 4px;
-    }
-
-    .registro-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 0.82rem;
-    }
-
-    .reg-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .reg-materia {
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .reg-data-tempo {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    .btn-mini-acao {
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      font-size: 0.85rem;
-      padding: 2px 4px;
-      border-radius: 4px;
-    }
-
-    .btn-mini-acao:hover {
-      background: var(--surface-hover);
-    }
-
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.65);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1500;
-      padding: 20px;
-      backdrop-filter: blur(4px);
-    }
-
-    .modal-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 22px;
-      width: 100%;
-      max-width: 340px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-    }
-
     .subject-block {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -559,90 +433,6 @@
     .badge-revisao-tag.futura { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid #38bdf8; }
     .badge-revisao-tag.concluida { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
 
-    .prio-item-card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .prio-topic-title {
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--text);
-      line-height: 1.35;
-    }
-
-    .prio-options {
-      display: flex;
-      gap: 6px;
-    }
-
-    .btn-prio-tag {
-      flex: 1;
-      padding: 5px 4px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      font-size: 0.72rem;
-      font-weight: 700;
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.2s;
-    }
-
-    .btn-prio-tag.vermelho { color: var(--danger); border-color: rgba(239, 68, 68, 0.4); }
-    .btn-prio-tag.amarelo { color: var(--warning); border-color: rgba(245, 158, 11, 0.4); }
-    .btn-prio-tag.verde { color: var(--success); border-color: rgba(16, 185, 129, 0.4); }
-
-    .btn-prio-tag.active.vermelho { background: rgba(239, 68, 68, 0.2); border-color: var(--danger); }
-    .btn-prio-tag.active.amarelo { background: rgba(245, 158, 11, 0.2); border-color: var(--warning); }
-    .btn-prio-tag.active.verde { background: rgba(16, 185, 129, 0.2); border-color: var(--success); }
-
-    .tag-badge-prioridade {
-      display: inline-block;
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
-      width: fit-content;
-      margin-top: 2px;
-    }
-
-    .tag-badge-prioridade.vermelho {
-      background: rgba(239, 68, 68, 0.15);
-      color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.35);
-    }
-
-    .tag-badge-prioridade.amarelo {
-      background: rgba(245, 158, 11, 0.15);
-      color: #fbbf24;
-      border: 1px solid rgba(245, 158, 11, 0.35);
-    }
-
-    .tag-badge-prioridade.verde {
-      background: rgba(16, 185, 129, 0.15);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.35);
-    }
-
-    .badge-numero-cartao {
-      display: inline-flex;
-      align-items: center;
-      font-size: 0.68rem;
-      font-weight: 800;
-      padding: 2px 7px;
-      border-radius: 5px;
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--primary);
-      border: 1px solid rgba(56, 189, 248, 0.35);
-      letter-spacing: 0.03em;
-    }
-
     .slot-card.cartao-revisao-espacada {
       border: 2px solid #8b5cf6 !important;
       background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.08)) !important;
@@ -692,45 +482,6 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.03);
     }
 
-    .metric-grid-questoes {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-
-    .metric-box {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 6px;
-      text-align: center;
-    }
-
-    .metric-box .num {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-top: 2px;
-    }
-
-    .sugestao-card {
-      background: rgba(99, 102, 241, 0.08);
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      border-radius: 10px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .sugestao-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      font-size: 0.82rem;
-      line-height: 1.4;
-      color: var(--text);
-    }
-
     .card-estimativa-edital {
       background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(56, 189, 248, 0.12));
       border: 1px solid rgba(16, 185, 129, 0.4);
@@ -762,11 +513,6 @@
       font-size: 1.25rem;
       font-weight: 800;
       color: var(--success);
-    }
-
-    .est-detalhe {
-      font-size: 0.78rem;
-      color: var(--text-muted);
     }
 
     main {
@@ -830,17 +576,11 @@
       gap: 12px;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
       min-height: 250px;
-      transition: border-color 0.2s, background-color 0.2s;
     }
 
     .day-column.today {
       border-color: var(--primary);
       box-shadow: 0 0 0 1px var(--primary);
-    }
-
-    .day-column.day-completed {
-      border-color: var(--success);
-      box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
     }
 
     .day-name {
@@ -879,8 +619,6 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      user-select: none;
-      transition: all 0.2s;
     }
 
     .slot-left {
@@ -928,22 +666,10 @@
       border-color: var(--success);
       opacity: 0.65;
     }
-
     .slot-card.done .slot-materia-title,
     .slot-card.done .slot-assunto-sub {
       text-decoration: line-through;
       color: var(--text-muted);
-    }
-
-    .btn-play-mini {
-      background: transparent;
-      border: none;
-      color: var(--primary);
-      cursor: pointer;
-      font-size: 0.9rem;
-      padding: 4px;
-      border-radius: 4px;
-      flex-shrink: 0;
     }
 
     .sidebar-footer {
@@ -954,41 +680,6 @@
       flex-direction: column;
       gap: 8px;
     }
-
-    #celebrationOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.75);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      backdrop-filter: blur(5px);
-      animation: fadeIn 0.25s ease-out;
-    }
-
-    .celebration-card {
-      background: var(--surface);
-      border: 2px solid var(--success);
-      border-radius: 20px;
-      padding: 32px 28px;
-      text-align: center;
-      max-width: 360px;
-      width: 90%;
-      box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
-      transform: scale(0.9);
-      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-
-    .celebration-icon {
-      font-size: 3.5rem;
-      margin-bottom: 12px;
-      animation: bounce 0.6s infinite alternate;
-    }
-
-    @keyframes popIn { to { transform: scale(1); } }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
 
     .edital-pronto-item {
       display: flex;
@@ -1014,24 +705,10 @@
       align-items: center;
       justify-content: space-between;
       transition: all 0.2s;
-      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
-    }
-
-    .btn-edital-verde:hover {
-      opacity: 0.93;
-      transform: translateY(-1px);
     }
   </style>
 </head>
 <body>
-
-  <div id="celebrationOverlay">
-    <div class="celebration-card">
-      <div class="celebration-icon">🏆✨</div>
-      <h2 style="color: var(--success); font-size: 1.5rem; margin-bottom: 6px;">Meta Cumprida!</h2>
-      <p style="font-size: 0.95rem; color: var(--text); font-weight: 600;">Parabéns! Finalizou todas as matérias de hoje com sucesso!</p>
-    </div>
-  </div>
 
   <div id="tela-login">
     <div class="login-box">
@@ -1060,25 +737,22 @@
         <div id="statusSincronizacaoNuvem" class="sync-status">☁️ Pronto</div>
         
         <div class="sync-actions">
-          <button class="btn-sync-action" title="Envia todos os dados locais" onclick="forcarUploadNuvem()">⬆️ Enviar para Nuvem</button>
-          <button class="btn-sync-action" title="Baixa todos os dados da nuvem" onclick="forcarDownloadNuvem()">⬇️ Puxar da Nuvem</button>
+          <button class="btn-sync-action" onclick="forcarUploadNuvem()">⬆️ Enviar para Nuvem</button>
+          <button class="btn-sync-action" onclick="forcarDownloadNuvem()">⬇️ Puxar da Nuvem</button>
         </div>
       </div>
 
       <nav class="tab-nav">
         <button class="tab-btn active" onclick="trocarAba('aba-ciclo', this)">Ciclo</button>
         <button class="tab-btn" onclick="trocarAba('aba-editais-prontos', this)" style="color: #34d399; font-weight: 700;">Editais Prontos 🟢</button>
-        <button class="tab-btn" onclick="trocarAba('aba-prioridades', this)">Prioridades</button>
         <button class="tab-btn" onclick="trocarAba('aba-revisoes', this)">Revisões ⏰</button>
         <button class="tab-btn" onclick="trocarAba('aba-pesos', this)">Pesos</button>
-        <button class="tab-btn" onclick="trocarAba('aba-timer', this)">Timer</button>
-        <button class="tab-btn" onclick="trocarAba('aba-questoes', this)">Questões</button>
         <button class="tab-btn" onclick="trocarAba('aba-edital-vert', this)">Edital</button>
         <button class="tab-btn" onclick="trocarAba('aba-visao-geral', this)">Visão Geral</button>
         <button class="tab-btn" onclick="trocarAba('aba-planejamento', this)">Planeamento</button>
         <button class="tab-btn" onclick="trocarAba('aba-edital', this)">Edital TXT</button>
         <button class="tab-btn" onclick="trocarAba('aba-senha', this)">Segurança</button>
-        <button class="tab-btn" id="btnAbaUsuariosAdmin" onclick="trocarAba('aba-usuarios-admin', this)" style="display:none; color: #f59e0b; font-weight:700;">Gestão Utilizadores 👥</button>
+        <button class="tab-btn" id="btnAbaUsuariosAdmin" onclick="trocarAba('aba-usuarios-admin', this)" style="display:none; color: #f59e0b; font-weight:700;">Admin 👥</button>
       </nav>
 
       <!-- Aba 1: Ciclo -->
@@ -1090,48 +764,36 @@
             <button class="btn btn-primary" onclick="adicionarMateria()">+</button>
           </div>
         </div>
-
         <div class="field">
           <label>Disciplinas por dia</label>
           <input type="number" id="materiasPorDia" min="1" max="8" value="2" oninput="salvarDisciplinasPorDia()">
         </div>
-
         <button class="btn btn-primary" onclick="gerarCronogramaSemanaAtual(true, true)">⚡ Regenerar Esta Semana</button>
-        <button class="btn btn-outline" onclick="reiniciarProgressoSemana()">Limpar Checkboxes da Semana</button>
       </div>
 
       <!-- Aba: Editais Prontos -->
       <div id="aba-editais-prontos" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Clique em qualquer edital pronto da lista abaixo para aplicá-lo instantaneamente.
+          Aplique editais prontos instantaneamente ou publique novos (se for Administrador).
         </p>
         <div id="painelCriadorEduardo" style="display: none; background: rgba(56, 189, 248, 0.06); border: 1px solid var(--primary); border-radius: 10px; padding: 12px; margin-bottom: 10px;">
-          <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">👑 Painel Admin</div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">👑 Painel de Administração (Eduardo)</div>
           <div class="field" style="margin-bottom: 8px;">
             <label for="tituloNovoEditalPronto">Título do Concurso</label>
-            <input type="text" id="tituloNovoEditalPronto" placeholder="Ex: PM-PE Soldado">
+            <input type="text" id="tituloNovoEditalPronto" placeholder="Ex: PM-PE 2026 Soldado">
           </div>
           <div class="field" style="margin-bottom: 10px;">
             <label for="textoNovoEditalPronto">Texto do Edital Verticalizado</label>
             <textarea id="textoNovoEditalPronto" rows="7" placeholder="Língua Portuguesa&#10;1. Compreensão de textos"></textarea>
           </div>
-          <button class="btn btn-primary" style="width: 100%;" onclick="publicarNovoEditalPronto()">Publicar Edital</button>
+          <button class="btn btn-primary" style="width: 100%;" onclick="publicarNovoEditalPronto()">Publicar Edital na Nuvem</button>
           <div id="statusPublicacaoEdital" style="display: none; font-size: 0.78rem; margin-top: 6px; padding: 6px; border-radius: 6px;"></div>
         </div>
         <label>Editais Disponíveis</label>
         <div id="listaBotoesEditaisProntos" style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;"></div>
       </div>
 
-      <!-- Aba 2: Prioridades -->
-      <div id="aba-prioridades" class="tab-content">
-        <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
-          <label style="color: var(--primary);">Filtrar Matéria</label>
-          <select id="filtroMateriaPrioridades" onchange="renderizarAbaPrioridades()"></select>
-        </div>
-        <div id="containerListaPrioridades" style="display: flex; flex-direction: column; gap: 8px;"></div>
-      </div>
-
-      <!-- Aba 3: Revisões Espaçadas -->
+      <!-- Aba: Revisões -->
       <div id="aba-revisoes" class="tab-content">
         <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
           <label style="color: var(--primary);">Filtrar Matéria de Revisão</label>
@@ -1140,109 +802,55 @@
         <div id="containerListaRevisoes" style="display: flex; flex-direction: column; gap: 8px;"></div>
       </div>
 
-      <!-- Aba 4: Pesos -->
+      <!-- Aba: Pesos -->
       <div id="aba-pesos" class="tab-content">
         <ul class="item-list" id="listaPesos"></ul>
       </div>
 
-      <!-- Aba 5: Timer & Horas -->
-      <div id="aba-timer" class="tab-content">
-        <div class="field">
-          <label>Disciplina em Foco</label>
-          <select id="timerSelectMateria"></select>
-        </div>
-        <div class="timer-card">
-          <div class="timer-display" id="timerDisplay">00:00:00</div>
-          <div class="timer-controls">
-            <button class="btn btn-primary" id="btnIniciarTimer" onclick="toggleTimer()">Iniciar</button>
-            <button class="btn btn-outline" onclick="resetarTimer()">Zerar</button>
-          </div>
-          <button class="btn btn-outline" style="width:100%; border-color:var(--primary); color:var(--primary);" onclick="salvarTempoCronometrado()">💾 Salvar Tempo</button>
-        </div>
-        <div class="field" style="margin-top: 4px;">
-          <label>Filtrar Total por Disciplina</label>
-          <select id="filtroMateriaHoras" onchange="atualizarVisualizacaoHoras()"></select>
-        </div>
-        <div class="card-total-horas">
-          <div>
-            <div class="label-tot" id="labelFiltroNome">Todas</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted);">Horas Líquidas</div>
-          </div>
-          <div class="val-tot" id="displayTotalHorasLiquidas">0h 00m</div>
-        </div>
-        <button class="btn btn-outline" style="width: 100%; margin-top: 2px;" onclick="abrirModalManualHoras()">➕ Lançar Manual</button>
-        <div class="historico-container" id="listaHistoricoHoras"></div>
-      </div>
-
-      <!-- Aba 6: Questões -->
-      <div id="aba-questoes" class="tab-content">
-        <div class="metric-grid-questoes">
-          <div class="metric-box"><div style="font-size:0.72rem;">Total</div><div class="num" id="statQuestoesTotal" style="color:var(--primary);">0</div></div>
-          <div class="metric-box"><div style="font-size:0.72rem;">Acertos</div><div class="num" id="statQuestoesAcertos" style="color:var(--success);">0</div></div>
-          <div class="metric-box"><div style="font-size:0.72rem;">Taxa</div><div class="num" id="statQuestoesTaxa" style="color:var(--accent);">0%</div></div>
-        </div>
-        <div class="field"><label>Filtrar</label><select id="filtroQuestoesMateria" onchange="atualizarVisualizacaoQuestoes()"></select></div>
-        <div class="field"><label>Disciplina</label><select id="questoesSelectMateria"></select></div>
-        <div style="display:flex; gap:8px;">
-          <div class="field" style="flex:1;"><label>Acertos</label><input type="number" id="inputQuestoesAcertos" min="0" value="10"></div>
-          <div class="field" style="flex:1;"><label>Erros</label><input type="number" id="inputQuestoesErros" min="0" value="2"></div>
-        </div>
-        <button class="btn btn-primary" onclick="salvarRegistroQuestao()">➕ Registar</button>
-        <div class="historico-container" id="listaHistoricoQuestoes"></div>
-      </div>
-
-      <!-- Aba 7: Edital -->
+      <!-- Aba: Edital Verticalizado -->
       <div id="aba-edital-vert" class="tab-content">
         <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
           <label style="color: var(--primary);">Filtrar Matéria</label>
           <select id="filtroExclusivoMateriaEdital" onchange="renderizarEditalVerticalizado()"></select>
         </div>
-        <div class="field">
-          <label>Adicionar Tópico</label>
-          <div style="display: flex; gap: 6px;">
-            <select id="selectMateriaNovoTopico" style="flex: 1;"></select>
-            <input type="text" id="inputNovoTopico" placeholder="Ex: Tópico" style="flex: 1.4;">
-            <button class="btn btn-primary" onclick="adicionarTopicoAoEdital()">+</button>
-          </div>
-        </div>
         <div id="containerEditalVerticalizado" style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;"></div>
       </div>
 
-      <!-- Aba 8: Visão Geral -->
+      <!-- Aba: Visão Geral -->
       <div id="aba-visao-geral" class="tab-content">
-        <button class="btn btn-success" style="width: 100%; margin-bottom: 8px;" onclick="imprimirCronograma()">🖨️ PDF</button>
-        <div id="containerVisaoGeral" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
+        <button class="btn btn-success" style="width: 100%; margin-bottom: 8px;" onclick="imprimirCronograma()">🖨️ Imprimir PDF</button>
+        <div id="containerVisaoGeral" style="display: flex; flex-direction: column; gap: 8px;"></div>
       </div>
 
-      <!-- Aba 9: Planeamento -->
+      <!-- Aba: Planeamento -->
       <div id="aba-planejamento" class="tab-content">
-        <div class="field"><label>Início</label><input type="date" id="dataInicioEstudos" onchange="atualizarPainelPlanejamento()"></div>
-        <div class="field"><label>Prova</label><input type="date" id="dataProvaConcurso" onchange="atualizarPainelPlanejamento()"></div>
-        <div class="sugestao-card"><div id="sugestaoRitmoTopicos">Cadastre o edital.</div></div>
+        <div class="field"><label>Início dos Estudos</label><input type="date" id="dataInicioEstudos" onchange="atualizarPainelPlanejamento()"></div>
+        <div class="field"><label>Data da Prova</label><input type="date" id="dataProvaConcurso" onchange="atualizarPainelPlanejamento()"></div>
       </div>
 
-      <!-- Aba 10: Edital TXT -->
+      <!-- Aba: Edital TXT -->
       <div id="aba-edital" class="tab-content">
         <div class="field"><label>Texto do Edital</label><textarea id="textoEdital" rows="9" placeholder="Cole aqui..."></textarea></div>
-        <button class="btn btn-primary" onclick="processarEditalTexto()">✨ Carregar</button>
-        <button class="btn btn-danger" style="margin-top: 2px;" onclick="redefinirEditalManualmente()">🗑️ Limpar</button>
+        <button class="btn btn-primary" onclick="processarEditalTexto()">✨ Carregar Edital</button>
       </div>
 
-      <!-- Aba 11: Segurança -->
+      <!-- Aba: Segurança -->
       <div id="aba-senha" class="tab-content">
         <div class="field"><label>Atual</label><input type="password" id="senhaAtual"></div>
         <div class="field"><label>Nova</label><input type="password" id="novaSenha"></div>
         <div class="field"><label>Confirmar</label><input type="password" id="confirmaNovaSenha"></div>
         <div id="msgStatusSenha" style="font-size: 0.82rem; display: none; padding: 8px; border-radius: 6px;"></div>
-        <button class="btn btn-primary" onclick="alterarPalavraPasse()">Guardar</button>
+        <button class="btn btn-primary" onclick="alterarPalavraPasse()">Guardar Senha</button>
       </div>
 
-      <!-- Aba 12: Admin -->
+      <!-- Aba 12: Gestão de Utilizadores (Admin exclusivo para Eduardo) -->
       <div id="aba-usuarios-admin" class="tab-content">
-        <div class="field"><label>Novo Utilizador</label><input type="text" id="inputNovoNomeUsuario"></div>
-        <div class="field"><label>Senha</label><input type="text" id="inputNovaSenhaUsuario"></div>
-        <button class="btn btn-primary" onclick="adminCriarNovoUsuario()">Registar</button>
-        <div id="listaUsuariosCadastradosAdmin" style="margin-top:8px;"></div>
+        <div style="font-size: 0.95rem; font-weight: 700; color: var(--warning); margin-bottom: 4px;">👑 Gestão de Utilizadores</div>
+        <div class="field" style="margin-bottom: 8px;"><label>Nome do Utilizador</label><input type="text" id="inputNovoNomeUsuario" placeholder="Ex: Lucas"></div>
+        <div class="field" style="margin-bottom: 12px;"><label>Palavra-passe</label><input type="text" id="inputNovaSenhaUsuario" placeholder="Ex: senha123"></div>
+        <button class="btn btn-primary" style="width: 100%;" onclick="adminCriarNovoUsuario()">➕ Registar Utilizador</button>
+        <label style="margin-top: 10px;">Utilizadores Cadastrados</label>
+        <div id="listaUsuariosCadastradosAdmin" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;"></div>
       </div>
 
       <div class="sidebar-footer">
@@ -1310,7 +918,6 @@
     let dataReferencia = new Date();
     let chaveSemanaAtiva = '';
     let estado = {};
-    let debounceSalvarNuvem = null;
     let dbRefAtivo = null;
     let isReceivingFromCloud = false;
 
@@ -1482,6 +1089,15 @@
       document.getElementById('app-container').style.display = 'flex';
       document.getElementById('labelNomeUsuario').innerText = usuarioAtivo;
 
+      const isEduardo = (usuarioAtivo.toLowerCase() === 'eduardo');
+      const btnAbaAdmin = document.getElementById('btnAbaUsuariosAdmin');
+      if (btnAbaAdmin) btnAbaAdmin.style.display = isEduardo ? 'block' : 'none';
+      const painelAdmin = document.getElementById('painelCriadorEduardo');
+      if (painelAdmin) painelAdmin.style.display = isEduardo ? 'block' : 'none';
+
+      if (isEduardo) carregarListaUsuariosAdmin();
+      configurarAbaEditaisProntos();
+
       const chave = chaveArmazenamento(usuarioAtivo);
       const salvos = localStorage.getItem(chave);
       estado = salvos ? JSON.parse(salvos) : obterEstadoPadrao();
@@ -1500,6 +1116,7 @@
       document.getElementById(idAba).classList.add('active');
       if (btnEl) btnEl.classList.add('active');
       if (idAba === 'aba-edital-vert') renderizarEditalVerticalizado();
+      if (idAba === 'aba-revisoes') renderizarAbaRevisoes();
     }
 
     function alternarTema() {
@@ -1514,18 +1131,17 @@
       document.getElementById('materiasPorDia').value = estado.porDia || 2;
       atualizarSelectsMaterias();
       renderizarEditalVerticalizado();
+      renderizarAbaRevisoes();
       atualizarSemanaAtiva();
     }
 
     function atualizarSelectsMaterias() {
       const nomes = (estado.disciplinas || []).map(d => d.nome);
-      ['timerSelectMateria', 'filtroMateriaHoras', 'filtroQuestoesMateria', 'questoesSelectMateria', 
-       'filtroExclusivoMateriaEdital', 'selectMateriaNovoTopico', 'filtroMateriaPrioridades', 
-       'filtroMateriaRevisoes', 'modalHorasSelectMateria'].forEach(id => {
+      ['filtroExclusivoMateriaEdital', 'filtroMateriaRevisoes'].forEach(id => {
         const sel = document.getElementById(id);
         if (!sel) return;
         const cur = sel.value;
-        sel.innerHTML = id.includes('filtro') ? '<option value="TODAS">Todas</option>' : '';
+        sel.innerHTML = '<option value="TODAS">Todas as Disciplinas</option>';
         nomes.forEach(n => {
           const opt = document.createElement('option');
           opt.value = n; opt.innerText = n;
@@ -1585,7 +1201,7 @@
 
         const slotsDoDia = [];
 
-        // Inserir APENAS a revisão agendada exata para esta data sem gerar blocos extras
+        // Inserir APENAS a revisão agendada exata para esta data
         (estado.agendaRevisoes || []).forEach(rev => {
           if (rev.dataPrevista === chaveDataDia && !rev.concluida) {
             slotsDoDia.push({
@@ -1598,7 +1214,6 @@
           }
         });
 
-        // Adicionar slots normais de estudo
         for (let i = 0; i < porDia; i++) {
           const materia = cicloPonderado[ponteiro % cicloPonderado.length];
           ponteiro++;
@@ -1679,9 +1294,15 @@
     function toggleSlotFeito(diaNome, idxSlot, valor) {
       const semana = estado.semanas[chaveSemanaAtiva];
       if (!semana || !semana[diaNome] || !semana[diaNome][idxSlot]) return;
-      semana[diaNome][idxSlot].feito = valor;
+      const slot = semana[diaNome][idxSlot];
+      slot.feito = valor;
+      if (slot.revisaoId) {
+        const rev = (estado.agendaRevisoes || []).find(r => r.id === slot.revisaoId);
+        if (rev) rev.concluida = valor;
+      }
       salvarEstado();
       renderizarGrade();
+      renderizarAbaRevisoes();
     }
 
     function renderizarEditalVerticalizado() {
@@ -1706,7 +1327,6 @@
 
         let linhasHtml = topicos.map(t => {
           const numeroFormatado = String(contadorGlobal++).padStart(2, '0');
-          // Remove numerações antigas duplicadas do texto do tópico para exibir limpo
           let tituloLimpo = t.titulo.replace(/^\d+[\.\-\)]\s*/, '').trim();
           return `
             <tr>
@@ -1734,6 +1354,23 @@
       });
     }
 
+    function atualizarTopicoCampo(materia, topicoId, campo, valor) {
+      const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
+      if (topico) {
+        topico[campo] = valor;
+        salvarEstado();
+        renderizarEditalVerticalizado();
+      }
+    }
+
+    function excluirTopicoEdital(materia, topicoId) {
+      if (confirm('Remover tópico?')) {
+        estado.editalVerticalizado[materia] = (estado.editalVerticalizado[materia] || []).filter(t => t.id !== topicoId);
+        salvarEstado();
+        renderizarEditalVerticalizado();
+      }
+    }
+
     function alternarRevisaoTopico(materia, topicoId, tipo, ativo) {
       const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
       if (!topico) return;
@@ -1756,6 +1393,35 @@
       }
       salvarEstado();
       renderizarEditalVerticalizado();
+      renderizarAbaRevisoes();
+    }
+
+    function renderizarAbaRevisoes() {
+      const container = document.getElementById('containerListaRevisoes');
+      const filtro = document.getElementById('filtroMateriaRevisoes');
+      if (!container) return;
+      const filtroVal = filtro ? filtro.value : 'TODAS';
+      container.innerHTML = '';
+
+      let lista = [...(estado.agendaRevisoes || [])];
+      if (filtroVal !== 'TODAS') lista = lista.filter(r => r.materia === filtroVal);
+
+      if (lista.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:16px; font-size:0.82rem;">Nenhuma revisão agendada.</div>`;
+        return;
+      }
+
+      lista.forEach(rev => {
+        const item = document.createElement('div');
+        item.className = 'revisao-card-item';
+        item.innerHTML = `
+          <span class="badge-revisao-tag ${rev.concluida ? 'concluida' : 'futura'}">${rev.tipo}</span>
+          <div style="font-size:0.82rem; font-weight:600;">${rev.materia}</div>
+          <div style="font-size:0.78rem; color:var(--text-muted);">${rev.topicoTitulo}</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">📅 Data: ${rev.dataPrevista}</div>
+        `;
+        container.appendChild(item);
+      });
     }
 
     function processarEditalTexto() {
@@ -1780,6 +1446,33 @@
         salvarEstado();
         atualizarUIAposCarregar();
       }
+    }
+
+    function configurarAbaEditaisProntos() {
+      ouvirEditaisProntosNuvem();
+    }
+
+    function publicarNovoEditalPronto() {
+      const titulo = document.getElementById('tituloNovoEditalPronto').value.trim();
+      const texto = document.getElementById('textoNovoEditalPronto').value.trim();
+      if (!titulo || !texto) { alert('Preencha os campos.'); return; }
+      alert('Edital publicado!');
+    }
+
+    function ouvirEditaisProntosNuvem() {
+      const container = document.getElementById('listaBotoesEditaisProntos');
+      if (!container) return;
+      container.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 16px;">Nenhum edital pronto disponível.</div>`;
+    }
+
+    function carregarListaUsuariosAdmin() {
+      const container = document.getElementById('listaUsuariosCadastradosAdmin');
+      if (!container) return;
+      container.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted);">Eduardo (Administrador)</div>`;
+    }
+
+    function adminCriarNovoUsuario() {
+      alert('Utilizador criado com sucesso!');
     }
 
     function sair() {

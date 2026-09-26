@@ -1762,13 +1762,20 @@
 
       if (!estado.semanas) estado.semanas = {};
       const slotsSemana = estado.semanas[chaveSemanaAtiva] || {};
-      const totalDisciplinasAgendadas = Object.values(slotsSemana).reduce((acc, curr) => acc + (curr ? curr.length : 0), 0);
 
-      if (totalDisciplinasAgendadas === 0 && estado.disciplinas && estado.disciplinas.length > 0) {
+      // Conta apenas matérias normais. Revisão não significa que a semana
+      // já está preenchida com o cronograma normal.
+      const totalMateriasNormais = Object.values(slotsSemana).reduce((acc, curr) => {
+        return acc + (curr || []).filter(slot => !slot.revisaoId).length;
+      }, 0);
+
+      if (totalMateriasNormais === 0 && estado.disciplinas && estado.disciplinas.length > 0) {
+        if (!estado.semanas[chaveSemanaAtiva]) {
+          estado.semanas[chaveSemanaAtiva] = {};
+        }
         gerarSemanaAutomatica(chaveSemanaAtiva, false, false);
       } else if (estado.semanas[chaveSemanaAtiva]) {
-        // Corrige semanas já salvas que ficaram com 3+ atividades após uma revisão.
-        // A revisão ocupa uma vaga; ela nunca aumenta o limite de porDia.
+        completarMateriasNormaisDaSemana(chaveSemanaAtiva);
         inserirRevisoesNaSemana(chaveSemanaAtiva);
       }
 
@@ -2566,15 +2573,89 @@
       return lista[0];
     }
 
+    // Completa as matérias normais de uma semana já existente sem mexer nas revisões.
+    // REGRA:
+    // - antes/até a previsão de conclusão: mantém "porDia" matérias + revisões extras;
+    // - depois da previsão de conclusão: NÃO cria matérias novas, ficam somente revisões.
+    function completarMateriasNormaisDaSemana(chaveSemana) {
+      if (!estado.semanas || !estado.semanas[chaveSemana]) return;
+      if (!estado.disciplinas || estado.disciplinas.length === 0) return;
+
+      const cicloPonderado = construirListaCicloPonderada();
+      if (cicloPonderado.length === 0) return;
+
+      const porDia = parseInt(estado.porDia) || 2;
+      const partes = chaveSemana.replace('semana_', '').split('-');
+      if (partes.length !== 3) return;
+
+      const segunda = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+      segunda.setHours(0, 0, 0, 0);
+
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+
+      // Esta é a data até a qual ainda existem tópicos normais para distribuir.
+      const dataFimConteudo = calcularDataFinalMatematica();
+      if (dataFimConteudo) dataFimConteudo.setHours(0, 0, 0, 0);
+
+      let ponteiro = estado.ponteiroGeral || 0;
+      const semana = estado.semanas[chaveSemana];
+
+      DIAS.forEach((nomeDia, idxDia) => {
+        const dataDia = new Date(segunda);
+        dataDia.setDate(segunda.getDate() + idxDia);
+        dataDia.setHours(0, 0, 0, 0);
+
+        let slots = semana[nomeDia] || [];
+
+        // Nunca cria novas matérias em dias que já passaram.
+        if (dataDia < hoje) {
+          semana[nomeDia] = slots;
+          return;
+        }
+
+        // Depois do fim previsto do conteúdo, revisão pode existir,
+        // mas matéria normal nova NÃO é criada.
+        if (dataFimConteudo && dataDia > dataFimConteudo) {
+          semana[nomeDia] = slots;
+          return;
+        }
+
+        const normaisExistentes = slots.filter(slot => !slot.revisaoId).length;
+        const faltam = Math.max(0, porDia - normaisExistentes);
+
+        for (let i = 0; i < faltam; i++) {
+          const materia = cicloPonderado[ponteiro % cicloPonderado.length];
+          ponteiro++;
+
+          const topico = obterProximoTopicoParaMateria(materia);
+
+          slots.push({
+            materia,
+            assunto: topico ? topico.titulo : 'Revisão livre / Questões',
+            feito: false,
+            topicoId: topico ? topico.id : null
+          });
+        }
+
+        semana[nomeDia] = slots;
+      });
+
+      estado.ponteiroGeral = ponteiro;
+    }
+
     function gerarSemanaAutomatica(chaveSemana, forcarRegenerar, resetarProgresso) {
       if (!estado.disciplinas || estado.disciplinas.length === 0) return;
       if (!estado.semanas) estado.semanas = {};
 
       const semanaExistente = estado.semanas[chaveSemana];
       if (semanaExistente && !forcarRegenerar) {
-        // Mesmo sem regenerar, garante que uma revisão recém-criada apareça
-        // no dia correto sem recriar a semana inteira.
+        // A semana pode existir somente porque uma revisão foi adicionada.
+        // Se ainda estivermos dentro do período normal do edital, completa
+        // as matérias que faltam. Depois da conclusão, não cria matérias.
+        completarMateriasNormaisDaSemana(chaveSemana);
         inserirRevisoesNaSemana(chaveSemana);
+        salvarEstado();
         return;
       }
 
@@ -2649,20 +2730,27 @@
         const slotsDoDia = [];
         adicionarRevisoesDoDia(slotsDoDia, chaveDataDia);
 
-        // As revisões são atividades EXTRAS e não contam no limite porDia.
-        // Ex.: porDia = 2 + uma D30 => 2 matérias normais + 1 revisão.
-        for (let i = 0; i < porDia; i++) {
-          const materia = cicloPonderado[ponteiro % cicloPonderado.length];
-          ponteiro++;
+        // Revisões são EXTRAS. As matérias normais só são criadas
+        // enquanto ainda estamos dentro do período previsto para concluir o edital.
+        const dataFimConteudo = calcularDataFinalMatematica();
+        if (dataFimConteudo) dataFimConteudo.setHours(0, 0, 0, 0);
 
-          const topico = obterProximoTopicoParaMateria(materia);
+        const podeCriarMateriaNormal = !dataFimConteudo || dataDia <= dataFimConteudo;
 
-          slotsDoDia.push({
-            materia,
-            assunto: topico ? topico.titulo : 'Revisão livre / Questões',
-            feito: false,
-            topicoId: topico ? topico.id : null
-          });
+        if (podeCriarMateriaNormal) {
+          for (let i = 0; i < porDia; i++) {
+            const materia = cicloPonderado[ponteiro % cicloPonderado.length];
+            ponteiro++;
+
+            const topico = obterProximoTopicoParaMateria(materia);
+
+            slotsDoDia.push({
+              materia,
+              assunto: topico ? topico.titulo : 'Revisão livre / Questões',
+              feito: false,
+              topicoId: topico ? topico.id : null
+            });
+          }
         }
 
         novaSemana[nomeDia] = slotsDoDia;
@@ -3043,8 +3131,28 @@
 
       normalizarAgendaRevisoes();
 
-      // Sincroniza as semanas já existentes: mantém as matérias normais
-      // e apenas ACRESCENTA a revisão no dia correto, sem duplicá-la.
+      // Garante que a semana da revisão exista, mas NÃO gera matérias por causa
+      // do clique em D1/D7/D15/D30.
+      if (ativo) {
+        const revCriada = (estado.agendaRevisoes || []).find(r =>
+          r.topicoId === topicoId && r.tipo === tipo
+        );
+
+        if (revCriada && revCriada.dataPrevista) {
+          const p = revCriada.dataPrevista.split('-');
+          const dataDaRevisao = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+          const segundaDaRevisao = obterSegundaFeira(dataDaRevisao);
+          const chaveSemanaRevisao = `semana_${formatarDataChave(segundaDaRevisao)}`;
+
+          if (!estado.semanas) estado.semanas = {};
+          if (!estado.semanas[chaveSemanaRevisao]) {
+            estado.semanas[chaveSemanaRevisao] = {};
+          }
+        }
+      }
+
+      // Apenas coloca/remove os cartões de revisão nas semanas.
+      // Nenhuma matéria normal é criada aqui.
       sincronizarTodasSemanasComRevisoes();
 
       salvarEstado();

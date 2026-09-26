@@ -2577,7 +2577,6 @@
     function obterNivelPrioridadeTopico(topico) {
       if (!topico) return 0;
 
-      // Compatível com formatos diferentes já usados/salvos no sistema.
       const valor = String(
         topico.prioridade ??
         topico.prioridadeNivel ??
@@ -2586,11 +2585,11 @@
         ''
       ).toLowerCase().trim();
 
-      if (valor === 'alta' || valor === '3' || valor === 'high') return 3;
-      if (valor === 'media' || valor === 'média' || valor === '2' || valor === 'medium') return 2;
-      if (valor === 'baixa' || valor === '1' || valor === 'low') return 1;
+      // Valores usados pelos botões da aba Prioridades.
+      if (valor === 'vermelho' || valor === 'alta' || valor === '3' || valor === 'high') return 3;
+      if (valor === 'amarelo' || valor === 'media' || valor === 'média' || valor === '2' || valor === 'medium') return 2;
+      if (valor === 'verde' || valor === 'baixa' || valor === '1' || valor === 'low') return 1;
 
-      // Também aceita flags booleanas, caso existam em versões antigas.
       if (topico.prioridadeAlta === true || topico.alta === true) return 3;
       if (topico.prioridadeMedia === true || topico.prioridadeMédia === true || topico.media === true) return 2;
       if (topico.prioridadeBaixa === true || topico.baixa === true) return 1;
@@ -2615,48 +2614,54 @@
       return lista.map(item => item.topico);
     }
 
+    function obterNomeDisciplina(item) {
+      if (typeof item === 'string') return item;
+      if (!item || typeof item !== 'object') return '';
+      return item.nome || item.materia || item.disciplina || item.titulo || '';
+    }
+
+    function obterPesoDisciplina(item, nome) {
+      let peso = 1;
+
+      if (item && typeof item === 'object' && item.peso != null) {
+        peso = parseInt(item.peso, 10);
+      } else if (estado.pesos && estado.pesos[nome] != null) {
+        peso = parseInt(estado.pesos[nome], 10);
+      } else if (estado.pesosMaterias && estado.pesosMaterias[nome] != null) {
+        peso = parseInt(estado.pesosMaterias[nome], 10);
+      } else if (estado.pesoDisciplinas && estado.pesoDisciplinas[nome] != null) {
+        peso = parseInt(estado.pesoDisciplinas[nome], 10);
+      }
+
+      if (!Number.isFinite(peso) || peso < 1) peso = 1;
+      return Math.min(5, peso);
+    }
+
     function construirListaCicloPonderada() {
-      const ciclo = [];
+      const disciplinas = (estado.disciplinas || [])
+        .map(item => ({
+          item,
+          nome: obterNomeDisciplina(item)
+        }))
+        .filter(d => d.nome);
 
-      (estado.disciplinas || []).forEach(materia => {
-        // Busca o peso salvo no formato atual e em formatos antigos.
-        let peso = 1;
-
-        if (estado.pesos && estado.pesos[materia] != null) {
-          peso = parseInt(estado.pesos[materia], 10);
-        } else if (estado.pesosMaterias && estado.pesosMaterias[materia] != null) {
-          peso = parseInt(estado.pesosMaterias[materia], 10);
-        } else if (estado.pesoDisciplinas && estado.pesoDisciplinas[materia] != null) {
-          peso = parseInt(estado.pesoDisciplinas[materia], 10);
-        } else {
-          const discObj = Array.isArray(estado.disciplinasDetalhes)
-            ? estado.disciplinasDetalhes.find(d => d && (d.nome === materia || d.materia === materia))
-            : null;
-          if (discObj && discObj.peso != null) peso = parseInt(discObj.peso, 10);
-        }
-
-        if (!Number.isFinite(peso) || peso < 1) peso = 1;
-        if (peso > 10) peso = 10;
-
-        // Peso 3 = matéria aparece 3 vezes no ciclo;
-        // peso 2 = 2 vezes; peso 1 = 1 vez.
-        for (let i = 0; i < peso; i++) ciclo.push(materia);
+      const restantes = {};
+      disciplinas.forEach(d => {
+        restantes[d.nome] = obterPesoDisciplina(d.item, d.nome);
       });
 
-      // Intercala as repetições para evitar blocos seguidos da mesma matéria.
-      const contagem = {};
-      ciclo.forEach(m => contagem[m] = (contagem[m] || 0) + 1);
-
+      // Intercala para evitar cinco cartões seguidos da mesma disciplina.
+      // Ex.: peso 5 participa cinco vezes; peso 1 participa uma vez.
       const resultado = [];
-      let aindaTem = true;
+      let existe = true;
 
-      while (aindaTem) {
-        aindaTem = false;
-        (estado.disciplinas || []).forEach(materia => {
-          if ((contagem[materia] || 0) > 0) {
-            resultado.push(materia);
-            contagem[materia]--;
-            aindaTem = true;
+      while (existe) {
+        existe = false;
+        disciplinas.forEach(d => {
+          if ((restantes[d.nome] || 0) > 0) {
+            resultado.push(d.nome);
+            restantes[d.nome]--;
+            existe = true;
           }
         });
       }
@@ -3042,12 +3047,23 @@
       if (slot.revisaoId) {
         const rev = (estado.agendaRevisoes || []).find(r => r.id === slot.revisaoId);
         if (rev) rev.concluida = valor;
+      } else if (slot.topicoId) {
+        // Checklist de matéria normal = conclusão do tópico no edital.
+        for (const materia of Object.keys(estado.editalVerticalizado || {})) {
+          const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === slot.topicoId);
+          if (topico) {
+            topico.t = !!valor;
+            break;
+          }
+        }
       }
 
       salvarEstado();
       renderizarGrade();
       renderizarVisaoGeral();
       renderizarAbaRevisoes();
+      renderizarEditalVerticalizado();
+      calcularPrevisaoFechamentoEdital();
 
       const todosFeitos = semana[diaNome].length > 0 && semana[diaNome].every(s => s.feito);
       if (todosFeitos && valor) {
@@ -3140,9 +3156,27 @@
     function atualizarTopicoCampo(materia, topicoId, campo, valor) {
       const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
       if (!topico) return;
+
       topico[campo] = valor;
+
+      // Se o campo alterado for o checklist do tópico, reflete em todos
+      // os cartões normais correspondentes no cronograma.
+      if (campo === 't') {
+        Object.values(estado.semanas || {}).forEach(semana => {
+          Object.values(semana || {}).forEach(slots => {
+            (slots || []).forEach(slot => {
+              if (!slot.revisaoId && slot.topicoId === topicoId) {
+                slot.feito = !!valor;
+              }
+            });
+          });
+        });
+      }
+
       salvarEstado();
       renderizarEditalVerticalizado();
+      renderizarGrade();
+      renderizarVisaoGeral();
       calcularPrevisaoFechamentoEdital();
     }
 

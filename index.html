@@ -1,3 +1,99 @@
+
+Anexo do usuário
+o d30 ainda continua criando outras materias do lado dele isso nao e pra acontecer
+
+Pensou por 46s
+Agora entendi exatamente o que você quer.
+
+A regra correta é esta:
+
+Se um dia tiver D30, naquele dia NÃO pode existir nenhuma matéria normal junto.
+
+Então, por exemplo:
+
+Errado:
+
+D30 — Conhecimentos Pedagógicos
+Língua Portuguesa
+Raciocínio Lógico
+Correto:
+
+🟣 D30 — Revisão de Conhecimentos Pedagógicos
+E o restante das matérias continua sendo distribuído nos outros dias, sem ser criado por causa do D30.
+
+Fiz essa alteração diretamente no código. Também corrigi o comportamento quando a semana já estava criada: ao aparecer uma revisão, as matérias normais daquele dia são retiradas e fica somente a revisão.
+
+O arquivo passou pela verificação de sintaxe.
+
+Arquivo atualizado
+Essa versão trata D30, D15, D7 e D1 da mesma forma: se houver revisão naquele dia, não cria matéria normal junto.
+
+
+Texto_colado_corrigido.txt
+Documento
+Anexo do usuário
+ainda continua
+
+Pensou por 1m 8s
+Agora achei o ponto que estava faltando no código.
+
+O problema não era somente a criação do D30. As semanas que já tinham sido geradas anteriormente continuavam guardando as matérias normais no dia em que o D30 deveria aparecer. Por isso você continuava vendo matérias ao lado dele.
+
+Fiz uma correção mais profunda:
+
+D30 sozinho no dia da revisão.
+D1, D7 e D15 seguem a mesma regra.
+Se a semana já existia antes de criar o D30, ela também é corrigida.
+O sistema verifica todas as semanas já salvas, inclusive semanas futuras.
+Remove as matérias normais daquele dia quando existe revisão.
+Não cria uma nova matéria para compensar o D30.
+Não duplica o D30.
+Ao abrir o sistema novamente, ele também corrige as semanas antigas automaticamente.
+O JavaScript foi validado com node --check.
+Arquivo atualizado
+Importante: no seu último print não aparece nenhum cartão D30. Isso indica que o print está mostrando uma semana em que o D30 não está agendado. A correção acima, porém, foi feita justamente para que, quando você chegar à semana/data do D30, o dia fique somente com o cartão da revisão, sem as outras matérias ao lado.
+
+
+Texto_colado_corrigido.txt
+Documento
+Anexo do usuário
+errado e pra ficar junto do dia da revisão no caso ele arescenta
+Agora entendi: eu interpretei sua regra ao contrário.
+
+O comportamento que você quer é:
+
+Se o dia normalmente tem 2 matérias, continuam as 2 matérias.
+Se cair uma revisão D1/D7/D15/D30 nesse dia, ela é acrescentada.
+Portanto, esse dia pode ficar com 3 cartões: 2 matérias + 1 revisão.
+A revisão deve aparecer na mesma coluna/data em que vence.
+Ela não substitui nenhuma matéria.
+Ela não deve gerar novas matérias por causa da revisão.
+D30 deve gerar somente um cartão D30, sem repetição.
+No seu exemplo de domingo 27/09, se já existissem duas matérias programadas, o correto seria:
+
+Matéria 1
+Matéria 2
+🟣 Revisão 1D — Fundamentos da Educação
+
+Ou seja, a revisão é extra; as matérias do cronograma permanecem exatamente como estavam.
+
+A correção anterior que fiz removendo as matérias quando havia revisão está errada para essa regra. Vou considerar daqui em diante que porDia limita somente matérias novas; revisões não entram nessa contagem.
+
+cade o novo codigo
+
+Pensou por 29s
+Aqui está o novo código corrigido com a regra que você explicou:
+
+2 matérias por dia continuam sendo 2 matérias + a revisão é acrescentada como extra. Ela não substitui matéria e não gera matérias novas.
+
+Também removi a lógica anterior que estava errada, que fazia o dia ficar exclusivamente com a revisão. Agora D1/D7/D15/D30 são adicionadas ao cronograma existente, uma única vez.
+
+
+Texto_colado_corrigido.txt
+Documento
+
+
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -2649,11 +2745,9 @@
         const slotsDoDia = [];
         adicionarRevisoesDoDia(slotsDoDia, chaveDataDia);
 
-        // REGRA DAS REVISÕES: se existe uma revisão neste dia, o dia fica
-        // EXCLUSIVAMENTE com a(s) revisão(ões). Não cria nenhuma matéria
-        // normal ao lado da D30, D15, D7 ou D1.
-        const vagasRestantes = slotsDoDia.length > 0 ? 0 : porDia;
-        for (let i = 0; i < vagasRestantes; i++) {
+        // As revisões são atividades EXTRAS e não contam no limite porDia.
+        // Ex.: porDia = 2 + uma D30 => 2 matérias normais + 1 revisão.
+        for (let i = 0; i < porDia; i++) {
           const materia = cicloPonderado[ponteiro % cicloPonderado.length];
           ponteiro++;
 
@@ -2965,7 +3059,6 @@
       if (!estado.semanas) return;
       normalizarAgendaRevisoes();
 
-      const porDia = parseInt(estado.porDia) || 2;
       const revisoesAtivas = (estado.agendaRevisoes || []).filter(r => !r.concluida);
 
       Object.keys(estado.semanas).forEach(chaveSemana => {
@@ -2974,28 +3067,24 @@
 
         const segunda = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
         segunda.setHours(0, 0, 0, 0);
+        const semana = estado.semanas[chaveSemana];
 
         DIAS.forEach((nomeDia, idxDia) => {
           const dataDia = new Date(segunda);
           dataDia.setDate(segunda.getDate() + idxDia);
           dataDia.setHours(0, 0, 0, 0);
           const chaveData = formatarDataChave(dataDia);
-
           const revisoesDoDia = revisoesAtivas.filter(r => r.dataPrevista === chaveData);
-          if (revisoesDoDia.length === 0) return;
 
-          // REGRA DEFINITIVA:
-          // se existe qualquer revisão neste dia, o dia pertence à revisão.
-          // Todas as matérias normais são removidas. Não é criada nenhuma
-          // matéria adicional ao lado da D30/D15/D7/D1.
-          const semana = estado.semanas[chaveSemana];
           let slots = semana[nomeDia] || [];
-          const idsRevisao = new Set(revisoesDoDia.map(r => r.id));
 
-          // Mantém somente revisões válidas já existentes.
-          slots = slots.filter(s => s.revisaoId && idsRevisao.has(s.revisaoId));
+          // Preserva TODAS as matérias normais já existentes.
+          // Remove somente cartões de revisão inválidos/antigos.
+          const idsValidos = new Set(revisoesDoDia.map(r => r.id));
+          slots = slots.filter(slot => !slot.revisaoId || idsValidos.has(slot.revisaoId));
 
-          const idsExistentes = new Set(slots.map(s => s.revisaoId));
+          // Acrescenta cada revisão uma única vez, sem criar matéria normal nova.
+          const idsExistentes = new Set(slots.filter(s => s.revisaoId).map(s => s.revisaoId));
           revisoesDoDia.forEach(rev => {
             if (!idsExistentes.has(rev.id)) {
               slots.push({
@@ -3005,11 +3094,12 @@
                 revisaoId: rev.id,
                 tipoRevisao: rev.tipo
               });
+              idsExistentes.add(rev.id);
             }
           });
 
-          // Uma revisão por cartão; nunca ultrapassa o limite configurado.
-          semana[nomeDia] = slots.slice(0, porDia);
+          // IMPORTANTE: não aplica slice(porDia). Revisões são extras.
+          semana[nomeDia] = slots;
         });
       });
     }
@@ -3049,10 +3139,8 @@
 
       normalizarAgendaRevisoes();
 
-      // Sincroniza TODAS as semanas que já existem no estado. Isso é importante
-      // porque D30 normalmente cai em uma semana futura que já pode ter sido
-      // criada anteriormente. Se essa semana já tinha matérias, elas são
-      // retiradas do dia da revisão, em vez de ficarem ao lado do D30.
+      // Sincroniza as semanas já existentes: mantém as matérias normais
+      // e apenas ACRESCENTA a revisão no dia correto, sem duplicá-la.
       sincronizarTodasSemanasComRevisoes();
 
       salvarEstado();

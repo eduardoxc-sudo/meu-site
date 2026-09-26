@@ -630,7 +630,6 @@
       border: 1px solid rgba(16, 185, 129, 0.35);
     }
 
-    /* ESTILO EXCLUSIVO DO CRACHÁ COM A NUMERAÇÃO DO CARTÃO */
     .badge-numero-cartao {
       display: inline-flex;
       align-items: center;
@@ -1171,10 +1170,10 @@
         <div id="containerListaPrioridades" style="display: flex; flex-direction: column; gap: 8px;"></div>
       </div>
 
-      <!-- Aba 3: Revisões -->
+      <!-- Aba 3: Revisões Espaçadas -->
       <div id="aba-revisoes" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Ao marcar 1D, 7D, 15D ou 30D no Edital, a revisão é agendada para a sua data e entra com destaque roxo no cronograma semanal:
+          Ao marcar 1D, 7D, 15D ou 30D no Edital, a revisão é agendada para a sua data e entra com destaque roxo no cronograma semanal.
         </p>
 
         <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
@@ -1383,7 +1382,6 @@
         </div>
 
         <div class="controls-top">
-          <!-- BOTÕES DE MARCAR / DESMARCAR TUDO NO TOPO -->
           <button class="btn btn-success" onclick="adminMarcarTodosTopicos(true)" title="Marcar todas as caixas de seleção do edital e do cronograma">☑️ Marcar Tudo como Feito</button>
           <button class="btn btn-outline" onclick="adminMarcarTodosTopicos(false)" style="border-color: rgba(239, 68, 68, 0.4); color: var(--danger);" title="Desmarcar todas as caixas">Desmarcar Tudo</button>
           
@@ -1638,6 +1636,24 @@
       return dataFim;
     }
 
+    /* DATA LIMITE MÁXIMA PARA NAVEGAÇÃO: CONSIDERA TAMBÉM AS REVISÕES AGENDADAS */
+    function obterDataLimiteNavegacao() {
+      let dataLimite = calcularDataFinalMatematica() || new Date();
+
+      // Se houver alguma revisão agendada mais no futuro (ex: 26/10/2026), estende a navegação até ela
+      (estado.agendaRevisoes || []).forEach(r => {
+        if (r.dataPrevista) {
+          const partes = r.dataPrevista.split('-');
+          const dRev = new Date(partes[0], partes[1] - 1, partes[2]);
+          if (dRev > dataLimite) {
+            dataLimite = dRev;
+          }
+        }
+      });
+
+      return dataLimite;
+    }
+
     function calcularPrevisaoFechamentoEdital() {
       const displayData = document.getElementById('displayDataFechamentoEdital');
       const displayDetalhes = document.getElementById('displayDetalhesRitmoEdital');
@@ -1731,7 +1747,7 @@
       calcularPrevisaoFechamentoEdital();
     }
 
-    /* NAVEGAÇÃO BLOQUEADA RIGOROSAMENTE NA SEMANA EM QUE O ÚLTIMO CARTÃO É ALCANÇADO */
+    /* NAVEGAÇÃO LIVRE ATÉ A SEMANA DA ÚLTIMA REVISÃO AGENDADA (EX: 26/10/2026) */
     function navegarSemana(delta) {
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
@@ -1745,14 +1761,13 @@
         return;
       }
 
-      const dataFinal = calcularDataFinalMatematica();
-      if (delta > 0 && dataFinal) {
-        const segundaDataFinal = obterSegundaFeira(dataFinal);
+      const dataLimite = obterDataLimiteNavegacao();
+      if (delta > 0 && dataLimite) {
+        const segundaDataLimite = obterSegundaFeira(dataLimite);
         const segundaNovaSemana = obterSegundaFeira(novaData);
 
-        // Bloqueia qualquer avanço além da semana limite real do edital
-        if (segundaNovaSemana > segundaDataFinal) {
-          alert(`Limite de semanas do ciclo alcançado! O último tópico do edital é concluído na semana de ${formatarDataBR(dataFinal)}.`);
+        if (segundaNovaSemana > segundaDataLimite) {
+          alert(`Limite de semanas alcançado! Todas as matérias e revisões agendadas terminam na semana de ${formatarDataBR(dataLimite)}.`);
           return;
         }
       }
@@ -2248,6 +2263,7 @@
       reader.readAsText(file);
     }
 
+    /* SISTEMA DE REVISÃO ESPAÇADA COM CICLO DE CONTINUIDADE (+30D) */
     function agendarRevisaoIndividual(materia, idTopico, campoMarcado, deveAgendar) {
       if (!estado.agendaRevisoes) estado.agendaRevisoes = [];
       if (!estado.semanas) estado.semanas = {};
@@ -2328,6 +2344,63 @@
       renderizarAbaRevisoes();
       renderizarGrade();
       renderizarVisaoGeral();
+      calcularPrevisaoFechamentoEdital();
+    }
+
+    /* REAGENDAR REVISÃO MANUAL OU ADICIONAL (+30D) */
+    function reagendarRevisaoMais30Dias(idRev) {
+      const item = (estado.agendaRevisoes || []).find(r => r.idRev === idRev);
+      if (!item) return;
+
+      const partes = item.dataPrevista.split('-');
+      const dataBase = new Date(partes[0], partes[1] - 1, partes[2]);
+      dataBase.setDate(dataBase.getDate() + 30);
+
+      const novaDataChave = formatarDataChave(dataBase);
+      const segundaAlvo = obterSegundaFeira(dataBase);
+      const chaveSemanaAlvo = `semana_${formatarDataChave(segundaAlvo)}`;
+      const diaNomeAlvo = DIAS[(dataBase.getDay() + 6) % 7];
+
+      const novoId = `rev_${item.idTopico}_recorrente_${Date.now()}`;
+
+      estado.agendaRevisoes.push({
+        idRev: novoId,
+        materia: item.materia,
+        idTopico: item.idTopico,
+        assunto: item.assunto,
+        tipo: '60D+',
+        chaveCheck: 'recorrente',
+        dataPrevista: novaDataChave,
+        dataPrevistaFormatada: formatarDataBR(dataBase),
+        concluida: false
+      });
+
+      if (!estado.semanas[chaveSemanaAlvo]) {
+        gerarSemanaAutomatica(chaveSemanaAlvo, false, false);
+      }
+      if (!estado.semanas[chaveSemanaAlvo][diaNomeAlvo]) {
+        estado.semanas[chaveSemanaAlvo][diaNomeAlvo] = [];
+      }
+
+      estado.semanas[chaveSemanaAlvo][diaNomeAlvo].unshift({
+        id: novoId,
+        materia: item.materia,
+        assunto: `[Revisão Contínua] ${item.assunto}`,
+        prioridade: 'revisao',
+        tipoRevisao: '60D+',
+        isRevisaoEspacada: true,
+        idTopicoOrigem: item.idTopico,
+        chaveCheckOrigem: 'recorrente',
+        numeroCartao: null,
+        feito: false
+      });
+
+      salvarEstado();
+      renderizarAbaRevisoes();
+      renderizarGrade();
+      renderizarVisaoGeral();
+      calcularPrevisaoFechamentoEdital();
+      alert(`Próxima revisão agendada com sucesso para ${formatarDataBR(dataBase)}!`);
     }
 
     function renderizarAbaRevisoes() {
@@ -2337,7 +2410,7 @@
       container.innerHTML = '';
 
       if (!estado.agendaRevisoes || estado.agendaRevisoes.length === 0) {
-        container.innerHTML = `<div style="font-size:0.82rem; color:var(--text-muted); text-align:center; padding:16px;">Nenhuma revisão agendada.</div>`;
+        container.innerHTML = `<div style="font-size:0.82rem; color:var(--text-muted); text-align:center; padding:16px;">Nenhuma revisão agendada. Marque 1D, 7D, 15D ou 30D no Edital.</div>`;
         return;
       }
 
@@ -2362,12 +2435,15 @@
             </div>
             <span class="badge-revisao-tag ${statusClass}">Ciclo ${r.tipo} • ${r.dataPrevistaFormatada}</span>
           </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; flex-wrap:wrap; gap:6px;">
             <label style="display:flex; align-items:center; gap:6px; font-size:0.78rem; cursor:pointer; color:var(--text);">
               <input type="checkbox" ${r.concluida ? 'checked' : ''} onchange="toggleConcluirRevisaoAgenda('${r.idRev}')">
               Marcar como revisado
             </label>
-            <button class="btn-mini-acao" style="color:var(--danger);" onclick="excluirItemRevisao('${r.idRev}')">🗑️</button>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-outline" style="padding:3px 8px; font-size:0.72rem; color:var(--accent); border-color:var(--accent);" onclick="reagendarRevisaoMais30Dias('${r.idRev}')" title="Agenda uma nova revisão dali a 30 dias">🔄 +30D</button>
+              <button class="btn-mini-acao" style="color:var(--danger);" onclick="excluirItemRevisao('${r.idRev}')">🗑️</button>
+            </div>
           </div>
         `;
         container.appendChild(el);
@@ -2386,6 +2462,13 @@
           });
         });
 
+        // Se marcou como concluída a revisão de 30D, sugere automaticamente a criação do próximo ciclo
+        if (item.concluida && item.tipo === '30D') {
+          if (confirm(`Parabéns por concluir a revisão de 30 dias de "${item.assunto}"! Deseja agendar a próxima revisão de manutenção (+30 dias)?`)) {
+            reagendarRevisaoMais30Dias(idRev);
+          }
+        }
+
         salvarEstado();
         renderizarAbaRevisoes();
         renderizarGrade();
@@ -2397,7 +2480,9 @@
       const item = (estado.agendaRevisoes || []).find(r => r.idRev === idRev);
       if (item && item.idTopico && item.chaveCheck) {
         const topico = (estado.editalVerticalizado[item.materia] || []).find(t => t.id === item.idTopico);
-        if (topico) topico[item.chaveCheck] = false;
+        if (topico && topico[item.chaveCheck] !== undefined) {
+          topico[item.chaveCheck] = false;
+        }
       }
 
       estado.agendaRevisoes = (estado.agendaRevisoes || []).filter(r => r.idRev !== idRev);
@@ -2413,6 +2498,7 @@
       renderizarAbaRevisoes();
       renderizarGrade();
       renderizarVisaoGeral();
+      calcularPrevisaoFechamentoEdital();
     }
 
     function obterProximoTopicoPrioritario(nomeMateria) {
@@ -2439,7 +2525,6 @@
       };
     }
 
-    /* REGENERAÇÃO DE SEMANA COM NUMERAÇÃO SEQUENCIAL RIGOROSA DOS CARTÕES */
     function gerarSemanaAutomatica(chaveSemana, deveSalvar, forcarRenovacaoPendentes) {
       if (!estado.disciplinas || estado.disciplinas.length === 0) return;
 
@@ -2493,7 +2578,6 @@
             continue;
           }
 
-          // Se já atingiu todos os cartões programados do edital, não cria cartões extras além do total
           if (totalGeralTopicos > 0 && ponteiro >= totalGeralTopicos) {
             break;
           }
@@ -2525,7 +2609,6 @@
       calcularPrevisaoFechamentoEdital();
     }
 
-    /* RENDERIZAÇÃO DA GRADE: EXIBE O NÚMERO DO CARTÃO (#1 / 42) */
     function renderizarGrade() {
       const grade = document.getElementById('gradeSemana');
       if (!grade) return;
@@ -2621,7 +2704,14 @@
 
       if (slot.isRevisaoEspacada && slot.id) {
         const itemRev = (estado.agendaRevisoes || []).find(r => r.idRev === slot.id);
-        if (itemRev) itemRev.concluida = slot.feito;
+        if (itemRev) {
+          itemRev.concluida = slot.feito;
+          if (slot.feito && itemRev.tipo === '30D') {
+            if (confirm(`Concluiu a revisão de 30 dias de "${itemRev.assunto}"! Deseja agendar a próxima de manutenção (+30D)?`)) {
+              reagendarRevisaoMais30Dias(slot.id);
+            }
+          }
+        }
       } else if (estado.editalVerticalizado[slot.materia]) {
         const topicoObj = estado.editalVerticalizado[slot.materia].find(t => t.titulo === slot.assunto);
         if (topicoObj) topicoObj.t = slot.feito;

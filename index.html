@@ -301,6 +301,16 @@
       transform: translateY(-1px);
     }
 
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+    .btn-success:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+
     .btn-outline {
       background: transparent;
       border: 1px solid var(--border);
@@ -940,6 +950,39 @@
     @keyframes popIn { to { transform: scale(1); } }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+
+    /* Estilos do Bloco de Editais Prontos */
+    .edital-pronto-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+
+    .btn-edital-verde {
+      flex: 1;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      padding: 12px 14px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+    }
+
+    .btn-edital-verde:hover {
+      opacity: 0.93;
+      transform: translateY(-1px);
+    }
   </style>
 </head>
 <body>
@@ -987,6 +1030,7 @@
 
       <nav class="tab-nav">
         <button class="tab-btn active" onclick="trocarAba('aba-ciclo', this)">Ciclo</button>
+        <button class="tab-btn" onclick="trocarAba('aba-editais-prontos', this)" style="color: #34d399; font-weight: 700;">Editais Prontos 🟢</button>
         <button class="tab-btn" onclick="trocarAba('aba-prioridades', this)">Prioridades</button>
         <button class="tab-btn" onclick="trocarAba('aba-revisoes', this)">Revisões ⏰</button>
         <button class="tab-btn" onclick="trocarAba('aba-pesos', this)">Pesos</button>
@@ -1016,6 +1060,39 @@
 
         <button class="btn btn-primary" onclick="gerarCronogramaSemanaAtual(true)">⚡ Regenerar Esta Semana</button>
         <button class="btn btn-outline" onclick="reiniciarProgressoSemana()">Limpar Checkboxes da Semana</button>
+      </div>
+
+      <!-- Nova Aba: Editais Prontos (Com permissão exclusiva de edição para Eduardo) -->
+      <div id="aba-editais-prontos" class="tab-content">
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+          Clique em qualquer edital pronto da lista abaixo para aplicá-lo instantaneamente ao seu plano de estudos.
+        </p>
+
+        <!-- Formulário exibido EXCLUSIVAMENTE para o usuário Eduardo -->
+        <div id="painelCriadorEduardo" style="display: none; background: rgba(56, 189, 248, 0.06); border: 1px solid var(--primary); border-radius: 10px; padding: 12px; margin-bottom: 10px;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">👑 Painel de Administração (Eduardo)</div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">
+            Cadastre um novo edital verticalizado aqui. Ele ficará disponível na lista de todos os usuários com o botão verde.
+          </p>
+
+          <div class="field" style="margin-bottom: 8px;">
+            <label for="tituloNovoEditalPronto">Título do Concurso / Cargo</label>
+            <input type="text" id="tituloNovoEditalPronto" placeholder="Ex: PM-PE 2026 Soldado">
+          </div>
+
+          <div class="field" style="margin-bottom: 10px;">
+            <label for="textoNovoEditalPronto">Texto do Edital Verticalizado</label>
+            <textarea id="textoNovoEditalPronto" rows="7" placeholder="Língua Portuguesa&#10;1. Compreensão de textos&#10;2. Intertextualidade&#10;3. Figuras de linguagem"></textarea>
+          </div>
+
+          <button class="btn btn-primary" style="width: 100%;" onclick="publicarNovoEditalPronto()">Publicar Edital na Nuvem</button>
+          <div id="statusPublicacaoEdital" style="display: none; font-size: 0.78rem; margin-top: 6px; padding: 6px; border-radius: 6px;"></div>
+        </div>
+
+        <label>Editais Disponíveis para Carregar</label>
+        <div id="listaBotoesEditaisProntos" style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+          <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 16px;">Carregando editais da nuvem...</div>
+        </div>
       </div>
 
       <!-- Aba 2: Prioridades -->
@@ -1404,7 +1481,6 @@
       }
     }
 
-    /* OBTENÇÃO DE SENHAS SINCRONIZADA COM A NUVEM */
     function obterSenhasLocais() {
       const salvas = localStorage.getItem('usuarios_senhas_personalizadas');
       return salvas ? JSON.parse(salvas) : { ...USUARIOS_PADRAO };
@@ -1547,7 +1623,6 @@
       renderizarGrade();
     }
 
-    /* AUTENTICAÇÃO COM VERIFICAÇÃO ONLINE NA NUVEM */
     function autenticar() {
       obterOuDesbloquearAudioContext();
       const uInput = document.getElementById('usuario').value.trim();
@@ -1565,7 +1640,6 @@
         return;
       }
 
-      // Se o Firebase estiver ativo, valida primeiro contra a nuvem
       if (rtdb) {
         rtdb.ref("senhas/" + usuarioEncontrado.toLowerCase()).once("value").then(snap => {
           const senhaNuvem = snap.val();
@@ -1581,7 +1655,6 @@
             if (erro) erro.style.display = 'block';
           }
         }).catch(() => {
-          // Fallback local se estiver offline
           if (senhasLocais[usuarioEncontrado] === sInput) {
             usuarioAtivo = usuarioEncontrado;
             sessionStorage.setItem('usuario_ativo', usuarioAtivo);
@@ -1601,7 +1674,6 @@
       }
     }
 
-    /* ALTERAR PALAVRA-PASSE GRAVANDO DIRETO NO FIREBASE */
     function alterarPalavraPasse() {
       const atual = document.getElementById('senhaAtual').value.trim();
       const nova = document.getElementById('novaSenha').value.trim();
@@ -1649,6 +1721,165 @@
       document.getElementById('confirmaNovaSenha').value = '';
     }
 
+    /* MÓDULO EXCLUSIVO DE EDITAIS PRONTOS */
+    function configurarAbaEditaisProntos() {
+      const painelAdmin = document.getElementById('painelCriadorEduardo');
+      // Apenas o usuário 'Eduardo' visualiza o formulário de criação/edição
+      if (usuarioAtivo && usuarioAtivo.toLowerCase() === 'eduardo') {
+        painelAdmin.style.display = 'block';
+      } else {
+        painelAdmin.style.display = 'none';
+      }
+      ouvirEditaisProntosNuvem();
+    }
+
+    function publicarNovoEditalPronto() {
+      const titulo = document.getElementById('tituloNovoEditalPronto').value.trim();
+      const texto = document.getElementById('textoNovoEditalPronto').value.trim();
+      const status = document.getElementById('statusPublicacaoEdital');
+
+      if (!titulo || !texto) {
+        alert("Preencha o título do concurso e cole o texto do edital verticalizado.");
+        return;
+      }
+
+      status.style.display = 'block';
+      status.style.color = '#38bdf8';
+      status.style.background = 'rgba(56, 189, 248, 0.1)';
+      status.innerText = "Processando e enviando para a nuvem...";
+
+      const dadosExtraidos = extrairDisciplinasETopicosUniversal(texto);
+      if (!dadosExtraidos || dadosExtraidos.length === 0) {
+        status.style.color = '#ef4444';
+        status.style.background = 'rgba(239, 68, 68, 0.1)';
+        status.innerText = "Não foi possível extrair as matérias do texto. Verifique a formatação.";
+        return;
+      }
+
+      const idEdital = 'edital_' + Date.now();
+      const objetoEditalPronto = {
+        id: idEdital,
+        titulo: titulo,
+        criadoPor: usuarioAtivo,
+        dataCriacao: new Date().toLocaleDateString('pt-BR'),
+        disciplinas: dadosExtraidos.map(d => ({ nome: d.nome, peso: d.peso || 3 })),
+        editalVerticalizado: {}
+      };
+
+      dadosExtraidos.forEach(d => {
+        const listaTopicos = d.topicos && d.topicos.length > 0 ? d.topicos : ['1. Conteúdo programático.'];
+        objetoEditalPronto.editalVerticalizado[d.nome] = listaTopicos.map((tit, idx) => ({
+          id: 'top_' + Math.random().toString(36).substr(2, 7) + '_' + idx,
+          titulo: sanitizarTopicoLinha(tit),
+          t: false, r1: false, r7: false, r15: false, r30: false,
+          prioridade: 'amarelo'
+        }));
+      });
+
+      if (rtdb) {
+        rtdb.ref("editais_prontos/" + idEdital).set(objetoEditalPronto).then(() => {
+          status.style.color = '#10b981';
+          status.style.background = 'rgba(16, 185, 129, 0.1)';
+          status.innerText = "✅ Edital publicado com sucesso para todos os usuários!";
+          document.getElementById('tituloNovoEditalPronto').value = '';
+          document.getElementById('textoNovoEditalPronto').value = '';
+        }).catch(err => {
+          status.style.color = '#ef4444';
+          status.innerText = "Erro ao publicar: " + err.message;
+        });
+      }
+    }
+
+    function ouvirEditaisProntosNuvem() {
+      const container = document.getElementById('listaBotoesEditaisProntos');
+      if (!rtdb || !container) return;
+
+      rtdb.ref("editais_prontos").on("value", snapshot => {
+        const editais = snapshot.val();
+        container.innerHTML = '';
+
+        if (!editais) {
+          container.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 16px;">Nenhum edital pronto cadastrado no momento.</div>`;
+          return;
+        }
+
+        const isEduardo = (usuarioAtivo && usuarioAtivo.toLowerCase() === 'eduardo');
+
+        Object.keys(editais).forEach(key => {
+          const item = editais[key];
+          const div = document.createElement('div');
+          div.className = 'edital-pronto-item';
+
+          let btnExcluirHtml = '';
+          // Botão de excluir aparece SOMENTE para o Eduardo
+          if (isEduardo) {
+            btnExcluirHtml = `<button class="btn btn-danger" style="padding: 10px 12px;" title="Excluir este edital para todos" onclick="excluirEditalPronto('${item.id}')">🗑️</button>`;
+          }
+
+          div.innerHTML = `
+            <button class="btn-edital-verde" onclick="adquirirEditalPronto('${item.id}')">
+              <span>📗 ${item.titulo}</span>
+              <span style="font-size: 0.72rem; font-weight: normal; opacity: 0.9;">Adquirir Edital ➔</span>
+            </button>
+            ${btnExcluirHtml}
+          `;
+          container.appendChild(div);
+        });
+      });
+    }
+
+    function adquirirEditalPronto(idEdital) {
+      if (!confirm("Deseja carregar este edital pronto? O seu cronograma e ciclo atual serão atualizados com essas matérias.")) {
+        return;
+      }
+
+      if (rtdb) {
+        rtdb.ref("editais_prontos/" + idEdital).once("value").then(snapshot => {
+          const dados = snapshot.val();
+          if (dados && dados.disciplinas) {
+            estado.disciplinas = JSON.parse(JSON.stringify(dados.disciplinas));
+            estado.editalVerticalizado = JSON.parse(JSON.stringify(dados.editalVerticalizado));
+            estado.semanas = {};
+            estado.indicesTopicos = {};
+            estado.ponteiroGeral = 0;
+            estado.materiaFiltroEdital = 'TODAS';
+            estado.filtroPrioridadesMateria = 'TODAS';
+            estado.agendaRevisoes = [];
+            estado.diasCompletosLog = [];
+
+            salvarEstado();
+            renderizarPesos();
+            atualizarSelectsMaterias();
+            renderizarEditalVerticalizado();
+            renderizarAbaPrioridades();
+            renderizarAbaRevisoes();
+            forcarSincronizacaoHoje();
+            renderizarVisaoGeral();
+            atualizarPainelPlanejamento();
+            atualizarIndicadorPresenca();
+
+            alert(`Parabéns! O edital "${dados.titulo}" foi adquirido e carregado com sucesso.`);
+            trocarAba('aba-ciclo', document.querySelectorAll('.tab-btn')[0]);
+          }
+        });
+      }
+    }
+
+    function excluirEditalPronto(idEdital) {
+      if (usuarioAtivo && usuarioAtivo.toLowerCase() !== 'eduardo') {
+        alert("Apenas o usuário Eduardo tem permissão para excluir editais.");
+        return;
+      }
+
+      if (confirm("Tem certeza de que deseja remover este edital pronto da nuvem? Ele deixará de aparecer para todos.")) {
+        if (rtdb) {
+          rtdb.ref("editais_prontos/" + idEdital).remove().then(() => {
+            alert("Edital pronto removido com sucesso!");
+          });
+        }
+      }
+    }
+
     function redefinirEditalManualmente() {
       if (confirm('Limpar todas as matérias e começar do zero?')) {
         estado.disciplinas = [];
@@ -1683,6 +1914,7 @@
       document.getElementById('app-container').style.display = 'flex';
       document.getElementById('labelNomeUsuario').innerText = usuarioAtivo;
       document.getElementById('tituloCronograma').innerText = `Cronograma de ${usuarioAtivo}`;
+      configurarAbaEditaisProntos();
       iniciarSincronizacaoPerfil();
     }
 
@@ -2017,7 +2249,7 @@
       grade.innerHTML = '';
 
       if (estado.disciplinas.length === 0) {
-        grade.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">Edital vazio. Cadastre as matérias na aba Edital TXT.</div>`;
+        grade.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">Edital vazio. Cadastre as matérias na aba Edital TXT ou adquira na aba <strong>Editais Prontos</strong>.</div>`;
         return;
       }
 
@@ -2252,7 +2484,7 @@
     }
 
     function iniciarTimerMateria(nomeMateria) {
-      const btnTab = document.querySelectorAll('.tab-btn')[4];
+      const btnTab = document.querySelectorAll('.tab-btn')[5];
       if (btnTab) trocarAba('aba-timer', btnTab);
       const sel = document.getElementById('timerSelectMateria');
       if (sel) sel.value = nomeMateria;
@@ -2605,36 +2837,85 @@
       renderizarEditalVerticalizado();
     }
 
-    function processarEditalTexto() {
-      const texto = document.getElementById('textoEdital').value.trim();
-      if (!texto) return;
+    function sanitizarTopicoLinha(texto) {
+      let t = texto.replace(/[\|\_]{2,}/g, '').trim();
+      const pontoMatch = t.match(/^(.*?[.;])(\s+[A-Za-z0-9\-\s\.\/]{1,30})?$/);
+      if (pontoMatch && pontoMatch[1].length > 8) {
+        t = pontoMatch[1];
+      }
+      t = t.replace(/\s{2,}/g, ' ').trim();
+      if (!t.endsWith('.') && !t.endsWith(';')) t += '.';
+      return t;
+    }
+
+    function extrairDisciplinasETopicosUniversal(texto) {
       const linhas = texto.split(/[\r\n]+/).map(l => l.trim()).filter(l => l.length > 0);
-      let mapa = {};
-      let matAtual = 'Matéria Principal';
+      const resultado = [];
+      let mapaMaterias = {};
+      let materiaAtual = null;
+
+      const regexCabecalho = /^(L[IÍ]NGUA PORTUGUESA|PORTUGU[EÊ]S|HIST[OÓ]RIA[A-Z\s]*|GEOGRAFIA[A-Z\s]*|RACIOC[IÍ]NIO L[OÓ]GICO[A-Z\s]*|RLM[A-Z\s\-]*|INFORM[AÁ]TICA|DIREITO[A-Z\s]+|DIREITOS HUMANOS[A-Z\s]*|LEGISLA[CÇ][AÃ]O[A-Z\s]*|ADMINISTRA[CÇ][AÃ]O[A-Z\s]*|NO[CÇ][OÕ]ES DE [A-Z\s]+|CONTABILIDADE[A-Z\s]*)/i;
+      const regexTopicoNumerado = /^(\d+[\.\-\)]|\d+\.\d+[\.\-\)]|[a-z]\))\s*(.+)/i;
 
       linhas.forEach(linha => {
-        if (linha.length < 35 && !linha.includes('.')) {
-          matAtual = linha;
-          if (!mapa[matAtual]) mapa[matAtual] = [];
-        } else {
-          if (!mapa[matAtual]) mapa[matAtual] = [];
-          mapa[matAtual].push(linha);
+        if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSUNTO|TEORIA|TOTAL|ERROS|ACERTOS|1º|2º|3º)/i.test(linha)) return;
+
+        const matchDisc = linha.match(regexCabecalho);
+        if ((matchDisc && !regexTopicoNumerado.test(linha)) || (!regexTopicoNumerado.test(linha) && linha.length < 40 && !linha.includes('.'))) {
+          materiaAtual = linha.replace(/^[•\-\*]\s*/, '').trim();
+          materiaAtual = materiaAtual.toLowerCase().replace(/(^|\s)\S/g, l => l.toUpperCase());
+          if (!mapaMaterias[materiaAtual]) {
+            mapaMaterias[materiaAtual] = [];
+          }
+          return;
+        }
+
+        if (!materiaAtual) {
+          materiaAtual = 'Disciplina de Estudo';
+          mapaMaterias[materiaAtual] = [];
+        }
+
+        let itemTexto = sanitizarTopicoLinha(linha);
+        if (itemTexto.length > 3 && !mapaMaterias[materiaAtual].includes(itemTexto)) {
+          mapaMaterias[materiaAtual].push(itemTexto);
         }
       });
 
-      estado.disciplinas = Object.keys(mapa).map(m => ({ nome: m, peso: 3 }));
-      estado.editalVerticalizado = {};
-      Object.keys(mapa).forEach(m => {
-        estado.editalVerticalizado[m] = mapa[m].map(tit => ({
-          id: 'top_' + Math.random().toString(36).substr(2, 7),
-          titulo: tit,
-          t: false, r1: false, r7: false, r15: false, r30: false, prioridade: 'amarelo'
-        }));
+      Object.keys(mapaMaterias).forEach(nome => {
+        if (mapaMaterias[nome].length > 0) {
+          resultado.push({
+            nome: nome,
+            peso: 3,
+            topicos: mapaMaterias[nome]
+          });
+        }
       });
 
-      salvarEstado();
-      atualizarUIAposCarregar();
-      alert('Edital carregado com sucesso!');
+      return resultado;
+    }
+
+    function processarEditalTexto() {
+      const texto = document.getElementById('textoEdital').value.trim();
+      if (!texto) return;
+
+      const dadosExtraidos = extrairDisciplinasETopicosUniversal(texto);
+      if (dadosExtraidos && dadosExtraidos.length > 0) {
+        estado.disciplinas = dadosExtraidos.map(d => ({ nome: d.nome, peso: d.peso || 3 }));
+        estado.editalVerticalizado = {};
+        dadosExtraidos.forEach(d => {
+          const listaTopicos = d.topicos && d.topicos.length > 0 ? d.topicos : ['1. Conteúdo programático.'];
+          estado.editalVerticalizado[d.nome] = listaTopicos.map((tit, idx) => ({
+            id: 'top_' + Math.random().toString(36).substr(2, 7) + '_' + idx,
+            titulo: sanitizarTopicoLinha(tit),
+            t: false, r1: false, r7: false, r15: false, r30: false,
+            prioridade: 'amarelo'
+          }));
+        });
+
+        salvarEstado();
+        atualizarUIAposCarregar();
+        alert('Edital carregado com sucesso!');
+      }
     }
 
     function atualizarUIAposCarregar() {

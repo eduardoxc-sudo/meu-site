@@ -1834,11 +1834,11 @@
           <div class="planejamento-datas">
             <div class="field">
               <label>INÍCIO DOS ESTUDOS</label>
-              <input type="date" id="planejamentoInicioAuto" onchange="salvarDatasPlanejamentoV16()" oninput="salvarDatasPlanejamentoV16()">
+              <input type="date" id="planejamentoInicioAuto" onchange="salvarDatasUsuarioV17()" oninput="salvarDatasUsuarioV17()">
             </div>
             <div class="field">
               <label>DATA DA PROVA</label>
-              <input type="date" id="planejamentoProvaAuto" onchange="salvarDatasPlanejamentoV16()" oninput="salvarDatasPlanejamentoV16()">
+              <input type="date" id="planejamentoProvaAuto" onchange="salvarDatasUsuarioV17()" oninput="salvarDatasUsuarioV17()">
             </div>
           </div>
 
@@ -4754,16 +4754,196 @@
       calcularDiasPlanejamentoV16();
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-      setTimeout(restaurarDatasPlanejamentoV16, 50);
-    });
+    /* V17: restauração V16 desativada para evitar compartilhamento de datas. */
 
     // Ao abrir Planejamento novamente, restaura/recalcula.
     document.addEventListener('click', function(e) {
       const btn = e.target.closest('button');
       if (!btn) return;
       if (/Planejamento/i.test(btn.textContent || '')) {
-        setTimeout(restaurarDatasPlanejamentoV16, 50);
+        setTimeout(ativarDatasUsuarioV17, 50);
+      }
+    });
+
+    // ===== V17: datas 100% independentes por usuário =====
+    function obterIdentificadorUsuarioV17() {
+      // Procura primeiro os identificadores reais já usados pelo sistema.
+      const candidatos = [];
+
+      if (typeof usuarioAtual !== 'undefined' && usuarioAtual) candidatos.push(usuarioAtual);
+      if (typeof currentUser !== 'undefined' && currentUser) candidatos.push(currentUser);
+
+      if (typeof estado !== 'undefined' && estado) {
+        candidatos.push(
+          estado.usuarioAtual,
+          estado.perfilAtual,
+          estado.currentUser,
+          estado.usuario,
+          estado.perfil
+        );
+      }
+
+      for (const valor of candidatos) {
+        if (!valor) continue;
+
+        if (typeof valor === 'object') {
+          const id = valor.id || valor.uid || valor.userId || valor.nome || valor.name || valor.email;
+          if (id) return String(id).trim().toLowerCase();
+        } else {
+          const s = String(valor).trim();
+          if (s) return s.toLowerCase();
+        }
+      }
+
+      // Fallback seguro: lê o nome VISÍVEL do perfil na interface.
+      // Ex.: "Gabi", "Kelvin", "Eduardo".
+      const textos = Array.from(document.querySelectorAll('aside *'));
+      const perfilLabel = textos.find(el =>
+        el.children.length === 0 &&
+        /^Perfil:\s*$/i.test((el.textContent || '').trim())
+      );
+
+      if (perfilLabel) {
+        const pai = perfilLabel.parentElement;
+        const txt = (pai?.textContent || '').replace(/Perfil:/i, '').trim();
+        if (txt) return txt.toLowerCase();
+      }
+
+      // Busca elementos próximos ao texto Perfil:
+      const sidebarText = document.querySelector('aside')?.innerText || '';
+      const match = sidebarText.match(/Perfil:\s*([^\n]+)/i);
+      if (match && match[1]) return match[1].trim().toLowerCase();
+
+      return 'usuario-sem-id';
+    }
+
+    function chaveDatasUsuarioV17() {
+      return 'estudoInteligente_v17_datas_' + encodeURIComponent(obterIdentificadorUsuarioV17());
+    }
+
+    function limparCamposDatasV17() {
+      const inicio = document.getElementById('planejamentoInicioAuto');
+      const prova = document.getElementById('planejamentoProvaAuto');
+      const saida = document.getElementById('pvDiasFaltando');
+      if (inicio) inicio.value = '';
+      if (prova) prova.value = '';
+      if (saida) saida.textContent = '—';
+    }
+
+    function calcularDiasV17() {
+      const inicio = document.getElementById('planejamentoInicioAuto');
+      const prova = document.getElementById('planejamentoProvaAuto');
+      const saida = document.getElementById('pvDiasFaltando');
+      if (!inicio || !prova || !saida) return;
+
+      if (!inicio.value || !prova.value) {
+        saida.textContent = '—';
+        return;
+      }
+
+      const a = inicio.value.split('-').map(Number);
+      const b = prova.value.split('-').map(Number);
+      const inicioMs = Date.UTC(a[0], a[1] - 1, a[2]);
+      const provaMs = Date.UTC(b[0], b[1] - 1, b[2]);
+      const dias = Math.round((provaMs - inicioMs) / 86400000);
+
+      if (!Number.isFinite(dias) || dias < 0) {
+        saida.textContent = 'Data inválida';
+        return;
+      }
+
+      saida.textContent = dias === 0 ? 'Hoje' : `${dias} ${dias === 1 ? 'dia' : 'dias'}`;
+    }
+
+    function salvarDatasUsuarioV17() {
+      const inicio = document.getElementById('planejamentoInicioAuto');
+      const prova = document.getElementById('planejamentoProvaAuto');
+      if (!inicio || !prova) return;
+
+      const dados = {
+        inicio: inicio.value || '',
+        prova: prova.value || ''
+      };
+
+      // IMPORTANTE: não usa estado.dataInicio/dataProva globais.
+      // O armazenamento é exclusivamente pela chave do usuário.
+      try {
+        localStorage.setItem(chaveDatasUsuarioV17(), JSON.stringify(dados));
+      } catch (e) {}
+
+      calcularDiasV17();
+    }
+
+    function carregarDatasUsuarioV17() {
+      // Primeiro limpa para impedir que a tela mostre por alguns instantes
+      // as datas do usuário anterior.
+      limparCamposDatasV17();
+
+      let dados = null;
+      try {
+        const salvo = localStorage.getItem(chaveDatasUsuarioV17());
+        if (salvo) dados = JSON.parse(salvo);
+      } catch (e) {}
+
+      if (dados) {
+        const inicio = document.getElementById('planejamentoInicioAuto');
+        const prova = document.getElementById('planejamentoProvaAuto');
+
+        if (inicio) inicio.value = dados.inicio || '';
+        if (prova) prova.value = dados.prova || '';
+      }
+
+      calcularDiasV17();
+    }
+
+    function ativarDatasUsuarioV17() {
+      const inicio = document.getElementById('planejamentoInicioAuto');
+      const prova = document.getElementById('planejamentoProvaAuto');
+
+      if (inicio) {
+        inicio.oninput = salvarDatasUsuarioV17;
+        inicio.onchange = salvarDatasUsuarioV17;
+      }
+      if (prova) {
+        prova.oninput = salvarDatasUsuarioV17;
+        prova.onchange = salvarDatasUsuarioV17;
+      }
+
+      carregarDatasUsuarioV17();
+    }
+
+    // Detecta troca de perfil pelo texto exibido no menu.
+    let ultimoUsuarioDatasV17 = '';
+
+    function verificarTrocaUsuarioV17() {
+      const atual = obterIdentificadorUsuarioV17();
+      if (atual !== ultimoUsuarioDatasV17) {
+        ultimoUsuarioDatasV17 = atual;
+        setTimeout(ativarDatasUsuarioV17, 0);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        ultimoUsuarioDatasV17 = obterIdentificadorUsuarioV17();
+        ativarDatasUsuarioV17();
+
+        // Observa mudanças na interface causadas pela troca de usuário.
+        const sidebar = document.querySelector('aside');
+        if (sidebar && typeof MutationObserver !== 'undefined') {
+          const obs = new MutationObserver(verificarTrocaUsuarioV17);
+          obs.observe(sidebar, { childList: true, subtree: true, characterData: true });
+        }
+      }, 100);
+    });
+
+    // Ao abrir Planejamento, sempre carrega SOMENTE as datas do usuário atual.
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+
+      if (/Planejamento/i.test(btn.textContent || '')) {
+        setTimeout(ativarDatasUsuarioV17, 30);
       }
     });
 </script>

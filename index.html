@@ -1679,8 +1679,9 @@
       const lblVisao = document.getElementById('labelSemanaVisaoGeral');
       if (lblVisao) lblVisao.innerText = labelFormatado;
 
-      // Verificação estrutural com regeneração segura: sempre garante preenchimento
-      const slotsSemana = (estado.semanas && estado.semanas[chaveSemanaAtiva]) || {};
+      // Assegurar que a semana existe
+      if (!estado.semanas) estado.semanas = {};
+      const slotsSemana = estado.semanas[chaveSemanaAtiva] || {};
       const totalDisciplinasAgendadas = Object.values(slotsSemana).reduce((acc, curr) => acc + (curr ? curr.length : 0), 0);
 
       if (totalDisciplinasAgendadas === 0 && estado.disciplinas && estado.disciplinas.length > 0) {
@@ -1950,13 +1951,24 @@
             estado.agendaRevisoes = [];
             estado.diasCompletosLog = [];
 
-            salvarEstado();
+            // Gerar imediatamente a estrutura de cartões da semana ativa
+            const segunda = obterSegundaFeira(dataReferencia);
+            chaveSemanaAtiva = `semana_${formatarDataChave(segunda)}`;
+            gerarSemanaAutomatica(chaveSemanaAtiva, false);
+
+            // Gravar de imediato no Firebase para persistir após terminar sessão
+            const chave = chaveArmazenamento(usuarioAtivo);
+            localStorage.setItem(chave, JSON.stringify(estado));
+            if (dbRefAtivo) {
+              dbRefAtivo.set({ estado: estado, atualizadoEm: new Date().toISOString() });
+            }
+
             renderizarPesos();
             atualizarSelectsMaterias();
             renderizarEditalVerticalizado();
             renderizarAbaPrioridades();
             renderizarAbaRevisoes();
-            forcarSincronizacaoHoje();
+            atualizarSemanaAtiva();
             renderizarVisaoGeral();
             atualizarPainelPlanejamento();
             atualizarIndicadorPresenca();
@@ -2061,7 +2073,7 @@
         estado = obterEstadoPadrao();
       }
 
-      // Renderização inicial prioritária
+      // Renderização prioritária da interface a partir dos dados locais
       isReceivingFromCloud = true;
       atualizarUIAposCarregar();
       isReceivingFromCloud = false;
@@ -2300,6 +2312,7 @@
       };
     }
 
+    /* REGENERAÇÃO COM PRESERVAÇÃO INTEGRAL DE CARTÕES JÁ CONCLUÍDOS */
     function gerarSemanaAutomatica(chaveSemana, deveSalvar) {
       if (!estado.disciplinas || estado.disciplinas.length === 0) return;
 
@@ -2313,9 +2326,6 @@
       estado.semanas[chaveSemana] = {};
       let ponteiro = estado.ponteiroGeral || 0;
 
-      const hoje = new Date();
-      const hojeChaveStr = formatarDataChave(hoje);
-
       const segunda = obterSegundaFeira(dataReferencia);
       const diasComData = obterDiasDaSemana(segunda);
 
@@ -2323,15 +2333,9 @@
         const slotsAntigos = semanaExistente[d.nome] || [];
         estado.semanas[chaveSemana][d.nome] = [];
 
-        const slotChaveStr = formatarDataChave(d.dataCompleta);
-
-        if (slotChaveStr < hojeChaveStr) {
-          estado.semanas[chaveSemana][d.nome] = slotsAntigos.filter(s => s.feito);
-          return;
-        }
-
         for (let k = 0; k < estado.porDia; k++) {
-          if (slotsAntigos[k] && slotsAntigos[k].feito) {
+          // Preserva o cartão antigo sem substituir caso ele já exista ou esteja feito
+          if (slotsAntigos[k]) {
             estado.semanas[chaveSemana][d.nome].push(slotsAntigos[k]);
             continue;
           }

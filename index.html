@@ -801,25 +801,6 @@
       text-align: center;
     }
 
-    .mobile-day-bar {
-      display: none;
-      width: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px 12px;
-      margin-bottom: 16px;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-
-    @media (max-width: 900px) {
-      .mobile-day-bar {
-        display: flex;
-      }
-    }
-
     .week-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -1023,7 +1004,7 @@
 
     @media print {
       body { background: #ffffff !important; color: #000000 !important; }
-      aside, .controls-top, .mobile-day-bar, .btn, .btn-sync-action, .btn-play-mini { display: none !important; }
+      aside, .controls-top, .btn, .btn-sync-action, .btn-play-mini { display: none !important; }
       main { padding: 0 !important; margin: 0 !important; }
       .week-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 10px !important; }
       .day-column { border: 1px solid #cbd5e1 !important; background: #ffffff !important; box-shadow: none !important; page-break-inside: avoid; padding: 10px !important; }
@@ -1396,16 +1377,6 @@
         </div>
       </div>
 
-      <!-- Barra móvel de dia exclusivo -->
-      <div class="mobile-day-bar" id="mobileDayBar">
-        <button class="btn-sync-action" style="max-width: 90px;" onclick="navegarDiaMobile(-1)">◀ Anterior</button>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
-          <span id="labelNomeDiaMobile" style="font-size: 0.88rem; font-weight: 700; color: var(--primary);">Hoje</span>
-          <button class="btn-mini-acao" style="font-size: 0.72rem; color: var(--text-muted); text-decoration: underline;" onclick="alternarModoVisualizacaoMobile()" id="btnToggleModoMobile">Ver semana completa</button>
-        </div>
-        <button class="btn-sync-action" style="max-width: 90px;" onclick="navegarDiaMobile(1)">Seguinte ▶</button>
-      </div>
-
       <section class="week-grid" id="gradeSemana"></section>
     </main>
   </div>
@@ -1472,9 +1443,6 @@
     let debounceSalvarNuvem = null;
     let dbRefAtivo = null;
     let isReceivingFromCloud = false;
-
-    let diaMobileIndex = (new Date().getDay() + 6) % 7;
-    let modoMobileApenasHoje = true;
     let dataLimiteFinalEdital = null;
     let sharedAudioCtx = null;
 
@@ -1711,7 +1679,7 @@
       const lblVisao = document.getElementById('labelSemanaVisaoGeral');
       if (lblVisao) lblVisao.innerText = labelFormatado;
 
-      // Verificação estrutural com regeneração segura
+      // Verificação estrutural com regeneração segura: sempre garante preenchimento
       const slotsSemana = (estado.semanas && estado.semanas[chaveSemanaAtiva]) || {};
       const totalDisciplinasAgendadas = Object.values(slotsSemana).reduce((acc, curr) => acc + (curr ? curr.length : 0), 0);
 
@@ -1753,37 +1721,12 @@
 
     function irParaHoje() {
       dataReferencia = new Date();
-      diaMobileIndex = (new Date().getDay() + 6) % 7;
       atualizarSemanaAtiva();
     }
 
     function forcarSincronizacaoHoje() {
       dataReferencia = new Date();
-      diaMobileIndex = (new Date().getDay() + 6) % 7;
       atualizarSemanaAtiva();
-    }
-
-    function navegarDiaMobile(delta) {
-      diaMobileIndex += delta;
-      if (diaMobileIndex < 0) {
-        diaMobileIndex = 6;
-        navegarSemana(-1);
-        return;
-      } else if (diaMobileIndex > 6) {
-        diaMobileIndex = 0;
-        navegarSemana(1);
-        return;
-      }
-      renderizarGrade();
-    }
-
-    function alternarModoVisualizacaoMobile() {
-      modoMobileApenasHoje = !modoMobileApenasHoje;
-      const btn = document.getElementById('btnToggleModoMobile');
-      if (btn) {
-        btn.innerText = modoMobileApenasHoje ? 'Ver semana completa' : 'Ver apenas hoje';
-      }
-      renderizarGrade();
     }
 
     function autenticar() {
@@ -2423,7 +2366,7 @@
       if (!grade) return;
       grade.innerHTML = '';
 
-      if (estado.disciplinas.length === 0) {
+      if (!estado.disciplinas || estado.disciplinas.length === 0) {
         grade.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">Edital vazio. Cadastre as matérias na aba Edital TXT ou adquira na aba <strong>Editais Prontos</strong>.</div>`;
         return;
       }
@@ -2434,17 +2377,8 @@
 
       const hoje = new Date();
       const hojeFormatado = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}`;
-      const isMobile = window.innerWidth <= 900;
 
-      const diaMobileInfo = diasComData[diaMobileIndex];
-      const lblMobile = document.getElementById('labelNomeDiaMobile');
-      if (lblMobile && diaMobileInfo) {
-        lblMobile.innerText = `${diaMobileInfo.nome} (${diaMobileInfo.data})`;
-      }
-
-      diasComData.forEach((d, idxDia) => {
-        if (isMobile && modoMobileApenasHoje && idxDia !== diaMobileIndex) return;
-
+      diasComData.forEach(d => {
         const coluna = document.createElement('div');
         coluna.className = 'day-column';
         if (d.data === hojeFormatado && hoje.getFullYear() === d.dataCompleta.getFullYear()) {

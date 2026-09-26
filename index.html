@@ -1679,7 +1679,6 @@
       const lblVisao = document.getElementById('labelSemanaVisaoGeral');
       if (lblVisao) lblVisao.innerText = labelFormatado;
 
-      // Assegurar que a semana existe
       if (!estado.semanas) estado.semanas = {};
       const slotsSemana = estado.semanas[chaveSemanaAtiva] || {};
       const totalDisciplinasAgendadas = Object.values(slotsSemana).reduce((acc, curr) => acc + (curr ? curr.length : 0), 0);
@@ -1951,12 +1950,10 @@
             estado.agendaRevisoes = [];
             estado.diasCompletosLog = [];
 
-            // Gerar imediatamente a estrutura de cartões da semana ativa
             const segunda = obterSegundaFeira(dataReferencia);
             chaveSemanaAtiva = `semana_${formatarDataChave(segunda)}`;
             gerarSemanaAutomatica(chaveSemanaAtiva, false);
 
-            // Gravar de imediato no Firebase para persistir após terminar sessão
             const chave = chaveArmazenamento(usuarioAtivo);
             localStorage.setItem(chave, JSON.stringify(estado));
             if (dbRefAtivo) {
@@ -2073,7 +2070,6 @@
         estado = obterEstadoPadrao();
       }
 
-      // Renderização prioritária da interface a partir dos dados locais
       isReceivingFromCloud = true;
       atualizarUIAposCarregar();
       isReceivingFromCloud = false;
@@ -2312,7 +2308,7 @@
       };
     }
 
-    /* REGENERAÇÃO COM PRESERVAÇÃO INTEGRAL DE CARTÕES JÁ CONCLUÍDOS */
+    /* REGENERAÇÃO CORRIGIDA: DIAS ANTERIORES A HOJE NUNCA RECEBEM NOVAS MATÉRIAS */
     function gerarSemanaAutomatica(chaveSemana, deveSalvar) {
       if (!estado.disciplinas || estado.disciplinas.length === 0) return;
 
@@ -2326,6 +2322,11 @@
       estado.semanas[chaveSemana] = {};
       let ponteiro = estado.ponteiroGeral || 0;
 
+      // Data de hoje zerada
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const hojeTimestamp = hoje.getTime();
+
       const segunda = obterSegundaFeira(dataReferencia);
       const diasComData = obterDiasDaSemana(segunda);
 
@@ -2333,8 +2334,17 @@
         const slotsAntigos = semanaExistente[d.nome] || [];
         estado.semanas[chaveSemana][d.nome] = [];
 
+        const dataDoDia = new Date(d.dataCompleta);
+        dataDoDia.setHours(0, 0, 0, 0);
+        const diaTimestamp = dataDoDia.getTime();
+
+        // Se o dia for estritamente anterior a hoje, preserva apenas os concluídos; não preenche cartões novos
+        if (diaTimestamp < hojeTimestamp) {
+          estado.semanas[chaveSemana][d.nome] = slotsAntigos.filter(s => s.feito);
+          return;
+        }
+
         for (let k = 0; k < estado.porDia; k++) {
-          // Preserva o cartão antigo sem substituir caso ele já exista ou esteja feito
           if (slotsAntigos[k]) {
             estado.semanas[chaveSemana][d.nome].push(slotsAntigos[k]);
             continue;

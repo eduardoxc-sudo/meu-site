@@ -783,20 +783,6 @@
       flex-wrap: wrap;
     }
 
-    .presence-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(239, 68, 68, 0.12);
-      border: 1px solid rgba(239, 68, 68, 0.35);
-      color: #f87171;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
-    }
-
     .week-navigator {
       display: flex;
       align-items: center;
@@ -1161,7 +1147,7 @@
       <!-- Aba 3: Revisões Espaçadas -->
       <div id="aba-revisoes" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Acompanhamento dedicado das revisões espaçadas (1D, 7D, 15D, 30D) agendadas a partir do seu edital.
+          Visualização dedicada e isolada de todas as suas revisões espaçadas (1D, 7D, 15D, 30D) geradas a partir do edital.
         </p>
 
         <div class="field" style="background: rgba(139, 92, 246, 0.08); padding: 10px; border-radius: 8px; border: 1px solid rgba(139, 92, 246, 0.3);">
@@ -1175,7 +1161,7 @@
       <!-- Aba 4: Pesos (Com Numeração do Ciclo) -->
       <div id="aba-pesos" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Aqui você define o peso (quantidade de repetições no ciclo de estudos semanal). Veja a contagem total abaixo:
+          Aqui você define o peso (quantidade de repetições no ciclo). Veja a numeração e posição exata de cada matéria no ciclo abaixo:
         </p>
         <div id="resumoCicloContagem" style="font-size: 0.8rem; font-weight: 700; color: var(--primary); background: rgba(56, 189, 248, 0.08); padding: 8px; border-radius: 6px;"></div>
         <ul class="item-list" id="listaPesos" style="margin-top: 4px;"></ul>
@@ -2297,7 +2283,7 @@
         salvarEstado();
         atualizarUIAposCarregar();
         calcularPrevisaoFechamentoEdital();
-        alert('Edital carregado com sucesso!');
+        alert('Edital carregado e limpo com sucesso! As revisões e numeração do ciclo foram atualizadas.');
         trocarAba('aba-ciclo', document.querySelectorAll('.tab-btn')[0]);
       } else {
         alert('Não foi possível extrair matérias do texto inserido.');
@@ -2469,7 +2455,7 @@
       });
     }
 
-    // ---------- Disciplinas / Pesos (Com Numeração no Ciclo) ----------
+    // ---------- Disciplinas / Pesos (Com Numeração do Ciclo) ----------
     function adicionarMateria() {
       const input = document.getElementById('novaMateria');
       const nome = input.value.trim();

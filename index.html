@@ -1615,7 +1615,8 @@
         materiaFiltroEdital: 'TODAS',
         filtroPrioridadesMateria: 'TODAS',
         filtroRevisoesMateria: 'TODAS',
-        agendaRevisoes: []
+        agendaRevisoes: [],
+        pesosMaterias: {}
       };
     }
 
@@ -2573,13 +2574,94 @@
     }
 
     // ---------- Geração do ciclo semanal ----------
-    function construirListaCicloPonderada() {
-      let lista = [];
-      (estado.disciplinas || []).forEach(d => {
-        const peso = d.peso || 3;
-        for (let i = 0; i < peso; i++) lista.push(d.nome);
+    function obterNivelPrioridadeTopico(topico) {
+      if (!topico) return 0;
+
+      // Compatível com formatos diferentes já usados/salvos no sistema.
+      const valor = String(
+        topico.prioridade ??
+        topico.prioridadeNivel ??
+        topico.nivelPrioridade ??
+        topico.p ??
+        ''
+      ).toLowerCase().trim();
+
+      if (valor === 'alta' || valor === '3' || valor === 'high') return 3;
+      if (valor === 'media' || valor === 'média' || valor === '2' || valor === 'medium') return 2;
+      if (valor === 'baixa' || valor === '1' || valor === 'low') return 1;
+
+      // Também aceita flags booleanas, caso existam em versões antigas.
+      if (topico.prioridadeAlta === true || topico.alta === true) return 3;
+      if (topico.prioridadeMedia === true || topico.prioridadeMédia === true || topico.media === true) return 2;
+      if (topico.prioridadeBaixa === true || topico.baixa === true) return 1;
+
+      return 0;
+    }
+
+    function obterTopicosPendentesOrdenadosMateria(materia) {
+      const lista = (estado.editalVerticalizado[materia] || [])
+        .map((topico, indiceOriginal) => ({ topico, indiceOriginal }))
+        .filter(item => item.topico && item.topico.t !== true);
+
+      // Primeiro ALTA, depois MÉDIA, depois BAIXA.
+      // Empates preservam a ordem original do edital.
+      lista.sort((a, b) => {
+        const pa = obterNivelPrioridadeTopico(a.topico);
+        const pb = obterNivelPrioridadeTopico(b.topico);
+        if (pb !== pa) return pb - pa;
+        return a.indiceOriginal - b.indiceOriginal;
       });
-      return lista;
+
+      return lista.map(item => item.topico);
+    }
+
+    function construirListaCicloPonderada() {
+      const ciclo = [];
+
+      (estado.disciplinas || []).forEach(materia => {
+        // Busca o peso salvo no formato atual e em formatos antigos.
+        let peso = 1;
+
+        if (estado.pesos && estado.pesos[materia] != null) {
+          peso = parseInt(estado.pesos[materia], 10);
+        } else if (estado.pesosMaterias && estado.pesosMaterias[materia] != null) {
+          peso = parseInt(estado.pesosMaterias[materia], 10);
+        } else if (estado.pesoDisciplinas && estado.pesoDisciplinas[materia] != null) {
+          peso = parseInt(estado.pesoDisciplinas[materia], 10);
+        } else {
+          const discObj = Array.isArray(estado.disciplinasDetalhes)
+            ? estado.disciplinasDetalhes.find(d => d && (d.nome === materia || d.materia === materia))
+            : null;
+          if (discObj && discObj.peso != null) peso = parseInt(discObj.peso, 10);
+        }
+
+        if (!Number.isFinite(peso) || peso < 1) peso = 1;
+        if (peso > 10) peso = 10;
+
+        // Peso 3 = matéria aparece 3 vezes no ciclo;
+        // peso 2 = 2 vezes; peso 1 = 1 vez.
+        for (let i = 0; i < peso; i++) ciclo.push(materia);
+      });
+
+      // Intercala as repetições para evitar blocos seguidos da mesma matéria.
+      const contagem = {};
+      ciclo.forEach(m => contagem[m] = (contagem[m] || 0) + 1);
+
+      const resultado = [];
+      let aindaTem = true;
+
+      while (aindaTem) {
+        aindaTem = false;
+        (estado.disciplinas || []).forEach(materia => {
+          if ((contagem[materia] || 0) > 0) {
+            resultado.push(materia);
+            contagem[materia]--;
+            aindaTem = true;
+          }
+        });
+      }
+
+      return resultado;
     }
 
     // Retorna a numeração fixa do tópico no edital inteiro: 1, 2, 3 ... N.
@@ -2608,11 +2690,11 @@
     }
 
     function obterProximoTopicoParaMateria(materia) {
-      const lista = (estado.editalVerticalizado[materia] || []).filter(t => !t.t);
-      if (lista.length === 0) return null;
-      const ordemPrioridade = { vermelho: 0, amarelo: 1, verde: 2 };
-      lista.sort((a, b) => (ordemPrioridade[a.prioridade] ?? 1) - (ordemPrioridade[b.prioridade] ?? 1));
-      return lista[0];
+      const pendentesOrdenados = obterTopicosPendentesOrdenadosMateria(materia);
+      if (pendentesOrdenados.length === 0) return null;
+
+      // O primeiro pendente é sempre o de maior prioridade.
+      return pendentesOrdenados[0];
     }
 
     // Completa as matérias normais de uma semana já existente sem mexer nas revisões.

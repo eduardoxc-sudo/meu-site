@@ -1067,7 +1067,7 @@
         <div class="user-tag">
           Perfil: <span id="labelNomeUsuario" class="user-badge">-</span>
         </div>
-        <div id="statusSincronizacaoNuvem" class="sync-status">☁️ Inicializando nuvem...</div>
+        <div id="statusSincronizacaoNuvem" class="sync-status">☁️ Inicializando...</div>
         
         <div class="sync-actions">
           <button class="btn-sync-action" title="Envia todos os dados locais deste aparelho para a nuvem" onclick="forcarUploadNuvem()">⬆️ Enviar para Nuvem</button>
@@ -1521,9 +1521,7 @@
           osc.start(agora + (index * 0.11));
           osc.stop(agora + (index * 0.11) + 0.40);
         });
-      } catch (e) {
-        console.warn("Falha ao emitir áudio:", e);
-      }
+      } catch (e) {}
     }
 
     function dispararCelebracao() {
@@ -1714,7 +1712,8 @@
       if (lblVisao) lblVisao.innerText = labelFormatado;
 
       // Se a semana ainda não existir e existirem matérias, gera a estrutura
-      if (!estado.semanas[chaveSemanaAtiva] && estado.disciplinas && estado.disciplinas.length > 0) {
+      const semanaJaExiste = estado.semanas && estado.semanas[chaveSemanaAtiva] && Object.values(estado.semanas[chaveSemanaAtiva]).some(arr => arr && arr.length > 0);
+      if (!semanaJaExiste && estado.disciplinas && estado.disciplinas.length > 0) {
         gerarSemanaAutomatica(chaveSemanaAtiva, false);
       }
 
@@ -2117,7 +2116,6 @@
         estado = obterEstadoPadrao();
       }
 
-      // Renderiza imediatamente com a memória local para não deixar a tela vazia
       isReceivingFromCloud = true;
       atualizarUIAposCarregar();
       isReceivingFromCloud = false;
@@ -2142,7 +2140,6 @@
             atualizarStatusNuvem("☁️ Nuvem pronta", "online");
           }
 
-          // Listener de tempo real protegido contra recursividade
           dbRefAtivo.on("value", snap => {
             const val = snap.val();
             if (val && val.estado && !isReceivingFromCloud) {
@@ -2345,6 +2342,7 @@
       };
     }
 
+    /* CORREÇÃO DO CRONOGRAMA: NÃO ZERA DIAS DA SEMANA ATIVA */
     function gerarSemanaAutomatica(chaveSemana, deveSalvar) {
       if (!estado.disciplinas || estado.disciplinas.length === 0) return;
 
@@ -2359,7 +2357,7 @@
       let ponteiro = estado.ponteiroGeral || 0;
 
       const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
+      const hojeChaveStr = formatarDataChave(hoje);
 
       const segunda = obterSegundaFeira(dataReferencia);
       const diasComData = obterDiasDaSemana(segunda);
@@ -2368,10 +2366,10 @@
         const slotsAntigos = semanaExistente[d.nome] || [];
         estado.semanas[chaveSemana][d.nome] = [];
 
-        const dataDoSlot = new Date(d.dataCompleta);
-        dataDoSlot.setHours(0, 0, 0, 0);
+        const slotChaveStr = formatarDataChave(d.dataCompleta);
 
-        if (dataDoSlot < hoje) {
+        // Apenas dias estritamente anteriores à data de hoje ficam vazios (se não houver matéria já feita)
+        if (slotChaveStr < hojeChaveStr) {
           estado.semanas[chaveSemana][d.nome] = slotsAntigos.filter(s => s.feito);
           return;
         }

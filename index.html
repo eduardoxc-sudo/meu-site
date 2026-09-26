@@ -2070,84 +2070,88 @@
 
     function ouvirEditaisProntosNuvem() {
       const container = document.getElementById('listaBotoesEditaisProntos');
-      if (!rtdb || !container) return;
+      if (!container) return;
 
-      rtdb.ref("editais_prontos").on("value", snapshot => {
-        const editais = snapshot.val();
-        container.innerHTML = '';
-
-        if (!editais) {
-          container.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 16px;">Nenhum edital pronto cadastrado.</div>`;
-          return;
+      // Fallback local caso o Firebase demore ou falhe
+      const editaisLocaisPadrao = {
+        'edital_pm_ma': {
+          id: 'edital_pm_ma',
+          titulo: 'PM-MA 2026 Soldado (Exemplo)',
+          disciplinas: [{nome: 'Língua Portuguesa', peso: 3}, {nome: 'Raciocínio Lógico', peso: 2}],
+          editalVerticalizado: {
+            'Língua Portuguesa': [
+              {id: 'top_1', titulo: '1. Compreensão e interpretação de textos.', t: false, r1: false, r7: false, r15: false, r30: false, prioridade: 'vermelho'},
+              {id: 'top_2', titulo: '2. Tipologia textual.', t: false, r1: false, r7: false, r15: false, r30: false, prioridade: 'amarelo'}
+            ],
+            'Raciocínio Lógico': [
+              {id: 'top_3', titulo: '1. Estruturas lógicas.', t: false, r1: false, r7: false, r15: false, r30: false, prioridade: 'vermelho'},
+              {id: 'top_4', titulo: '2. Lógica de argumentação.', t: false, r1: false, r7: false, r15: false, r30: false, prioridade: 'amarelo'}
+            ]
+          }
         }
+      };
 
-        Object.keys(editais).forEach(key => {
-          const item = editais[key];
-          const div = document.createElement('div');
-          div.className = 'edital-pronto-item';
-
-          div.innerHTML = `
-            <button class="btn-edital-verde" onclick="adquirirEditalPronto('${item.id}')">
-              <span>📗 ${item.titulo}</span>
-              <span style="font-size: 0.72rem; font-weight: normal; opacity: 0.9;">Adquirir Edital ➔</span>
-            </button>
-            <button class="btn btn-danger" style="padding: 10px 12px;" title="Excluir este edital" onclick="excluirEditalPronto('${item.id}')">🗑️</button>
-          `;
-          container.appendChild(div);
-        });
-      });
-    }
-
-    function adquirirEditalPronto(idEdital) {
-      if (!confirm("Deseja carregar este edital pronto? O seu cronograma e ciclo atual serão atualizados com essas matérias.")) {
+      if (!rtdb) {
+        renderizarListaEditaisProntos(editaisLocaisPadrao, container);
         return;
       }
 
-      if (rtdb) {
-        rtdb.ref("editais_prontos/" + idEdital).once("value").then(snapshot => {
-          const dados = snapshot.val();
-          if (dados && dados.disciplinas) {
-            estado.disciplinas = JSON.parse(JSON.stringify(dados.disciplinas));
-            estado.editalVerticalizado = JSON.parse(JSON.stringify(dados.editalVerticalizado));
-            estado.semanas = {};
-            estado.indicesTopicos = {};
-            estado.ponteiroGeral = 0;
-            estado.materiaFiltroEdital = 'TODAS';
-            estado.filtroPrioridadesMateria = 'TODAS';
-            estado.agendaRevisoes = [];
-            estado.diasCompletosLog = [];
-
-            dataReferencia = new Date();
-            const segunda = obterSegundaFeira(dataReferencia);
-            chaveSemanaAtiva = `semana_${formatarDataChave(segunda)}`;
-            gerarSemanaAutomatica(chaveSemanaAtiva, false, true);
-
-            const chave = chaveArmazenamento(usuarioAtivo);
-            localStorage.setItem(chave, JSON.stringify(estado));
-            if (dbRefAtivo) {
-              dbRefAtivo.set({ estado: estado, atualizadoEm: new Date().toISOString() });
-            }
-
-            renderizarPesos();
-            atualizarSelectsMaterias();
-            renderizarEditalVerticalizado();
-            renderizarAbaPrioridades();
-            renderizarAbaRevisoes();
-            atualizarSemanaAtiva();
-            renderizarVisaoGeral();
-            atualizarPainelPlanejamento();
-            atualizarIndicadorPresenca();
-            calcularPrevisaoFechamentoEdital();
-
-            alert(`Parabéns! O edital "${dados.titulo}" foi adquirido com sucesso.`);
-            trocarAba('aba-ciclo', document.querySelectorAll('.tab-btn')[0]);
-          }
-        });
-      }
+      rtdb.ref("editais_prontos").on("value", snapshot => {
+        const editais = snapshot.val();
+        if (!editais) {
+          renderizarListaEditaisProntos(editaisLocaisPadrao, container);
+          return;
+        }
+        renderizarListaEditaisProntos(editais, container);
+      }, () => {
+        renderizarListaEditaisProntos(editaisLocaisPadrao, container);
+      });
     }
 
+    function renderizarListaEditaisProntos(editaisObj, container) {
+      container.innerHTML = '';
+      Object.keys(editaisObj).forEach(key => {
+        const item = editaisObj[key];
+        const div = document.createElement('div');
+        div.className = 'edital-pronto-item';
+
+        div.innerHTML = `
+          <button class="btn-edital-verde" onclick="adquirirEditalProntoObjeto('${item.id}', ${encodeURIComponent(JSON.stringify(item))})">
+            <span>📗 ${item.titulo}</span>
+            <span style="font-size: 0.72rem; font-weight: normal; opacity: 0.9;">Adquirir Edital ➔</span>
+          </button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    window.adquirirEditalProntoObjeto = function(idEdital, dadosStr) {
+      const dados = typeof dadosStr === 'string' ? JSON.parse(dadosStr) : dadosStr;
+      if (!confirm(`Deseja carregar o edital "${dados.titulo}"? O seu cronograma atual será atualizado.`)) {
+        return;
+      }
+
+      estado.disciplinas = JSON.parse(JSON.stringify(dados.disciplinas));
+      estado.editalVerticalizado = JSON.parse(JSON.stringify(dados.editalVerticalizado));
+      estado.semanas = {};
+      estado.indicesTopicos = {};
+      estado.ponteiroGeral = 0;
+      estado.agendaRevisoes = [];
+      estado.diasCompletosLog = [];
+
+      dataReferencia = new Date();
+      const segunda = obterSegundaFeira(dataReferencia);
+      chaveSemanaAtiva = `semana_${formatarDataChave(segunda)}`;
+      gerarSemanaAutomatica(chaveSemanaAtiva, false, true);
+
+      salvarEstado();
+      atualizarUIAposCarregar();
+      alert(`Parabéns! O edital "${dados.titulo}" foi carregado com sucesso.`);
+      trocarAba('aba-ciclo', document.querySelectorAll('.tab-btn')[0]);
+    };
+
     function excluirEditalPronto(idEdital) {
-      if (confirm("Remover este edital pronto da nuvem? Ele deixará de aparecer na lista.")) {
+      if (confirm("Remover este edital pronto?")) {
         if (rtdb) {
           rtdb.ref("editais_prontos/" + idEdital).remove().then(() => {
             alert("Edital pronto removido!");
@@ -2213,7 +2217,7 @@
             atualizarUIAposCarregar();
             atualizarStatusNuvem("☁️ Sincronizado", "online");
           }
-        });
+        }, () => {});
       }
     }
 
@@ -2231,7 +2235,7 @@
             atualizadoEm: new Date().toISOString()
           }).then(() => {
             atualizarStatusNuvem("☁️ Sincronizado", "online");
-          });
+          }).catch(() => {});
         }, 400);
       }
     }

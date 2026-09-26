@@ -1418,7 +1418,7 @@
           <div class="week-navigator">
             <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(-1)">◀</button>
             <span class="week-label" id="labelIntervaloSemana">...</span>
-            <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(1)">Próxima ▶</button>
+            <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(1)">▶</button>
           </div>
           <button class="btn btn-primary" style="padding: 6px 10px;" onclick="forcarSincronizacaoHoje()">↺ Hoje</button>
           <button class="btn btn-outline" onclick="alternarTema()" id="btnTema">☀️ Claro</button>
@@ -2070,86 +2070,91 @@
 
     function ouvirEditaisProntosNuvem() {
       const container = document.getElementById('listaBotoesEditaisProntos');
-      if (!container) return;
-
-      const editaisLocaisPadrao = {
-        'edital_pm_ma': {
-          id: 'edital_pm_ma',
-          titulo: 'PM-MA 2026 Soldado',
-          disciplinas: [{nome: 'Língua Portuguesa', peso: 3}, {nome: 'Raciocínio Lógico', peso: 2}],
-          editalVerticalizado: {
-            'Língua Portuguesa': [
-              {id: 'top_1', titulo: '1. Compreensão e interpretação de textos.', t: false, r1: false, r7: false, r15: false, r30: false, prioridade: 'vermelho'},
-              {id: 'top_2', titulo: '2. Tipologia textual.', t: false, r1: false, r7: false, r15: false, r30: false, prioridade: 'amarelo'}
-            ],
-            'Raciocínio Lógico': [
-              {id: 'top_3', titulo: '1. Estruturas lógicas.', t: false, r1: false, r7: false, r15: false, r30: false, prioridade: 'vermelho'},
-              {id: 'top_4', titulo: '2. Lógica de argumentação.', t: false, r1: false, r7: false, r15: false, r30: false, prioridade: 'amarelo'}
-            ]
-          }
-        }
-      };
-
-      if (!rtdb) {
-        renderizarListaEditaisProntos(editaisLocaisPadrao, container);
-        return;
-      }
+      if (!rtdb || !container) return;
 
       rtdb.ref("editais_prontos").on("value", snapshot => {
         const editais = snapshot.val();
+        container.innerHTML = '';
+
         if (!editais) {
-          renderizarListaEditaisProntos(editaisLocaisPadrao, container);
+          container.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 16px;">Nenhum edital pronto cadastrado.</div>`;
           return;
         }
-        renderizarListaEditaisProntos(editais, container);
-      }, () => {
-        renderizarListaEditaisProntos(editaisLocaisPadrao, container);
+
+        Object.keys(editais).forEach(key => {
+          const item = editais[key];
+          const div = document.createElement('div');
+          div.className = 'edital-pronto-item';
+
+          div.innerHTML = `
+            <button class="btn-edital-verde" onclick="adquirirEditalPronto('${item.id}')">
+              <span>📗 ${item.titulo}</span>
+              <span style="font-size: 0.72rem; font-weight: normal; opacity: 0.9;">Adquirir Edital ➔</span>
+            </button>
+            <button class="btn btn-danger" style="padding: 10px 12px;" title="Excluir este edital" onclick="excluirEditalPronto('${item.id}')">🗑️</button>
+          `;
+          container.appendChild(div);
+        });
       });
     }
 
-    function renderizarListaEditaisProntos(editaisObj, container) {
-      container.innerHTML = '';
-      Object.keys(editaisObj).forEach(key => {
-        const item = editaisObj[key];
-        const div = document.createElement('div');
-        div.className = 'edital-pronto-item';
-
-        div.innerHTML = `
-          <button class="btn-edital-verde" onclick="adquirirEditalProntoObjeto('${item.id}', ${encodeURIComponent(JSON.stringify(item))})">
-            <span>📗 ${item.titulo}</span>
-            <span style="font-size: 0.72rem; font-weight: normal; opacity: 0.9;">Adquirir Edital ➔</span>
-          </button>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    window.adquirirEditalProntoObjeto = function(idEdital, dadosStr) {
-      const dados = typeof dadosStr === 'string' ? JSON.parse(dadosStr) : dadosStr;
-      if (!confirm(`Deseja carregar o edital "${dados.titulo}"? O seu cronograma atual será atualizado.`)) {
+    function adquirirEditalPronto(idEdital) {
+      if (!confirm("Deseja carregar este edital pronto? O seu cronograma e ciclo atual serão atualizados com essas matérias.")) {
         return;
       }
 
-      estado.disciplinas = JSON.parse(JSON.stringify(dados.disciplinas));
-      estado.editalVerticalizado = JSON.parse(JSON.stringify(dados.editalVerticalizado));
-      estado.semanas = {};
-      estado.indicesTopicos = {};
-      estado.ponteiroGeral = 0;
-      estado.materiaFiltroEdital = 'TODAS';
-      estado.filtroPrioridadesMateria = 'TODAS';
-      estado.agendaRevisoes = [];
-      estado.diasCompletosLog = [];
+      if (rtdb) {
+        rtdb.ref("editais_prontos/" + idEdital).once("value").then(snapshot => {
+          const dados = snapshot.val();
+          if (dados && dados.disciplinas) {
+            estado.disciplinas = JSON.parse(JSON.stringify(dados.disciplinas));
+            estado.editalVerticalizado = JSON.parse(JSON.stringify(dados.editalVerticalizado));
+            estado.semanas = {};
+            estado.indicesTopicos = {};
+            estado.ponteiroGeral = 0;
+            estado.materiaFiltroEdital = 'TODAS';
+            estado.filtroPrioridadesMateria = 'TODAS';
+            estado.agendaRevisoes = [];
+            estado.diasCompletosLog = [];
 
-      dataReferencia = new Date();
-      const segunda = obterSegundaFeira(dataReferencia);
-      chaveSemanaAtiva = `semana_${formatarDataChave(segunda)}`;
-      gerarSemanaAutomatica(chaveSemanaAtiva, false, true);
+            dataReferencia = new Date();
+            const segunda = obterSegundaFeira(dataReferencia);
+            chaveSemanaAtiva = `semana_${formatarDataChave(segunda)}`;
+            gerarSemanaAutomatica(chaveSemanaAtiva, false, true);
 
-      salvarEstado();
-      atualizarUIAposCarregar();
-      alert(`Parabéns! O edital "${dados.titulo}" foi carregado com sucesso.`);
-      trocarAba('aba-ciclo', document.querySelectorAll('.tab-btn')[0]);
-    };
+            const chave = chaveArmazenamento(usuarioAtivo);
+            localStorage.setItem(chave, JSON.stringify(estado));
+            if (dbRefAtivo) {
+              dbRefAtivo.set({ estado: estado, atualizadoEm: new Date().toISOString() });
+            }
+
+            renderizarPesos();
+            atualizarSelectsMaterias();
+            renderizarEditalVerticalizado();
+            renderizarAbaPrioridades();
+            renderizarAbaRevisoes();
+            atualizarSemanaAtiva();
+            renderizarVisaoGeral();
+            atualizarPainelPlanejamento();
+            atualizarIndicadorPresenca();
+            calcularPrevisaoFechamentoEdital();
+
+            alert(`Parabéns! O edital "${dados.titulo}" foi adquirido com sucesso.`);
+            trocarAba('aba-ciclo', document.querySelectorAll('.tab-btn')[0]);
+          }
+        });
+      }
+    }
+
+    function excluirEditalPronto(idEdital) {
+      if (confirm("Remover este edital pronto da nuvem? Ele deixará de aparecer na lista.")) {
+        if (rtdb) {
+          rtdb.ref("editais_prontos/" + idEdital).remove().then(() => {
+            alert("Edital pronto removido!");
+          });
+        }
+      }
+    }
 
     function redefinirEditalManualmente() {
       if (confirm('Tem certeza de que deseja resetar todo o edital e limpar os dados atuais?')) {
@@ -2208,7 +2213,7 @@
             atualizarUIAposCarregar();
             atualizarStatusNuvem("☁️ Sincronizado", "online");
           }
-        }, () => {});
+        });
       }
     }
 
@@ -2226,7 +2231,7 @@
             atualizadoEm: new Date().toISOString()
           }).then(() => {
             atualizarStatusNuvem("☁️ Sincronizado", "online");
-          }).catch(() => {});
+          });
         }, 400);
       }
     }
@@ -2351,9 +2356,918 @@
       return resultado;
     }
 
+    /* =====================================================================
+       FUNÇÕES ANTES AUSENTES — reconstruídas para destravar o painel
+       ===================================================================== */
+
+    let timerInterval = null;
+    let timerSegundos = 0;
+    let timerRodando = false;
+
+    // ---------- Navegação por abas ----------
+    function trocarAba(idAba, btnEl) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      const aba = document.getElementById(idAba);
+      if (aba) aba.classList.add('active');
+      if (btnEl) btnEl.classList.add('active');
+
+      if (idAba === 'aba-pesos') renderizarPesos();
+      if (idAba === 'aba-prioridades') renderizarAbaPrioridades();
+      if (idAba === 'aba-revisoes') renderizarAbaRevisoes();
+      if (idAba === 'aba-edital-vert') renderizarEditalVerticalizado();
+      if (idAba === 'aba-visao-geral') renderizarVisaoGeral();
+      if (idAba === 'aba-planejamento') atualizarPainelPlanejamento();
+      if (idAba === 'aba-timer') atualizarVisualizacaoHoras();
+      if (idAba === 'aba-questoes') atualizarVisualizacaoQuestoes();
+    }
+
+    function ativarAbaPorId(idAba) {
+      const btn = Array.from(document.querySelectorAll('.tab-btn')).find(
+        b => b.getAttribute('onclick') && b.getAttribute('onclick').includes(idAba)
+      );
+      trocarAba(idAba, btn);
+    }
+
+    // ---------- Tema ----------
+    function alternarTema() {
+      const atual = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', atual);
+      estado.tema = atual;
+      const btn = document.getElementById('btnTema');
+      if (btn) btn.innerText = atual === 'light' ? '🌙 Escuro' : '☀️ Claro';
+      salvarEstado();
+    }
+
+    // ---------- Carregamento geral da UI ----------
+    function atualizarUIAposCarregar() {
+      const padrao = obterEstadoPadrao();
+      Object.keys(padrao).forEach(chave => {
+        if (estado[chave] === undefined) estado[chave] = padrao[chave];
+      });
+
+      document.documentElement.setAttribute('data-theme', estado.tema || 'dark');
+      const btnTema = document.getElementById('btnTema');
+      if (btnTema) btnTema.innerText = estado.tema === 'light' ? '🌙 Escuro' : '☀️ Claro';
+
+      const inputPorDia = document.getElementById('materiasPorDia');
+      if (inputPorDia) inputPorDia.value = estado.porDia || 2;
+
+      atualizarSelectsMaterias();
+      renderizarPesos();
+      renderizarEditalVerticalizado();
+      renderizarAbaPrioridades();
+      renderizarAbaRevisoes();
+      atualizarPainelPlanejamento();
+      atualizarVisualizacaoHoras();
+      atualizarVisualizacaoQuestoes();
+      atualizarIndicadorPresenca();
+
+      dataReferencia = new Date();
+      atualizarSemanaAtiva();
+    }
+
+    // ---------- Seletores de disciplina ----------
+    function atualizarSelectsMaterias() {
+      const nomes = (estado.disciplinas || []).map(d => d.nome);
+      const selects = [
+        { id: 'timerSelectMateria', comTodas: false },
+        { id: 'filtroMateriaHoras', comTodas: true },
+        { id: 'filtroQuestoesMateria', comTodas: true },
+        { id: 'questoesSelectMateria', comTodas: false },
+        { id: 'filtroExclusivoMateriaEdital', comTodas: true },
+        { id: 'selectMateriaNovoTopico', comTodas: false },
+        { id: 'filtroMateriaPrioridades', comTodas: true },
+        { id: 'filtroMateriaRevisoes', comTodas: true },
+        { id: 'modalHorasSelectMateria', comTodas: false }
+      ];
+
+      selects.forEach(cfg => {
+        const sel = document.getElementById(cfg.id);
+        if (!sel) return;
+        const valorAtual = sel.value;
+        sel.innerHTML = '';
+
+        if (cfg.comTodas) {
+          const opt = document.createElement('option');
+          opt.value = 'TODAS';
+          opt.innerText = 'Todas as Disciplinas';
+          sel.appendChild(opt);
+        }
+
+        nomes.forEach(n => {
+          const opt = document.createElement('option');
+          opt.value = n;
+          opt.innerText = n;
+          sel.appendChild(opt);
+        });
+
+        if (nomes.includes(valorAtual) || (cfg.comTodas && valorAtual === 'TODAS')) {
+          sel.value = valorAtual;
+        }
+      });
+    }
+
+    // ---------- Disciplinas / Pesos ----------
+    function adicionarMateria() {
+      const input = document.getElementById('novaMateria');
+      const nome = input.value.trim();
+      if (!nome) return;
+
+      if (!estado.disciplinas) estado.disciplinas = [];
+      if (estado.disciplinas.some(d => d.nome.toLowerCase() === nome.toLowerCase())) {
+        alert('Essa disciplina já existe.');
+        return;
+      }
+
+      estado.disciplinas.push({ nome, peso: 3 });
+      if (!estado.editalVerticalizado) estado.editalVerticalizado = {};
+      if (!estado.editalVerticalizado[nome]) estado.editalVerticalizado[nome] = [];
+
+      input.value = '';
+      salvarEstado();
+      atualizarSelectsMaterias();
+      renderizarPesos();
+      renderizarEditalVerticalizado();
+      calcularPrevisaoFechamentoEdital();
+    }
+
+    function excluirMateria(idx) {
+      const d = estado.disciplinas[idx];
+      if (!d) return;
+      if (!confirm(`Remover a disciplina "${d.nome}" e todo o seu conteúdo do edital?`)) return;
+
+      delete estado.editalVerticalizado[d.nome];
+      estado.disciplinas.splice(idx, 1);
+
+      salvarEstado();
+      atualizarSelectsMaterias();
+      renderizarPesos();
+      renderizarEditalVerticalizado();
+      atualizarSemanaAtiva();
+      calcularPrevisaoFechamentoEdital();
+    }
+
+    function atualizarPesoMateria(idx, val) {
+      if (estado.disciplinas[idx]) {
+        estado.disciplinas[idx].peso = parseInt(val);
+        salvarEstado();
+      }
+    }
+
+    function renderizarPesos() {
+      const lista = document.getElementById('listaPesos');
+      if (!lista) return;
+      lista.innerHTML = '';
+
+      (estado.disciplinas || []).forEach((d, idx) => {
+        const li = document.createElement('li');
+        li.className = 'item-card';
+        li.innerHTML = `
+          <span>${d.nome}</span>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <select onchange="atualizarPesoMateria(${idx}, this.value)" style="padding:4px 6px; font-size:0.8rem;">
+              ${[1, 2, 3, 4, 5].map(v => `<option value="${v}" ${d.peso == v ? 'selected' : ''}>${v}</option>`).join('')}
+            </select>
+            <button class="btn-mini-acao" title="Remover disciplina" onclick="excluirMateria(${idx})">🗑️</button>
+          </div>
+        `;
+        lista.appendChild(li);
+      });
+
+      if ((estado.disciplinas || []).length === 0) {
+        lista.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:16px; font-size:0.82rem;">Nenhuma disciplina cadastrada.</div>`;
+      }
+    }
+
+    // ---------- Geração do ciclo semanal ----------
+    function construirListaCicloPonderada() {
+      let lista = [];
+      (estado.disciplinas || []).forEach(d => {
+        const peso = d.peso || 3;
+        for (let i = 0; i < peso; i++) lista.push(d.nome);
+      });
+      return lista;
+    }
+
+    function obterProximoTopicoParaMateria(materia) {
+      const lista = (estado.editalVerticalizado[materia] || []).filter(t => !t.t);
+      if (lista.length === 0) return null;
+      const ordemPrioridade = { vermelho: 0, amarelo: 1, verde: 2 };
+      lista.sort((a, b) => (ordemPrioridade[a.prioridade] ?? 1) - (ordemPrioridade[b.prioridade] ?? 1));
+      return lista[0];
+    }
+
+    function gerarSemanaAutomatica(chaveSemana, forcarRegenerar, resetarProgresso) {
+      if (!estado.disciplinas || estado.disciplinas.length === 0) return;
+      if (!estado.semanas) estado.semanas = {};
+      if (estado.semanas[chaveSemana] && !forcarRegenerar) return;
+
+      const cicloPonderado = construirListaCicloPonderada();
+      if (cicloPonderado.length === 0) return;
+
+      const porDia = parseInt(estado.porDia) || 2;
+      const novaSemana = {};
+
+      const partesChave = chaveSemana.replace('semana_', '').split('-');
+      const segundaRef = new Date(partesChave[0], partesChave[1] - 1, partesChave[2]);
+
+      let ponteiro = estado.ponteiroGeral || 0;
+
+      DIAS.forEach((nomeDia, idxDia) => {
+        const dataDia = new Date(segundaRef);
+        dataDia.setDate(segundaRef.getDate() + idxDia);
+        const chaveDataDia = formatarDataChave(dataDia);
+
+        const slotsDoDia = [];
+
+        (estado.agendaRevisoes || []).forEach(rev => {
+          if (rev.dataPrevista === chaveDataDia && !rev.concluida) {
+            slotsDoDia.push({
+              materia: rev.materia,
+              assunto: `🔁 Revisão: ${rev.topicoTitulo}`,
+              feito: false,
+              revisaoId: rev.id,
+              tipoRevisao: rev.tipo
+            });
+          }
+        });
+
+        for (let i = 0; i < porDia; i++) {
+          const materia = cicloPonderado[ponteiro % cicloPonderado.length];
+          ponteiro++;
+          const topico = obterProximoTopicoParaMateria(materia);
+          slotsDoDia.push({
+            materia,
+            assunto: topico ? topico.titulo : 'Revisão livre / Questões',
+            feito: false,
+            topicoId: topico ? topico.id : null
+          });
+        }
+
+        novaSemana[nomeDia] = slotsDoDia;
+      });
+
+      estado.ponteiroGeral = ponteiro;
+      estado.semanas[chaveSemana] = novaSemana;
+      salvarEstado();
+    }
+
+    function gerarCronogramaSemanaAtual(regenerar, notificar) {
+      gerarSemanaAutomatica(chaveSemanaAtiva, regenerar === true, false);
+      renderizarGrade();
+      renderizarVisaoGeral();
+      calcularPrevisaoFechamentoEdital();
+      if (notificar) alert('Cronograma da semana atual regenerado!');
+    }
+
+    function reiniciarProgressoSemana() {
+      if (!confirm('Deseja limpar todas as marcações de concluído desta semana?')) return;
+      const semana = estado.semanas[chaveSemanaAtiva];
+      if (semana) {
+        Object.keys(semana).forEach(dia => {
+          semana[dia].forEach(slot => (slot.feito = false));
+        });
+      }
+      salvarEstado();
+      renderizarGrade();
+    }
+
+    // ---------- Renderização da grade semanal ----------
+    function renderizarGrade() {
+      const grade = document.getElementById('gradeSemana');
+      if (!grade) return;
+      grade.innerHTML = '';
+
+      const segunda = obterSegundaFeira(dataReferencia);
+      const dias = obterDiasDaSemana(segunda);
+      const hojeChave = formatarDataChave(new Date());
+      const semana = (estado.semanas && estado.semanas[chaveSemanaAtiva]) || {};
+
+      dias.forEach(diaInfo => {
+        const chaveDia = formatarDataChave(diaInfo.dataCompleta);
+        const slots = semana[diaInfo.nome] || [];
+        const col = document.createElement('div');
+        col.className = 'day-column';
+        if (chaveDia === hojeChave) col.classList.add('today');
+        const todosFeitos = slots.length > 0 && slots.every(s => s.feito);
+        if (todosFeitos) col.classList.add('day-completed');
+
+        let slotsHtml = '';
+        slots.forEach((slot, idxSlot) => {
+          const isRevisao = !!slot.revisaoId;
+          slotsHtml += `
+            <div class="slot-card ${slot.feito ? 'done' : ''} ${isRevisao ? 'cartao-revisao-espacada' : ''}">
+              <div class="slot-left">
+                <input type="checkbox" ${slot.feito ? 'checked' : ''} onchange="toggleSlotFeito('${diaInfo.nome}', ${idxSlot}, this.checked)">
+                <div class="slot-texts">
+                  <div class="slot-header-row">
+                    <span class="slot-materia-title">${slot.materia}</span>
+                    ${isRevisao ? '<span class="tag-badge-revisao-espacada">' + slot.tipoRevisao + '</span>' : ''}
+                  </div>
+                  <span class="slot-assunto-sub">${slot.assunto || ''}</span>
+                </div>
+              </div>
+              <button class="btn-play-mini" title="Estudar agora (abrir timer)" onclick="irParaTimerComMateria('${slot.materia}')">▶️</button>
+            </div>
+          `;
+        });
+
+        if (slots.length === 0) {
+          slotsHtml = `<div style="font-size:0.78rem; color:var(--text-muted); text-align:center; padding:12px;">Sem atividades agendadas.</div>`;
+        }
+
+        col.innerHTML = `
+          <div class="day-name">
+            <span class="day-title-text">${diaInfo.nome}</span>
+            <span class="day-date-tag">${diaInfo.data}</span>
+          </div>
+          <div class="slot-list">${slotsHtml}</div>
+        `;
+        grade.appendChild(col);
+      });
+    }
+
+    function toggleSlotFeito(diaNome, idxSlot, valor) {
+      const semana = estado.semanas[chaveSemanaAtiva];
+      if (!semana || !semana[diaNome] || !semana[diaNome][idxSlot]) return;
+
+      const slot = semana[diaNome][idxSlot];
+      slot.feito = valor;
+
+      if (slot.revisaoId) {
+        const rev = (estado.agendaRevisoes || []).find(r => r.id === slot.revisaoId);
+        if (rev) rev.concluida = valor;
+      }
+
+      salvarEstado();
+      renderizarGrade();
+      renderizarVisaoGeral();
+      renderizarAbaRevisoes();
+
+      const todosFeitos = semana[diaNome].length > 0 && semana[diaNome].every(s => s.feito);
+      if (todosFeitos && valor) {
+        const segunda = obterSegundaFeira(dataReferencia);
+        const idxDia = DIAS.indexOf(diaNome);
+        const dataDia = new Date(segunda);
+        dataDia.setDate(segunda.getDate() + idxDia);
+        const chaveDia = formatarDataChave(dataDia);
+
+        if (!estado.diasCompletosLog) estado.diasCompletosLog = [];
+        if (!estado.diasCompletosLog.includes(chaveDia)) {
+          estado.diasCompletosLog.push(chaveDia);
+          salvarEstado();
+        }
+        atualizarIndicadorPresenca();
+        dispararCelebracao();
+      }
+    }
+
+    function irParaTimerComMateria(materia) {
+      ativarAbaPorId('aba-timer');
+      const sel = document.getElementById('timerSelectMateria');
+      if (sel) sel.value = materia;
+    }
+
+    // ---------- Visão Geral ----------
+    function renderizarVisaoGeral() {
+      const container = document.getElementById('containerVisaoGeral');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const segunda = obterSegundaFeira(dataReferencia);
+      const dias = obterDiasDaSemana(segunda);
+      const semana = (estado.semanas && estado.semanas[chaveSemanaAtiva]) || {};
+
+      dias.forEach(diaInfo => {
+        const slots = semana[diaInfo.nome] || [];
+        const card = document.createElement('div');
+        card.className = 'agenda-card';
+
+        let itensHtml = slots.length
+          ? slots.map(s => `
+              <div class="agenda-item-slot">
+                <span>${s.feito ? '✅' : '⬜'} ${s.materia}</span>
+                <span style="color:var(--text-muted); font-size:0.75rem;">${s.assunto || ''}</span>
+              </div>
+            `).join('')
+          : '<div style="font-size:0.78rem;color:var(--text-muted);">Sem atividades.</div>';
+
+        card.innerHTML = `
+          <div class="agenda-dia-header">
+            <span>${diaInfo.nome}</span>
+            <span>${diaInfo.data}</span>
+          </div>
+          ${itensHtml}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ---------- Edital verticalizado ----------
+    function adicionarTopicoAoEdital() {
+      const selectMateria = document.getElementById('selectMateriaNovoTopico');
+      const inputTopico = document.getElementById('inputNovoTopico');
+      const materia = selectMateria.value;
+      const texto = inputTopico.value.trim();
+      if (!materia || !texto) return;
+
+      if (!estado.editalVerticalizado[materia]) estado.editalVerticalizado[materia] = [];
+      estado.editalVerticalizado[materia].push({
+        id: 'top_' + Math.random().toString(36).substr(2, 7),
+        titulo: texto, t: false, r1: false, r7: false, r15: false, r30: false,
+        prioridade: 'amarelo'
+      });
+
+      inputTopico.value = '';
+      salvarEstado();
+      renderizarEditalVerticalizado();
+      renderizarAbaPrioridades();
+      calcularPrevisaoFechamentoEdital();
+    }
+
+    function alternarColapsoEdital(materia) {
+      if (!estado.collapseEdital) estado.collapseEdital = {};
+      estado.collapseEdital[materia] = !estado.collapseEdital[materia];
+      salvarEstado();
+      renderizarEditalVerticalizado();
+    }
+
+    function atualizarTopicoCampo(materia, topicoId, campo, valor) {
+      const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
+      if (!topico) return;
+      topico[campo] = valor;
+      salvarEstado();
+      renderizarEditalVerticalizado();
+      calcularPrevisaoFechamentoEdital();
+    }
+
+    function excluirTopicoEdital(materia, topicoId) {
+      if (!confirm('Remover este tópico do edital?')) return;
+      estado.editalVerticalizado[materia] = (estado.editalVerticalizado[materia] || []).filter(t => t.id !== topicoId);
+      estado.agendaRevisoes = (estado.agendaRevisoes || []).filter(r => r.topicoId !== topicoId);
+      salvarEstado();
+      renderizarEditalVerticalizado();
+      renderizarAbaRevisoes();
+      calcularPrevisaoFechamentoEdital();
+    }
+
+    function renderizarEditalVerticalizado() {
+      const container = document.getElementById('containerEditalVerticalizado');
+      const filtro = document.getElementById('filtroExclusivoMateriaEdital');
+      if (!container) return;
+      const filtroVal = filtro ? filtro.value : 'TODAS';
+      container.innerHTML = '';
+
+      const materias = Object.keys(estado.editalVerticalizado || {});
+
+      materias.forEach(materia => {
+        if (filtroVal !== 'TODAS' && filtroVal !== materia) return;
+        const topicos = estado.editalVerticalizado[materia] || [];
+        const bloco = document.createElement('div');
+        bloco.className = 'subject-block';
+        const colapsado = estado.collapseEdital && estado.collapseEdital[materia];
+
+        let linhasHtml = topicos.map(t => `
+          <tr>
+            <td class="topic-cell">${t.titulo} <span class="tag-badge-prioridade ${t.prioridade}">${t.prioridade === 'vermelho' ? 'Alta' : t.prioridade === 'verde' ? 'Baixa' : 'Média'}</span></td>
+            <td><input type="checkbox" ${t.t ? 'checked' : ''} onchange="atualizarTopicoCampo('${materia}','${t.id}','t', this.checked)"></td>
+            <td><input type="checkbox" ${t.r1 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','1D', this.checked)"></td>
+            <td><input type="checkbox" ${t.r7 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','7D', this.checked)"></td>
+            <td><input type="checkbox" ${t.r15 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','15D', this.checked)"></td>
+            <td><input type="checkbox" ${t.r30 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','30D', this.checked)"></td>
+            <td><button class="btn-mini-acao" title="Remover tópico" onclick="excluirTopicoEdital('${materia}','${t.id}')">🗑️</button></td>
+          </tr>
+        `).join('');
+
+        if (topicos.length === 0) {
+          linhasHtml = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:10px;">Nenhum tópico cadastrado.</td></tr>`;
+        }
+
+        bloco.innerHTML = `
+          <div class="subject-header-ev" onclick="alternarColapsoEdital('${materia}')">
+            <span>${materia} (${topicos.filter(t => t.t).length}/${topicos.length})</span>
+            <span>${colapsado ? '▸' : '▾'}</span>
+          </div>
+          <div class="subject-body-ev" style="display:${colapsado ? 'none' : 'block'};">
+            <table class="ev-table">
+              <thead><tr><th>Tópico</th><th>Feito</th><th>1D</th><th>7D</th><th>15D</th><th>30D</th><th></th></tr></thead>
+              <tbody>${linhasHtml}</tbody>
+            </table>
+          </div>
+        `;
+        container.appendChild(bloco);
+      });
+
+      if (materias.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;">Nenhuma disciplina cadastrada ainda.</div>`;
+      }
+    }
+
+    // ---------- Revisões espaçadas ----------
+    function alternarRevisaoTopico(materia, topicoId, tipo, ativo) {
+      const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
+      if (!topico) return;
+      const campo = 'r' + tipo.replace('D', '');
+      topico[campo] = ativo;
+
+      const diasMap = { '1D': 1, '7D': 7, '15D': 15, '30D': 30 };
+      if (!estado.agendaRevisoes) estado.agendaRevisoes = [];
+
+      if (ativo) {
+        const dataRev = new Date();
+        dataRev.setDate(dataRev.getDate() + diasMap[tipo]);
+        estado.agendaRevisoes.push({
+          id: 'rev_' + Math.random().toString(36).substr(2, 7),
+          materia, topicoId, topicoTitulo: topico.titulo,
+          tipo, dataPrevista: formatarDataChave(dataRev), concluida: false
+        });
+      } else {
+        estado.agendaRevisoes = estado.agendaRevisoes.filter(r => !(r.topicoId === topicoId && r.tipo === tipo));
+      }
+
+      salvarEstado();
+      renderizarEditalVerticalizado();
+      renderizarAbaRevisoes();
+    }
+
+    function renderizarAbaRevisoes() {
+      const container = document.getElementById('containerListaRevisoes');
+      const filtro = document.getElementById('filtroMateriaRevisoes');
+      if (!container) return;
+      const filtroVal = filtro ? filtro.value : 'TODAS';
+      container.innerHTML = '';
+
+      const hojeChave = formatarDataChave(new Date());
+      let lista = [...(estado.agendaRevisoes || [])];
+      if (filtroVal !== 'TODAS') lista = lista.filter(r => r.materia === filtroVal);
+      lista.sort((a, b) => a.dataPrevista.localeCompare(b.dataPrevista));
+
+      if (lista.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:16px; font-size:0.82rem;">Nenhuma revisão agendada.</div>`;
+        return;
+      }
+
+      lista.forEach(rev => {
+        let tag = 'futura', tagTexto = 'Agendada';
+        if (rev.concluida) { tag = 'concluida'; tagTexto = 'Concluída'; }
+        else if (rev.dataPrevista < hojeChave) { tag = 'atrasada'; tagTexto = 'Atrasada'; }
+        else if (rev.dataPrevista === hojeChave) { tag = 'hoje'; tagTexto = 'Hoje'; }
+
+        const item = document.createElement('div');
+        item.className = 'revisao-card-item';
+        item.innerHTML = `
+          <span class="badge-revisao-tag ${tag}">${tagTexto} • ${rev.tipo}</span>
+          <div style="font-size:0.82rem; font-weight:600;">${rev.materia}</div>
+          <div style="font-size:0.78rem; color:var(--text-muted);">${rev.topicoTitulo}</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+            <span style="font-size:0.75rem; color:var(--text-muted);">📅 ${formatarDataBR(new Date(rev.dataPrevista + 'T00:00:00'))}</span>
+            <div style="display:flex; gap:6px;">
+              <button class="btn-mini-acao" title="Marcar como concluída" onclick="alternarConclusaoRevisao('${rev.id}')">${rev.concluida ? '↩️' : '✅'}</button>
+              <button class="btn-mini-acao" title="Remover" onclick="excluirRevisaoAgendada('${rev.id}')">🗑️</button>
+            </div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function alternarConclusaoRevisao(revId) {
+      const rev = (estado.agendaRevisoes || []).find(r => r.id === revId);
+      if (!rev) return;
+      rev.concluida = !rev.concluida;
+      salvarEstado();
+      renderizarAbaRevisoes();
+      renderizarGrade();
+    }
+
+    function excluirRevisaoAgendada(revId) {
+      const rev = (estado.agendaRevisoes || []).find(r => r.id === revId);
+      if (rev) {
+        const topico = (estado.editalVerticalizado[rev.materia] || []).find(t => t.id === rev.topicoId);
+        if (topico) {
+          const campo = 'r' + rev.tipo.replace('D', '');
+          topico[campo] = false;
+        }
+      }
+      estado.agendaRevisoes = (estado.agendaRevisoes || []).filter(r => r.id !== revId);
+      salvarEstado();
+      renderizarAbaRevisoes();
+      renderizarEditalVerticalizado();
+    }
+
+    // ---------- Prioridades ----------
+    function renderizarAbaPrioridades() {
+      const container = document.getElementById('containerListaPrioridades');
+      const filtro = document.getElementById('filtroMateriaPrioridades');
+      if (!container) return;
+      const filtroVal = filtro ? filtro.value : 'TODAS';
+      container.innerHTML = '';
+
+      let algumTopico = false;
+      Object.keys(estado.editalVerticalizado || {}).forEach(materia => {
+        if (filtroVal !== 'TODAS' && filtroVal !== materia) return;
+        (estado.editalVerticalizado[materia] || []).forEach(t => {
+          algumTopico = true;
+          const card = document.createElement('div');
+          card.className = 'prio-item-card';
+          card.innerHTML = `
+            <div class="prio-topic-title">${materia} — ${t.titulo}</div>
+            <div class="prio-options">
+              <button class="btn-prio-tag vermelho ${t.prioridade === 'vermelho' ? 'active' : ''}" onclick="definirPrioridadeTopico('${materia}','${t.id}','vermelho')">🔴 Alta</button>
+              <button class="btn-prio-tag amarelo ${t.prioridade === 'amarelo' ? 'active' : ''}" onclick="definirPrioridadeTopico('${materia}','${t.id}','amarelo')">🟡 Média</button>
+              <button class="btn-prio-tag verde ${t.prioridade === 'verde' ? 'active' : ''}" onclick="definirPrioridadeTopico('${materia}','${t.id}','verde')">🟢 Baixa</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      });
+
+      if (!algumTopico) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:16px; font-size:0.82rem;">Nenhum tópico encontrado.</div>`;
+      }
+    }
+
+    function definirPrioridadeTopico(materia, topicoId, prioridade) {
+      const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
+      if (!topico) return;
+      topico.prioridade = prioridade;
+      salvarEstado();
+      renderizarAbaPrioridades();
+      renderizarEditalVerticalizado();
+    }
+
+    // ---------- Timer / Horas líquidas ----------
+    function formatarTempo(segundosTotais) {
+      const h = Math.floor(segundosTotais / 3600);
+      const m = Math.floor((segundosTotais % 3600) / 60);
+      const s = segundosTotais % 60;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function toggleTimer() {
+      const btn = document.getElementById('btnIniciarTimer');
+      if (!timerRodando) {
+        timerRodando = true;
+        if (btn) { btn.innerText = 'Pausar'; btn.classList.remove('btn-primary'); btn.classList.add('btn-outline'); }
+        timerInterval = setInterval(() => {
+          timerSegundos++;
+          const display = document.getElementById('timerDisplay');
+          if (display) display.innerText = formatarTempo(timerSegundos);
+        }, 1000);
+      } else {
+        timerRodando = false;
+        clearInterval(timerInterval);
+        if (btn) { btn.innerText = 'Continuar'; btn.classList.add('btn-primary'); btn.classList.remove('btn-outline'); }
+      }
+    }
+
+    function resetarTimer() {
+      timerRodando = false;
+      clearInterval(timerInterval);
+      timerSegundos = 0;
+      const display = document.getElementById('timerDisplay');
+      if (display) display.innerText = '00:00:00';
+      const btn = document.getElementById('btnIniciarTimer');
+      if (btn) { btn.innerText = 'Iniciar'; btn.classList.add('btn-primary'); btn.classList.remove('btn-outline'); }
+    }
+
+    function registrarHoraEstudo(materia, minutos) {
+      if (!estado.historicoHoras) estado.historicoHoras = [];
+      estado.historicoHoras.push({
+        id: 'hr_' + Math.random().toString(36).substr(2, 7),
+        materia, data: new Date().toISOString(), minutos
+      });
+      salvarEstado();
+      atualizarVisualizacaoHoras();
+    }
+
+    function salvarTempoCronometrado() {
+      if (timerSegundos < 60) {
+        alert('Estude por pelo menos 1 minuto antes de salvar.');
+        return;
+      }
+      const sel = document.getElementById('timerSelectMateria');
+      const materia = sel ? sel.value : null;
+      if (!materia) { alert('Selecione uma disciplina.'); return; }
+
+      const minutos = Math.round(timerSegundos / 60);
+      registrarHoraEstudo(materia, minutos);
+      resetarTimer();
+      alert('Tempo salvo com sucesso!');
+    }
+
+    function abrirModalManualHoras() {
+      const modal = document.getElementById('modalManualHoras');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function fecharModalManualHoras() {
+      const modal = document.getElementById('modalManualHoras');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function salvarHorasManual() {
+      const sel = document.getElementById('modalHorasSelectMateria');
+      const h = parseInt(document.getElementById('modalHorasInputH').value) || 0;
+      const m = parseInt(document.getElementById('modalHorasInputM').value) || 0;
+      const materia = sel ? sel.value : null;
+      if (!materia) { alert('Selecione uma disciplina.'); return; }
+
+      const minutosTotais = (h * 60) + m;
+      if (minutosTotais <= 0) { alert('Informe um tempo válido.'); return; }
+
+      registrarHoraEstudo(materia, minutosTotais);
+      fecharModalManualHoras();
+    }
+
+    function atualizarVisualizacaoHoras() {
+      const filtro = document.getElementById('filtroMateriaHoras');
+      const filtroVal = filtro ? filtro.value : 'TODAS';
+      const lista = (estado.historicoHoras || []).filter(h => filtroVal === 'TODAS' || h.materia === filtroVal);
+
+      const totalMinutos = lista.reduce((acc, h) => acc + h.minutos, 0);
+      const horas = Math.floor(totalMinutos / 60);
+      const minutos = totalMinutos % 60;
+
+      const displayTotal = document.getElementById('displayTotalHorasLiquidas');
+      if (displayTotal) displayTotal.innerText = `${horas}h ${String(minutos).padStart(2, '0')}m`;
+
+      const labelFiltro = document.getElementById('labelFiltroNome');
+      if (labelFiltro) labelFiltro.innerText = filtroVal === 'TODAS' ? 'Todas as Disciplinas' : filtroVal;
+
+      const container = document.getElementById('listaHistoricoHoras');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const ordenado = [...lista].sort((a, b) => new Date(b.data) - new Date(a.data));
+
+      if (ordenado.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:12px; font-size:0.8rem;">Nenhum registro encontrado.</div>`;
+        return;
+      }
+
+      ordenado.forEach(h => {
+        const d = new Date(h.data);
+        const hh = Math.floor(h.minutos / 60);
+        const mm = h.minutos % 60;
+        const item = document.createElement('div');
+        item.className = 'registro-item';
+        item.innerHTML = `
+          <div class="reg-info">
+            <span class="reg-materia">${h.materia}</span>
+            <span class="reg-data-tempo">${formatarDataBR(d)} • ${hh}h ${String(mm).padStart(2, '0')}m</span>
+          </div>
+          <button class="btn-mini-acao" title="Remover" onclick="excluirRegistroHora('${h.id}')">🗑️</button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function excluirRegistroHora(id) {
+      estado.historicoHoras = (estado.historicoHoras || []).filter(h => h.id !== id);
+      salvarEstado();
+      atualizarVisualizacaoHoras();
+    }
+
+    // ---------- Registo de questões ----------
+    function salvarRegistroQuestao() {
+      const sel = document.getElementById('questoesSelectMateria');
+      const acertos = parseInt(document.getElementById('inputQuestoesAcertos').value) || 0;
+      const erros = parseInt(document.getElementById('inputQuestoesErros').value) || 0;
+      const materia = sel ? sel.value : null;
+      if (!materia) { alert('Selecione uma disciplina.'); return; }
+      if (acertos === 0 && erros === 0) { alert('Informe ao menos um acerto ou erro.'); return; }
+
+      if (!estado.historicoQuestoes) estado.historicoQuestoes = [];
+      estado.historicoQuestoes.push({
+        id: 'qz_' + Math.random().toString(36).substr(2, 7),
+        materia, data: new Date().toISOString(), acertos, erros
+      });
+      salvarEstado();
+      atualizarVisualizacaoQuestoes();
+    }
+
+    function atualizarVisualizacaoQuestoes() {
+      const filtro = document.getElementById('filtroQuestoesMateria');
+      const filtroVal = filtro ? filtro.value : 'TODAS';
+      const lista = (estado.historicoQuestoes || []).filter(q => filtroVal === 'TODAS' || q.materia === filtroVal);
+
+      const totalAcertos = lista.reduce((acc, q) => acc + q.acertos, 0);
+      const totalErros = lista.reduce((acc, q) => acc + q.erros, 0);
+      const totalFeitas = totalAcertos + totalErros;
+      const taxa = totalFeitas > 0 ? Math.round((totalAcertos / totalFeitas) * 100) : 0;
+
+      const elTotal = document.getElementById('statQuestoesTotal');
+      const elAcertos = document.getElementById('statQuestoesAcertos');
+      const elTaxa = document.getElementById('statQuestoesTaxa');
+      if (elTotal) elTotal.innerText = totalFeitas;
+      if (elAcertos) elAcertos.innerText = totalAcertos;
+      if (elTaxa) elTaxa.innerText = taxa + '%';
+
+      const container = document.getElementById('listaHistoricoQuestoes');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const ordenado = [...lista].sort((a, b) => new Date(b.data) - new Date(a.data));
+
+      if (ordenado.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:12px; font-size:0.8rem;">Nenhum registro encontrado.</div>`;
+        return;
+      }
+
+      ordenado.forEach(q => {
+        const d = new Date(q.data);
+        const taxaItem = (q.acertos + q.erros) > 0 ? Math.round((q.acertos / (q.acertos + q.erros)) * 100) : 0;
+        const item = document.createElement('div');
+        item.className = 'registro-item';
+        item.innerHTML = `
+          <div class="reg-info">
+            <span class="reg-materia">${q.materia}</span>
+            <span class="reg-data-tempo">${formatarDataBR(d)} • ✅${q.acertos} ❌${q.erros} (${taxaItem}%)</span>
+          </div>
+          <button class="btn-mini-acao" title="Remover" onclick="excluirRegistroQuestao('${q.id}')">🗑️</button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function excluirRegistroQuestao(id) {
+      estado.historicoQuestoes = (estado.historicoQuestoes || []).filter(q => q.id !== id);
+      salvarEstado();
+      atualizarVisualizacaoQuestoes();
+    }
+
+    // ---------- Planeamento ----------
+    function atualizarPainelPlanejamento() {
+      if (!estado.planejamento) estado.planejamento = { inicio: '', prova: '' };
+      const inputInicio = document.getElementById('dataInicioEstudos');
+      const inputProva = document.getElementById('dataProvaConcurso');
+
+      if (inputInicio && !inputInicio.value) inputInicio.value = estado.planejamento.inicio || '';
+      if (inputProva && !inputProva.value) inputProva.value = estado.planejamento.prova || '';
+
+      estado.planejamento.inicio = inputInicio ? inputInicio.value : estado.planejamento.inicio;
+      estado.planejamento.prova = inputProva ? inputProva.value : estado.planejamento.prova;
+      salvarEstado();
+
+      const elDias = document.getElementById('diasAteProva');
+      const elSemanas = document.getElementById('semanasAteProva');
+
+      if (estado.planejamento.prova) {
+        const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+        const dProva = new Date(estado.planejamento.prova + 'T00:00:00');
+        const diffDias = Math.ceil((dProva - hoje) / (1000 * 60 * 60 * 24));
+        if (elDias) elDias.innerText = diffDias >= 0 ? diffDias : '0';
+        if (elSemanas) elSemanas.innerText = diffDias >= 0 ? Math.ceil(diffDias / 7) : '0';
+      } else {
+        if (elDias) elDias.innerText = '--';
+        if (elSemanas) elSemanas.innerText = '--';
+      }
+
+      calcularPrevisaoFechamentoEdital();
+    }
+
+    // ---------- Sincronização manual com a nuvem ----------
+    function forcarUploadNuvem() {
+      if (!rtdb || !dbRefAtivo) { alert('Sem conexão com a nuvem.'); return; }
+      atualizarStatusNuvem('☁️ Enviando...', 'syncing');
+      dbRefAtivo.set({ estado: estado, atualizadoEm: new Date().toISOString() }).then(() => {
+        atualizarStatusNuvem('☁️ Sincronizado', 'online');
+        alert('Dados enviados para a nuvem com sucesso!');
+      }).catch(err => {
+        alert('Erro ao enviar: ' + err.message);
+      });
+    }
+
+    function forcarDownloadNuvem() {
+      if (!rtdb || !dbRefAtivo) { alert('Sem conexão com a nuvem.'); return; }
+      if (!confirm('Isso substituirá os dados locais deste aparelho pelos dados da nuvem. Continuar?')) return;
+
+      atualizarStatusNuvem('☁️ Baixando...', 'syncing');
+      dbRefAtivo.once('value').then(snapshot => {
+        const dados = snapshot.val();
+        if (dados && dados.estado) {
+          isReceivingFromCloud = true;
+          estado = dados.estado;
+          const chave = chaveArmazenamento(usuarioAtivo);
+          localStorage.setItem(chave, JSON.stringify(estado));
+          isReceivingFromCloud = false;
+          atualizarUIAposCarregar();
+          atualizarStatusNuvem('☁️ Sincronizado', 'online');
+          alert('Dados da nuvem carregados com sucesso!');
+        } else {
+          alert('Nenhum dado encontrado na nuvem.');
+          atualizarStatusNuvem('☁️ Pronto', 'online');
+        }
+      });
+    }
+
+    /* ===================================================================== */
+
     const sessaoSalva = sessionStorage.getItem('usuario_ativo');
-    if (sessaoSalva && sessaoSalva.toLowerCase() === 'eduardo') {
-      usuarioAtivo = 'Eduardo';
+    if (sessaoSalva) {
+      usuarioAtivo = sessaoSalva;
       abrirApp();
     } else {
       const tLogin = document.getElementById('tela-login');

@@ -281,9 +281,9 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      padding: 9px 14px;
+      padding: 8px 12px;
       border-radius: 8px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
       border: none;
@@ -305,10 +305,6 @@
       background: linear-gradient(135deg, #10b981, #059669);
       color: #ffffff;
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-    }
-    .btn-success:hover {
-      opacity: 0.92;
-      transform: translateY(-1px);
     }
 
     .btn-outline {
@@ -634,7 +630,6 @@
       border: 1px solid rgba(16, 185, 129, 0.35);
     }
 
-    /* ESTILO EXCLUSIVO DO CARTÃO DE REVISÃO ESPAÇADA NA GRADE */
     .slot-card.cartao-revisao-espacada {
       border: 2px solid #8b5cf6 !important;
       background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.08)) !important;
@@ -784,7 +779,7 @@
     .controls-top {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
     }
 
@@ -1116,6 +1111,7 @@
           Clique em qualquer edital pronto da lista abaixo para aplicá-lo instantaneamente ao seu plano de estudos.
         </p>
 
+        <!-- Formulário exclusivo de Eduardo -->
         <div id="painelCriadorEduardo" style="display: none; background: rgba(56, 189, 248, 0.06); border: 1px solid var(--primary); border-radius: 10px; padding: 12px; margin-bottom: 10px;">
           <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">👑 Painel de Administração (Eduardo)</div>
           <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">
@@ -1254,14 +1250,6 @@
 
       <!-- Aba 7: Edital Verticalizado -->
       <div id="aba-edital-vert" class="tab-content">
-        <div id="blocoAdminMarcarTudo" style="display: none; background: rgba(16, 185, 129, 0.08); border: 1px solid var(--success); border-radius: 8px; padding: 10px; margin-bottom: 8px;">
-          <div style="font-size: 0.8rem; font-weight: 700; color: var(--success); margin-bottom: 6px;">👑 Controlo Rápido de Tópicos (Eduardo)</div>
-          <div style="display: flex; gap: 6px;">
-            <button class="btn btn-success" style="flex: 1; font-size: 0.75rem;" onclick="adminMarcarTodosTopicos(true)">✅ Marcar Todos como Feitos</button>
-            <button class="btn btn-outline" style="flex: 1; font-size: 0.75rem; border-color: var(--danger); color: var(--danger);" onclick="adminMarcarTodosTopicos(false)">❌ Desmarcar Todos</button>
-          </div>
-        </div>
-
         <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
           <label style="color: var(--primary);">Filtrar Visualização da Matéria</label>
           <select id="filtroExclusivoMateriaEdital" onchange="renderizarEditalVerticalizado()"></select>
@@ -1399,17 +1387,18 @@
         </div>
 
         <div class="controls-top">
-          <button class="btn btn-success" onclick="imprimirCronograma()" title="Imprimir ou Salvar em PDF">🖨️ Imprimir Cronograma</button>
-          <div class="presence-badge" id="badgePresenca">
-            🔥 <span id="txtOfensiva">0 dias</span> de presença
-          </div>
+          <!-- BOTÃO EXCLUSIVO DE MARCAR TODAS AS CAIXAS (DISPONÍVEL NO TOPO) -->
+          <button class="btn btn-success" id="btnAdminMarcarTudoTopo" onclick="adminMarcarTodosTopicos(true)" title="Marcar todas as caixas de seleção do edital e do cronograma">☑️ Marcar Tudo como Feito</button>
+          <button class="btn btn-outline" id="btnAdminLimparTudoTopo" onclick="adminMarcarTodosTopicos(false)" style="border-color: rgba(239, 68, 68, 0.4); color: var(--danger);" title="Desmarcar todas as caixas">Desmarcar Tudo</button>
+          
+          <button class="btn btn-outline" onclick="imprimirCronograma()" title="Imprimir ou Salvar em PDF">🖨️ PDF</button>
 
           <div class="week-navigator">
             <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(-1)">◀</button>
             <span class="week-label" id="labelIntervaloSemana">...</span>
             <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(1)">▶</button>
           </div>
-          <button class="btn btn-primary" style="padding: 6px 12px;" onclick="forcarSincronizacaoHoje()">↺ Forçar Data de Hoje</button>
+          <button class="btn btn-primary" style="padding: 6px 10px;" onclick="forcarSincronizacaoHoje()">↺ Forçar Data de Hoje</button>
           <button class="btn btn-outline" onclick="alternarTema()" id="btnTema">☀️ Claro</button>
         </div>
       </header>
@@ -1742,6 +1731,7 @@
       calcularPrevisaoFechamentoEdital();
     }
 
+    /* NAVEGAÇÃO BLOQUEADA RIGOROSAMENTE NA DATA FINAL DO EDITAL (SEM LOOP INFINITO) */
     function navegarSemana(delta) {
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
@@ -1755,17 +1745,13 @@
         return;
       }
 
-      let pendentes = 0;
-      Object.keys(estado.editalVerticalizado || {}).forEach(m => {
-        pendentes += (estado.editalVerticalizado[m] || []).filter(t => !t.t).length;
-      });
-
       if (delta > 0 && dataLimiteFinalEdital) {
-        const segundaNovaSemana = obterSegundaFeira(novaData);
         const segundaDataLimite = obterSegundaFeira(dataLimiteFinalEdital);
+        const segundaNovaSemana = obterSegundaFeira(novaData);
 
-        if (segundaNovaSemana > segundaDataLimite && pendentes === 0) {
-          alert(`Chegou ao fim do edital! Todos os tópicos foram concluídos.`);
+        // Se a semana solicitada for posterior à semana em que o edital é zerado, barra o avanço
+        if (segundaNovaSemana > segundaDataLimite) {
+          alert(`Limite alcançado! Todos os tópicos do edital são concluídos na semana de ${formatarDataBR(dataLimiteFinalEdital)}.`);
           return;
         }
       }
@@ -1882,21 +1868,19 @@
       document.getElementById('confirmaNovaSenha').value = '';
     }
 
+    /* MARCAR OU DESMARCAR ABSOLUTAMENTE TODOS OS CHECKLISTS */
     function adminMarcarTodosTopicos(marcar) {
-      if (!usuarioAtivo || usuarioAtivo.toLowerCase() !== 'eduardo') {
-        alert("Apenas o utilizador Eduardo pode utilizar esta função.");
-        return;
-      }
-
       const acao = marcar ? "marcar como CONCLUÍDOS" : "DESMARCAR";
-      if (!confirm(`Deseja realmente ${acao} todos os tópicos do edital?`)) return;
+      if (!confirm(`Deseja realmente ${acao} todos os tópicos e checklists do cronograma?`)) return;
 
+      // 1. Marca todos os tópicos no edital verticalizado
       Object.keys(estado.editalVerticalizado || {}).forEach(m => {
         (estado.editalVerticalizado[m] || []).forEach(t => {
           t.t = marcar;
         });
       });
 
+      // 2. Marca todos os cartões de todas as semanas
       Object.keys(estado.semanas || {}).forEach(semKey => {
         Object.keys(estado.semanas[semKey] || {}).forEach(dia => {
           (estado.semanas[semKey][dia] || []).forEach(slot => {
@@ -1905,21 +1889,25 @@
         });
       });
 
+      // 3. Marca todas as revisões agendadas
+      (estado.agendaRevisoes || []).forEach(r => {
+        r.concluida = marcar;
+      });
+
       salvarEstado();
       renderizarEditalVerticalizado();
       renderizarGrade();
       renderizarVisaoGeral();
+      renderizarAbaRevisoes();
       calcularPrevisaoFechamentoEdital();
-      alert(`Todos os tópicos foram ${marcar ? 'marcados como concluídos' : 'desmarcados'} com sucesso!`);
+      alert(`Todas as caixas foram ${marcar ? 'marcadas como concluídas' : 'desmarcadas'} com sucesso!`);
     }
 
     function configurarPainelAdminUsuarios() {
       const btnAba = document.getElementById('btnAbaUsuariosAdmin');
-      const blocoMarcar = document.getElementById('blocoAdminMarcarTudo');
       const isEduardo = (usuarioAtivo && usuarioAtivo.toLowerCase() === 'eduardo');
 
       if (btnAba) btnAba.style.display = isEduardo ? 'block' : 'none';
-      if (blocoMarcar) blocoMarcar.style.display = isEduardo ? 'block' : 'none';
 
       if (isEduardo) {
         carregarListaUsuariosAdmin();
@@ -2147,6 +2135,7 @@
             estado.agendaRevisoes = [];
             estado.diasCompletosLog = [];
 
+            dataReferencia = new Date();
             const segunda = obterSegundaFeira(dataReferencia);
             chaveSemanaAtiva = `semana_${formatarDataChave(segunda)}`;
             gerarSemanaAutomatica(chaveSemanaAtiva, false, true);
@@ -2380,7 +2369,6 @@
       reader.readAsText(file);
     }
 
-    /* ADICIONA / REMOVE A REVISÃO ESPAÇADA NA AGENDA E NA GRADE DO CRONOGRAMA */
     function agendarRevisaoIndividual(materia, idTopico, campoMarcado, deveAgendar) {
       if (!estado.agendaRevisoes) estado.agendaRevisoes = [];
       if (!estado.semanas) estado.semanas = {};
@@ -2424,7 +2412,6 @@
             concluida: false
           });
 
-          // Inserção com destaque na semana de destino da grade
           if (!estado.semanas[chaveSemanaAlvo]) {
             gerarSemanaAutomatica(chaveSemanaAlvo, false, false);
           }
@@ -2448,10 +2435,8 @@
           }
         }
       } else {
-        // Remove da lista de revisões
         estado.agendaRevisoes = estado.agendaRevisoes.filter(r => r.idRev !== idRevisaoUnica);
 
-        // Remove o cartão da semana em que estava agendado
         Object.keys(estado.semanas).forEach(semKey => {
           Object.keys(estado.semanas[semKey]).forEach(diaKey => {
             estado.semanas[semKey][diaKey] = (estado.semanas[semKey][diaKey] || []).filter(s => s.id !== idRevisaoUnica);
@@ -2514,7 +2499,6 @@
       if (item) {
         item.concluida = !item.concluida;
 
-        // Atualiza também o cartão correspondente na grade
         Object.keys(estado.semanas || {}).forEach(semKey => {
           Object.keys(estado.semanas[semKey] || {}).forEach(diaKey => {
             const slot = (estado.semanas[semKey][diaKey] || []).find(s => s.id === idRev);
@@ -2603,7 +2587,6 @@
         dataDoDia.setHours(0, 0, 0, 0);
         const diaTimestamp = dataDoDia.getTime();
 
-        // Preserva sempre os cartões de revisão espaçada já inseridos
         const revisoesDoDia = slotsAntigos.filter(s => s.isRevisaoEspacada);
 
         if (diaTimestamp < hojeTimestamp) {
@@ -2611,7 +2594,6 @@
           return;
         }
 
-        // Recoloca as revisões espaçadas no início do dia
         revisoesDoDia.forEach(rev => {
           estado.semanas[chaveSemana][d.nome].push(rev);
         });
@@ -2654,7 +2636,6 @@
       calcularPrevisaoFechamentoEdital();
     }
 
-    /* RENDERIZAÇÃO DA GRADE COM DESTACAMENTO PARA REVISÕES ESPAÇADAS */
     function renderizarGrade() {
       const grade = document.getElementById('gradeSemana');
       if (!grade) return;
@@ -2701,8 +2682,6 @@
         } else {
           slots.forEach((item, idx) => {
             const card = document.createElement('div');
-            
-            // Verificação e estilização de Revisão Espaçada
             const isRev = item.isRevisaoEspacada === true;
             card.className = `slot-card ${item.feito ? 'done' : ''} ${isRev ? 'cartao-revisao-espacada' : ''}`;
 
@@ -2740,7 +2719,6 @@
       const slot = estado.semanas[chaveSemanaAtiva][dia][idx];
       slot.feito = !slot.feito;
 
-      // Se for revisão espaçada, atualiza o item na aba de revisões
       if (slot.isRevisaoEspacada && slot.id) {
         const itemRev = (estado.agendaRevisoes || []).find(r => r.idRev === slot.id);
         if (itemRev) itemRev.concluida = slot.feito;

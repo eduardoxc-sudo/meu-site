@@ -1465,8 +1465,7 @@
       </div>
     </div>
   </div>
-
-  <script>
+<script>
     const firebaseConfig = {
       apiKey: "AIzaSyB8vR5ccnYQxc-QiASnxFeYvHpwFWPHXP8",
       authDomain: "estudo-inteligente-f2186.firebaseapp.com",
@@ -2356,15 +2355,10 @@
       return resultado;
     }
 
-    /* =====================================================================
-       FUNÇÕES ANTES AUSENTES — reconstruídas para destravar o painel
-       ===================================================================== */
-
     let timerInterval = null;
     let timerSegundos = 0;
     let timerRodando = false;
 
-    // ---------- Navegação por abas ----------
     function trocarAba(idAba, btnEl) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -2389,7 +2383,6 @@
       trocarAba(idAba, btn);
     }
 
-    // ---------- Tema ----------
     function alternarTema() {
       const atual = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', atual);
@@ -2399,7 +2392,6 @@
       salvarEstado();
     }
 
-    // ---------- Carregamento geral da UI ----------
     function atualizarUIAposCarregar() {
       const padrao = obterEstadoPadrao();
       Object.keys(padrao).forEach(chave => {
@@ -2427,7 +2419,6 @@
       atualizarSemanaAtiva();
     }
 
-    // ---------- Seletores de disciplina ----------
     function atualizarSelectsMaterias() {
       const nomes = (estado.disciplinas || []).map(d => d.nome);
       const selects = [
@@ -2468,7 +2459,6 @@
       });
     }
 
-    // ---------- Disciplinas / Pesos ----------
     function adicionarMateria() {
       const input = document.getElementById('novaMateria');
       const nome = input.value.trim();
@@ -2540,7 +2530,6 @@
       }
     }
 
-    // ---------- Geração do ciclo semanal ----------
     function construirListaCicloPonderada() {
       let lista = [];
       (estado.disciplinas || []).forEach(d => {
@@ -2573,6 +2562,8 @@
       const segundaRef = new Date(partesChave[0], partesChave[1] - 1, partesChave[2]);
 
       let ponteiro = estado.ponteiroGeral || 0;
+      const hojeCorrente = new Date();
+      hojeCorrente.setHours(0, 0, 0, 0);
 
       DIAS.forEach((nomeDia, idxDia) => {
         const dataDia = new Date(segundaRef);
@@ -2581,6 +2572,7 @@
 
         const slotsDoDia = [];
 
+        // Inserir APENAS revisões agendadas para o dia sem duplicar ciclos passados
         (estado.agendaRevisoes || []).forEach(rev => {
           if (rev.dataPrevista === chaveDataDia && !rev.concluida) {
             slotsDoDia.push({
@@ -2593,16 +2585,19 @@
           }
         });
 
-        for (let i = 0; i < porDia; i++) {
-          const materia = cicloPonderado[ponteiro % cicloPonderado.length];
-          ponteiro++;
-          const topico = obterProximoTopicoParaMateria(materia);
-          slotsDoDia.push({
-            materia,
-            assunto: topico ? topico.titulo : 'Revisão livre / Questões',
-            feito: false,
-            topicoId: topico ? topico.id : null
-          });
+        // Bloquear preenchimento de slots de estudo para dias já passados
+        if (dataDia >= hojeCorrente) {
+          for (let i = 0; i < porDia; i++) {
+            const materia = cicloPonderado[ponteiro % cicloPonderado.length];
+            ponteiro++;
+            const topico = obterProximoTopicoParaMateria(materia);
+            slotsDoDia.push({
+              materia,
+              assunto: topico ? topico.titulo : 'Revisão livre / Questões',
+              feito: false,
+              topicoId: topico ? topico.id : null
+            });
+          }
         }
 
         novaSemana[nomeDia] = slotsDoDia;
@@ -2633,7 +2628,6 @@
       renderizarGrade();
     }
 
-    // ---------- Renderização da grade semanal ----------
     function renderizarGrade() {
       const grade = document.getElementById('gradeSemana');
       if (!grade) return;
@@ -2729,7 +2723,6 @@
       if (sel) sel.value = materia;
     }
 
-    // ---------- Visão Geral ----------
     function renderizarVisaoGeral() {
       const container = document.getElementById('containerVisaoGeral');
       if (!container) return;
@@ -2764,7 +2757,6 @@
       });
     }
 
-    // ---------- Edital verticalizado ----------
     function adicionarTopicoAoEdital() {
       const selectMateria = document.getElementById('selectMateriaNovoTopico');
       const inputTopico = document.getElementById('inputNovoTopico');
@@ -2820,25 +2812,33 @@
       container.innerHTML = '';
 
       const materias = Object.keys(estado.editalVerticalizado || {});
+      let contadorGlobal = 1;
 
       materias.forEach(materia => {
-        if (filtroVal !== 'TODAS' && filtroVal !== materia) return;
         const topicos = estado.editalVerticalizado[materia] || [];
+        if (filtroVal !== 'TODAS' && filtroVal !== materia) {
+          contadorGlobal += topicos.length;
+          return;
+        }
+
         const bloco = document.createElement('div');
         bloco.className = 'subject-block';
         const colapsado = estado.collapseEdital && estado.collapseEdital[materia];
 
-        let linhasHtml = topicos.map(t => `
-          <tr>
-            <td class="topic-cell">${t.titulo} <span class="tag-badge-prioridade ${t.prioridade}">${t.prioridade === 'vermelho' ? 'Alta' : t.prioridade === 'verde' ? 'Baixa' : 'Média'}</span></td>
-            <td><input type="checkbox" ${t.t ? 'checked' : ''} onchange="atualizarTopicoCampo('${materia}','${t.id}','t', this.checked)"></td>
-            <td><input type="checkbox" ${t.r1 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','1D', this.checked)"></td>
-            <td><input type="checkbox" ${t.r7 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','7D', this.checked)"></td>
-            <td><input type="checkbox" ${t.r15 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','15D', this.checked)"></td>
-            <td><input type="checkbox" ${t.r30 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','30D', this.checked)"></td>
-            <td><button class="btn-mini-acao" title="Remover tópico" onclick="excluirTopicoEdital('${materia}','${t.id}')">🗑️</button></td>
-          </tr>
-        `).join('');
+        let linhasHtml = topicos.map(t => {
+          const numeroFormatado = String(contadorGlobal++).padStart(2, '0');
+          return `
+            <tr>
+              <td class="topic-cell"><strong>${numeroFormatado}.</strong> ${t.titulo} <span class="tag-badge-prioridade ${t.prioridade}">${t.prioridade === 'vermelho' ? 'Alta' : t.prioridade === 'verde' ? 'Baixa' : 'Média'}</span></td>
+              <td><input type="checkbox" ${t.t ? 'checked' : ''} onchange="atualizarTopicoCampo('${materia}','${t.id}','t', this.checked)"></td>
+              <td><input type="checkbox" ${t.r1 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','1D', this.checked)"></td>
+              <td><input type="checkbox" ${t.r7 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','7D', this.checked)"></td>
+              <td><input type="checkbox" ${t.r15 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','15D', this.checked)"></td>
+              <td><input type="checkbox" ${t.r30 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','30D', this.checked)"></td>
+              <td><button class="btn-mini-acao" title="Remover tópico" onclick="excluirTopicoEdital('${materia}','${t.id}')">🗑️</button></td>
+            </tr>
+          `;
+        }).join('');
 
         if (topicos.length === 0) {
           linhasHtml = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:10px;">Nenhum tópico cadastrado.</td></tr>`;
@@ -2864,7 +2864,6 @@
       }
     }
 
-    // ---------- Revisões espaçadas ----------
     function alternarRevisaoTopico(materia, topicoId, tipo, ativo) {
       const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
       if (!topico) return;
@@ -2956,7 +2955,6 @@
       renderizarEditalVerticalizado();
     }
 
-    // ---------- Prioridades ----------
     function renderizarAbaPrioridades() {
       const container = document.getElementById('containerListaPrioridades');
       const filtro = document.getElementById('filtroMateriaPrioridades');
@@ -2997,7 +2995,6 @@
       renderizarEditalVerticalizado();
     }
 
-    // ---------- Timer / Horas líquidas ----------
     function formatarTempo(segundosTotais) {
       const h = Math.floor(segundosTotais / 3600);
       const m = Math.floor((segundosTotais % 3600) / 60);
@@ -3130,7 +3127,6 @@
       atualizarVisualizacaoHoras();
     }
 
-    // ---------- Registo de questões ----------
     function salvarRegistroQuestao() {
       const sel = document.getElementById('questoesSelectMateria');
       const acertos = parseInt(document.getElementById('inputQuestoesAcertos').value) || 0;
@@ -3198,7 +3194,6 @@
       atualizarVisualizacaoQuestoes();
     }
 
-    // ---------- Planeamento ----------
     function atualizarPainelPlanejamento() {
       if (!estado.planejamento) estado.planejamento = { inicio: '', prova: '' };
       const inputInicio = document.getElementById('dataInicioEstudos');
@@ -3228,7 +3223,6 @@
       calcularPrevisaoFechamentoEdital();
     }
 
-    // ---------- Sincronização manual com a nuvem ----------
     function forcarUploadNuvem() {
       if (!rtdb || !dbRefAtivo) { alert('Sem conexão com a nuvem.'); return; }
       atualizarStatusNuvem('☁️ Enviando...', 'syncing');
@@ -3262,8 +3256,6 @@
         }
       });
     }
-
-    /* ===================================================================== */
 
     const sessaoSalva = sessionStorage.getItem('usuario_ativo');
     if (sessaoSalva) {

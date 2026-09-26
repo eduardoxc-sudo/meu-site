@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Estudo Inteligente - Plano & Ciclo</title>
+  <title>Plano & Ciclo de Estudos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase SDKs compatíveis com Realtime Database -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -45,13 +45,19 @@
       --card-bg: #ffffff;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
 
     body {
       background-color: var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
+      transition: background-color 0.25s, color 0.25s;
       overflow-x: hidden;
     }
 
@@ -80,7 +86,9 @@
       font-size: 1.5rem;
       margin-bottom: 8px;
       text-align: center;
-      color: var(--primary);
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     .login-box p {
@@ -98,9 +106,17 @@
     }
 
     @media (max-width: 900px) {
-      #app-container { flex-direction: column; }
-      aside { width: 100% !important; border-right: none !important; border-bottom: 1px solid var(--border); }
-      main { padding: 16px !important; }
+      #app-container {
+        flex-direction: column;
+      }
+      aside {
+        width: 100% !important;
+        border-right: none !important;
+        border-bottom: 1px solid var(--border);
+      }
+      main {
+        padding: 16px !important;
+      }
     }
 
     aside {
@@ -121,12 +137,27 @@
       font-size: 1.15rem;
       font-weight: 700;
       color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .user-tag {
       margin-top: 6px;
       font-size: 0.8rem;
       color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .user-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: var(--primary-glow);
+      color: var(--primary);
+      border-radius: 6px;
+      font-weight: 600;
     }
 
     .sync-status {
@@ -134,8 +165,33 @@
       align-items: center;
       gap: 4px;
       font-size: 0.72rem;
-      color: var(--success);
+      color: var(--text-muted);
       margin-top: 4px;
+    }
+    .sync-status.online { color: var(--success); }
+    .sync-status.syncing { color: var(--warning); }
+
+    .sync-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .btn-sync-action {
+      flex: 1;
+      padding: 5px 6px;
+      font-size: 0.70rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-sync-action:hover {
+      border-color: var(--primary);
+      color: var(--primary);
     }
 
     .tab-nav {
@@ -157,14 +213,20 @@
       font-weight: 600;
       cursor: pointer;
       text-align: center;
+      white-space: nowrap;
       transition: all 0.2s;
     }
 
-    .tab-btn:hover { background: var(--surface-hover); color: var(--text); }
+    .tab-btn:hover {
+      background: var(--surface-hover);
+      color: var(--text);
+    }
+
     .tab-btn.active {
       color: #ffffff;
       background: linear-gradient(135deg, var(--primary), var(--accent));
       border-color: transparent;
+      box-shadow: 0 2px 8px var(--primary-glow);
     }
 
     .tab-content {
@@ -175,14 +237,22 @@
       overflow-y: auto;
       flex: 1;
     }
-    .tab-content.active { display: flex; }
 
-    .field { display: flex; flex-direction: column; gap: 6px; }
+    .tab-content.active {
+      display: flex;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
 
     label {
       font-size: 0.78rem;
       font-weight: 600;
       text-transform: uppercase;
+      letter-spacing: 0.04em;
       color: var(--text-muted);
     }
 
@@ -194,6 +264,16 @@
       color: var(--text);
       font-size: 0.9rem;
       outline: none;
+    }
+
+    textarea {
+      resize: vertical;
+      font-family: inherit;
+      line-height: 1.4;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
     }
 
     .btn {
@@ -210,66 +290,787 @@
       transition: all 0.2s;
     }
 
-    .btn-primary { background: var(--primary); color: #0b0f19; }
-    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-    .btn-danger { background: transparent; border: 1px solid rgba(239, 68, 68, 0.4); color: var(--danger); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #ffffff;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
 
-    main { flex: 1; padding: 32px; overflow-y: auto; }
-    .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
-    .main-header h1 { font-size: 1.6rem; font-weight: 700; }
-    .controls-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .btn-primary:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
 
-    .week-navigator { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 4px 8px; }
-    .week-label { font-size: 0.85rem; font-weight: 600; color: var(--primary); min-width: 170px; text-align: center; }
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
 
-    .week-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-    .day-column { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-height: 250px; }
-    .day-column.today { border-color: var(--primary); }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
 
-    .day-name { padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: baseline; }
-    .day-title-text { font-size: 0.95rem; font-weight: 700; color: var(--primary); }
-    .day-date-tag { font-size: 0.78rem; color: var(--text-muted); }
+    .btn-outline:hover {
+      background: var(--surface-hover);
+    }
 
-    .slot-list { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-    .slot-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-    .slot-card.done { border-color: var(--success); opacity: 0.65; }
-    .slot-card.done .slot-materia-title, .slot-card.done .slot-assunto-sub { text-decoration: line-through; color: var(--text-muted); }
+    .btn-danger {
+      background: transparent;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: var(--danger);
+    }
 
-    .slot-materia-title { font-weight: 700; color: var(--primary); font-size: 0.85rem; display: block; }
-    .slot-assunto-sub { font-size: 0.78rem; color: var(--text); }
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .item-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .item-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+
+    .timer-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 14px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .timer-display {
+      font-size: 2.6rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      font-variant-numeric: tabular-nums;
+      color: var(--primary);
+    }
+
+    .timer-controls {
+      display: flex;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .timer-controls .btn {
+      flex: 1;
+    }
+
+    .card-total-horas {
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid var(--primary);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-total-horas .label-tot {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .card-total-horas .val-tot {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .historico-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 4px;
+    }
+
+    .registro-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.82rem;
+    }
+
+    .reg-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .reg-materia {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .reg-data-tempo {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .btn-mini-acao {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    .btn-mini-acao:hover {
+      background: var(--surface-hover);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1500;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      width: 100%;
+      max-width: 340px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .subject-block {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .subject-header-ev {
+      background: var(--primary-glow);
+      color: var(--primary);
+      font-weight: 700;
+      padding: 12px 14px;
+      font-size: 0.88rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .subject-header-ev:hover {
+      background: rgba(56, 189, 248, 0.22);
+    }
+
+    .subject-body-ev {
+      display: block;
+    }
+
+    .ev-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    .ev-table th, .ev-table td {
+      border: 1px solid var(--border);
+      padding: 8px 6px;
+      text-align: center;
+    }
+
+    .ev-table th {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .ev-table td.topic-cell {
+      text-align: left;
+      padding-left: 12px;
+      padding-right: 8px;
+      font-weight: 500;
+      line-height: 1.4;
+      color: var(--text);
+    }
+
+    .ev-table input[type="checkbox"] {
+      cursor: pointer;
+      accent-color: var(--primary);
+      width: 15px;
+      height: 15px;
+    }
+
+    .revisao-card-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .badge-revisao-tag {
+      font-size: 0.70rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      width: fit-content;
+    }
+    .badge-revisao-tag.atrasada { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
+    .badge-revisao-tag.hoje { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
+    .badge-revisao-tag.futura { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid #38bdf8; }
+    .badge-revisao-tag.concluida { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
+
+    .prio-item-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .prio-topic-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    .prio-options {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-prio-tag {
+      flex: 1;
+      padding: 5px 4px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .btn-prio-tag.vermelho { color: var(--danger); border-color: rgba(239, 68, 68, 0.4); }
+    .btn-prio-tag.amarelo { color: var(--warning); border-color: rgba(245, 158, 11, 0.4); }
+    .btn-prio-tag.verde { color: var(--success); border-color: rgba(16, 185, 129, 0.4); }
+
+    .btn-prio-tag.active.vermelho { background: rgba(239, 68, 68, 0.2); border-color: var(--danger); }
+    .btn-prio-tag.active.amarelo { background: rgba(245, 158, 11, 0.2); border-color: var(--warning); }
+    .btn-prio-tag.active.verde { background: rgba(16, 185, 129, 0.2); border-color: var(--success); }
+
+    .tag-badge-prioridade {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      width: fit-content;
+      margin-top: 2px;
+    }
+
+    .tag-badge-prioridade.vermelho {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+
+    .tag-badge-prioridade.amarelo {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+
+    .tag-badge-prioridade.verde {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
 
     .badge-numero-cartao {
-      display: inline-flex; font-size: 0.68rem; font-weight: 800; padding: 2px 7px;
-      border-radius: 5px; background: rgba(56, 189, 248, 0.15); color: var(--primary); margin-bottom: 2px;
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 5px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      letter-spacing: 0.03em;
     }
 
-    .slot-card.cartao-revisao {
+    .slot-card.cartao-revisao-espacada {
       border: 2px solid #8b5cf6 !important;
       background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.08)) !important;
-    }
-    .tag-badge-revisao {
-      display: inline-flex; font-size: 0.65rem; font-weight: 800; padding: 2px 6px;
-      border-radius: 4px; background: #8b5cf6; color: #ffffff; margin-bottom: 2px;
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2) !important;
     }
 
-    .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+    .tag-badge-revisao-espacada {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #8b5cf6;
+      color: #ffffff;
+      width: fit-content;
+      letter-spacing: 0.04em;
+    }
+
+    .agenda-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .agenda-dia-header {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed var(--border);
+      padding-bottom: 6px;
+      margin-bottom: 4px;
+    }
+
+    .agenda-item-slot {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text);
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .metric-grid-questoes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .metric-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 6px;
+      text-align: center;
+    }
+
+    .metric-box .num {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .sugestao-card {
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sugestao-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.82rem;
+      line-height: 1.4;
+      color: var(--text);
+    }
+
+    .card-estimativa-edital {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(56, 189, 248, 0.12));
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .est-info-col {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .est-titulo {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .est-data-destaque {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--success);
+    }
+
+    .est-detalhe {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    main {
+      flex: 1;
+      padding: 32px;
+      overflow-y: auto;
+    }
+
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .main-header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+
+    .controls-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .presence-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #f87171;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+    }
+
+    .week-navigator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 8px;
+    }
+
+    .week-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      min-width: 170px;
+      text-align: center;
+    }
+
+    .week-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .day-column {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      min-height: 250px;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+
+    .day-column.today {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    .day-column.day-completed {
+      border-color: var(--success);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+    }
+
+    .day-name {
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .day-title-text {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .day-date-tag {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .slot-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .slot-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      user-select: none;
+      transition: all 0.2s;
+    }
+
+    .slot-left {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.88rem;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .slot-texts {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .slot-header-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .slot-materia-title {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 0.85rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+    }
+
+    .slot-assunto-sub {
+      font-size: 0.78rem;
+      color: var(--text);
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .slot-card.done {
+      border-color: var(--success);
+      opacity: 0.65;
+    }
+
+    .slot-card.done .slot-materia-title,
+    .slot-card.done .slot-assunto-sub {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .btn-play-mini {
+      background: transparent;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 4px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    #celebrationOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      backdrop-filter: blur(5px);
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .celebration-card {
+      background: var(--surface);
+      border: 2px solid var(--success);
+      border-radius: 20px;
+      padding: 32px 28px;
+      text-align: center;
+      max-width: 360px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
+      transform: scale(0.9);
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .celebration-icon {
+      font-size: 3.5rem;
+      margin-bottom: 12px;
+      animation: bounce 0.6s infinite alternate;
+    }
+
+    @keyframes popIn { to { transform: scale(1); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+
+    .edital-pronto-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+
+    .btn-edital-verde {
+      flex: 1;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      padding: 12px 14px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+    }
+
+    .btn-edital-verde:hover {
+      opacity: 0.93;
+      transform: translateY(-1px);
+    }
+
+    @media print {
+      body { background: #ffffff !important; color: #000000 !important; }
+      aside, .controls-top, .btn, .btn-sync-action, .btn-play-mini { display: none !important; }
+      main { padding: 0 !important; margin: 0 !important; }
+      .week-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 10px !important; }
+      .day-column { border: 1px solid #cbd5e1 !important; background: #ffffff !important; box-shadow: none !important; page-break-inside: avoid; padding: 10px !important; }
+      .slot-card { border: 1px solid #e2e8f0 !important; background: #f8fafc !important; }
+      .card-estimativa-edital { border: 1px solid #10b981 !important; background: #f0fdf4 !important; color: #000000 !important; }
+    }
   </style>
 </head>
 <body>
 
+  <div id="celebrationOverlay">
+    <div class="celebration-card">
+      <div class="celebration-icon">🏆✨</div>
+      <h2 style="color: var(--success); font-size: 1.5rem; margin-bottom: 6px;">Meta Cumprida!</h2>
+      <p style="font-size: 0.95rem; color: var(--text); font-weight: 600;">Parabéns! Finalizou todas as matérias de hoje com sucesso!</p>
+      <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">A consistência é a chave da aprovação.</div>
+    </div>
+  </div>
+
   <div id="tela-login">
     <div class="login-box">
-      <h2>Estudo Inteligente</h2>
-      <p>Introduza os dados para aceder ao painel</p>
+      <h2>Plano de Estudos</h2>
+      <p>Introduza os dados de acesso para continuar</p>
       <div class="field" style="margin-bottom: 12px;">
         <label for="usuario">Utilizador</label>
-        <input type="text" id="usuario" value="Eduardo">
+        <input type="text" id="usuario" placeholder="">
       </div>
       <div class="field" style="margin-bottom: 16px;">
         <label for="senha">Palavra-passe</label>
-        <input type="password" id="senha" value="333435">
+        <input type="password" id="senha" placeholder="">
       </div>
-      <div id="msgErro" style="color: var(--danger); font-size: 0.8rem; margin-bottom: 12px; display: none; text-align: center;">Dados incorretos!</div>
+      <div id="msgErro" style="color: var(--danger); font-size: 0.8rem; margin-bottom: 12px; display: none; text-align: center;">Utilizador ou palavra-passe incorretos!</div>
       <button class="btn btn-primary" style="width: 100%;" onclick="autenticar()">Entrar no Painel</button>
     </div>
   </div>
@@ -278,71 +1079,394 @@
     <aside>
       <div class="sidebar-header">
         <h2>📚 Estudo Inteligente</h2>
-        <div class="user-tag">Perfil: <span id="labelNomeUsuario" class="user-badge">Eduardo</span></div>
-        <div id="statusSincronizacaoNuvem" class="sync-status">☁️ Conectado ao Firebase</div>
+        <div class="user-tag">
+          Perfil: <span id="labelNomeUsuario" class="user-badge">-</span>
+        </div>
+        <div id="statusSincronizacaoNuvem" class="sync-status">☁️ Pronto</div>
+        
+        <div class="sync-actions">
+          <button class="btn-sync-action" title="Envia todos os dados locais deste aparelho para a nuvem" onclick="forcarUploadNuvem()">⬆️ Enviar para Nuvem</button>
+          <button class="btn-sync-action" title="Baixa todos os dados salvos na nuvem para este aparelho" onclick="forcarDownloadNuvem()">⬇️ Puxar da Nuvem</button>
+        </div>
       </div>
 
       <nav class="tab-nav">
         <button class="tab-btn active" onclick="trocarAba('aba-ciclo', this)">Ciclo</button>
+        <button class="tab-btn" onclick="trocarAba('aba-editais-prontos', this)" style="color: #34d399; font-weight: 700;">Editais Prontos 🟢</button>
+        <button class="tab-btn" onclick="trocarAba('aba-prioridades', this)">Prioridades</button>
+        <button class="tab-btn" onclick="trocarAba('aba-revisoes', this)">Revisões ⏰</button>
+        <button class="tab-btn" onclick="trocarAba('aba-pesos', this)">Pesos</button>
+        <button class="tab-btn" onclick="trocarAba('aba-timer', this)">Timer</button>
+        <button class="tab-btn" onclick="trocarAba('aba-questoes', this)">Questões</button>
         <button class="tab-btn" onclick="trocarAba('aba-edital-vert', this)">Edital</button>
+        <button class="tab-btn" onclick="trocarAba('aba-visao-geral', this)">Visão Geral</button>
+        <button class="tab-btn" onclick="trocarAba('aba-planejamento', this)">Planeamento</button>
+        <button class="tab-btn" onclick="trocarAba('aba-edital', this)">Edital TXT</button>
+        <button class="tab-btn" onclick="trocarAba('aba-senha', this)">Segurança</button>
+        <button class="tab-btn" id="btnAbaUsuariosAdmin" onclick="trocarAba('aba-usuarios-admin', this)" style="display:none; color: #f59e0b; font-weight:700;">Gestão Utilizadores 👥</button>
       </nav>
 
-      <!-- Aba Ciclo -->
+      <!-- Aba 1: Ciclo -->
       <div id="aba-ciclo" class="tab-content active">
         <div class="field">
           <label>Adicionar Disciplina</label>
           <div style="display: flex; gap: 6px;">
-            <input type="text" id="novaMateria" placeholder="Ex: Português">
+            <input type="text" id="novaMateria" placeholder="Ex: Língua Portuguesa">
             <button class="btn btn-primary" onclick="adicionarMateria()">+</button>
           </div>
         </div>
-        <button class="btn btn-primary" onclick="gerarSemana()">⚡ Atualizar Semana Atual</button>
-        <button class="btn btn-outline" onclick="reiniciarProgresso()">Limpar Checkboxes</button>
+
+        <div class="field">
+          <label>Disciplinas por dia</label>
+          <input type="number" id="materiasPorDia" min="1" max="8" value="2" oninput="salvarDisciplinasPorDia()">
+        </div>
+
+        <button class="btn btn-primary" onclick="gerarCronogramaSemanaAtual(true, true)">⚡ Regenerar Esta Semana</button>
+        <button class="btn btn-outline" onclick="reiniciarProgressoSemana()">Limpar Checkboxes da Semana</button>
       </div>
 
-      <!-- Aba Edital -->
-      <div id="aba-edital-vert" class="tab-content">
-        <div class="field">
-          <label>Adicionar Tópico ao Edital</label>
-          <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-            <input type="text" id="inputMateriaTopico" placeholder="Matéria" style="flex:1;">
-            <input type="text" id="inputTituloTopico" placeholder="Assunto do tópico" style="flex:1.5;">
+      <!-- Aba: Editais Prontos -->
+      <div id="aba-editais-prontos" class="tab-content">
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+          Clique em qualquer edital pronto da lista abaixo para aplicá-lo instantaneamente ao seu plano de estudos.
+        </p>
+
+        <div id="painelCriadorEduardo" style="display: none; background: rgba(56, 189, 248, 0.06); border: 1px solid var(--primary); border-radius: 10px; padding: 12px; margin-bottom: 10px;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">👑 Painel de Administração (Eduardo)</div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">
+            Cadastre um novo edital verticalizado aqui. Ele ficará disponível na lista com o botão verde.
+          </p>
+
+          <div class="field" style="margin-bottom: 8px;">
+            <label for="tituloNovoEditalPronto">Título do Concurso / Cargo</label>
+            <input type="text" id="tituloNovoEditalPronto" placeholder="Ex: PM-PE 2026 Soldado">
           </div>
-          <button class="btn btn-primary" onclick="adicionarTopico()">Adicionar Tópico</button>
+
+          <div class="field" style="margin-bottom: 10px;">
+            <label for="textoNovoEditalPronto">Texto do Edital Verticalizado</label>
+            <textarea id="textoNovoEditalPronto" rows="7" placeholder="Língua Portuguesa&#10;1. Compreensão de textos&#10;2. Intertextualidade&#10;3. Figuras de linguagem"></textarea>
+          </div>
+
+          <button class="btn btn-primary" style="width: 100%;" onclick="publicarNovoEditalPronto()">Publicar Edital na Nuvem</button>
+          <div id="statusPublicacaoEdital" style="display: none; font-size: 0.78rem; margin-top: 6px; padding: 6px; border-radius: 6px;"></div>
         </div>
-        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Marque as caixas 1D, 7D, 15D ou 30D para agendar revisões automáticas.</p>
-        <div id="containerEdital" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
+
+        <label>Editais Disponíveis para Carregar</label>
+        <div id="listaBotoesEditaisProntos" style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+          <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 16px;">Carregando editais da nuvem...</div>
+        </div>
+      </div>
+
+      <!-- Aba 2: Prioridades -->
+      <div id="aba-prioridades" class="tab-content">
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+          Escolha os assuntos prioritários. O ciclo dará preferência aos tópicos com <strong>🔴 Prioridade</strong>:
+        </p>
+
+        <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+          <label style="color: var(--primary);">Filtrar Matéria</label>
+          <select id="filtroMateriaPrioridades" onchange="renderizarAbaPrioridades()"></select>
+        </div>
+
+        <div id="containerListaPrioridades" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      </div>
+
+      <!-- Aba 3: Revisões Espaçadas -->
+      <div id="aba-revisoes" class="tab-content">
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+          Ao marcar 1D, 7D, 15D ou 30D no Edital, a revisão é agendada para a sua data e entra com destaque roxo no cronograma semanal.
+        </p>
+
+        <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+          <label style="color: var(--primary);">Filtrar Matéria de Revisão</label>
+          <select id="filtroMateriaRevisoes" onchange="renderizarAbaRevisoes()"></select>
+        </div>
+
+        <div id="containerListaRevisoes" style="display: flex; flex-direction: column; gap: 8px;"></div>
+      </div>
+
+      <!-- Aba 4: Pesos -->
+      <div id="aba-pesos" class="tab-content">
+        <ul class="item-list" id="listaPesos"></ul>
+      </div>
+
+      <!-- Aba 5: Timer & Horas Líquidas -->
+      <div id="aba-timer" class="tab-content">
+        <div class="field">
+          <label>Disciplina em Foco</label>
+          <select id="timerSelectMateria"></select>
+        </div>
+
+        <div class="timer-card">
+          <div class="timer-display" id="timerDisplay">00:00:00</div>
+          <div class="timer-controls">
+            <button class="btn btn-primary" id="btnIniciarTimer" onclick="toggleTimer()">Iniciar</button>
+            <button class="btn btn-outline" onclick="resetarTimer()">Zerar</button>
+          </div>
+          <button class="btn btn-outline" style="width:100%; border-color:var(--primary); color:var(--primary);" onclick="salvarTempoCronometrado()">💾 Salvar Tempo Estudado</button>
+        </div>
+
+        <div class="field" style="margin-top: 4px;">
+          <label>Filtrar Total por Disciplina</label>
+          <select id="filtroMateriaHoras" onchange="atualizarVisualizacaoHoras()"></select>
+        </div>
+
+        <div class="card-total-horas">
+          <div>
+            <div class="label-tot" id="labelFiltroNome">Todas as Disciplinas</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">Horas Líquidas Acumuladas</div>
+          </div>
+          <div class="val-tot" id="displayTotalHorasLiquidas">0h 00m</div>
+        </div>
+
+        <button class="btn btn-outline" style="width: 100%; margin-top: 2px;" onclick="abrirModalManualHoras()">➕ Lançar Horas Manualmente</button>
+
+        <label style="margin-top: 4px;">Histórico de Sessões</label>
+        <div class="historico-container" id="listaHistoricoHoras"></div>
+      </div>
+
+      <!-- Aba 6: Registo de Questões -->
+      <div id="aba-questoes" class="tab-content">
+        <div class="metric-grid-questoes">
+          <div class="metric-box">
+            <div style="font-size:0.72rem; color:var(--text-muted);">Total Feitas</div>
+            <div class="num" id="statQuestoesTotal" style="color:var(--primary);">0</div>
+          </div>
+          <div class="metric-box">
+            <div style="font-size:0.72rem; color:var(--text-muted);">Acertos</div>
+            <div class="num" id="statQuestoesAcertos" style="color:var(--success);">0</div>
+          </div>
+          <div class="metric-box">
+            <div style="font-size:0.72rem; color:var(--text-muted);">Taxa Acerto</div>
+            <div class="num" id="statQuestoesTaxa" style="color:var(--accent);">0%</div>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top: 4px;">
+          <label>Filtrar por Matéria</label>
+          <select id="filtroQuestoesMateria" onchange="atualizarVisualizacaoQuestoes()"></select>
+        </div>
+
+        <div class="field">
+          <label>Disciplina da Questão</label>
+          <select id="questoesSelectMateria"></select>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+          <div class="field" style="flex:1;">
+            <label>Acertos</label>
+            <input type="number" id="inputQuestoesAcertos" min="0" value="10">
+          </div>
+          <div class="field" style="flex:1;">
+            <label>Erros</label>
+            <input type="number" id="inputQuestoesErros" min="0" value="2">
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="salvarRegistroQuestao()">➕ Registar Questões</button>
+        <div class="historico-container" id="listaHistoricoQuestoes"></div>
+      </div>
+
+      <!-- Aba 7: Edital Verticalizado -->
+      <div id="aba-edital-vert" class="tab-content">
+        <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+          <label style="color: var(--primary);">Filtrar Visualização da Matéria</label>
+          <select id="filtroExclusivoMateriaEdital" onchange="renderizarEditalVerticalizado()"></select>
+        </div>
+
+        <div class="field">
+          <label>Adicionar Tópico/Assunto</label>
+          <div style="display: flex; gap: 6px;">
+            <select id="selectMateriaNovoTopico" style="flex: 1;"></select>
+            <input type="text" id="inputNovoTopico" placeholder="Ex: Figuras de linguagem" style="flex: 1.4;">
+            <button class="btn btn-primary" onclick="adicionarTopicoAoEdital()">+</button>
+          </div>
+        </div>
+
+        <div id="containerEditalVerticalizado" style="display: flex; flex-direction: column; gap: 10px; margin-top: 4px;"></div>
+      </div>
+
+      <!-- Aba 8: Visão Geral -->
+      <div id="aba-visao-geral" class="tab-content">
+        <button class="btn btn-success" style="width: 100%; margin-bottom: 8px;" onclick="imprimirCronograma()">🖨️ Imprimir Cronograma (PDF)</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;">
+          <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(-1)">◀ Anterior</button>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: var(--primary);" id="labelSemanaVisaoGeral">-</span>
+            <button class="btn-mini-acao" style="color:var(--primary); font-size:0.75rem; text-decoration:underline;" onclick="irParaHoje()">Voltar para Hoje</button>
+          </div>
+          <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(1)">Próxima ▶</button>
+        </div>
+
+        <div id="containerVisaoGeral" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
+      </div>
+
+      <!-- Aba 9: Planeamento & Previsão -->
+      <div id="aba-planejamento" class="tab-content">
+        <div class="field">
+          <label for="dataInicioEstudos">Início dos Estudos</label>
+          <input type="date" id="dataInicioEstudos" onchange="atualizarPainelPlanejamento()">
+        </div>
+
+        <div class="field">
+          <label for="dataProvaConcurso">Data da Prova</label>
+          <input type="date" id="dataProvaConcurso" onchange="atualizarPainelPlanejamento()">
+        </div>
+
+        <div class="metric-grid-questoes" style="grid-template-columns: repeat(2, 1fr); margin-top: 4px;">
+          <div class="metric-box">
+            <div style="font-size:0.72rem; color:var(--text-muted);">Dias Até a Prova</div>
+            <div class="num" id="diasAteProva" style="color:var(--primary);">--</div>
+          </div>
+          <div class="metric-box">
+            <div style="font-size:0.72rem; color:var(--text-muted);">Semanas Úteis</div>
+            <div class="num" id="semanasAteProva" style="color:var(--accent);">--</div>
+          </div>
+        </div>
+
+        <div class="sugestao-card">
+          <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem;">🎯 Estimativa de Fechamento do Edital</div>
+          <div class="sugestao-item" id="sugestaoRitmoTopicos">
+            Cadastre ou adquira o edital para calcular a previsão.
+          </div>
+        </div>
+      </div>
+
+      <!-- Aba 10: Edital TXT -->
+      <div id="aba-edital" class="tab-content">
+        <div class="field">
+          <label for="textoEdital">Texto do Edital Verticalizado</label>
+          <textarea id="textoEdital" rows="9" placeholder="Cole o edital aqui..."></textarea>
+        </div>
+
+        <button class="btn btn-primary" id="btnAnalisarEdital" onclick="processarEditalTexto()">✨ Carregar Edital Digitado</button>
+        <button class="btn btn-danger" style="margin-top: 2px;" onclick="redefinirEditalManualmente()">🗑️ Limpar Edital Atual</button>
+        <div id="statusIA" style="display: none; font-size: 0.8rem; padding: 8px; border-radius: 6px;"></div>
+      </div>
+
+      <!-- Aba 11: Segurança (Sincronizada na Nuvem) -->
+      <div id="aba-senha" class="tab-content">
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+          A nova palavra-passe é guardada na nuvem e passa a valer para todos os seus dispositivos (PC e telemóvel).
+        </p>
+        <div class="field">
+          <label for="senhaAtual">Palavra-passe Atual</label>
+          <input type="password" id="senhaAtual">
+        </div>
+        <div class="field">
+          <label for="novaSenha">Nova Palavra-passe</label>
+          <input type="password" id="novaSenha">
+        </div>
+        <div class="field">
+          <label for="confirmaNovaSenha">Confirmar Nova Palavra-passe</label>
+          <input type="password" id="confirmaNovaSenha">
+        </div>
+        <div id="msgStatusSenha" style="font-size: 0.82rem; display: none; padding: 8px; border-radius: 6px;"></div>
+        <button class="btn btn-primary" onclick="alterarPalavraPasse()">Guardar Nova Senha</button>
+      </div>
+
+      <!-- Aba 12: Gestão de Utilizadores (Exclusiva para Eduardo) -->
+      <div id="aba-usuarios-admin" class="tab-content">
+        <div style="font-size: 0.95rem; font-weight: 700; color: var(--warning); margin-bottom: 4px;">👑 Gestão de Utilizadores (Administrador)</div>
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
+          Crie novas contas ou remova utilizadores autorizados a aceder ao painel.
+        </p>
+
+        <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid var(--warning); border-radius: 10px; padding: 14px; margin-top: 4px;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 8px;">Adicionar Novo Acesso</div>
+          <div class="field" style="margin-bottom: 8px;">
+            <label for="inputNovoNomeUsuario">Nome do Utilizador</label>
+            <input type="text" id="inputNovoNomeUsuario" placeholder="Ex: Lucas">
+          </div>
+          <div class="field" style="margin-bottom: 12px;">
+            <label for="inputNovaSenhaUsuario">Palavra-passe</label>
+            <input type="text" id="inputNovaSenhaUsuario" placeholder="Ex: senha123">
+          </div>
+          <button class="btn btn-primary" style="width: 100%;" onclick="adminCriarNovoUsuario()">➕ Registar Novo Utilizador</button>
+        </div>
+
+        <label style="margin-top: 10px;">Utilizadores Registados no Sistema</label>
+        <div id="listaUsuariosCadastradosAdmin" style="display: flex; flex-direction: column; gap: 6px;"></div>
       </div>
 
       <div class="sidebar-footer">
-        <button class="btn btn-danger" onclick="resetarTudo()">🔄 Resetar Tudo</button>
-        <button class="btn btn-outline" onclick="sair()">Terminar Sessão</button>
+        <div style="display: flex; gap: 6px;">
+          <button class="btn btn-outline" style="flex: 1; font-size: 0.75rem;" onclick="exportarBackup()">📤 Fazer Backup</button>
+          <button class="btn btn-outline" style="flex: 1; font-size: 0.75rem;" onclick="document.getElementById('inputRestaurarBackup').click()">📥 Restaurar</button>
+        </div>
+        <input type="file" id="inputRestaurarBackup" accept=".json" style="display:none;" onchange="importarBackup(event)">
+        <button class="btn btn-outline" style="width: 100%;" onclick="sair()">Terminar Sessão</button>
       </div>
     </aside>
 
     <main>
       <header class="main-header">
         <div>
-          <h1>Cronograma Semanal</h1>
-          <p style="font-size: 0.85rem; color: var(--text-muted);">Sincronização segura via Firebase Realtime Database</p>
+          <h1 id="tituloCronograma">Cronograma Semanal</h1>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Ciclo de matérias com priorização inteligente de tópicos</p>
         </div>
+
         <div class="controls-top">
+          <button class="btn btn-success" onclick="adminMarcarTodosTopicos(true)" title="Marcar todas as caixas de seleção">☑️ Marcar Tudo</button>
+          <button class="btn btn-outline" onclick="adminMarcarTodosTopicos(false)" style="border-color: rgba(239, 68, 68, 0.4); color: var(--danger);" title="Desmarcar todas as caixas">Desmarcar</button>
+          
+          <!-- BOTÃO DE RESETAR EDITAL -->
+          <button class="btn btn-danger" onclick="redefinirEditalManualmente()" title="Limpar todo o edital e voltar ao estado inicial">🔄 Resetar Edital</button>
+
+          <button class="btn btn-outline" onclick="imprimirCronograma()" title="Imprimir ou Salvar em PDF">🖨️ PDF</button>
+
           <div class="week-navigator">
             <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(-1)">◀</button>
             <span class="week-label" id="labelIntervaloSemana">...</span>
             <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(1)">▶</button>
           </div>
-          <button class="btn btn-primary" style="padding: 6px 10px;" onclick="irParaHoje()">↺ Hoje</button>
+          <button class="btn btn-primary" style="padding: 6px 10px;" onclick="forcarSincronizacaoHoje()">↺ Hoje</button>
           <button class="btn btn-outline" onclick="alternarTema()" id="btnTema">☀️ Claro</button>
         </div>
       </header>
+
+      <!-- Painel Dinâmico de Previsão de Término do Edital -->
+      <div class="card-estimativa-edital" id="cardPrevisaoTerminoEdital">
+        <div class="est-info-col">
+          <span class="est-titulo">⏱️ Previsão de Conclusão do Edital</span>
+          <span class="est-data-destaque" id="displayDataFechamentoEdital">Calculando...</span>
+          <span class="est-detalhe" id="displayDetalhesRitmoEdital">Ritmo diário baseado no seu ciclo ativo</span>
+        </div>
+        <div style="text-align: right;" class="est-info-col">
+          <span class="est-titulo" style="color: var(--text-muted);">Status do Conteúdo</span>
+          <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary);" id="displayProgressoTopicosStatus">0 / 0 tópicos</span>
+        </div>
+      </div>
 
       <section class="week-grid" id="gradeSemana"></section>
     </main>
   </div>
 
+  <div class="modal-overlay" id="modalManualHoras">
+    <div class="modal-box">
+      <h3 style="color:var(--primary); font-size:1.05rem;">Lançar Horas de Estudo</h3>
+      <div class="field">
+        <label>Disciplina</label>
+        <select id="modalHorasSelectMateria"></select>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <div class="field" style="flex:1;">
+          <label>Horas</label>
+          <input type="number" id="modalHorasInputH" min="0" value="1">
+        </div>
+        <div class="field" style="flex:1;">
+          <label>Minutos</label>
+          <input type="number" id="modalHorasInputM" min="0" max="59" value="0">
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:6px;">
+        <button class="btn btn-primary" style="flex:1;" onclick="salvarHorasManual()">Salvar</button>
+        <button class="btn btn-outline" style="flex:1;" onclick="fecharModalManualHoras()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Conexão oficial Firebase Realtime Database
     const firebaseConfig = {
       apiKey: "AIzaSyB8vR5ccnYQxc-QiASnxFeYvHpwFWPHXP8",
       authDomain: "estudo-inteligente-f2186.firebaseapp.com",
@@ -359,182 +1483,123 @@
       firebase.initializeApp(firebaseConfig);
       rtdb = firebase.database();
     } catch (e) {
-      console.warn("Erro ao iniciar Firebase:", e);
+      console.warn("Firebase local:", e);
     }
 
+    const USUARIOS_PADRAO = {
+      "Eduardo": "333435"
+    };
+
     const DIAS = ['Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
+
     let usuarioAtivo = null;
     let dataReferencia = new Date();
     let chaveSemanaAtiva = '';
+    let estado = {};
+    let debounceSalvarNuvem = null;
     let dbRefAtivo = null;
     let isReceivingFromCloud = false;
-    let estado = {
-      disciplinas: [],
-      editalVerticalizado: {},
-      semanas: {},
-      ponteiroGeral: 0,
-      agendaRevisoes: [],
-      tema: 'dark'
-    };
+    let sharedAudioCtx = null;
 
-    function autenticar() {
-      const u = document.getElementById('usuario').value.trim();
-      const s = document.getElementById('senha').value.trim();
-      if (u.toLowerCase() === 'eduardo' && s === '333435') {
-        usuarioAtivo = 'Eduardo';
-        sessionStorage.setItem('usuario_ativo', 'Eduardo');
-        abrirApp();
-      } else {
-        const erro = document.getElementById('msgErro');
-        if (erro) erro.style.display = 'block';
+    function obterOuDesbloquearAudioContext() {
+      try {
+        if (!sharedAudioCtx) {
+          sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (sharedAudioCtx.state === 'suspended') {
+          sharedAudioCtx.resume();
+        }
+        return sharedAudioCtx;
+      } catch (e) {
+        return null;
       }
     }
 
-    function abrirApp() {
-      const telaLogin = document.getElementById('tela-login');
-      const appContainer = document.getElementById('app-container');
-      if (telaLogin) telaLogin.style.display = 'none';
-      if (appContainer) appContainer.style.display = 'flex';
-      
-      const chave = `cronograma_perfil_eduardo_v5`;
-      const salvo = localStorage.getItem(chave);
-      if (salvo) {
-        try { estado = JSON.parse(salvo); } catch(e) {}
-      } else {
-        estado.disciplinas = [{nome: 'Português', peso: 3}, {nome: 'Raciocínio Lógico', peso: 2}];
-        estado.editalVerticalizado = {
-          'Português': [{id:'t1', titulo:'1. Interpretação de Textos', t:false}, {id:'t2', titulo:'2. Crase', t:false}],
-          'Raciocínio Lógico': [{id:'t3', titulo:'1. Proposições', t:false}]
-        };
-      }
-      
-      dataReferencia = new Date();
-      atualizarUI();
+    window.addEventListener('click', () => {
+      obterOuDesbloquearAudioContext();
+    }, { once: true });
 
-      // Ligação sincronizada em tempo real com o Firebase
-      if (rtdb) {
-        dbRefAtivo = rtdb.ref("perfis/eduardo");
-        dbRefAtivo.on("value", snapshot => {
-          const dadosNuvem = snapshot.val();
-          if (dadosNuvem && dadosNuvem.estado && !isReceivingFromCloud) {
-            isReceivingFromCloud = true;
-            estado = dadosNuvem.estado;
-            localStorage.setItem(chave, JSON.stringify(estado));
-            isReceivingFromCloud = false;
-            atualizarUI();
-          }
+    function tocarSomVitoria() {
+      try {
+        const audioCtx = obterOuDesbloquearAudioContext();
+        if (!audioCtx) return;
+
+        const notas = [261.63, 329.63, 392.00, 523.25, 659.25];
+        const agora = audioCtx.currentTime;
+
+        notas.forEach((freq, index) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, agora + (index * 0.11));
+
+          gain.gain.setValueAtTime(0.001, agora + (index * 0.11));
+          gain.gain.exponentialRampToValueAtTime(0.25, agora + (index * 0.11) + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, agora + (index * 0.11) + 0.38);
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          osc.start(agora + (index * 0.11));
+          osc.stop(agora + (index * 0.11) + 0.40);
         });
+      } catch (e) {}
+    }
+
+    function dispararCelebracao() {
+      tocarSomVitoria();
+      const overlay = document.getElementById('celebrationOverlay');
+      if (overlay) {
+        overlay.style.display = 'flex';
+        setTimeout(() => { overlay.style.display = 'none'; }, 2200);
       }
     }
 
-    function salvarEstado() {
-      if (!usuarioAtivo || isReceivingFromCloud) return;
-      const chave = `cronograma_perfil_eduardo_v5`;
-      localStorage.setItem(chave, JSON.stringify(estado));
+    function imprimirCronograma() {
+      window.print();
+    }
 
-      if (rtdb && dbRefAtivo) {
-        dbRefAtivo.set({ estado: estado, atualizadoEm: new Date().toISOString() }).catch(() => {});
+    function atualizarStatusNuvem(texto, statusClass) {
+      const el = document.getElementById('statusSincronizacaoNuvem');
+      if (el) {
+        el.innerText = texto;
+        el.className = 'sync-status ' + (statusClass || '');
       }
     }
 
-    function trocarAba(id, btn) {
-      document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      btn.classList.add('active');
-      if (id === 'aba-edital-vert') renderizarEdital();
+    function obterSenhasLocais() {
+      const salvas = localStorage.getItem('usuarios_senhas_personalizadas');
+      return salvas ? JSON.parse(salvas) : { ...USUARIOS_PADRAO };
     }
 
-    function alternarTema() {
-      estado.tema = estado.tema === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', estado.tema);
-      document.getElementById('btnTema').innerText = estado.tema === 'dark' ? '☀️ Claro' : '🌙 Escuro';
-      salvarEstado();
+    function salvarSenhasLocais(senhas) {
+      localStorage.setItem('usuarios_senhas_personalizadas', JSON.stringify(senhas));
     }
 
-    function adicionarMateria() {
-      const input = document.getElementById('novaMateria');
-      const nome = input.value.trim();
-      if (!nome) return;
-      if (!estado.disciplinas.some(d => d.nome === nome)) {
-        estado.disciplinas.push({ nome, peso: 3 });
-        if (!estado.editalVerticalizado[nome]) estado.editalVerticalizado[nome] = [];
-        input.value = '';
-        salvarEstado();
-        gerarSemana();
-      }
+    function chaveArmazenamento(user) {
+      return `cronograma_perfil_${user.toLowerCase()}`;
     }
 
-    function adicionarTopico() {
-      const m = document.getElementById('inputMateriaTopico').value.trim();
-      const t = document.getElementById('inputTituloTopico').value.trim();
-      if (!m || !t) return;
-      if (!estado.editalVerticalizado[m]) {
-        estado.editalVerticalizado[m] = [];
-        if (!estado.disciplinas.some(d => d.nome === m)) estado.disciplinas.push({ nome: m, peso: 3 });
-      }
-      estado.editalVerticalizado[m].push({ id: 'tp_' + Date.now(), titulo: t, t: false });
-      document.getElementById('inputMateriaTopico').value = '';
-      document.getElementById('inputTituloTopico').value = '';
-      salvarEstado();
-      renderizarEdital();
-      gerarSemana();
-    }
-
-    function renderizarEdital() {
-      const c = document.getElementById('containerEdital');
-      if (!c) return; c.innerHTML = '';
-      Object.keys(estado.editalVerticalizado || {}).forEach(m => {
-        const tops = estado.editalVerticalizado[m] || [];
-        const bloco = document.createElement('div');
-        bloco.className = 'item-card';
-        bloco.style.flexDirection = 'column';
-        bloco.style.alignItems = 'flex-start';
-        bloco.style.gap = '6px';
-        
-        let topsHtml = tops.map(t => `
-          <div style="display:flex; justify-content:space-between; width:100%; align-items:center; font-size:0.8rem; gap:6px;">
-            <span style="flex:1;">${t.titulo}</span>
-            <label style="font-size:0.65rem;"><input type="checkbox" ${t.r1?'checked':''} onchange="marcarRevisao('${m}','${t.id}','1D',this.checked)"> 1D</label>
-            <label style="font-size:0.65rem;"><input type="checkbox" ${t.r7?'checked':''} onchange="marcarRevisao('${m}','${t.id}','7D',this.checked)"> 7D</label>
-            <label style="font-size:0.65rem;"><input type="checkbox" ${t.r15?'checked':''} onchange="marcarRevisao('${m}','${t.id}','15D',this.checked)"> 15D</label>
-            <label style="font-size:0.65rem;"><input type="checkbox" ${t.r30?'checked':''} onchange="marcarRevisao('${m}','${t.id}','30D',this.checked)"> 30D</label>
-          </div>
-        `).join('');
-
-        bloco.innerHTML = `<strong>${m}</strong>${topsHtml || '<span style="font-size:0.75rem; color:var(--text-muted);">Sem tópicos</span>'}`;
-        c.appendChild(bloco);
-      });
-    }
-
-    function marcarRevisao(materia, topicoId, tipo, ativo) {
-      const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
-      if (!topico) return;
-      topico['r' + tipo.replace('D', '')] = ativo;
-
-      const diasMap = { '1D': 1, '7D': 7, '15D': 15, '30D': 30 };
-      if (!estado.agendaRevisoes) estado.agendaRevisoes = [];
-
-      if (ativo) {
-        const dRev = new Date();
-        dRev.setDate(dRev.getDate() + diasMap[tipo]);
-        estado.agendaRevisoes.push({
-          id: 'rev_' + Math.random().toString(36).substr(2, 6),
-          materia, topicoTitulo: topico.titulo, tipo, dataPrevista: formatarDataChave(dRev), concluida: false
-        });
-      } else {
-        estado.agendaRevisoes = estado.agendaRevisoes.filter(r => !(r.materia === materia && r.topicoTitulo === topico.titulo && r.tipo === tipo));
-      }
-      salvarEstado();
-      gerarSemana();
-    }
-
-    function obterTotalTopicos() {
-      let total = 0;
-      Object.keys(estado.editalVerticalizado || {}).forEach(m => {
-        total += (estado.editalVerticalizado[m] || []).length;
-      });
-      return total;
+    function obterEstadoPadrao() {
+      return {
+        tema: 'dark',
+        disciplinas: [],
+        porDia: 2,
+        ponteiroGeral: 0,
+        indicesTopicos: {},
+        semanas: {},
+        historicoHoras: [],
+        historicoQuestoes: [],
+        editalVerticalizado: {},
+        diasCompletosLog: [],
+        planejamento: { inicio: '', prova: '' },
+        collapseEdital: {},
+        materiaFiltroEdital: 'TODAS',
+        filtroPrioridadesMateria: 'TODAS',
+        filtroRevisoesMateria: 'TODAS',
+        agendaRevisoes: []
+      };
     }
 
     function obterSegundaFeira(data) {
@@ -546,6 +1611,20 @@
       return d;
     }
 
+    function formatarDataChave(d) {
+      const ano = d.getFullYear();
+      const mes = String(d.getMonth() + 1).padStart(2, '0');
+      const dia = String(d.getDate()).padStart(2, '0');
+      return `${ano}-${mes}-${dia}`;
+    }
+
+    function formatarDataBR(d) {
+      const dia = String(d.getDate()).padStart(2, '0');
+      const mes = String(d.getMonth() + 1).padStart(2, '0');
+      const ano = d.getFullYear();
+      return `${dia}/${mes}/${ano}`;
+    }
+
     function obterDiasDaSemana(segunda) {
       return DIAS.map((nome, index) => {
         const dataDia = new Date(segunda);
@@ -555,25 +1634,174 @@
       });
     }
 
+    function salvarDisciplinasPorDia() {
+      const input = document.getElementById('materiasPorDia');
+      let val = parseInt(input.value) || 2;
+      if (val < 1) val = 1;
+      if (val > 8) val = 8;
+      estado.porDia = val;
+      salvarEstado();
+      calcularPrevisaoFechamentoEdital();
+    }
+
+    function obterTotalTopicosEdital() {
+      let total = 0;
+      Object.keys(estado.editalVerticalizado || {}).forEach(m => {
+        total += (estado.editalVerticalizado[m] || []).length;
+      });
+      return total;
+    }
+
+    function calcularDataFinalMatematica() {
+      const total = obterTotalTopicosEdital();
+      if (total === 0) return null;
+      const porDia = parseInt(estado.porDia) || 2;
+      const diasNecessarios = Math.ceil(total / porDia);
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const dataFim = new Date(hoje);
+      dataFim.setDate(hoje.getDate() + diasNecessarios);
+      return dataFim;
+    }
+
+    function obterDataLimiteNavegacao() {
+      let dataLimite = calcularDataFinalMatematica() || new Date();
+
+      (estado.agendaRevisoes || []).forEach(r => {
+        if (r.dataPrevista) {
+          const partes = r.dataPrevista.split('-');
+          const dRev = new Date(partes[0], partes[1] - 1, partes[2]);
+          if (dRev > dataLimite) {
+            dataLimite = dRev;
+          }
+        }
+      });
+
+      return dataLimite;
+    }
+
+    function calcularPrevisaoFechamentoEdital() {
+      const displayData = document.getElementById('displayDataFechamentoEdital');
+      const displayDetalhes = document.getElementById('displayDetalhesRitmoEdital');
+      const displayProgresso = document.getElementById('displayProgressoTopicosStatus');
+      const sugestaoRitmo = document.getElementById('sugestaoRitmoTopicos');
+
+      let totalTopicos = 0;
+      let topicosFeitos = 0;
+
+      Object.keys(estado.editalVerticalizado || {}).forEach(materia => {
+        const lista = estado.editalVerticalizado[materia] || [];
+        totalTopicos += lista.length;
+        topicosFeitos += lista.filter(t => t.t === true).length;
+      });
+
+      if (displayProgresso) {
+        displayProgresso.innerText = `${topicosFeitos} / ${totalTopicos} tópicos`;
+      }
+
+      if (totalTopicos === 0) {
+        if (displayData) displayData.innerText = "Nenhum edital ativo";
+        if (displayDetalhes) displayDetalhes.innerText = "Adicione matérias na aba Edital TXT ou adquira na aba Editais Prontos.";
+        return;
+      }
+
+      const topicosRestantes = Math.max(0, totalTopicos - topicosFeitos);
+      const porDia = parseInt(estado.porDia) || 2;
+      const dataTerminoPrevista = calcularDataFinalMatematica();
+      const dataFormatada = dataTerminoPrevista ? formatarDataBR(dataTerminoPrevista) : '--/--/----';
+
+      if (topicosRestantes === 0) {
+        if (displayData) {
+          displayData.innerText = "🎉 Edital 100% Concluído!";
+          displayData.style.color = "var(--success)";
+        }
+        if (displayDetalhes) displayDetalhes.innerText = "Todos os tópicos do edital já foram zerados.";
+      } else {
+        if (displayData) {
+          displayData.innerText = `${dataFormatada}`;
+          displayData.style.color = "var(--success)";
+        }
+        const diasNecessarios = Math.ceil(topicosRestantes / porDia);
+        const semanasNecessarias = Math.ceil(diasNecessarios / 7);
+        let detalhesTexto = `Faltam ${topicosRestantes} tópicos • Ritmo: ${porDia} tópicos/dia (~${diasNecessarios} dias / ${semanasNecessarias} semanas)`;
+
+        if (estado.planejamento && estado.planejamento.prova) {
+          const dProva = new Date(estado.planejamento.prova + 'T00:00:00');
+          if (dataTerminoPrevista <= dProva) {
+            const diasFolga = Math.floor((dProva - dataTerminoPrevista) / (1000 * 60 * 60 * 24));
+            detalhesTexto += ` • ✅ Conclui ${diasFolga} dias ANTES da prova!`;
+          } else {
+            const diasAtraso = Math.ceil((dataTerminoPrevista - dProva) / (1000 * 60 * 60 * 24));
+            detalhesTexto += ` • ⚠️ Ultrapassa a prova em ${diasAtraso} dias.`;
+          }
+        }
+
+        if (displayDetalhes) displayDetalhes.innerText = detalhesTexto;
+        if (sugestaoRitmo) {
+          sugestaoRitmo.innerHTML = `📌 No ritmo de <strong>${porDia} tópicos por dia</strong>, fechará 100% do edital em <strong>${dataFormatada}</strong>.<br>${detalhesTexto}`;
+        }
+      }
+    }
+
     function atualizarSemanaAtiva() {
       const segunda = obterSegundaFeira(dataReferencia);
       chaveSemanaAtiva = `semana_${formatarDataChave(segunda)}`;
-      const domingo = new Date(segunda); domingo.setDate(segunda.getDate() + 6);
-      
+
+      const domingo = new Date(segunda);
+      domingo.setDate(segunda.getDate() + 6);
+
+      const fSeg = `${String(segunda.getDate()).padStart(2, '0')}/${String(segunda.getMonth() + 1).padStart(2, '0')}`;
+      const fDom = `${String(domingo.getDate()).padStart(2, '0')}/${String(domingo.getMonth() + 1).padStart(2, '0')}`;
+      const anoDom = domingo.getFullYear();
+      const labelFormatado = `${fSeg} - ${fDom}/${anoDom}`;
+
       const lbl = document.getElementById('labelIntervaloSemana');
-      if (lbl) {
-        lbl.innerText = `${String(segunda.getDate()).padStart(2, '0')}/${String(segunda.getMonth() + 1).padStart(2, '0')} - ${String(domingo.getDate()).padStart(2, '0')}/${String(domingo.getMonth() + 1).padStart(2, '0')}/${domingo.getFullYear()}`;
-      }
+      if (lbl) lbl.innerText = labelFormatado;
+      const lblVisao = document.getElementById('labelSemanaVisaoGeral');
+      if (lblVisao) lblVisao.innerText = labelFormatado;
 
       if (!estado.semanas) estado.semanas = {};
-      if (!estado.semanas[chaveSemanaAtiva]) {
-        gerarSemanaAutomaticaCorrigida(chaveSemanaAtiva);
+      const slotsSemana = estado.semanas[chaveSemanaAtiva] || {};
+      const totalDisciplinasAgendadas = Object.values(slotsSemana).reduce((acc, curr) => acc + (curr ? curr.length : 0), 0);
+
+      if (totalDisciplinasAgendadas === 0 && estado.disciplinas && estado.disciplinas.length > 0) {
+        gerarSemanaAutomatica(chaveSemanaAtiva, false, false);
+      } else if (estado.semanas[chaveSemanaAtiva]) {
+        // Corrige semanas já salvas que ficaram com 3+ atividades após uma revisão.
+        // A revisão ocupa uma vaga; ela nunca aumenta o limite de porDia.
+        inserirRevisoesNaSemana(chaveSemanaAtiva);
       }
+
       renderizarGrade();
+      renderizarVisaoGeral();
+      calcularPrevisaoFechamentoEdital();
     }
 
     function navegarSemana(delta) {
-      dataReferencia.setDate(dataReferencia.getDate() + (delta * 7));
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const segundaHoje = obterSegundaFeira(hoje);
+
+      const novaData = new Date(dataReferencia);
+      novaData.setDate(novaData.getDate() + (delta * 7));
+
+      if (delta < 0 && novaData < segundaHoje) {
+        alert("Esta é a semana atual em que iniciou o cronograma.");
+        return;
+      }
+
+      const dataLimite = obterDataLimiteNavegacao();
+      if (delta > 0 && dataLimite) {
+        const segundaDataLimite = obterSegundaFeira(dataLimite);
+        const segundaNovaSemana = obterSegundaFeira(novaData);
+
+        if (segundaNovaSemana > segundaDataLimite) {
+          alert(`Limite de semanas alcançado! Todas as matérias e revisões agendadas terminam na semana de ${formatarDataBR(dataLimite)}.`);
+          return;
+        }
+      }
+
+      dataReferencia = novaData;
       atualizarSemanaAtiva();
     }
 
@@ -582,74 +1810,961 @@
       atualizarSemanaAtiva();
     }
 
-    function gerarSemanaAutomaticaCorrigida(chaveSem) {
-      if (!estado.disciplinas || estado.disciplinas.length === 0) return;
-      const ciclo = [];
-      estado.disciplinas.forEach(d => { for(let i=0; i<(d.peso || 3); i++) ciclo.push(d.nome); });
-      if (ciclo.length === 0) return;
+    function forcarSincronizacaoHoje() {
+      dataReferencia = new Date();
+      atualizarSemanaAtiva();
+    }
 
-      const novaSemana = {};
-      let ponteiro = estado.ponteiroGeral || 0;
-      const totalTopicos = obterTotalTopicos();
-      const partes = chaveSem.replace('semana_', '').split('-');
-      const segundaRef = new Date(partes[0], partes[1] - 1, partes[2]);
+    function autenticar() {
+      obterOuDesbloquearAudioContext();
+      const uInput = document.getElementById('usuario').value.trim();
+      const sInput = document.getElementById('senha').value.trim();
+      const erro = document.getElementById('msgErro');
 
-      DIAS.forEach((dia, idx) => {
-        const dataDia = new Date(segundaRef);
-        dataDia.setDate(segundaRef.getDate() + idx);
-        const chaveDia = formatarDataChave(dataDia);
-        const slotsDia = [];
+      const senhasLocais = obterSenhasLocais();
+      const usuarioEncontrado = Object.keys(senhasLocais).find(
+        key => key.toLowerCase() === uInput.toLowerCase()
+      );
 
-        (estado.agendaRevisoes || []).forEach(rev => {
-          if (rev.dataPrevista === chaveDia && !rev.concluida) {
-            slotsDia.push({
-              id: rev.id, materia: rev.materia, assunto: `Revisão: ${rev.topicoTitulo}`,
-              isRevisaoEspacada: true, tipoRevisao: rev.tipo, feito: false
-            });
-          }
-        });
-
-        while (slotsDia.length < 2) {
-          if (totalTopicos > 0 && ponteiro >= totalTopicos) break;
-          const materia = ciclo[ponteiro % ciclo.length];
-          const topicosMat = (estado.editalVerticalizado[materia] || []).filter(t => !t.t);
-          const topicoEscolhido = topicosMat.length > 0 ? topicosMat[0] : null;
-          const numCartao = (ponteiro % (totalTopicos || 1)) + 1;
-
-          slotsDia.push({
-            id: 'slot_' + Math.random().toString(36).substr(2,6),
-            materia: materia,
-            assunto: topicoEscolhido ? topicoEscolhido.titulo : 'Revisão Geral',
-            topicoId: topicoEscolhido ? topicoEscolhido.id : null,
-            numeroCartao: numCartao,
-            feito: false
-          });
-          ponteiro++;
+      if (!usuarioEncontrado) {
+        if (erro) {
+          erro.style.display = 'block';
+          erro.innerText = 'Utilizador não autorizado.';
         }
-        novaSemana[dia] = slotsDia;
+        return;
+      }
+
+      if (senhasLocais[usuarioEncontrado] === sInput) {
+        usuarioAtivo = usuarioEncontrado;
+        sessionStorage.setItem('usuario_ativo', usuarioAtivo);
+        abrirApp();
+      } else {
+        if (erro) {
+          erro.style.display = 'block';
+          erro.innerText = 'Palavra-passe incorreta!';
+        }
+      }
+    }
+
+    function alterarPalavraPasse() {
+      const atual = document.getElementById('senhaAtual').value.trim();
+      const nova = document.getElementById('novaSenha').value.trim();
+      const confirma = document.getElementById('confirmaNovaSenha').value.trim();
+      const msg = document.getElementById('msgStatusSenha');
+      const senhas = obterSenhasLocais();
+
+      if (senhas[usuarioAtivo] !== atual) {
+        msg.style.display = 'block';
+        msg.style.color = '#ef4444';
+        msg.style.background = 'rgba(239, 68, 68, 0.1)';
+        msg.innerText = 'A palavra-passe atual está incorreta!';
+        return;
+      }
+      if (!nova || nova.length < 4 || nova !== confirma) {
+        msg.style.display = 'block';
+        msg.style.color = '#ef4444';
+        msg.style.background = 'rgba(239, 68, 68, 0.1)';
+        msg.innerText = 'Nova senha inválida ou confirmação diferente!';
+        return;
+      }
+
+      senhas[usuarioAtivo] = nova;
+      salvarSenhasLocais(senhas);
+
+      if (rtdb) {
+        rtdb.ref("senhas/" + usuarioAtivo.toLowerCase()).set(nova).catch(() => {});
+      }
+
+      msg.style.display = 'block';
+      msg.style.color = '#10b981';
+      msg.style.background = 'rgba(16, 185, 129, 0.1)';
+      msg.innerText = 'Palavra-passe alterada com sucesso!';
+
+      document.getElementById('senhaAtual').value = '';
+      document.getElementById('novaSenha').value = '';
+      document.getElementById('confirmaNovaSenha').value = '';
+    }
+
+    function configurarPainelAdminUsuarios() {
+      const btnAba = document.getElementById('btnAbaUsuariosAdmin');
+      const isEduardo = (usuarioAtivo && usuarioAtivo.toLowerCase() === 'eduardo');
+
+      if (btnAba) {
+        btnAba.style.display = isEduardo ? 'block' : 'none';
+      }
+
+      if (isEduardo) {
+        carregarListaUsuariosAdmin();
+      }
+    }
+
+    function carregarListaUsuariosAdmin() {
+      const container = document.getElementById('listaUsuariosCadastradosAdmin');
+      if (!container) return;
+      const senhasObj = obterSenhasLocais();
+      renderizarListaUsuariosAdminHtml(senhasObj);
+    }
+
+    function renderizarListaUsuariosAdminHtml(senhasObj) {
+      const container = document.getElementById('listaUsuariosCadastradosAdmin');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const usuarios = Object.keys(senhasObj);
+      usuarios.forEach(u => {
+        const item = document.createElement('div');
+        item.className = 'item-card';
+        item.style.padding = '8px 12px';
+
+        const isEduardo = (u.toLowerCase() === 'eduardo');
+        const acaoBtn = isEduardo 
+          ? '<span style="font-size:0.75rem; color:var(--primary); font-weight:800;">ADMIN</span>' 
+          : `<button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="adminExcluirUsuario('${u}')">🗑️ Eliminar</button>`;
+
+        item.innerHTML = `
+          <div>
+            <strong>${u}</strong>
+            <span style="font-size:0.75rem; color:var(--text-muted); margin-left:6px;">(Senha: ${senhasObj[u]})</span>
+          </div>
+          ${acaoBtn}
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function adminCriarNovoUsuario() {
+      const nomeInput = document.getElementById('inputNovoNomeUsuario');
+      const senhaInput = document.getElementById('inputNovaSenhaUsuario');
+      const nome = nomeInput.value.trim();
+      const senha = senhaInput.value.trim();
+
+      if (!nome || !senha) {
+        alert("Preencha o nome do utilizador e a palavra-passe.");
+        return;
+      }
+
+      const senhas = obterSenhasLocais();
+      senhas[nome] = senha;
+      salvarSenhasLocais(senhas);
+
+      if (rtdb) {
+        rtdb.ref("senhas/" + nome.toLowerCase()).set(senha).catch(() => {});
+      }
+
+      alert(`Utilizador "${nome}" criado com sucesso!`);
+      nomeInput.value = '';
+      senhaInput.value = '';
+      carregarListaUsuariosAdmin();
+    }
+
+    function adminExcluirUsuario(nome) {
+      if (nome.toLowerCase() === 'eduardo') {
+        alert("O utilizador administrador Eduardo não pode ser excluído.");
+        return;
+      }
+
+      if (confirm(`Tem certeza de que deseja eliminar o acesso de "${nome}"?`)) {
+        const senhas = obterSenhasLocais();
+        delete senhas[nome];
+        salvarSenhasLocais(senhas);
+
+        if (rtdb) {
+          rtdb.ref("senhas/" + nome.toLowerCase()).remove().catch(() => {});
+          rtdb.ref("perfis/" + nome.toLowerCase()).remove().catch(() => {});
+        }
+
+        alert(`Utilizador "${nome}" eliminado com sucesso!`);
+        carregarListaUsuariosAdmin();
+      }
+    }
+
+    function adminMarcarTodosTopicos(marcar) {
+      const acao = marcar ? "marcar como CONCLUÍDOS" : "DESMARCAR";
+      if (!confirm(`Deseja realmente ${acao} todos os tópicos e checklists do cronograma?`)) return;
+
+      Object.keys(estado.editalVerticalizado || {}).forEach(m => {
+        (estado.editalVerticalizado[m] || []).forEach(t => {
+          t.t = marcar;
+        });
       });
 
-      estado.ponteiroGeral = ponteiro;
-      estado.semanas[chaveSem] = novaSemana;
+      Object.keys(estado.semanas || {}).forEach(semKey => {
+        Object.keys(estado.semanas[semKey] || {}).forEach(dia => {
+          (estado.semanas[semKey][dia] || []).forEach(slot => {
+            slot.feito = marcar;
+          });
+        });
+      });
+
+      (estado.agendaRevisoes || []).forEach(r => {
+        r.concluida = marcar;
+      });
+
+      salvarEstado();
+      renderizarEditalVerticalizado();
+      renderizarGrade();
+      renderizarVisaoGeral();
+      renderizarAbaRevisoes();
+      calcularPrevisaoFechamentoEdital();
+      alert(`Todas as caixas foram ${marcar ? 'marcadas como concluídas' : 'desmarcadas'} com sucesso!`);
+    }
+
+    function configurarAbaEditaisProntos() {
+      const painelAdmin = document.getElementById('painelCriadorEduardo');
+      if (painelAdmin) painelAdmin.style.display = 'block';
+      ouvirEditaisProntosNuvem();
+    }
+
+    function publicarNovoEditalPronto() {
+      const titulo = document.getElementById('tituloNovoEditalPronto').value.trim();
+      const texto = document.getElementById('textoNovoEditalPronto').value.trim();
+      const status = document.getElementById('statusPublicacaoEdital');
+
+      if (!titulo || !texto) {
+        alert("Preencha o título do concurso e cole o texto do edital verticalizado.");
+        return;
+      }
+
+      status.style.display = 'block';
+      status.style.color = '#38bdf8';
+      status.style.background = 'rgba(56, 189, 248, 0.1)';
+      status.innerText = "Processando e enviando para a nuvem...";
+
+      const dadosExtraidos = extrairDisciplinasETopicosUniversal(texto);
+      if (!dadosExtraidos || dadosExtraidos.length === 0) {
+        status.style.color = '#ef4444';
+        status.style.background = 'rgba(239, 68, 68, 0.1)';
+        status.innerText = "Não foi possível extrair as matérias do texto.";
+        return;
+      }
+
+      const idEdital = 'edital_' + Date.now();
+      const objetoEditalPronto = {
+        id: idEdital,
+        titulo: titulo,
+        criadoPor: usuarioAtivo,
+        dataCriacao: new Date().toLocaleDateString('pt-BR'),
+        disciplinas: dadosExtraidos.map(d => ({ nome: d.nome, peso: d.peso || 3 })),
+        editalVerticalizado: {}
+      };
+
+      dadosExtraidos.forEach(d => {
+        const listaTopicos = d.topicos && d.topicos.length > 0 ? d.topicos : ['1. Conteúdo programático.'];
+        objetoEditalPronto.editalVerticalizado[d.nome] = listaTopicos.map((tit, idx) => ({
+          id: 'top_' + Math.random().toString(36).substr(2, 7) + '_' + idx,
+          titulo: sanitizarTopicoLinha(tit),
+          t: false, r1: false, r7: false, r15: false, r30: false,
+          prioridade: 'amarelo'
+        }));
+      });
+
+      if (rtdb) {
+        rtdb.ref("editais_prontos/" + idEdital).set(objetoEditalPronto).then(() => {
+          status.style.color = '#10b981';
+          status.style.background = 'rgba(16, 185, 129, 0.1)';
+          status.innerText = "✅ Edital publicado com sucesso!";
+          document.getElementById('tituloNovoEditalPronto').value = '';
+          document.getElementById('textoNovoEditalPronto').value = '';
+        }).catch(err => {
+          status.style.color = '#ef4444';
+          status.innerText = "Erro ao publicar: " + err.message;
+        });
+      }
+    }
+
+    function ouvirEditaisProntosNuvem() {
+      const container = document.getElementById('listaBotoesEditaisProntos');
+      if (!rtdb || !container) return;
+
+      rtdb.ref("editais_prontos").on("value", snapshot => {
+        const editais = snapshot.val();
+        container.innerHTML = '';
+
+        if (!editais) {
+          container.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 16px;">Nenhum edital pronto cadastrado.</div>`;
+          return;
+        }
+
+        Object.keys(editais).forEach(key => {
+          const item = editais[key];
+          const div = document.createElement('div');
+          div.className = 'edital-pronto-item';
+
+          div.innerHTML = `
+            <button class="btn-edital-verde" onclick="adquirirEditalPronto('${item.id}')">
+              <span>📗 ${item.titulo}</span>
+              <span style="font-size: 0.72rem; font-weight: normal; opacity: 0.9;">Adquirir Edital ➔</span>
+            </button>
+            <button class="btn btn-danger" style="padding: 10px 12px;" title="Excluir este edital" onclick="excluirEditalPronto('${item.id}')">🗑️</button>
+          `;
+          container.appendChild(div);
+        });
+      });
+    }
+
+    function adquirirEditalPronto(idEdital) {
+      if (!confirm("Deseja carregar este edital pronto? O seu cronograma e ciclo atual serão atualizados com essas matérias.")) {
+        return;
+      }
+
+      if (rtdb) {
+        rtdb.ref("editais_prontos/" + idEdital).once("value").then(snapshot => {
+          const dados = snapshot.val();
+          if (dados && dados.disciplinas) {
+            estado.disciplinas = JSON.parse(JSON.stringify(dados.disciplinas));
+            estado.editalVerticalizado = JSON.parse(JSON.stringify(dados.editalVerticalizado));
+            estado.semanas = {};
+            estado.indicesTopicos = {};
+            estado.ponteiroGeral = 0;
+            estado.materiaFiltroEdital = 'TODAS';
+            estado.filtroPrioridadesMateria = 'TODAS';
+            estado.agendaRevisoes = [];
+            estado.diasCompletosLog = [];
+
+            dataReferencia = new Date();
+            const segunda = obterSegundaFeira(dataReferencia);
+            chaveSemanaAtiva = `semana_${formatarDataChave(segunda)}`;
+            gerarSemanaAutomatica(chaveSemanaAtiva, false, true);
+
+            const chave = chaveArmazenamento(usuarioAtivo);
+            localStorage.setItem(chave, JSON.stringify(estado));
+            if (dbRefAtivo) {
+              dbRefAtivo.set({ estado: estado, atualizadoEm: new Date().toISOString() });
+            }
+
+            renderizarPesos();
+            atualizarSelectsMaterias();
+            renderizarEditalVerticalizado();
+            renderizarAbaPrioridades();
+            renderizarAbaRevisoes();
+            atualizarSemanaAtiva();
+            renderizarVisaoGeral();
+            atualizarPainelPlanejamento();
+            atualizarIndicadorPresenca();
+            calcularPrevisaoFechamentoEdital();
+
+            alert(`Parabéns! O edital "${dados.titulo}" foi adquirido com sucesso.`);
+            trocarAba('aba-ciclo', document.querySelectorAll('.tab-btn')[0]);
+          }
+        });
+      }
+    }
+
+    function excluirEditalPronto(idEdital) {
+      if (confirm("Remover este edital pronto da nuvem? Ele deixará de aparecer na lista.")) {
+        if (rtdb) {
+          rtdb.ref("editais_prontos/" + idEdital).remove().then(() => {
+            alert("Edital pronto removido!");
+          });
+        }
+      }
+    }
+
+    function redefinirEditalManualmente() {
+      if (confirm('Tem certeza de que deseja resetar todo o edital e limpar os dados atuais?')) {
+        estado = obterEstadoPadrao();
+        const chave = chaveArmazenamento(usuarioAtivo);
+        localStorage.removeItem(chave);
+        if (rtdb && dbRefAtivo) {
+          dbRefAtivo.remove().catch(() => {});
+        }
+        atualizarUIAposCarregar();
+        alert('Edital resetado com sucesso! Vá na aba Editais Prontos para carregar um novo plano.');
+      }
+    }
+
+    function sair() {
+      if (dbRefAtivo) dbRefAtivo.off();
+      sessionStorage.removeItem('usuario_ativo');
+      location.reload();
+    }
+
+    function abrirApp() {
+      const telaLogin = document.getElementById('tela-login');
+      const appContainer = document.getElementById('app-container');
+      if (telaLogin) telaLogin.style.display = 'none';
+      if (appContainer) appContainer.style.display = 'flex';
+
+      const lblUser = document.getElementById('labelNomeUsuario');
+      const lblCron = document.getElementById('tituloCronograma');
+      if (lblUser) lblUser.innerText = usuarioAtivo;
+      if (lblCron) lblCron.innerText = `Cronograma de ${usuarioAtivo}`;
+
+      configurarAbaEditaisProntos();
+      configurarPainelAdminUsuarios();
+
+      const chave = chaveArmazenamento(usuarioAtivo);
+      const salvos = localStorage.getItem(chave);
+      if (salvos) {
+        try { estado = JSON.parse(salvos); } catch (e) { estado = obterEstadoPadrao(); }
+      } else {
+        estado = obterEstadoPadrao();
+      }
+
+      dataReferencia = new Date();
+      atualizarUIAposCarregar();
+      atualizarStatusNuvem("☁️ Pronto", "online");
+
+      if (rtdb) {
+        if (dbRefAtivo) dbRefAtivo.off();
+        dbRefAtivo = rtdb.ref("perfis/" + usuarioAtivo.toLowerCase());
+
+        dbRefAtivo.once("value", snapshot => {
+          const dadosNuvem = snapshot.val();
+          if (dadosNuvem && dadosNuvem.estado && dadosNuvem.estado.disciplinas && dadosNuvem.estado.disciplinas.length > 0) {
+            estado = dadosNuvem.estado;
+            localStorage.setItem(chave, JSON.stringify(estado));
+            atualizarUIAposCarregar();
+            atualizarStatusNuvem("☁️ Sincronizado", "online");
+          }
+        });
+      }
+    }
+
+    function salvarEstado() {
+      if (!usuarioAtivo || isReceivingFromCloud) return;
+      const chave = chaveArmazenamento(usuarioAtivo);
+      localStorage.setItem(chave, JSON.stringify(estado));
+
+      if (rtdb && dbRefAtivo) {
+        atualizarStatusNuvem("☁️ Enviando...", "syncing");
+        clearTimeout(debounceSalvarNuvem);
+        debounceSalvarNuvem = setTimeout(() => {
+          dbRefAtivo.set({
+            estado: estado,
+            atualizadoEm: new Date().toISOString()
+          }).then(() => {
+            atualizarStatusNuvem("☁️ Sincronizado", "online");
+          });
+        }, 400);
+      }
+    }
+
+    function atualizarIndicadorPresenca() {
+      if (!estado.diasCompletosLog) estado.diasCompletosLog = [];
+      const totalDias = estado.diasCompletosLog.length;
+      const el = document.getElementById('txtOfensiva');
+      if (el) el.innerText = `${totalDias} ${totalDias === 1 ? 'dia' : 'dias'}`;
+    }
+
+    function exportarBackup() {
+      const dados = JSON.stringify(estado, null, 2);
+      const blob = new Blob([dados], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_estudos_${usuarioAtivo.toLowerCase()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importarBackup(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importado = JSON.parse(e.target.result);
+          if (importado && importado.disciplinas) {
+            estado = importado;
+            salvarEstado();
+            atualizarUIAposCarregar();
+            alert('Backup restaurado com sucesso!');
+          }
+        } catch (err) {
+          alert('Ficheiro de backup inválido.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function processarEditalTexto() {
+      const texto = document.getElementById('textoEdital').value.trim();
+      if (!texto) return;
+
+      const dadosExtraidos = extrairDisciplinasETopicosUniversal(texto);
+      if (dadosExtraidos && dadosExtraidos.length > 0) {
+        estado.disciplinas = dadosExtraidos.map(d => ({ nome: d.nome, peso: d.peso || 3 }));
+        estado.editalVerticalizado = {};
+        dadosExtraidos.forEach(d => {
+          const listaTopicos = d.topicos && d.topicos.length > 0 ? d.topicos : ['1. Conteúdo programático.'];
+          estado.editalVerticalizado[d.nome] = listaTopicos.map((tit, idx) => ({
+            id: 'top_' + Math.random().toString(36).substr(2, 7) + '_' + idx,
+            titulo: sanitizarTopicoLinha(tit),
+            t: false, r1: false, r7: false, r15: false, r30: false,
+            prioridade: 'amarelo'
+          }));
+        });
+
+        salvarEstado();
+        atualizarUIAposCarregar();
+        calcularPrevisaoFechamentoEdital();
+        alert('Edital carregado com sucesso!');
+      }
+    }
+
+    function sanitizarTopicoLinha(texto) {
+      let t = texto.replace(/[\|\_]{2,}/g, '').trim();
+      const pontoMatch = t.match(/^(.*?[.;])(\s+[A-Za-z0-9\-\s\.\/]{1,30})?$/);
+      if (pontoMatch && pontoMatch[1].length > 8) {
+        t = pontoMatch[1];
+      }
+      t = t.replace(/\s{2,}/g, ' ').trim();
+      if (!t.endsWith('.') && !t.endsWith(';')) t += '.';
+      return t;
+    }
+
+    function extrairDisciplinasETopicosUniversal(texto) {
+      const linhas = texto.split(/[\r\n]+/).map(l => l.trim()).filter(l => l.length > 0);
+      const resultado = [];
+      let mapaMaterias = {};
+      let materiaAtual = null;
+
+      const regexCabecalho = /^(L[IÍ]NGUA PORTUGUESA|PORTUGU[EÊ]S|HIST[OÓ]RIA[A-Z\s]*|GEOGRAFIA[A-Z\s]*|RACIOC[IÍ]NIO L[OÓ]GICO[A-Z\s]*|RLM[A-Z\s\-]*|INFORM[AÁ]TICA|DIREITO[A-Z\s]+|DIREITOS HUMANOS[A-Z\s]*|LEGISLA[CÇ][AÃ]O[A-Z\s]*|ADMINISTRA[CÇ][AÃ]O[A-Z\s]*|NO[CÇ][OÕ]ES DE [A-Z\s]+|CONTABILIDADE[A-Z\s]*|CONHECIMENTOS PEDAG[OÓ]GICOS[A-Z\s]*)/i;
+      const regexTopicoNumerado = /^(\d+[\.\-\)]|\d+\.\d+[\.\-\)]|[a-z]\))\s*(.+)/i;
+
+      linhas.forEach(linha => {
+        if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSUNTO|TEORIA|TOTAL|ERROS|ACERTOS|1º|2º|3º)/i.test(linha)) return;
+
+        const matchDisc = linha.match(regexCabecalho);
+        if ((matchDisc && !regexTopicoNumerado.test(linha)) || (!regexTopicoNumerado.test(linha) && linha.length < 40 && !linha.includes('.'))) {
+          materiaAtual = linha.replace(/^[•\-\*]\s*/, '').trim();
+          materiaAtual = materiaAtual.toLowerCase().replace(/(^|\s)\S/g, l => l.toUpperCase());
+          if (!mapaMaterias[materiaAtual]) {
+            mapaMaterias[materiaAtual] = [];
+          }
+          return;
+        }
+
+        if (!materiaAtual) {
+          materiaAtual = 'Disciplina de Estudo';
+          mapaMaterias[materiaAtual] = [];
+        }
+
+        let itemTexto = sanitizarTopicoLinha(linha);
+        if (itemTexto.length > 3 && !mapaMaterias[materiaAtual].includes(itemTexto)) {
+          mapaMaterias[materiaAtual].push(itemTexto);
+        }
+      });
+
+      Object.keys(mapaMaterias).forEach(nome => {
+        if (mapaMaterias[nome].length > 0) {
+          resultado.push({
+            nome: nome,
+            peso: 3,
+            topicos: mapaMaterias[nome]
+          });
+        }
+      });
+
+      return resultado;
+    }
+
+    /* =====================================================================
+       FUNÇÕES ANTES AUSENTES — reconstruídas para destravar o painel
+       ===================================================================== */
+
+    let timerInterval = null;
+    let timerSegundos = 0;
+    let timerRodando = false;
+
+    // ---------- Navegação por abas ----------
+    function trocarAba(idAba, btnEl) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      const aba = document.getElementById(idAba);
+      if (aba) aba.classList.add('active');
+      if (btnEl) btnEl.classList.add('active');
+
+      if (idAba === 'aba-pesos') renderizarPesos();
+      if (idAba === 'aba-prioridades') renderizarAbaPrioridades();
+      if (idAba === 'aba-revisoes') renderizarAbaRevisoes();
+      if (idAba === 'aba-edital-vert') renderizarEditalVerticalizado();
+      if (idAba === 'aba-visao-geral') renderizarVisaoGeral();
+      if (idAba === 'aba-planejamento') atualizarPainelPlanejamento();
+      if (idAba === 'aba-timer') atualizarVisualizacaoHoras();
+      if (idAba === 'aba-questoes') atualizarVisualizacaoQuestoes();
+    }
+
+    function ativarAbaPorId(idAba) {
+      const btn = Array.from(document.querySelectorAll('.tab-btn')).find(
+        b => b.getAttribute('onclick') && b.getAttribute('onclick').includes(idAba)
+      );
+      trocarAba(idAba, btn);
+    }
+
+    // ---------- Tema ----------
+    function alternarTema() {
+      const atual = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', atual);
+      estado.tema = atual;
+      const btn = document.getElementById('btnTema');
+      if (btn) btn.innerText = atual === 'light' ? '🌙 Escuro' : '☀️ Claro';
       salvarEstado();
     }
 
-    function gerarSemana() {
-      gerarSemanaAutomaticaCorrigida(chaveSemanaAtiva);
-      renderizarGrade();
-      alert('Semana atualizada com sucesso!');
+    // ---------- Carregamento geral da UI ----------
+    function atualizarUIAposCarregar() {
+      const padrao = obterEstadoPadrao();
+      Object.keys(padrao).forEach(chave => {
+        if (estado[chave] === undefined) estado[chave] = padrao[chave];
+      });
+
+      // Corrige duplicações antigas de 1D/7D/15D/30D já salvas.
+      normalizarAgendaRevisoes();
+
+      document.documentElement.setAttribute('data-theme', estado.tema || 'dark');
+      const btnTema = document.getElementById('btnTema');
+      if (btnTema) btnTema.innerText = estado.tema === 'light' ? '🌙 Escuro' : '☀️ Claro';
+
+      const inputPorDia = document.getElementById('materiasPorDia');
+      if (inputPorDia) inputPorDia.value = estado.porDia || 2;
+
+      atualizarSelectsMaterias();
+      renderizarPesos();
+      renderizarEditalVerticalizado();
+      renderizarAbaPrioridades();
+      renderizarAbaRevisoes();
+      atualizarPainelPlanejamento();
+      atualizarVisualizacaoHoras();
+      atualizarVisualizacaoQuestoes();
+      atualizarIndicadorPresenca();
+
+      dataReferencia = new Date();
+      atualizarSemanaAtiva();
     }
 
+    // ---------- Seletores de disciplina ----------
+    function atualizarSelectsMaterias() {
+      const nomes = (estado.disciplinas || []).map(d => d.nome);
+      const selects = [
+        { id: 'timerSelectMateria', comTodas: false },
+        { id: 'filtroMateriaHoras', comTodas: true },
+        { id: 'filtroQuestoesMateria', comTodas: true },
+        { id: 'questoesSelectMateria', comTodas: false },
+        { id: 'filtroExclusivoMateriaEdital', comTodas: true },
+        { id: 'selectMateriaNovoTopico', comTodas: false },
+        { id: 'filtroMateriaPrioridades', comTodas: true },
+        { id: 'filtroMateriaRevisoes', comTodas: true },
+        { id: 'modalHorasSelectMateria', comTodas: false }
+      ];
+
+      selects.forEach(cfg => {
+        const sel = document.getElementById(cfg.id);
+        if (!sel) return;
+        const valorAtual = sel.value;
+        sel.innerHTML = '';
+
+        if (cfg.comTodas) {
+          const opt = document.createElement('option');
+          opt.value = 'TODAS';
+          opt.innerText = 'Todas as Disciplinas';
+          sel.appendChild(opt);
+        }
+
+        nomes.forEach(n => {
+          const opt = document.createElement('option');
+          opt.value = n;
+          opt.innerText = n;
+          sel.appendChild(opt);
+        });
+
+        if (nomes.includes(valorAtual) || (cfg.comTodas && valorAtual === 'TODAS')) {
+          sel.value = valorAtual;
+        }
+      });
+    }
+
+    // ---------- Disciplinas / Pesos ----------
+    function adicionarMateria() {
+      const input = document.getElementById('novaMateria');
+      const nome = input.value.trim();
+      if (!nome) return;
+
+      if (!estado.disciplinas) estado.disciplinas = [];
+      if (estado.disciplinas.some(d => d.nome.toLowerCase() === nome.toLowerCase())) {
+        alert('Essa disciplina já existe.');
+        return;
+      }
+
+      estado.disciplinas.push({ nome, peso: 3 });
+      if (!estado.editalVerticalizado) estado.editalVerticalizado = {};
+      if (!estado.editalVerticalizado[nome]) estado.editalVerticalizado[nome] = [];
+
+      input.value = '';
+      salvarEstado();
+      atualizarSelectsMaterias();
+      renderizarPesos();
+      renderizarEditalVerticalizado();
+      calcularPrevisaoFechamentoEdital();
+    }
+
+    function excluirMateria(idx) {
+      const d = estado.disciplinas[idx];
+      if (!d) return;
+      if (!confirm(`Remover a disciplina "${d.nome}" e todo o seu conteúdo do edital?`)) return;
+
+      delete estado.editalVerticalizado[d.nome];
+      estado.disciplinas.splice(idx, 1);
+
+      salvarEstado();
+      atualizarSelectsMaterias();
+      renderizarPesos();
+      renderizarEditalVerticalizado();
+      atualizarSemanaAtiva();
+      calcularPrevisaoFechamentoEdital();
+    }
+
+    function atualizarPesoMateria(idx, val) {
+      if (estado.disciplinas[idx]) {
+        estado.disciplinas[idx].peso = parseInt(val);
+        salvarEstado();
+      }
+    }
+
+    function renderizarPesos() {
+      const lista = document.getElementById('listaPesos');
+      if (!lista) return;
+      lista.innerHTML = '';
+
+      (estado.disciplinas || []).forEach((d, idx) => {
+        const li = document.createElement('li');
+        li.className = 'item-card';
+        li.innerHTML = `
+          <span>${d.nome}</span>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <select onchange="atualizarPesoMateria(${idx}, this.value)" style="padding:4px 6px; font-size:0.8rem;">
+              ${[1, 2, 3, 4, 5].map(v => `<option value="${v}" ${d.peso == v ? 'selected' : ''}>${v}</option>`).join('')}
+            </select>
+            <button class="btn-mini-acao" title="Remover disciplina" onclick="excluirMateria(${idx})">🗑️</button>
+          </div>
+        `;
+        lista.appendChild(li);
+      });
+
+      if ((estado.disciplinas || []).length === 0) {
+        lista.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:16px; font-size:0.82rem;">Nenhuma disciplina cadastrada.</div>`;
+      }
+    }
+
+    // ---------- Geração do ciclo semanal ----------
+    function construirListaCicloPonderada() {
+      let lista = [];
+      (estado.disciplinas || []).forEach(d => {
+        const peso = d.peso || 3;
+        for (let i = 0; i < peso; i++) lista.push(d.nome);
+      });
+      return lista;
+    }
+
+    function obterProximoTopicoParaMateria(materia) {
+      const lista = (estado.editalVerticalizado[materia] || []).filter(t => !t.t);
+      if (lista.length === 0) return null;
+      const ordemPrioridade = { vermelho: 0, amarelo: 1, verde: 2 };
+      lista.sort((a, b) => (ordemPrioridade[a.prioridade] ?? 1) - (ordemPrioridade[b.prioridade] ?? 1));
+      return lista[0];
+    }
+
+    function gerarSemanaAutomatica(chaveSemana, forcarRegenerar, resetarProgresso) {
+      if (!estado.disciplinas || estado.disciplinas.length === 0) return;
+      if (!estado.semanas) estado.semanas = {};
+
+      const semanaExistente = estado.semanas[chaveSemana];
+      if (semanaExistente && !forcarRegenerar) {
+        // Mesmo sem regenerar, garante que uma revisão recém-criada apareça
+        // no dia correto sem recriar a semana inteira.
+        inserirRevisoesNaSemana(chaveSemana);
+        return;
+      }
+
+      normalizarAgendaRevisoes();
+
+      const cicloPonderado = construirListaCicloPonderada();
+      if (cicloPonderado.length === 0) return;
+
+      const porDia = parseInt(estado.porDia) || 2;
+      const novaSemana = {};
+      const partesChave = chaveSemana.replace('semana_', '').split('-');
+      const segundaRef = new Date(partesChave[0], partesChave[1] - 1, partesChave[2]);
+
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const segundaHoje = obterSegundaFeira(hoje);
+      const ehSemanaAtual = chaveSemana === `semana_${formatarDataChave(segundaHoje)}`;
+
+      // Quando a semana atual é regenerada, preserva os dias que já passaram.
+      // Assim o sistema nunca cria novos assuntos em segunda/terça/etc. depois
+      // que esses dias já ficaram para trás.
+      const semanaAnterior = semanaExistente || {};
+
+      // Se estamos regenerando uma semana já existente, recuperamos o ponteiro
+      // do começo daquela semana, descontando os slots de estudo já gerados.
+      let ponteiro = estado.ponteiroGeral || 0;
+      if (semanaExistente && forcarRegenerar) {
+        let slotsEstudoSemana = 0;
+        Object.values(semanaExistente).forEach(slots => {
+          (slots || []).forEach(slot => {
+            if (!slot.revisaoId) slotsEstudoSemana++;
+          });
+        });
+        ponteiro = Math.max(0, ponteiro - slotsEstudoSemana);
+      }
+
+      const adicionarRevisoesDoDia = (slotsDoDia, chaveDataDia) => {
+        const idsAdicionados = new Set();
+
+        (estado.agendaRevisoes || []).forEach(rev => {
+          if (
+            rev.dataPrevista === chaveDataDia &&
+            !rev.concluida &&
+            !idsAdicionados.has(rev.id)
+          ) {
+            slotsDoDia.push({
+              materia: rev.materia,
+              assunto: `🔁 Revisão: ${rev.topicoTitulo}`,
+              feito: false,
+              revisaoId: rev.id,
+              tipoRevisao: rev.tipo
+            });
+            idsAdicionados.add(rev.id);
+          }
+        });
+      };
+
+      DIAS.forEach((nomeDia, idxDia) => {
+        const dataDia = new Date(segundaRef);
+        dataDia.setDate(segundaRef.getDate() + idxDia);
+        dataDia.setHours(0, 0, 0, 0);
+        const chaveDataDia = formatarDataChave(dataDia);
+
+        const diaJaPassou = ehSemanaAtual && dataDia < hoje;
+
+        // Dias anteriores a hoje ficam intactos.
+        if (diaJaPassou) {
+          novaSemana[nomeDia] = semanaAnterior[nomeDia] || [];
+          return;
+        }
+
+        const slotsDoDia = [];
+        adicionarRevisoesDoDia(slotsDoDia, chaveDataDia);
+
+        // REGRA DAS REVISÕES: se existe uma revisão neste dia, o dia fica
+        // EXCLUSIVAMENTE com a(s) revisão(ões). Não cria nenhuma matéria
+        // normal ao lado da D30, D15, D7 ou D1.
+        const vagasRestantes = slotsDoDia.length > 0 ? 0 : porDia;
+        for (let i = 0; i < vagasRestantes; i++) {
+          const materia = cicloPonderado[ponteiro % cicloPonderado.length];
+          ponteiro++;
+
+          const topico = obterProximoTopicoParaMateria(materia);
+
+          slotsDoDia.push({
+            materia,
+            assunto: topico ? topico.titulo : 'Revisão livre / Questões',
+            feito: false,
+            topicoId: topico ? topico.id : null
+          });
+        }
+
+        novaSemana[nomeDia] = slotsDoDia;
+      });
+
+      estado.ponteiroGeral = ponteiro;
+      estado.semanas[chaveSemana] = novaSemana;
+      salvarEstado();
+    }
+
+    // Coloca as revisões diretamente na coluna do dia correspondente.
+    // Não cria outra coluna, outra semana ou outro registro.
+    function inserirRevisoesNaSemana(chaveSemana) {
+      if (!estado.semanas || !estado.semanas[chaveSemana]) return;
+
+      normalizarAgendaRevisoes();
+
+      const partesChave = chaveSemana.replace('semana_', '').split('-');
+      const segundaRef = new Date(partesChave[0], partesChave[1] - 1, partesChave[2]);
+      const porDia = parseInt(estado.porDia) || 2;
+
+      DIAS.forEach((nomeDia, idxDia) => {
+        const dataDia = new Date(segundaRef);
+        dataDia.setDate(segundaRef.getDate() + idxDia);
+        const chaveDataDia = formatarDataChave(dataDia);
+
+        // Nunca mexe em dias que já passaram da semana atual.
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const segundaHoje = obterSegundaFeira(hoje);
+        const ehSemanaAtual = chaveSemana === `semana_${formatarDataChave(segundaHoje)}`;
+        if (ehSemanaAtual && dataDia < hoje) return;
+
+        let slots = estado.semanas[chaveSemana][nomeDia] || [];
+        const revisoesDoDia = (estado.agendaRevisoes || []).filter(rev =>
+          rev.dataPrevista === chaveDataDia && !rev.concluida
+        );
+
+        // Remove revisões que já não estão agendadas para este dia.
+        slots = slots.filter(slot => !slot.revisaoId || revisoesDoDia.some(rev => rev.id === slot.revisaoId));
+
+        // REGRA DAS REVISÕES: havendo D30/D15/D7/D1 neste dia, removemos
+        // as matérias normais desse dia. A revisão não fica acompanhada de
+        // outra matéria e também não gera uma matéria nova.
+        if (revisoesDoDia.length > 0) {
+          slots = slots.filter(slot => !!slot.revisaoId);
+
+          const idsExistentes = new Set(slots.map(s => s.revisaoId));
+          revisoesDoDia.forEach(rev => {
+            if (!idsExistentes.has(rev.id)) {
+              slots.push({
+                materia: rev.materia,
+                assunto: `🔁 Revisão: ${rev.topicoTitulo}`,
+                feito: false,
+                revisaoId: rev.id,
+                tipoRevisao: rev.tipo
+              });
+              idsExistentes.add(rev.id);
+            }
+          });
+
+          // Mantém o limite caso várias revisões coincidam no mesmo dia.
+          slots = slots.slice(0, porDia);
+        }
+
+        estado.semanas[chaveSemana][nomeDia] = slots;
+      });
+
+      salvarEstado();
+    }
+
+    function gerarCronogramaSemanaAtual(regenerar, notificar) {
+      gerarSemanaAutomatica(chaveSemanaAtiva, regenerar === true, false);
+      renderizarGrade();
+      renderizarVisaoGeral();
+      calcularPrevisaoFechamentoEdital();
+      if (notificar) alert('Cronograma da semana atual regenerado!');
+    }
+
+    function reiniciarProgressoSemana() {
+      if (!confirm('Deseja limpar todas as marcações de concluído desta semana?')) return;
+      const semana = estado.semanas[chaveSemanaAtiva];
+      if (semana) {
+        Object.keys(semana).forEach(dia => {
+          semana[dia].forEach(slot => (slot.feito = false));
+        });
+      }
+      salvarEstado();
+      renderizarGrade();
+    }
+
+    // ---------- Renderização da grade semanal ----------
     function renderizarGrade() {
       const grade = document.getElementById('gradeSemana');
       if (!grade) return;
       grade.innerHTML = '';
 
-      const totalGeralTopicos = obterTotalTopicos();
       const segunda = obterSegundaFeira(dataReferencia);
       const dias = obterDiasDaSemana(segunda);
       const hojeChave = formatarDataChave(new Date());
-      const semana = estado.semanas[chaveSemanaAtiva] || {};
+      const semana = (estado.semanas && estado.semanas[chaveSemanaAtiva]) || {};
 
       dias.forEach(diaInfo => {
         const chaveDia = formatarDataChave(diaInfo.dataCompleta);
@@ -657,87 +2772,676 @@
         const col = document.createElement('div');
         col.className = 'day-column';
         if (chaveDia === hojeChave) col.classList.add('today');
+        const todosFeitos = slots.length > 0 && slots.every(s => s.feito);
+        if (todosFeitos) col.classList.add('day-completed');
 
-        let htmlSlots = '';
-        slots.forEach((slot, idx) => {
-          const isRev = slot.isRevisaoEspacada === true;
-          let badgeNum = (!isRev && slot.numeroCartao && totalGeralTopicos > 0)
-            ? `<span class="badge-numero-cartao">#${slot.numeroCartao} de ${totalGeralTopicos}</span>` : '';
-          let badgeRev = isRev ? `<span class="tag-badge-revisao">⏰ REVISÃO ${slot.tipoRevisao}</span>` : '';
-
-          htmlSlots += `
-            <div class="slot-card ${slot.feito ? 'done' : ''} ${isRev ? 'cartao-revisao' : ''}">
+        let slotsHtml = '';
+        slots.forEach((slot, idxSlot) => {
+          const isRevisao = !!slot.revisaoId;
+          slotsHtml += `
+            <div class="slot-card ${slot.feito ? 'done' : ''} ${isRevisao ? 'cartao-revisao-espacada' : ''}">
               <div class="slot-left">
-                <input type="checkbox" ${slot.feito ? 'checked' : ''} onchange="toggleSlot('${diaInfo.nome}', ${idx}, this.checked)">
+                <input type="checkbox" ${slot.feito ? 'checked' : ''} onchange="toggleSlotFeito('${diaInfo.nome}', ${idxSlot}, this.checked)">
                 <div class="slot-texts">
-                  ${badgeNum} ${badgeRev}
-                  <span class="slot-materia-title">${slot.materia}</span>
-                  <span class="slot-assunto-sub">${slot.assunto}</span>
+                  <div class="slot-header-row">
+                    <span class="slot-materia-title">${slot.materia}</span>
+                    ${isRevisao ? '<span class="tag-badge-revisao-espacada">' + slot.tipoRevisao + '</span>' : ''}
+                  </div>
+                  <span class="slot-assunto-sub">${slot.assunto || ''}</span>
                 </div>
               </div>
+              <button class="btn-play-mini" title="Estudar agora (abrir timer)" onclick="irParaTimerComMateria('${slot.materia}')">▶️</button>
             </div>
           `;
         });
 
-        if (slots.length === 0) htmlSlots = `<div style="font-size:0.78rem; color:var(--text-muted); text-align:center;">Livre</div>`;
+        if (slots.length === 0) {
+          slotsHtml = `<div style="font-size:0.78rem; color:var(--text-muted); text-align:center; padding:12px;">Sem atividades agendadas.</div>`;
+        }
 
         col.innerHTML = `
           <div class="day-name">
             <span class="day-title-text">${diaInfo.nome}</span>
             <span class="day-date-tag">${diaInfo.data}</span>
           </div>
-          <div class="slot-list">${htmlSlots}</div>
+          <div class="slot-list">${slotsHtml}</div>
         `;
         grade.appendChild(col);
       });
     }
 
-    function toggleSlot(dia, idx, valor) {
+    function toggleSlotFeito(diaNome, idxSlot, valor) {
       const semana = estado.semanas[chaveSemanaAtiva];
-      if (!semana || !semana[dia] || !semana[dia][idx]) return;
-      
-      const slot = semana[dia][idx];
+      if (!semana || !semana[diaNome] || !semana[diaNome][idxSlot]) return;
+
+      const slot = semana[diaNome][idxSlot];
       slot.feito = valor;
 
-      if (slot.topicoId) {
-        Object.keys(estado.editalVerticalizado).forEach(m => {
-          (estado.editalVerticalizado[m] || []).forEach(t => { if (t.id === slot.topicoId) t.t = valor; });
-        });
+      if (slot.revisaoId) {
+        const rev = (estado.agendaRevisoes || []).find(r => r.id === slot.revisaoId);
+        if (rev) rev.concluida = valor;
       }
+
       salvarEstado();
+      renderizarGrade();
+      renderizarVisaoGeral();
+      renderizarAbaRevisoes();
+
+      const todosFeitos = semana[diaNome].length > 0 && semana[diaNome].every(s => s.feito);
+      if (todosFeitos && valor) {
+        const segunda = obterSegundaFeira(dataReferencia);
+        const idxDia = DIAS.indexOf(diaNome);
+        const dataDia = new Date(segunda);
+        dataDia.setDate(segunda.getDate() + idxDia);
+        const chaveDia = formatarDataChave(dataDia);
+
+        if (!estado.diasCompletosLog) estado.diasCompletosLog = [];
+        if (!estado.diasCompletosLog.includes(chaveDia)) {
+          estado.diasCompletosLog.push(chaveDia);
+          salvarEstado();
+        }
+        atualizarIndicadorPresenca();
+        dispararCelebracao();
+      }
+    }
+
+    function irParaTimerComMateria(materia) {
+      ativarAbaPorId('aba-timer');
+      const sel = document.getElementById('timerSelectMateria');
+      if (sel) sel.value = materia;
+    }
+
+    // ---------- Visão Geral ----------
+    function renderizarVisaoGeral() {
+      const container = document.getElementById('containerVisaoGeral');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const segunda = obterSegundaFeira(dataReferencia);
+      const dias = obterDiasDaSemana(segunda);
+      const semana = (estado.semanas && estado.semanas[chaveSemanaAtiva]) || {};
+
+      dias.forEach(diaInfo => {
+        const slots = semana[diaInfo.nome] || [];
+        const card = document.createElement('div');
+        card.className = 'agenda-card';
+
+        let itensHtml = slots.length
+          ? slots.map(s => `
+              <div class="agenda-item-slot">
+                <span>${s.feito ? '✅' : '⬜'} ${s.materia}</span>
+                <span style="color:var(--text-muted); font-size:0.75rem;">${s.assunto || ''}</span>
+              </div>
+            `).join('')
+          : '<div style="font-size:0.78rem;color:var(--text-muted);">Sem atividades.</div>';
+
+        card.innerHTML = `
+          <div class="agenda-dia-header">
+            <span>${diaInfo.nome}</span>
+            <span>${diaInfo.data}</span>
+          </div>
+          ${itensHtml}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ---------- Edital verticalizado ----------
+    function adicionarTopicoAoEdital() {
+      const selectMateria = document.getElementById('selectMateriaNovoTopico');
+      const inputTopico = document.getElementById('inputNovoTopico');
+      const materia = selectMateria.value;
+      const texto = inputTopico.value.trim();
+      if (!materia || !texto) return;
+
+      if (!estado.editalVerticalizado[materia]) estado.editalVerticalizado[materia] = [];
+      estado.editalVerticalizado[materia].push({
+        id: 'top_' + Math.random().toString(36).substr(2, 7),
+        titulo: texto, t: false, r1: false, r7: false, r15: false, r30: false,
+        prioridade: 'amarelo'
+      });
+
+      inputTopico.value = '';
+      salvarEstado();
+      renderizarEditalVerticalizado();
+      renderizarAbaPrioridades();
+      calcularPrevisaoFechamentoEdital();
+    }
+
+    function alternarColapsoEdital(materia) {
+      if (!estado.collapseEdital) estado.collapseEdital = {};
+      estado.collapseEdital[materia] = !estado.collapseEdital[materia];
+      salvarEstado();
+      renderizarEditalVerticalizado();
+    }
+
+    function atualizarTopicoCampo(materia, topicoId, campo, valor) {
+      const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
+      if (!topico) return;
+      topico[campo] = valor;
+      salvarEstado();
+      renderizarEditalVerticalizado();
+      calcularPrevisaoFechamentoEdital();
+    }
+
+    function excluirTopicoEdital(materia, topicoId) {
+      if (!confirm('Remover este tópico do edital?')) return;
+      estado.editalVerticalizado[materia] = (estado.editalVerticalizado[materia] || []).filter(t => t.id !== topicoId);
+      estado.agendaRevisoes = (estado.agendaRevisoes || []).filter(r => r.topicoId !== topicoId);
+      salvarEstado();
+      renderizarEditalVerticalizado();
+      renderizarAbaRevisoes();
+      calcularPrevisaoFechamentoEdital();
+    }
+
+    function renderizarEditalVerticalizado() {
+      const container = document.getElementById('containerEditalVerticalizado');
+      const filtro = document.getElementById('filtroExclusivoMateriaEdital');
+      if (!container) return;
+      const filtroVal = filtro ? filtro.value : 'TODAS';
+      container.innerHTML = '';
+
+      const materias = Object.keys(estado.editalVerticalizado || {});
+
+      materias.forEach(materia => {
+        if (filtroVal !== 'TODAS' && filtroVal !== materia) return;
+        const topicos = estado.editalVerticalizado[materia] || [];
+        const bloco = document.createElement('div');
+        bloco.className = 'subject-block';
+        const colapsado = estado.collapseEdital && estado.collapseEdital[materia];
+
+        let linhasHtml = topicos.map(t => `
+          <tr>
+            <td class="topic-cell">${t.titulo} <span class="tag-badge-prioridade ${t.prioridade}">${t.prioridade === 'vermelho' ? 'Alta' : t.prioridade === 'verde' ? 'Baixa' : 'Média'}</span></td>
+            <td><input type="checkbox" ${t.t ? 'checked' : ''} onchange="atualizarTopicoCampo('${materia}','${t.id}','t', this.checked)"></td>
+            <td><input type="checkbox" ${t.r1 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','1D', this.checked)"></td>
+            <td><input type="checkbox" ${t.r7 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','7D', this.checked)"></td>
+            <td><input type="checkbox" ${t.r15 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','15D', this.checked)"></td>
+            <td><input type="checkbox" ${t.r30 ? 'checked' : ''} onchange="alternarRevisaoTopico('${materia}','${t.id}','30D', this.checked)"></td>
+            <td><button class="btn-mini-acao" title="Remover tópico" onclick="excluirTopicoEdital('${materia}','${t.id}')">🗑️</button></td>
+          </tr>
+        `).join('');
+
+        if (topicos.length === 0) {
+          linhasHtml = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:10px;">Nenhum tópico cadastrado.</td></tr>`;
+        }
+
+        bloco.innerHTML = `
+          <div class="subject-header-ev" onclick="alternarColapsoEdital('${materia}')">
+            <span>${materia} (${topicos.filter(t => t.t).length}/${topicos.length})</span>
+            <span>${colapsado ? '▸' : '▾'}</span>
+          </div>
+          <div class="subject-body-ev" style="display:${colapsado ? 'none' : 'block'};">
+            <table class="ev-table">
+              <thead><tr><th>Tópico</th><th>Feito</th><th>1D</th><th>7D</th><th>15D</th><th>30D</th><th></th></tr></thead>
+              <tbody>${linhasHtml}</tbody>
+            </table>
+          </div>
+        `;
+        container.appendChild(bloco);
+      });
+
+      if (materias.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;">Nenhuma disciplina cadastrada ainda.</div>`;
+      }
+    }
+
+    // ---------- Revisões espaçadas ----------
+    // ---------- Revisões espaçadas ----------
+    // Mantém somente UMA revisão por tópico + intervalo (1D/7D/15D/30D).
+    // Isso evita que clicar novamente em D30 crie cópias da mesma revisão.
+    function normalizarAgendaRevisoes() {
+      if (!Array.isArray(estado.agendaRevisoes)) {
+        estado.agendaRevisoes = [];
+        return;
+      }
+
+      const mapa = new Map();
+
+      estado.agendaRevisoes.forEach(rev => {
+        if (!rev || !rev.topicoId || !rev.tipo) return;
+
+        const chave = `${rev.topicoId}__${rev.tipo}`;
+        const anterior = mapa.get(chave);
+
+        // Se já existe, mantém a versão concluída quando houver uma.
+        if (!anterior || (!anterior.concluida && rev.concluida)) {
+          mapa.set(chave, rev);
+        }
+      });
+
+      estado.agendaRevisoes = Array.from(mapa.values());
+    }
+
+    function alternarRevisaoTopico(materia, topicoId, tipo, ativo) {
+      const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
+      if (!topico) return;
+
+      const campo = 'r' + tipo.replace('D', '');
+      topico[campo] = ativo;
+
+      const diasMap = { '1D': 1, '7D': 7, '15D': 15, '30D': 30 };
+      if (!estado.agendaRevisoes) estado.agendaRevisoes = [];
+
+      const chaveRevisao = r => r.topicoId === topicoId && r.tipo === tipo;
+
+      if (ativo) {
+        // Primeiro remove qualquer duplicata antiga da mesma revisão.
+        // Depois cria exatamente UMA revisão.
+        estado.agendaRevisoes = estado.agendaRevisoes.filter(r => !chaveRevisao(r));
+
+        const dataRev = new Date();
+        dataRev.setHours(0, 0, 0, 0);
+        dataRev.setDate(dataRev.getDate() + diasMap[tipo]);
+
+        estado.agendaRevisoes.push({
+          id: 'rev_' + Math.random().toString(36).substr(2, 7),
+          materia,
+          topicoId,
+          topicoTitulo: topico.titulo,
+          tipo,
+          dataPrevista: formatarDataChave(dataRev),
+          concluida: false
+        });
+      } else {
+        estado.agendaRevisoes = estado.agendaRevisoes.filter(r => !chaveRevisao(r));
+      }
+
+      normalizarAgendaRevisoes();
+
+      // Atualiza imediatamente a semana ativa. A revisão ocupa uma vaga
+      // existente; nunca aumenta a quantidade de atividades do dia.
+      if (typeof chaveSemanaAtiva !== 'undefined' && estado.semanas && estado.semanas[chaveSemanaAtiva]) {
+        inserirRevisoesNaSemana(chaveSemanaAtiva);
+      }
+
+      salvarEstado();
+      renderizarEditalVerticalizado();
+      renderizarAbaRevisoes();
       renderizarGrade();
     }
 
-    function reiniciarProgresso() {
-      if (!confirm('Limpar marcações de feito?')) return;
-      const semana = estado.semanas[chaveSemanaAtiva];
-      if (semana) { Object.keys(semana).forEach(d => semana[d].forEach(s => s.feito = false)); }
+    function renderizarAbaRevisoes() {
+      const container = document.getElementById('containerListaRevisoes');
+      const filtro = document.getElementById('filtroMateriaRevisoes');
+      if (!container) return;
+      const filtroVal = filtro ? filtro.value : 'TODAS';
+      container.innerHTML = '';
+
+      const hojeChave = formatarDataChave(new Date());
+      let lista = [...(estado.agendaRevisoes || [])];
+      if (filtroVal !== 'TODAS') lista = lista.filter(r => r.materia === filtroVal);
+      lista.sort((a, b) => a.dataPrevista.localeCompare(b.dataPrevista));
+
+      if (lista.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:16px; font-size:0.82rem;">Nenhuma revisão agendada.</div>`;
+        return;
+      }
+
+      lista.forEach(rev => {
+        let tag = 'futura', tagTexto = 'Agendada';
+        if (rev.concluida) { tag = 'concluida'; tagTexto = 'Concluída'; }
+        else if (rev.dataPrevista < hojeChave) { tag = 'atrasada'; tagTexto = 'Atrasada'; }
+        else if (rev.dataPrevista === hojeChave) { tag = 'hoje'; tagTexto = 'Hoje'; }
+
+        const item = document.createElement('div');
+        item.className = 'revisao-card-item';
+        item.innerHTML = `
+          <span class="badge-revisao-tag ${tag}">${tagTexto} • ${rev.tipo}</span>
+          <div style="font-size:0.82rem; font-weight:600;">${rev.materia}</div>
+          <div style="font-size:0.78rem; color:var(--text-muted);">${rev.topicoTitulo}</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+            <span style="font-size:0.75rem; color:var(--text-muted);">📅 ${formatarDataBR(new Date(rev.dataPrevista + 'T00:00:00'))}</span>
+            <div style="display:flex; gap:6px;">
+              <button class="btn-mini-acao" title="Marcar como concluída" onclick="alternarConclusaoRevisao('${rev.id}')">${rev.concluida ? '↩️' : '✅'}</button>
+              <button class="btn-mini-acao" title="Remover" onclick="excluirRevisaoAgendada('${rev.id}')">🗑️</button>
+            </div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function alternarConclusaoRevisao(revId) {
+      const rev = (estado.agendaRevisoes || []).find(r => r.id === revId);
+      if (!rev) return;
+      rev.concluida = !rev.concluida;
       salvarEstado();
+      renderizarAbaRevisoes();
       renderizarGrade();
     }
 
-    function resetarTudo() {
-      if (!confirm('Deseja apagar todos os dados e reiniciar?')) return;
-      localStorage.removeItem('cronograma_perfil_eduardo_v5');
-      if (rtdb) rtdb.ref("perfis/eduardo").remove().catch(()=>{});
-      location.reload();
+    function excluirRevisaoAgendada(revId) {
+      const rev = (estado.agendaRevisoes || []).find(r => r.id === revId);
+      if (rev) {
+        const topico = (estado.editalVerticalizado[rev.materia] || []).find(t => t.id === rev.topicoId);
+        if (topico) {
+          const campo = 'r' + rev.tipo.replace('D', '');
+          topico[campo] = false;
+        }
+      }
+      estado.agendaRevisoes = (estado.agendaRevisoes || []).filter(r => r.id !== revId);
+      salvarEstado();
+      renderizarAbaRevisoes();
+      renderizarEditalVerticalizado();
     }
 
-    function sair() {
-      sessionStorage.removeItem('usuario_ativo');
-      location.reload();
+    // ---------- Prioridades ----------
+    function renderizarAbaPrioridades() {
+      const container = document.getElementById('containerListaPrioridades');
+      const filtro = document.getElementById('filtroMateriaPrioridades');
+      if (!container) return;
+      const filtroVal = filtro ? filtro.value : 'TODAS';
+      container.innerHTML = '';
+
+      let algumTopico = false;
+      Object.keys(estado.editalVerticalizado || {}).forEach(materia => {
+        if (filtroVal !== 'TODAS' && filtroVal !== materia) return;
+        (estado.editalVerticalizado[materia] || []).forEach(t => {
+          algumTopico = true;
+          const card = document.createElement('div');
+          card.className = 'prio-item-card';
+          card.innerHTML = `
+            <div class="prio-topic-title">${materia} — ${t.titulo}</div>
+            <div class="prio-options">
+              <button class="btn-prio-tag vermelho ${t.prioridade === 'vermelho' ? 'active' : ''}" onclick="definirPrioridadeTopico('${materia}','${t.id}','vermelho')">🔴 Alta</button>
+              <button class="btn-prio-tag amarelo ${t.prioridade === 'amarelo' ? 'active' : ''}" onclick="definirPrioridadeTopico('${materia}','${t.id}','amarelo')">🟡 Média</button>
+              <button class="btn-prio-tag verde ${t.prioridade === 'verde' ? 'active' : ''}" onclick="definirPrioridadeTopico('${materia}','${t.id}','verde')">🟢 Baixa</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      });
+
+      if (!algumTopico) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:16px; font-size:0.82rem;">Nenhum tópico encontrado.</div>`;
+      }
     }
 
-    function atualizarUI() {
-      document.documentElement.setAttribute('data-theme', estado.tema || 'dark');
-      atualizarSemanaAtiva();
+    function definirPrioridadeTopico(materia, topicoId, prioridade) {
+      const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
+      if (!topico) return;
+      topico.prioridade = prioridade;
+      salvarEstado();
+      renderizarAbaPrioridades();
+      renderizarEditalVerticalizado();
     }
 
-    const sessao = sessionStorage.getItem('usuario_ativo');
-    if (sessao && sessao.toLowerCase() === 'eduardo') {
-      usuarioAtivo = 'Eduardo';
-      document.getElementById('labelNomeUsuario').innerText = 'Eduardo';
+    // ---------- Timer / Horas líquidas ----------
+    function formatarTempo(segundosTotais) {
+      const h = Math.floor(segundosTotais / 3600);
+      const m = Math.floor((segundosTotais % 3600) / 60);
+      const s = segundosTotais % 60;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function toggleTimer() {
+      const btn = document.getElementById('btnIniciarTimer');
+      if (!timerRodando) {
+        timerRodando = true;
+        if (btn) { btn.innerText = 'Pausar'; btn.classList.remove('btn-primary'); btn.classList.add('btn-outline'); }
+        timerInterval = setInterval(() => {
+          timerSegundos++;
+          const display = document.getElementById('timerDisplay');
+          if (display) display.innerText = formatarTempo(timerSegundos);
+        }, 1000);
+      } else {
+        timerRodando = false;
+        clearInterval(timerInterval);
+        if (btn) { btn.innerText = 'Continuar'; btn.classList.add('btn-primary'); btn.classList.remove('btn-outline'); }
+      }
+    }
+
+    function resetarTimer() {
+      timerRodando = false;
+      clearInterval(timerInterval);
+      timerSegundos = 0;
+      const display = document.getElementById('timerDisplay');
+      if (display) display.innerText = '00:00:00';
+      const btn = document.getElementById('btnIniciarTimer');
+      if (btn) { btn.innerText = 'Iniciar'; btn.classList.add('btn-primary'); btn.classList.remove('btn-outline'); }
+    }
+
+    function registrarHoraEstudo(materia, minutos) {
+      if (!estado.historicoHoras) estado.historicoHoras = [];
+      estado.historicoHoras.push({
+        id: 'hr_' + Math.random().toString(36).substr(2, 7),
+        materia, data: new Date().toISOString(), minutos
+      });
+      salvarEstado();
+      atualizarVisualizacaoHoras();
+    }
+
+    function salvarTempoCronometrado() {
+      if (timerSegundos < 60) {
+        alert('Estude por pelo menos 1 minuto antes de salvar.');
+        return;
+      }
+      const sel = document.getElementById('timerSelectMateria');
+      const materia = sel ? sel.value : null;
+      if (!materia) { alert('Selecione uma disciplina.'); return; }
+
+      const minutos = Math.round(timerSegundos / 60);
+      registrarHoraEstudo(materia, minutos);
+      resetarTimer();
+      alert('Tempo salvo com sucesso!');
+    }
+
+    function abrirModalManualHoras() {
+      const modal = document.getElementById('modalManualHoras');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function fecharModalManualHoras() {
+      const modal = document.getElementById('modalManualHoras');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function salvarHorasManual() {
+      const sel = document.getElementById('modalHorasSelectMateria');
+      const h = parseInt(document.getElementById('modalHorasInputH').value) || 0;
+      const m = parseInt(document.getElementById('modalHorasInputM').value) || 0;
+      const materia = sel ? sel.value : null;
+      if (!materia) { alert('Selecione uma disciplina.'); return; }
+
+      const minutosTotais = (h * 60) + m;
+      if (minutosTotais <= 0) { alert('Informe um tempo válido.'); return; }
+
+      registrarHoraEstudo(materia, minutosTotais);
+      fecharModalManualHoras();
+    }
+
+    function atualizarVisualizacaoHoras() {
+      const filtro = document.getElementById('filtroMateriaHoras');
+      const filtroVal = filtro ? filtro.value : 'TODAS';
+      const lista = (estado.historicoHoras || []).filter(h => filtroVal === 'TODAS' || h.materia === filtroVal);
+
+      const totalMinutos = lista.reduce((acc, h) => acc + h.minutos, 0);
+      const horas = Math.floor(totalMinutos / 60);
+      const minutos = totalMinutos % 60;
+
+      const displayTotal = document.getElementById('displayTotalHorasLiquidas');
+      if (displayTotal) displayTotal.innerText = `${horas}h ${String(minutos).padStart(2, '0')}m`;
+
+      const labelFiltro = document.getElementById('labelFiltroNome');
+      if (labelFiltro) labelFiltro.innerText = filtroVal === 'TODAS' ? 'Todas as Disciplinas' : filtroVal;
+
+      const container = document.getElementById('listaHistoricoHoras');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const ordenado = [...lista].sort((a, b) => new Date(b.data) - new Date(a.data));
+
+      if (ordenado.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:12px; font-size:0.8rem;">Nenhum registro encontrado.</div>`;
+        return;
+      }
+
+      ordenado.forEach(h => {
+        const d = new Date(h.data);
+        const hh = Math.floor(h.minutos / 60);
+        const mm = h.minutos % 60;
+        const item = document.createElement('div');
+        item.className = 'registro-item';
+        item.innerHTML = `
+          <div class="reg-info">
+            <span class="reg-materia">${h.materia}</span>
+            <span class="reg-data-tempo">${formatarDataBR(d)} • ${hh}h ${String(mm).padStart(2, '0')}m</span>
+          </div>
+          <button class="btn-mini-acao" title="Remover" onclick="excluirRegistroHora('${h.id}')">🗑️</button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function excluirRegistroHora(id) {
+      estado.historicoHoras = (estado.historicoHoras || []).filter(h => h.id !== id);
+      salvarEstado();
+      atualizarVisualizacaoHoras();
+    }
+
+    // ---------- Registo de questões ----------
+    function salvarRegistroQuestao() {
+      const sel = document.getElementById('questoesSelectMateria');
+      const acertos = parseInt(document.getElementById('inputQuestoesAcertos').value) || 0;
+      const erros = parseInt(document.getElementById('inputQuestoesErros').value) || 0;
+      const materia = sel ? sel.value : null;
+      if (!materia) { alert('Selecione uma disciplina.'); return; }
+      if (acertos === 0 && erros === 0) { alert('Informe ao menos um acerto ou erro.'); return; }
+
+      if (!estado.historicoQuestoes) estado.historicoQuestoes = [];
+      estado.historicoQuestoes.push({
+        id: 'qz_' + Math.random().toString(36).substr(2, 7),
+        materia, data: new Date().toISOString(), acertos, erros
+      });
+      salvarEstado();
+      atualizarVisualizacaoQuestoes();
+    }
+
+    function atualizarVisualizacaoQuestoes() {
+      const filtro = document.getElementById('filtroQuestoesMateria');
+      const filtroVal = filtro ? filtro.value : 'TODAS';
+      const lista = (estado.historicoQuestoes || []).filter(q => filtroVal === 'TODAS' || q.materia === filtroVal);
+
+      const totalAcertos = lista.reduce((acc, q) => acc + q.acertos, 0);
+      const totalErros = lista.reduce((acc, q) => acc + q.erros, 0);
+      const totalFeitas = totalAcertos + totalErros;
+      const taxa = totalFeitas > 0 ? Math.round((totalAcertos / totalFeitas) * 100) : 0;
+
+      const elTotal = document.getElementById('statQuestoesTotal');
+      const elAcertos = document.getElementById('statQuestoesAcertos');
+      const elTaxa = document.getElementById('statQuestoesTaxa');
+      if (elTotal) elTotal.innerText = totalFeitas;
+      if (elAcertos) elAcertos.innerText = totalAcertos;
+      if (elTaxa) elTaxa.innerText = taxa + '%';
+
+      const container = document.getElementById('listaHistoricoQuestoes');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const ordenado = [...lista].sort((a, b) => new Date(b.data) - new Date(a.data));
+
+      if (ordenado.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:12px; font-size:0.8rem;">Nenhum registro encontrado.</div>`;
+        return;
+      }
+
+      ordenado.forEach(q => {
+        const d = new Date(q.data);
+        const taxaItem = (q.acertos + q.erros) > 0 ? Math.round((q.acertos / (q.acertos + q.erros)) * 100) : 0;
+        const item = document.createElement('div');
+        item.className = 'registro-item';
+        item.innerHTML = `
+          <div class="reg-info">
+            <span class="reg-materia">${q.materia}</span>
+            <span class="reg-data-tempo">${formatarDataBR(d)} • ✅${q.acertos} ❌${q.erros} (${taxaItem}%)</span>
+          </div>
+          <button class="btn-mini-acao" title="Remover" onclick="excluirRegistroQuestao('${q.id}')">🗑️</button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function excluirRegistroQuestao(id) {
+      estado.historicoQuestoes = (estado.historicoQuestoes || []).filter(q => q.id !== id);
+      salvarEstado();
+      atualizarVisualizacaoQuestoes();
+    }
+
+    // ---------- Planeamento ----------
+    function atualizarPainelPlanejamento() {
+      if (!estado.planejamento) estado.planejamento = { inicio: '', prova: '' };
+      const inputInicio = document.getElementById('dataInicioEstudos');
+      const inputProva = document.getElementById('dataProvaConcurso');
+
+      if (inputInicio && !inputInicio.value) inputInicio.value = estado.planejamento.inicio || '';
+      if (inputProva && !inputProva.value) inputProva.value = estado.planejamento.prova || '';
+
+      estado.planejamento.inicio = inputInicio ? inputInicio.value : estado.planejamento.inicio;
+      estado.planejamento.prova = inputProva ? inputProva.value : estado.planejamento.prova;
+      salvarEstado();
+
+      const elDias = document.getElementById('diasAteProva');
+      const elSemanas = document.getElementById('semanasAteProva');
+
+      if (estado.planejamento.prova) {
+        const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+        const dProva = new Date(estado.planejamento.prova + 'T00:00:00');
+        const diffDias = Math.ceil((dProva - hoje) / (1000 * 60 * 60 * 24));
+        if (elDias) elDias.innerText = diffDias >= 0 ? diffDias : '0';
+        if (elSemanas) elSemanas.innerText = diffDias >= 0 ? Math.ceil(diffDias / 7) : '0';
+      } else {
+        if (elDias) elDias.innerText = '--';
+        if (elSemanas) elSemanas.innerText = '--';
+      }
+
+      calcularPrevisaoFechamentoEdital();
+    }
+
+    // ---------- Sincronização manual com a nuvem ----------
+    function forcarUploadNuvem() {
+      if (!rtdb || !dbRefAtivo) { alert('Sem conexão com a nuvem.'); return; }
+      atualizarStatusNuvem('☁️ Enviando...', 'syncing');
+      dbRefAtivo.set({ estado: estado, atualizadoEm: new Date().toISOString() }).then(() => {
+        atualizarStatusNuvem('☁️ Sincronizado', 'online');
+        alert('Dados enviados para a nuvem com sucesso!');
+      }).catch(err => {
+        alert('Erro ao enviar: ' + err.message);
+      });
+    }
+
+    function forcarDownloadNuvem() {
+      if (!rtdb || !dbRefAtivo) { alert('Sem conexão com a nuvem.'); return; }
+      if (!confirm('Isso substituirá os dados locais deste aparelho pelos dados da nuvem. Continuar?')) return;
+
+      atualizarStatusNuvem('☁️ Baixando...', 'syncing');
+      dbRefAtivo.once('value').then(snapshot => {
+        const dados = snapshot.val();
+        if (dados && dados.estado) {
+          isReceivingFromCloud = true;
+          estado = dados.estado;
+          const chave = chaveArmazenamento(usuarioAtivo);
+          localStorage.setItem(chave, JSON.stringify(estado));
+          isReceivingFromCloud = false;
+          atualizarUIAposCarregar();
+          atualizarStatusNuvem('☁️ Sincronizado', 'online');
+          alert('Dados da nuvem carregados com sucesso!');
+        } else {
+          alert('Nenhum dado encontrado na nuvem.');
+          atualizarStatusNuvem('☁️ Pronto', 'online');
+        }
+      });
+    }
+
+    /* ===================================================================== */
+
+    const sessaoSalva = sessionStorage.getItem('usuario_ativo');
+    if (sessaoSalva) {
+      usuarioAtivo = sessaoSalva;
       abrirApp();
+    } else {
+      const tLogin = document.getElementById('tela-login');
+      if (tLogin) tLogin.style.display = 'flex';
     }
   </script>
 </body>

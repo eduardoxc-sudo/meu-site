@@ -6,7 +6,7 @@
   <title>Plano & Ciclo de Estudos</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Firebase SDKs compatíveis com Realtime Database -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -630,6 +630,20 @@
       border: 1px solid rgba(16, 185, 129, 0.35);
     }
 
+    /* ESTILO EXCLUSIVO DO CRACHÁ COM A NUMERAÇÃO DO CARTÃO */
+    .badge-numero-cartao {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 5px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      letter-spacing: 0.03em;
+    }
+
     .slot-card.cartao-revisao-espacada {
       border: 2px solid #8b5cf6 !important;
       background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.08)) !important;
@@ -901,6 +915,13 @@
       min-width: 0;
     }
 
+    .slot-header-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
     .slot-materia-title {
       font-weight: 700;
       color: var(--primary);
@@ -1113,7 +1134,7 @@
         <div id="painelCriadorEduardo" style="display: none; background: rgba(56, 189, 248, 0.06); border: 1px solid var(--primary); border-radius: 10px; padding: 12px; margin-bottom: 10px;">
           <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">👑 Painel de Administração (Eduardo)</div>
           <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">
-            Cadastre um novo edital verticalizado aqui. Ele ficará disponível na lista de todos os utilizadores com o botão verde.
+            Cadastre um novo edital verticalizado aqui. Ele ficará disponível na lista com o botão verde.
           </p>
 
           <div class="field" style="margin-bottom: 8px;">
@@ -1439,7 +1460,6 @@
       console.warn("Firebase local:", e);
     }
 
-    // Apenas o utilizador Eduardo permanece ativo
     const USUARIOS_PADRAO = {
       "Eduardo": "333435"
     };
@@ -1453,7 +1473,6 @@
     let debounceSalvarNuvem = null;
     let dbRefAtivo = null;
     let isReceivingFromCloud = false;
-    let dataLimiteFinalEdital = null;
     let sharedAudioCtx = null;
 
     function obterOuDesbloquearAudioContext() {
@@ -1599,6 +1618,26 @@
       calcularPrevisaoFechamentoEdital();
     }
 
+    function obterTotalTopicosEdital() {
+      let total = 0;
+      Object.keys(estado.editalVerticalizado || {}).forEach(m => {
+        total += (estado.editalVerticalizado[m] || []).length;
+      });
+      return total;
+    }
+
+    function calcularDataFinalMatematica() {
+      const total = obterTotalTopicosEdital();
+      if (total === 0) return null;
+      const porDia = parseInt(estado.porDia) || 2;
+      const diasNecessarios = Math.ceil(total / porDia);
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const dataFim = new Date(hoje);
+      dataFim.setDate(hoje.getDate() + diasNecessarios);
+      return dataFim;
+    }
+
     function calcularPrevisaoFechamentoEdital() {
       const displayData = document.getElementById('displayDataFechamentoEdital');
       const displayDetalhes = document.getElementById('displayDetalhesRitmoEdital');
@@ -1621,23 +1660,13 @@
       if (totalTopicos === 0) {
         if (displayData) displayData.innerText = "Nenhum edital ativo";
         if (displayDetalhes) displayDetalhes.innerText = "Cadastre ou adquira um edital para ver a estimativa.";
-        dataLimiteFinalEdital = null;
         return;
       }
 
       const topicosRestantes = Math.max(0, totalTopicos - topicosFeitos);
       const porDia = parseInt(estado.porDia) || 2;
-
-      const diasNecessarios = Math.ceil((totalTopicos || 1) / porDia);
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
-
-      const dataTerminoPrevista = new Date(hoje);
-      dataTerminoPrevista.setDate(hoje.getDate() + diasNecessarios);
-
-      // Trava baseada na duração real do plano de estudo (sem bloquear ao marcar tudo)
-      dataLimiteFinalEdital = new Date(dataTerminoPrevista);
-      const dataFormatada = formatarDataBR(dataTerminoPrevista);
+      const dataTerminoPrevista = calcularDataFinalMatematica();
+      const dataFormatada = dataTerminoPrevista ? formatarDataBR(dataTerminoPrevista) : '--/--/----';
 
       if (topicosRestantes === 0) {
         if (displayData) {
@@ -1650,6 +1679,7 @@
           displayData.innerText = `${dataFormatada}`;
           displayData.style.color = "var(--success)";
         }
+        const diasNecessarios = Math.ceil(topicosRestantes / porDia);
         const semanasNecessarias = Math.ceil(diasNecessarios / 7);
         let detalhesTexto = `Faltam ${topicosRestantes} tópicos • Ritmo: ${porDia} tópicos/dia (~${diasNecessarios} dias / ${semanasNecessarias} semanas)`;
 
@@ -1701,7 +1731,7 @@
       calcularPrevisaoFechamentoEdital();
     }
 
-    /* NAVEGAÇÃO LIVRE COM PROTEÇÃO CONTRA ANOS DISTANTES */
+    /* NAVEGAÇÃO BLOQUEADA RIGOROSAMENTE NA SEMANA EM QUE O ÚLTIMO CARTÃO É ALCANÇADO */
     function navegarSemana(delta) {
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
@@ -1715,13 +1745,16 @@
         return;
       }
 
-      // Limite inteligente: permite avançar até 16 semanas à frente no máximo
-      const limiteMaximoData = new Date(hoje);
-      limiteMaximoData.setDate(hoje.getDate() + (16 * 7));
+      const dataFinal = calcularDataFinalMatematica();
+      if (delta > 0 && dataFinal) {
+        const segundaDataFinal = obterSegundaFeira(dataFinal);
+        const segundaNovaSemana = obterSegundaFeira(novaData);
 
-      if (delta > 0 && novaData > limiteMaximoData) {
-        alert("Limite de semanas do ciclo alcançado.");
-        return;
+        // Bloqueia qualquer avanço além da semana limite real do edital
+        if (segundaNovaSemana > segundaDataFinal) {
+          alert(`Limite de semanas do ciclo alcançado! O último tópico do edital é concluído na semana de ${formatarDataBR(dataFinal)}.`);
+          return;
+        }
       }
 
       dataReferencia = novaData;
@@ -1746,7 +1779,6 @@
 
       const senhasLocais = obterSenhasLocais();
 
-      // Autenticação exclusiva para Eduardo
       if (uInput.toLowerCase() !== 'eduardo') {
         if (erro) {
           erro.style.display = 'block';
@@ -2277,6 +2309,7 @@
               isRevisaoEspacada: true,
               idTopicoOrigem: idTopico,
               chaveCheckOrigem: campoMarcado,
+              numeroCartao: null,
               feito: false
             });
           }
@@ -2406,9 +2439,11 @@
       };
     }
 
+    /* REGENERAÇÃO DE SEMANA COM NUMERAÇÃO SEQUENCIAL RIGOROSA DOS CARTÕES */
     function gerarSemanaAutomatica(chaveSemana, deveSalvar, forcarRenovacaoPendentes) {
       if (!estado.disciplinas || estado.disciplinas.length === 0) return;
 
+      const totalGeralTopicos = obterTotalTopicosEdital();
       estado.porDia = parseInt(document.getElementById('materiasPorDia').value) || 2;
       let pool = [];
       estado.disciplinas.forEach(d => {
@@ -2458,14 +2493,21 @@
             continue;
           }
 
+          // Se já atingiu todos os cartões programados do edital, não cria cartões extras além do total
+          if (totalGeralTopicos > 0 && ponteiro >= totalGeralTopicos) {
+            break;
+          }
+
           const nomeMateria = pool[ponteiro % pool.length];
           const infoTopico = obterProximoTopicoPrioritario(nomeMateria);
+          const numeroCartaoAtual = (ponteiro % (totalGeralTopicos || 1)) + 1;
 
           estado.semanas[chaveSemana][d.nome].push({
             id: 'slot_' + Math.random().toString(36).substr(2, 9),
             materia: nomeMateria,
             assunto: infoTopico.titulo,
             prioridade: infoTopico.prioridade,
+            numeroCartao: numeroCartaoAtual,
             feito: false
           });
           ponteiro++;
@@ -2483,6 +2525,7 @@
       calcularPrevisaoFechamentoEdital();
     }
 
+    /* RENDERIZAÇÃO DA GRADE: EXIBE O NÚMERO DO CARTÃO (#1 / 42) */
     function renderizarGrade() {
       const grade = document.getElementById('gradeSemana');
       if (!grade) return;
@@ -2493,6 +2536,7 @@
         return;
       }
 
+      const totalGeralTopicos = obterTotalTopicosEdital();
       const segunda = obterSegundaFeira(dataReferencia);
       const diasComData = obterDiasDaSemana(segunda);
       const cronogramaAtual = estado.semanas[chaveSemanaAtiva] || {};
@@ -2533,19 +2577,28 @@
             card.className = `slot-card ${item.feito ? 'done' : ''} ${isRev ? 'cartao-revisao-espacada' : ''}`;
 
             let badgeHtml = '';
+            let numeroBadgeHtml = '';
+
             if (isRev) {
               badgeHtml = `<span class="tag-badge-revisao-espacada">⏰ REVISÃO ESPAÇADA (${item.tipoRevisao || 'R'})</span>`;
             } else {
               const pClass = item.prioridade || 'amarelo';
               const pTexto = pClass === 'vermelho' ? '🔴 Prioridade' : (pClass === 'verde' ? '🟢 Pouco urgente' : '🟡 Urgência');
               badgeHtml = `<span class="tag-badge-prioridade ${pClass}">${pTexto}</span>`;
+
+              if (item.numeroCartao) {
+                numeroBadgeHtml = `<span class="badge-numero-cartao">#${item.numeroCartao} de ${totalGeralTopicos}</span>`;
+              }
             }
 
             card.innerHTML = `
               <div class="slot-left">
                 <input type="checkbox" ${item.feito ? 'checked' : ''} onchange="toggleConclusao('${d.nome}', ${idx}, '${formatarDataChave(d.dataCompleta)}')">
                 <div class="slot-texts">
-                  <span class="slot-materia-title">${item.materia}</span>
+                  <div class="slot-header-row">
+                    ${numeroBadgeHtml}
+                    <span class="slot-materia-title">${item.materia}</span>
+                  </div>
                   <span class="slot-assunto-sub">${item.assunto || 'Assunto'}</span>
                   ${badgeHtml}
                 </div>
@@ -2633,10 +2686,11 @@
           htmlSlots = '<div style="font-size:0.75rem; color:var(--text-muted);">Livre</div>';
         } else {
           slots.forEach(s => {
+            const rotuloNum = s.numeroCartao ? `[#${s.numeroCartao}] ` : '';
             const rotuloRev = s.isRevisaoEspacada ? `[REVISÃO ${s.tipoRevisao || ''}] ` : '';
             htmlSlots += `
               <div class="agenda-item-slot">
-                <span><strong>${s.materia}:</strong> ${rotuloRev}${s.assunto}</span>
+                <span><strong>${s.materia}:</strong> ${rotuloNum}${rotuloRev}${s.assunto}</span>
                 <span style="font-size:0.72rem; color:${s.feito ? 'var(--success)' : 'var(--text-muted)'}; font-weight:600;">
                   ${s.feito ? '✅ Concluído' : '⏳ Pendente'}
                 </span>
@@ -3094,7 +3148,7 @@
       let mapaMaterias = {};
       let materiaAtual = null;
 
-      const regexCabecalho = /^(L[IÍ]NGUA PORTUGUESA|PORTUGU[EÊ]S|HIST[OÓ]RIA[A-Z\s]*|GEOGRAFIA[A-Z\s]*|RACIOC[IÍ]NIO L[OÓ]GICO[A-Z\s]*|RLM[A-Z\s\-]*|INFORM[AÁ]TICA|DIREITO[A-Z\s]+|DIREITOS HUMANOS[A-Z\s]*|LEGISLA[CÇ][AÃ]O[A-Z\s]*|ADMINISTRA[CÇ][AÃ]O[A-Z\s]*|NO[CÇ][OÕ]ES DE [A-Z\s]+|CONTABILIDADE[A-Z\s]*)/i;
+      const regexCabecalho = /^(L[IÍ]NGUA PORTUGUESA|PORTUGU[EÊ]S|HIST[OÓ]RIA[A-Z\s]*|GEOGRAFIA[A-Z\s]*|RACIOC[IÍ]NIO L[OÓ]GICO[A-Z\s]*|RLM[A-Z\s\-]*|INFORM[AÁ]TICA|DIREITO[A-Z\s]+|DIREITOS HUMANOS[A-Z\s]*|LEGISLA[CÇ][AÃ]O[A-Z\s]*|ADMINISTRA[CÇ][AÃ]O[A-Z\s]*|NO[CÇ][OÕ]ES DE [A-Z\s]+|CONTABILIDADE[A-Z\s]*|CONHECIMENTOS PEDAG[OÓ]GICOS[A-Z\s]*)/i;
       const regexTopicoNumerado = /^(\d+[\.\-\)]|\d+\.\d+[\.\-\)]|[a-z]\))\s*(.+)/i;
 
       linhas.forEach(linha => {

@@ -649,6 +649,38 @@
       box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2) !important;
     }
 
+    .tag-prioridade-cronograma {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 6px;
+      margin-right: 5px;
+      border-radius: 6px;
+      font-size: 0.66rem;
+      font-weight: 800;
+      line-height: 1.2;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .tag-prioridade-cronograma.prioridade-alta {
+      color: #ff4d5a;
+      border: 1px solid rgba(255, 77, 90, .55);
+      background: rgba(255, 77, 90, .10);
+    }
+
+    .tag-prioridade-cronograma.prioridade-media {
+      color: #ffd21c;
+      border: 1px solid rgba(255, 210, 28, .55);
+      background: rgba(255, 210, 28, .10);
+    }
+
+    .tag-prioridade-cronograma.prioridade-baixa {
+      color: #20d34a;
+      border: 1px solid rgba(32, 211, 74, .50);
+      background: rgba(32, 211, 74, .09);
+    }
+
     .tag-numero-topico {
       display: inline-flex;
       align-items: center;
@@ -2976,6 +3008,34 @@
     }
 
     // ---------- Renderização da grade semanal ----------
+    function obterBadgePrioridadeTopico(topicoId) {
+      if (!topicoId) return '';
+
+      let topicoEncontrado = null;
+
+      for (const materia of Object.keys(estado.editalVerticalizado || {})) {
+        topicoEncontrado = (estado.editalVerticalizado[materia] || [])
+          .find(t => t.id === topicoId);
+        if (topicoEncontrado) break;
+      }
+
+      if (!topicoEncontrado) return '';
+
+      const nivel = obterNivelPrioridadeTopico(topicoEncontrado);
+
+      if (nivel === 3) {
+        return '<span class="tag-prioridade-cronograma prioridade-alta">🔴 Alta</span>';
+      }
+      if (nivel === 2) {
+        return '<span class="tag-prioridade-cronograma prioridade-media">🟡 Média</span>';
+      }
+      if (nivel === 1) {
+        return '<span class="tag-prioridade-cronograma prioridade-baixa">🟢 Baixa</span>';
+      }
+
+      return '';
+    }
+
     function renderizarGrade() {
       const grade = document.getElementById('gradeSemana');
       if (!grade) return;
@@ -3004,6 +3064,11 @@
             ? `<span class="tag-numero-topico">#${numeroTopico}/${totalTopicosNumerados}</span>`
             : '';
 
+          // Mostra no cartão a mesma prioridade escolhida na aba Prioridades.
+          const badgePrioridade = !isRevisao
+            ? obterBadgePrioridadeTopico(slot.topicoId)
+            : '';
+
           slotsHtml += `
             <div class="slot-card ${slot.feito ? 'done' : ''} ${isRevisao ? 'cartao-revisao-espacada' : ''}">
               <div class="slot-left">
@@ -3011,6 +3076,7 @@
                 <div class="slot-texts">
                   <div class="slot-header-row">
                     ${badgeNumero}
+                    ${badgePrioridade}
                     <span class="slot-materia-title">${slot.materia}</span>
                     ${isRevisao ? '<span class="tag-badge-revisao-espacada">' + slot.tipoRevisao + '</span>' : ''}
                   </div>

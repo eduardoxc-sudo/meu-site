@@ -2550,7 +2550,7 @@
       }
     }
 
-    // ---------- Geração do ciclo semanal (Apenas 30D cria revisão no cronograma sem criar novas matérias) ----------
+    // ---------- Geração do ciclo semanal (Substituição inteligente do slot para 30D) ----------
     function construirListaCicloPonderada() {
       let lista = [];
       (estado.disciplinas || []).forEach(d => {
@@ -2591,19 +2591,7 @@
 
         const slotsDoDia = [];
 
-        // Inserir revisão de 30 dias se houver agendada para este dia (sem criar nova matéria)
-        (estado.agendaRevisoes || []).forEach(rev => {
-          if (rev.dataPrevista === chaveDataDia && !rev.concluida && rev.tipo === '30D') {
-            slotsDoDia.push({
-              materia: rev.materia,
-              assunto: `🔁 Revisão 30D: ${rev.topicoTitulo}`,
-              feito: false,
-              revisaoId: rev.id,
-              tipoRevisao: '30D'
-            });
-          }
-        });
-
+        // Gera os slots normais do ciclo baseado no "porDia"
         for (let i = 0; i < porDia; i++) {
           const materia = cicloPonderado[ponteiro % cicloPonderado.length];
           ponteiro++;
@@ -2615,6 +2603,19 @@
             topicoId: topico ? topico.id : null
           });
         }
+
+        // Se houver revisão de 30D agendada para este dia, substitui o primeiro slot em vez de criar outro
+        (estado.agendaRevisoes || []).forEach(rev => {
+          if (rev.dataPrevista === chaveDataDia && !rev.concluida && rev.tipo === '30D' && slotsDoDia.length > 0) {
+            slotsDoDia[0] = {
+              materia: rev.materia,
+              assunto: `🔁 Revisão 30D: ${rev.topicoTitulo}`,
+              feito: false,
+              revisaoId: rev.id,
+              tipoRevisao: '30D'
+            };
+          }
+        });
 
         novaSemana[nomeDia] = slotsDoDia;
       });
@@ -2900,7 +2901,7 @@
       salvarEstado();
       renderizarEditalVerticalizado();
       renderizarAbaRevisoes();
-      // Regenera semanas para aplicar/remover a revisão de 30D sem criar novas matérias
+      // Regenera semanas para aplicar/remover a revisão de 30D substituindo o slot normal sem criar novas matérias
       Object.keys(estado.semanas || {}).forEach(k => gerarSemanaAutomatica(k, true, false));
       renderizarGrade();
     }
@@ -2913,7 +2914,6 @@
       container.innerHTML = '';
 
       const hojeChave = formatarDataChave(new Date());
-      // Filtra para exibir apenas revisões do tipo 30D na aba dedicada
       let lista = [...(estado.agendaRevisoes || [])].filter(r => r.tipo === '30D');
       if (filtroVal !== 'TODAS') lista = lista.filter(r => r.materia === filtroVal);
       lista.sort((a, b) => a.dataPrevista.localeCompare(b.dataPrevista));

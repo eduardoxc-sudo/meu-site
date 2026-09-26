@@ -2231,7 +2231,7 @@
         estado = obterEstadoPadrao();
       }
 
-      // Renderização imediata síncrona com memória local para evitar ecrã em branco
+      // Renderização imediata síncrona
       isReceivingFromCloud = true;
       dataReferencia = new Date();
       atualizarUIAposCarregar();
@@ -2256,22 +2256,6 @@
           } else {
             atualizarStatusNuvem("☁️ Nuvem pronta", "online");
           }
-
-          dbRefAtivo.on("value", snap => {
-            const val = snap.val();
-            if (val && val.estado && val.estado.disciplinas && val.estado.disciplinas.length > 0 && !isReceivingFromCloud) {
-              const strLocal = JSON.stringify(estado);
-              const strNuvem = JSON.stringify(val.estado);
-              if (strLocal !== strNuvem) {
-                isReceivingFromCloud = true;
-                estado = val.estado;
-                localStorage.setItem(chave, strNuvem);
-                atualizarUIAposCarregar();
-                isReceivingFromCloud = false;
-                atualizarStatusNuvem("☁️ Sincronizado com a nuvem", "online");
-              }
-            }
-          });
         });
       } else {
         atualizarStatusNuvem("☁️ Pronto (Modo Local)", "online");

@@ -8289,6 +8289,173 @@ html,body{overflow-x:hidden}
 })();
 </script>
 
+
+<!-- ===== V56: correção definitiva Meu Plano + visualização Mês ===== -->
+<style id="v56-meu-plano-mes">
+/* O #aba-ciclo antigo contém apenas os controles da lateral.
+   Ele continua existindo para a lógica do sistema, mas não deve aparecer visualmente. */
+#aba-ciclo{
+  display:none !important;
+}
+
+/* Ao abrir Meu Plano, a área central deve ocupar somente o espaço disponível. */
+#app-container > main{
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow-x:hidden !important;
+}
+#v35AreaAba{
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow-x:hidden !important;
+}
+
+/* Mês: 7 colunas dentro da largura real da área central. */
+#mesCicloV47{
+  box-sizing:border-box !important;
+  display:none;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  transform:none !important;
+  grid-template-columns:repeat(7,minmax(0,1fr)) !important;
+  gap:7px !important;
+  overflow:hidden !important;
+}
+#mesCicloV47 > *{
+  box-sizing:border-box !important;
+  width:auto !important;
+  min-width:0 !important;
+  max-width:100% !important;
+}
+#mesCicloV47 .mes-dia-v47{
+  min-width:0 !important;
+  min-height:96px !important;
+  padding:8px !important;
+  overflow:hidden !important;
+}
+#mesCicloV47 .mes-cont-v47{
+  max-width:100% !important;
+  overflow-wrap:anywhere !important;
+  word-break:normal !important;
+}
+
+/* Celular: o mês vira 2 colunas, em vez de esmagar 7 colunas. */
+@media(max-width:768px){
+  #mesCicloV47{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:7px !important;
+    overflow-x:hidden !important;
+  }
+  #mesCicloV47 .mes-head-v47{display:none !important}
+}
+</style>
+
+<script id="v56-meu-plano-mes-js">
+(function(){
+  function gradeSemanaV56(){
+    const g=document.getElementById('gradeSemana');
+    if(!g)return;
+    g.style.width='100%';
+    g.style.maxWidth='100%';
+    g.style.marginLeft='0';
+    g.style.marginRight='0';
+    g.style.transform='none';
+  }
+
+  function abrirMeuPlanoV56(){
+    /* devolve qualquer aba que V35 tenha movido para o main */
+    try{
+      if(typeof restaurarAbaMovidaV35==='function') restaurarAbaMovidaV35();
+    }catch(e){}
+
+    const main=document.querySelector('#app-container > main');
+    if(main){
+      main.classList.remove('v35-modo-aba');
+      main.style.minWidth='0';
+      main.style.overflowX='hidden';
+    }
+
+    /* O painel antigo de adicionar disciplina nunca deve invadir a tela. */
+    const antigo=document.getElementById('aba-ciclo');
+    if(antigo) antigo.style.setProperty('display','none','important');
+
+    gradeSemanaV56();
+
+    /* Meu Plano abre em Semana. */
+    try{
+      if(typeof mudarVisaoCicloV47==='function') mudarVisaoCicloV47('semana');
+    }catch(e){}
+    try{if(typeof atualizarVisualCicloV38==='function') atualizarVisualCicloV38()}catch(e){}
+    try{if(typeof renderizarCronograma==='function') renderizarCronograma()}catch(e){}
+  }
+
+  /* Corrige a função de troca de visualização sem depender do display do #aba-ciclo. */
+  window.mudarVisaoCicloV56=function(modo){
+    const semana=document.getElementById('gradeSemana');
+    const lista=document.getElementById('listaCicloV47');
+    const mes=document.getElementById('mesCicloV47');
+
+    ['Semana','Lista','Mes'].forEach(x=>{
+      document.getElementById('view'+x+'V47')?.classList.remove('active');
+    });
+    const nome=modo==='mes'?'Mes':modo.charAt(0).toUpperCase()+modo.slice(1);
+    document.getElementById('view'+nome+'V47')?.classList.add('active');
+
+    if(semana) semana.style.display=modo==='semana'?'grid':'none';
+    if(lista) lista.style.display=modo==='lista'?'flex':'none';
+    if(mes){
+      mes.style.display=modo==='mes'?'grid':'none';
+      mes.style.width='100%';
+      mes.style.maxWidth='100%';
+      mes.style.margin='0';
+      mes.style.transform='none';
+    }
+
+    if(modo==='lista' && typeof renderListaCicloV47==='function') renderListaCicloV47();
+    if(modo==='mes' && typeof renderMesCicloV47==='function'){
+      renderMesCicloV47();
+      requestAnimationFrame(()=>{
+        mes.style.display='grid';
+        mes.style.gridTemplateColumns=window.innerWidth<=768
+          ? 'repeat(2,minmax(0,1fr))'
+          : 'repeat(7,minmax(0,1fr))';
+      });
+    }
+    try{localStorage.setItem('visaoCicloV47',modo)}catch(e){}
+  };
+
+  /* Substitui a função antiga pela versão estável. */
+  window.mudarVisaoCicloV47=window.mudarVisaoCicloV56;
+
+  /* Captura especificamente o botão Meu Plano. */
+  document.addEventListener('click',function(e){
+    const b=e.target.closest('.tab-btn');
+    if(!b)return;
+    const acao=b.getAttribute('onclick')||'';
+    if(acao.includes('aba-ciclo')){
+      setTimeout(abrirMeuPlanoV56,0);
+      setTimeout(abrirMeuPlanoV56,80);
+    }
+  },true);
+
+  /* Garante que o painel antigo não reapareça após renderizações/reset. */
+  const obs=new MutationObserver(function(){
+    const antigo=document.getElementById('aba-ciclo');
+    if(antigo && antigo.style.display!=='none'){
+      antigo.style.setProperty('display','none','important');
+    }
+  });
+  document.addEventListener('DOMContentLoaded',function(){
+    const antigo=document.getElementById('aba-ciclo');
+    if(antigo) antigo.style.setProperty('display','none','important');
+    obs.observe(document.body,{subtree:true,attributes:true,attributeFilter:['class','style']});
+  });
+})();
+</script>
+
 </body>
 </html>
 

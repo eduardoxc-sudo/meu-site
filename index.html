@@ -2319,19 +2319,6 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
 }
 </style>
 
-
-<style id="v51-cycle-scope-fix">
-/* V51: Semana/Lista/Mês pertencem somente ao Ciclo. */
-body:not(.v51-ciclo-ativo) #gradeSemana,
-body:not(.v51-ciclo-ativo) #listaCicloV47,
-body:not(.v51-ciclo-ativo) #mesCicloV47,
-body:not(.v51-ciclo-ativo) #v35AreaAba{
-  display:none!important;
-}
-/* evita sobras visuais depois de reset/troca de aba */
-.tab-content:not(.active){display:none!important}
-</style>
-
 </head>
 <body>
 <!-- V41: V40 + datas corrigidas, duracao/revisoes automaticas e aplicacao integrada ao Ciclo. -->
@@ -3795,18 +3782,19 @@ body:not(.v51-ciclo-ativo) #v35AreaAba{
       if (confirm('Resetar o edital e o planejamento? Suas horas estudadas e seu histórico de questões serão preservados.')) {
         const historicoHorasPreservado = Array.isArray(estado?.historicoHoras) ? [...estado.historicoHoras] : [];
         const historicoQuestoesPreservado = Array.isArray(estado?.historicoQuestoes) ? [...estado.historicoQuestoes] : [];
-        const temaPreservadoV51 = document.documentElement.getAttribute('data-theme') || estado?.tema || 'dark';
+        const temaPreservadoV53 = document.documentElement.getAttribute('data-theme') || estado?.tema || 'dark';
         const novoEstado = obterEstadoPadrao();
 
         novoEstado.historicoHoras = historicoHorasPreservado;
         novoEstado.historicoQuestoes = historicoQuestoesPreservado;
-        novoEstado.tema = temaPreservadoV51;
+        novoEstado.tema = temaPreservadoV53;
         estado = novoEstado;
-        document.documentElement.setAttribute('data-theme', temaPreservadoV51);
 
         salvarEstado();
         atualizarUIAposCarregar();
-        setTimeout(()=>{ if(typeof corrigirTelaV51==='function') corrigirTelaV51(); }, 50);
+        document.documentElement.setAttribute('data-theme', temaPreservadoV53);
+        document.body.setAttribute('data-theme', temaPreservadoV53);
+        setTimeout(()=>{ if(typeof posResetSeguroV53==='function') posResetSeguroV53(); },80);
 
         alert('Edital e planejamento resetados. Horas líquidas, histórico de questões e tema foram preservados.');
       }
@@ -7980,65 +7968,74 @@ document.addEventListener('keydown',e=>{
 </script>
 
 
-<script id="v51-state-ui-fixes">
+<style id="v53-safe-ui-fix">
+/* V53: NÃO altera .tab-content globalmente.
+   Apenas elementos próprios das visualizações extras do Ciclo são controlados. */
+html,body{overflow-x:hidden}
+</style>
+
+<script id="v53-safe-state-fix">
 (function(){
-  function abaCicloAtivaV51(){
+  function temaAtualV53(){
+    return document.documentElement.getAttribute('data-theme')
+      || document.body.getAttribute('data-theme')
+      || (window.estado && estado.tema)
+      || localStorage.getItem('tema')
+      || 'dark';
+  }
+
+  function preservarTemaV53(){
+    const t=temaAtualV53();
+    if(window.estado) estado.tema=t;
+    try{localStorage.setItem('tema',t)}catch(e){}
+    document.documentElement.setAttribute('data-theme',t);
+    document.body.setAttribute('data-theme',t);
+  }
+
+  function esconderVisoesCicloForaDoCicloV53(){
     const ciclo=document.getElementById('aba-ciclo');
-    return !!(ciclo && ciclo.classList.contains('active'));
-  }
-  function sincronizarEscopoCicloV51(){
-    const ativo=abaCicloAtivaV51();
-    document.body.classList.toggle('v51-ciclo-ativo',ativo);
-    if(!ativo){
-      ['gradeSemana','listaCicloV47','mesCicloV47','v35AreaAba'].forEach(id=>{
-        const el=document.getElementById(id);
-        if(el) el.style.setProperty('display','none','important');
-      });
-    }else{
-      const modo=localStorage.getItem('visaoCicloV47')||'semana';
-      if(typeof mudarVisaoCicloV47==='function') mudarVisaoCicloV47(modo);
-    }
+    const cicloAtivo=!!(ciclo && ciclo.classList.contains('active'));
+    if(cicloAtivo) return;
+    ['listaCicloV47','mesCicloV47'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.style.display='none';
+    });
+    /* gradeSemana pertence ao Ciclo original: só escondemos se estiver fora do Ciclo,
+       sem tocar no container principal usado pelas demais abas. */
+    const grade=document.getElementById('gradeSemana');
+    if(grade && !cicloAtivo) grade.style.display='none';
   }
 
-  function atualizarDashboardPrimeiroLoginV51(){
-    /* força as rotinas já existentes depois de perfil + estado estarem disponíveis */
-    try{ if(typeof atualizarDashboardV36==='function') atualizarDashboardV36(); }catch(e){}
-    try{ if(typeof renderDashboardV36==='function') renderDashboardV36(); }catch(e){}
-    try{ if(typeof atualizarUIAposCarregar==='function') atualizarUIAposCarregar(); }catch(e){}
-  }
-
-  function reaplicarTemaEstadoV51(){
-    const tema=estado?.tema || document.documentElement.getAttribute('data-theme') || 'dark';
-    document.documentElement.setAttribute('data-theme',tema);
-    document.body.setAttribute('data-theme',tema);
-    try{if(typeof atualizarBotaoTemaV49==='function') atualizarBotaoTemaV49()}catch(e){}
+  function refrescarAbaAtualV53(){
+    /* Não esconde nem move containers. Só chama as rotinas existentes. */
+    try{if(typeof atualizarUIAposCarregar==='function') atualizarUIAposCarregar()}catch(e){}
+    try{if(typeof atualizarDashboardV36==='function') atualizarDashboardV36()}catch(e){}
+    try{if(typeof renderDashboardV36==='function') renderDashboardV36()}catch(e){}
   }
 
   document.addEventListener('DOMContentLoaded',()=>{
-    sincronizarEscopoCicloV51();
-    setTimeout(atualizarDashboardPrimeiroLoginV51,120);
-    setTimeout(atualizarDashboardPrimeiroLoginV51,500);
-    setTimeout(sincronizarEscopoCicloV51,150);
-    setTimeout(reaplicarTemaEstadoV51,200);
-
-    /* Observa somente a troca real de classes das abas. */
-    const tabs=[...document.querySelectorAll('.tab-content')];
-    const mo=new MutationObserver(()=>sincronizarEscopoCicloV51());
-    tabs.forEach(t=>mo.observe(t,{attributes:true,attributeFilter:['class']}));
+    preservarTemaV53();
+    setTimeout(refrescarAbaAtualV53,120);
+    setTimeout(refrescarAbaAtualV53,450);
   });
 
-  /* Após qualquer clique de navegação, corrige o escopo no próximo frame. */
   document.addEventListener('click',e=>{
     if(e.target.closest('.tab-btn')){
-      requestAnimationFrame(()=>requestAnimationFrame(sincronizarEscopoCicloV51));
+      setTimeout(esconderVisoesCicloForaDoCicloV53,0);
     }
   },true);
 
-  /* Exposto para chamadas pós-reset/login. */
-  window.corrigirTelaV51=function(){
-    reaplicarTemaEstadoV51();
-    atualizarDashboardPrimeiroLoginV51();
-    sincronizarEscopoCicloV51();
+  window.posResetSeguroV53=function(){
+    preservarTemaV53();
+    const inicio=[...document.querySelectorAll('.tab-btn')].find(b=>
+      (b.getAttribute('onclick')||'').includes('aba-inicio')
+    );
+    if(inicio) inicio.click();
+    setTimeout(()=>{
+      esconderVisoesCicloForaDoCicloV53();
+      refrescarAbaAtualV53();
+      window.scrollTo(0,0);
+    },80);
   };
 })();
 </script>

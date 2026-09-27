@@ -9636,3 +9636,205 @@ html[data-theme="light"] .login-card input{
 })();
 </script>
 
+
+<!-- ===== V68: TIMER SEMPRE NA ÁREA PRINCIPAL ===== -->
+<style id="v68-timer-main-style">
+/* Quando o Timer estiver aberto, ele ocupa a área de conteúdo, nunca a sidebar. */
+#timerMainV68{
+  width:100%;
+  max-width:1100px;
+  margin:0 auto;
+  box-sizing:border-box;
+}
+#timerMainV68 .timer-shell-v68{
+  background:var(--card,#fff);
+  border:1px solid var(--border,#dbe3ef);
+  border-radius:16px;
+  padding:22px;
+}
+body.dark #timerMainV68 .timer-shell-v68,
+[data-theme="dark"] #timerMainV68 .timer-shell-v68{
+  background:#122033;
+  border-color:#29405d;
+}
+#timerMainV68 .timer-title-v68{font-size:22px;font-weight:800;margin-bottom:6px}
+#timerMainV68 .timer-sub-v68{color:var(--text-muted);margin-bottom:18px}
+#timerMainV68 .timer-clock-v68{font-size:52px;font-weight:800;text-align:center;color:#0284c7;letter-spacing:2px;margin:18px 0}
+#timerMainV68 .timer-actions-v68{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#timerMainV68 button{min-height:42px}
+@media(max-width:700px){
+ #timerMainV68 .timer-clock-v68{font-size:38px}
+ #timerMainV68 .timer-actions-v68{grid-template-columns:1fr}
+}
+</style>
+
+<script id="v68-timer-main-js">
+(function(){
+  let timerV68=null, restanteV68=0, contandoV68=false, contextoV68=null;
+
+  function mainV68(){
+    return document.querySelector('main') ||
+           document.querySelector('.main-content') ||
+           document.querySelector('.conteudo-principal') ||
+           document.querySelector('#conteudoPrincipal') ||
+           document.querySelector('.content');
+  }
+
+  function esconderViewsV68(){
+    const main=mainV68(); if(!main)return;
+    [...main.children].forEach(el=>{
+      if(el.id!=='timerMainV68'){
+        if(el.dataset.v68Display===undefined) el.dataset.v68Display=el.style.display||'';
+        el.style.display='none';
+      }
+    });
+  }
+
+  function voltarV68(){
+    clearInterval(timerV68); contandoV68=false;
+    const main=mainV68(); if(!main)return;
+    const t=document.getElementById('timerMainV68'); if(t)t.remove();
+    [...main.children].forEach(el=>{
+      if(el.dataset.v68Display!==undefined){
+        el.style.display=el.dataset.v68Display;
+        delete el.dataset.v68Display;
+      }
+    });
+  }
+  window.voltarTimerV68=voltarV68;
+
+  function fmtV68(seg){
+    seg=Math.max(0,seg|0);
+    const h=String(Math.floor(seg/3600)).padStart(2,'0');
+    const m=String(Math.floor(seg%3600/60)).padStart(2,'0');
+    const s=String(seg%60).padStart(2,'0');
+    return h+':'+m+':'+s;
+  }
+
+  function renderClockV68(){
+    const el=document.getElementById('clockV68'); if(el)el.textContent=fmtV68(restanteV68);
+  }
+
+  window.toggleTimerV68=function(){
+    const btn=document.getElementById('btnTimerV68');
+    if(contandoV68){
+      clearInterval(timerV68); contandoV68=false;
+      if(btn)btn.textContent='▶ Continuar';
+      return;
+    }
+    contandoV68=true;
+    if(btn)btn.textContent='⏸ Pausar';
+    timerV68=setInterval(()=>{
+      if(contextoV68 && contextoV68.programado){
+        restanteV68--;
+        if(restanteV68<=0){
+          restanteV68=0; renderClockV68();
+          clearInterval(timerV68); contandoV68=false;
+          if(btn)btn.textContent='▶ Iniciar';
+          return;
+        }
+      }else restanteV68++;
+      renderClockV68();
+    },1000);
+  };
+
+  window.zerarTimerV68=function(){
+    clearInterval(timerV68); contandoV68=false;
+    restanteV68=contextoV68&&contextoV68.programado?(contextoV68.minutos*60):0;
+    renderClockV68();
+    const b=document.getElementById('btnTimerV68');if(b)b.textContent='▶ Iniciar';
+  };
+
+  window.salvarTimerV68=function(){
+    if(!contextoV68)return;
+    const segundos=contextoV68.programado ? Math.max(0,contextoV68.minutos*60-restanteV68) : restanteV68;
+    const minutos=Math.max(1,Math.round(segundos/60));
+    try{
+      // Reaproveita o mecanismo existente de histórico de tempo.
+      if(!estado.historicoTempo) estado.historicoTempo=[];
+      estado.historicoTempo.push({
+        id:'tm_'+Date.now().toString(36),
+        materia:contextoV68.materia,
+        minutos:minutos,
+        data:new Date().toISOString(),
+        revisaoId:contextoV68.revisaoId||null,
+        topicoId:contextoV68.topicoId||null,
+        tipo:contextoV68.revisaoId?'revisao':'estudo'
+      });
+      if(typeof salvarEstado==='function')salvarEstado();
+      alert('Tempo estudado salvo: '+minutos+' min.');
+    }catch(e){ alert('Não foi possível salvar o tempo: '+e.message); }
+  };
+
+  window.abrirTimerMainV68=function(ctx){
+    contextoV68=ctx||{};
+    const min=Number(contextoV68.minutos||0);
+    contextoV68.programado=min>0;
+    restanteV68=contextoV68.programado?min*60:0;
+    clearInterval(timerV68); contandoV68=false;
+
+    const main=mainV68();
+    if(!main){ alert('Não encontrei a área principal para abrir o Timer.'); return; }
+    esconderViewsV68();
+
+    let old=document.getElementById('timerMainV68'); if(old)old.remove();
+    const box=document.createElement('section'); box.id='timerMainV68';
+    const rotulo=contextoV68.revisaoId ? ('🔄 '+(contextoV68.revisaoLabel||'Revisão')) : '📘 Atividade';
+    box.innerHTML=`
+      <div class="timer-shell-v68">
+        <button type="button" onclick="voltarTimerV68()" style="float:right">← Voltar</button>
+        <div class="timer-title-v68">⏱️ Timer de Estudo</div>
+        <div class="timer-sub-v68"><b>${rotulo}</b> • ${contextoV68.materia||'Disciplina'}${contextoV68.assunto?' — '+contextoV68.assunto:''}</div>
+        <div id="clockV68" class="timer-clock-v68">${fmtV68(restanteV68)}</div>
+        <div class="timer-actions-v68">
+          <button id="btnTimerV68" class="btn btn-primary" onclick="toggleTimerV68()">▶ Iniciar</button>
+          <button class="btn" onclick="zerarTimerV68()">Zerar</button>
+        </div>
+        <button class="btn" style="width:100%;margin-top:10px" onclick="salvarTimerV68()">💾 Salvar Tempo Estudado</button>
+      </div>`;
+    main.appendChild(box);
+    box.scrollIntoView({behavior:'smooth',block:'start'});
+  };
+
+  /* Captura o ▶️ dos cards ANTES do handler antigo, impedindo que o Timer vá para a sidebar. */
+  document.addEventListener('click',function(ev){
+    const b=ev.target.closest('button');
+    if(!b)return;
+    const txt=(b.textContent||'').trim();
+    if(!(txt==='▶' || txt==='▶️' || /iniciar revisão/i.test(txt)))return;
+
+    const card=b.closest('.card-estudo,.atividade-card,.revisao-card,[data-topico-id],[data-revisao-id]');
+    if(!card)return;
+
+    ev.preventDefault(); ev.stopImmediatePropagation();
+
+    const materia =
+      card.dataset.materia ||
+      card.querySelector('.materia,.nome-materia,h3,h4,strong,b')?.textContent?.trim() ||
+      document.querySelector('#disciplinaTimer,#timerDisciplina')?.value || 'Disciplina';
+
+    const assunto =
+      card.dataset.assunto ||
+      card.querySelector('.assunto,.topico,.titulo-topico,p')?.textContent?.trim() || '';
+
+    const revisaoId=card.dataset.revisaoId||null;
+    let minutos=0, label='';
+    const all=(card.textContent||'');
+    const md=all.match(/\b(1D|D1|7D|D7|15D|D15|30D|D30)\b/i);
+    if(revisaoId || md){
+      label=md?md[1].toUpperCase():'Revisão';
+      if(/1D|D1/i.test(label))minutos=15;
+      else if(/7D|D7/i.test(label))minutos=20;
+      else if(/15D|D15/i.test(label))minutos=25;
+      else if(/30D|D30/i.test(label))minutos=30;
+    }
+    abrirTimerMainV68({
+      materia:materia,assunto:assunto,
+      revisaoId:revisaoId, revisaoLabel:label,
+      topicoId:card.dataset.topicoId||null,
+      minutos:minutos
+    });
+  },true);
+})();
+</script>
+

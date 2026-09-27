@@ -9637,115 +9637,135 @@ html[data-theme="light"] .login-card input{
 </script>
 
 
-<!-- ===== V70: TIMER OVERLAY SEGURO - SEM MOVER NÓS DO HTML ===== -->
-<style id="v70-timer-safe-css">
-/* A aba timer continua no lugar original do DOM, mas visualmente vira painel principal. */
-body.timer-v70-aberto #aba-timer{
+<!-- ===== V71: TIMER PRINCIPAL SEM BLOQUEAR NAVEGAÇÃO ===== -->
+<style id="v71-css">
+/* O timer permanece no DOM original. Só ganha geometria de conteúdo principal quando ativo. */
+body.v71-timer #aba-timer{
  position:fixed!important;
- z-index:900!important;
  top:0!important;
- left:var(--sidebar-v70,217px)!important;
- right:0!important;
  bottom:0!important;
+ left:var(--v71-side,218px)!important;
+ right:0!important;
  width:auto!important;
  max-width:none!important;
  height:100vh!important;
- margin:0!important;
- padding:18px 28px 32px!important;
  overflow:auto!important;
+ z-index:50!important;
  display:block!important;
  box-sizing:border-box!important;
- background:var(--bg,#f5f7fb)!important;
+ padding:16px 38px 32px!important;
+ margin:0!important;
  transform:none!important;
+ background:var(--bg,#f5f7fb)!important;
 }
-body.dark.timer-v70-aberto #aba-timer,
-[data-theme="dark"] body.timer-v70-aberto #aba-timer{background:#0b1627!important}
-body.timer-v70-aberto #aba-timer .timer-card{width:100%!important;max-width:none!important}
-body.timer-v70-aberto #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!important;white-space:nowrap!important}
-#voltarTimerV70{
- position:fixed;z-index:910;right:38px;top:12px;
- min-height:38px;padding:7px 14px;border-radius:9px;
+body.dark.v71-timer #aba-timer{background:#0b1627!important}
+#v71Voltar{
+ position:fixed;right:38px;top:10px;z-index:60;
+ padding:8px 14px;border-radius:9px;
 }
-@media(max-width:800px){
- body.timer-v70-aberto #aba-timer{left:0!important;padding:65px 12px 25px!important}
- #voltarTimerV70{right:12px}
+body.v71-timer #aba-timer .timer-card{width:100%!important;max-width:none!important}
+body.v71-timer #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!important;white-space:nowrap!important}
+@media(max-width:760px){
+ body.v71-timer #aba-timer{left:0!important;padding:62px 12px 25px!important}
+ #v71Voltar{right:12px}
 }
 </style>
 
-<script id="v70-timer-safe-js">
+<script id="v71-js">
 (function(){
- function timer(){return document.getElementById('aba-timer')}
- function larguraSidebar(){
-   const a=document.querySelector('aside');
-   return a ? Math.round(a.getBoundingClientRect().width) : 217;
- }
- function limparTimer(){
-   document.body.classList.remove('timer-v70-aberto');
-   document.documentElement.style.removeProperty('--sidebar-v70');
-   document.getElementById('voltarTimerV70')?.remove();
-   const t=timer(); if(t)t.classList.remove('active');
- }
- window.fecharTimerV70=function(){
-   limparTimer();
-   if(typeof ativarAbaPorId==='function') ativarAbaPorId('aba-ciclo');
-   else {
-     const c=document.getElementById('aba-ciclo'); if(c)c.classList.add('active');
-   }
- };
- window.abrirTimerV70=function(){
-   const t=timer(); if(!t)return;
-   document.documentElement.style.setProperty('--sidebar-v70',larguraSidebar()+'px');
-   document.body.classList.add('timer-v70-aberto');
-   t.classList.add('active');
-   if(!document.getElementById('voltarTimerV70')){
-     const b=document.createElement('button');
-     b.id='voltarTimerV70'; b.className='btn btn-outline';
-     b.textContent='← Voltar ao Meu Plano';
-     b.onclick=fecharTimerV70;
-     document.body.appendChild(b);
-   }
-   window.scrollTo(0,0);
- };
+  const TAB_IDS=['aba-inicio','aba-ciclo','aba-editais','aba-prioridades','aba-revisoes','aba-pesos',
+                 'aba-timer','aba-questoes','aba-edital','aba-progresso','aba-desafio','aba-motivacao',
+                 'aba-planejamento','aba-seguranca','aba-gestao'];
 
- /* Toda troca de aba primeiro fecha o modo visual do timer.
-    Assim nenhuma aba pode ficar bloqueada ou resultar em tela branca. */
- document.addEventListener('click',function(e){
-   const b=e.target.closest('.tab-btn');
-   if(!b)return;
-   const oc=b.getAttribute('onclick')||'';
-   const vaiTimer=/aba-timer/.test(oc);
-   if(vaiTimer){
-     e.preventDefault(); e.stopImmediatePropagation();
-     if(typeof ativarAbaPorId==='function') ativarAbaPorId('aba-timer');
-     abrirTimerV70();
-     try{atualizarVisualizacaoHoras()}catch(_){}
-   }else if(document.body.classList.contains('timer-v70-aberto')){
-     limparTimer(); // deixa o onclick original navegar normalmente
-   }
- },true);
+  function sideWidth(){
+    const a=document.querySelector('aside');
+    return a ? Math.max(0,Math.round(a.getBoundingClientRect().width)) : 218;
+  }
+  function timer(){ return document.getElementById('aba-timer'); }
 
- /* Atividades: mantém a função original para preencher matéria/contexto,
-    mas garante o layout principal após ela terminar. */
- const irOriginal=window.irParaTimerComMateria;
- if(typeof irOriginal==='function'){
-   window.irParaTimerComMateria=function(materia){
-     irOriginal.apply(this,arguments);
-     setTimeout(abrirTimerV70,0);
-   };
- }
+  function sairVisualTimer(){
+    document.body.classList.remove('v71-timer');
+    document.documentElement.style.removeProperty('--v71-side');
+    document.getElementById('v71Voltar')?.remove();
+    const t=timer();
+    if(t){
+      /* remove somente estilos/classes introduzidos pelo modo visual;
+         não toca nas outras abas */
+      t.style.removeProperty('display');
+    }
+  }
 
- /* Revisões: usa a rotina original, preservando D1/D7/D15/D30 e vínculo,
-    e apenas corrige onde o timer aparece. */
- const revOriginal=window.iniciarRevisaoTimerV42;
- if(typeof revOriginal==='function'){
-   window.iniciarRevisaoTimerV42=function(){
-     revOriginal.apply(this,arguments);
-     setTimeout(abrirTimerV70,0);
-   };
- }
+  function entrarVisualTimer(){
+    const t=timer(); if(!t)return;
+    document.documentElement.style.setProperty('--v71-side',sideWidth()+'px');
+    document.body.classList.add('v71-timer');
+    let b=document.getElementById('v71Voltar');
+    if(!b){
+      b=document.createElement('button');
+      b.id='v71Voltar';
+      b.className='btn btn-outline';
+      b.type='button';
+      b.textContent='← Voltar ao Meu Plano';
+      b.addEventListener('click',function(){
+        sairVisualTimer();
+        /* usa exatamente o botão original Meu Plano, evitando estado branco */
+        const plano=[...document.querySelectorAll('.tab-btn')].find(x=>{
+          const s=((x.textContent||'')+' '+(x.getAttribute('onclick')||'')).toLowerCase();
+          return s.includes('meu plano') || s.includes('aba-ciclo');
+        });
+        if(plano) plano.click();
+        else if(typeof ativarAbaPorId==='function') ativarAbaPorId('aba-ciclo');
+      });
+      document.body.appendChild(b);
+    }
+    window.scrollTo(0,0);
+  }
 
- /* Segurança contra refresh/login/troca de estado. */
- window.addEventListener('pageshow',()=>{ if(!timer()?.classList.contains('active')) limparTimer(); });
+  /* Observa qual aba o próprio app tornou ativa.
+     Não cancela clique, não usa stopImmediatePropagation e não substitui a navegação. */
+  const obs=new MutationObserver(function(){
+    const t=timer();
+    if(!t)return;
+    const ativo=t.classList.contains('active') ||
+                getComputedStyle(t).display!=='none' && document.body.dataset.abaAtual==='aba-timer';
+    if(ativo) entrarVisualTimer();
+    else if(document.body.classList.contains('v71-timer')) sairVisualTimer();
+  });
+
+  window.addEventListener('DOMContentLoaded',function(){
+    TAB_IDS.forEach(id=>{
+      const el=document.getElementById(id);
+      if(el)obs.observe(el,{attributes:true,attributeFilter:['class','style']});
+    });
+
+    /* Clique em qualquer menu que NÃO seja Timer limpa o modo antes do handler original rodar.
+       Não impede o clique original. */
+    document.addEventListener('pointerdown',function(e){
+      const b=e.target.closest('.tab-btn');
+      if(!b)return;
+      const s=((b.textContent||'')+' '+(b.getAttribute('onclick')||'')).toLowerCase();
+      if(!s.includes('timer') && !s.includes('aba-timer')) sairVisualTimer();
+    },true);
+  });
+
+  /* Apenas complementa os atalhos já existentes de atividade/revisão.
+     Não substitui a lógica original de contexto, minutos ou salvamento. */
+  function envolver(nome){
+    const original=window[nome];
+    if(typeof original!=='function')return;
+    window[nome]=function(){
+      const r=original.apply(this,arguments);
+      setTimeout(entrarVisualTimer,20);
+      return r;
+    };
+  }
+  envolver('irParaTimerComMateria');
+  envolver('iniciarRevisaoTimerV42');
+
+  window.addEventListener('pageshow',function(){
+    /* Nunca restaurar página já "presa" no overlay por cache do navegador. */
+    if(!timer()?.classList.contains('active')) sairVisualTimer();
+  });
 })();
 </script>
 

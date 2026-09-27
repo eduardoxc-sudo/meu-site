@@ -2744,7 +2744,8 @@
 
     function configurarAbaEditaisProntos() {
       const painelAdmin = document.getElementById('painelCriadorEduardo');
-      if (painelAdmin) painelAdmin.style.display = 'block';
+      const ehEduardo = String(usuarioAtivo || '').trim().toLowerCase() === 'eduardo';
+      if (painelAdmin) painelAdmin.style.display = ehEduardo ? 'block' : 'none';
       ouvirEditaisProntosNuvem();
     }
 
@@ -5520,6 +5521,21 @@
 
       if (painel) painel.style.display = admin ? 'block' : 'none';
       if (lista) lista.style.display = '';
+
+      // IMPORTANTE: ao voltar para o perfil Eduardo, restaura os botões
+      // administrativos que podem ter sido ocultados quando outro usuário estava ativo.
+      if (admin && painel) {
+        painel.querySelectorAll('button').forEach(btn => {
+          btn.style.removeProperty('display');
+          btn.disabled = false;
+        });
+        const publicar = painel.querySelector('button[onclick*="publicarNovoEditalPronto"]');
+        if (publicar) {
+          publicar.style.display = 'inline-flex';
+          publicar.style.width = '100%';
+          publicar.disabled = false;
+        }
+      }
 
       // Segurança visual adicional:
       // para não-Eduardo, remove/oculta botões de apagar/administrar editais.

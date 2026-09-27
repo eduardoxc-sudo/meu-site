@@ -2380,7 +2380,7 @@ body.light .wizard-v40,body.light .materia-plan-v40,body.light .disp-dia-v40,bod
       <p class="wizard-help-v40">Informe o tempo disponível. Esses dados ficam salvos no seu perfil.</p>
       <div class="planejamento-datas">
         <div class="field"><label>INÍCIO DOS ESTUDOS</label><div class="date-row-v41"><input type="date" id="planejamentoInicioAuto"><button type="button" class="btn btn-outline" onclick="usarHojePlanejamentoV41()">📅 Hoje</button></div></div>
-        <div class="field"><label>DATA DA PROVA</label><input type="date" id="planejamentoProvaAuto"></div>
+        <div class="field"><label>DATA DA PROVA</label><div class="date-row-v41"><input type="date" id="planejamentoProvaAuto"><button type="button" class="btn btn-outline" onclick="escolherDataProvaV42()">📅 Escolher data</button></div></div>
       </div>
       <div class="disp-grid-v40" id="disponibilidadeDiasV40"></div>
       <div class="field wizard-narrow-v40">
@@ -4229,7 +4229,7 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
       renderizarGrade();
       renderizarVisaoGeral();
       calcularPrevisaoFechamentoEdital();
-      if (notificar) alert('Cronograma da semana atual regenerado!');
+      // V42: sem alert() nativo; o planejamento usa confirmação visual própria.
     }
 
     function reiniciarProgressoSemana() {
@@ -4322,7 +4322,7 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
                   <span class="slot-assunto-sub">${slot.assunto || ''}</span>
                 </div>
               </div>
-              <button class="btn-play-mini" title="Estudar agora (abrir timer)" onclick="irParaTimerComMateria('${slot.materia}')">▶️</button>
+              <button class="btn-play-mini" title="${isRevisao ? 'Iniciar revisão com Timer' : 'Estudar agora (abrir timer)'}" onclick="${isRevisao ? `iniciarRevisaoTimerV42('${slot.revisaoId}')` : `irParaTimerComMateria('${slot.materia}')`}">▶️</button>
             </div>
           `;
         });
@@ -4358,6 +4358,11 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
           const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === slot.topicoId);
           if (topico) {
             topico.t = !!valor;
+            if (valor) registrarRevisoesAutomaticasPlanV41(slot);
+            else {
+              estado.agendaRevisoes=(estado.agendaRevisoes||[]).filter(r=>!(r.automaticaV42&&r.topicoId===slot.topicoId));
+              try{sincronizarTodasSemanasComRevisoes()}catch(_){}
+            }
             break;
           }
         }
@@ -4650,7 +4655,8 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
           topicoTitulo: topico.titulo,
           tipo,
           dataPrevista: formatarDataChave(dataRev),
-          concluida: false
+          concluida: false,
+          minutos: Number((estado.revisoesAutomaticas||{})['minD'+tipo.replace('D','')] || ({'1D':15,'7D':20,'15D':25,'30D':30}[tipo]) || 15)
         });
       } else {
         estado.agendaRevisoes = estado.agendaRevisoes.filter(r => !chaveRevisao(r));
@@ -4720,7 +4726,7 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
             <span style="font-size:0.75rem; color:var(--text-muted);">📅 ${formatarDataBR(new Date(rev.dataPrevista + 'T00:00:00'))}</span>
             <div style="display:flex; gap:6px;">
-              <button class="btn-mini-acao" title="Marcar como concluída" onclick="alternarConclusaoRevisao('${rev.id}')">${rev.concluida ? '↩️' : '✅'}</button>
+              ${!rev.concluida ? `<button class="btn-mini-acao" title="Iniciar revisão com Timer" onclick="iniciarRevisaoTimerV42('${rev.id}')">▶️ ${rev.minutos||15} min</button>` : ''}<button class="btn-mini-acao" title="Marcar como concluída" onclick="alternarConclusaoRevisao('${rev.id}')">${rev.concluida ? '↩️' : '✅'}</button>
               <button class="btn-mini-acao" title="Remover" onclick="excluirRevisaoAgendada('${rev.id}')">🗑️</button>
             </div>
           </div>
@@ -4808,9 +4814,15 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
         timerRodando = true;
         if (btn) { btn.innerText = 'Pausar'; btn.classList.remove('btn-primary'); btn.classList.add('btn-outline'); }
         timerInterval = setInterval(() => {
-          timerSegundos++;
           const display = document.getElementById('timerDisplay');
-          if (display) display.innerText = formatarTempo(timerSegundos);
+          if(revisaoTimerV42){
+            revisaoRestanteV42--;
+            if(display)display.innerText=formatarTempo(Math.max(0,revisaoRestanteV42));
+            if(revisaoRestanteV42<=0){timerRodando=false;clearInterval(timerInterval);concluirRevisaoTimerV42();}
+          }else{
+            timerSegundos++;
+            if (display) display.innerText = formatarTempo(timerSegundos);
+          }
         }, 1000);
       } else {
         timerRodando = false;
@@ -6507,23 +6519,18 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
     }
 
     function extrairEditalV37(){
-      // Primeiro usa a numeração real dos cartões (#28/54 etc.), pois ela representa o edital carregado.
-      let maxTotal=0, maxNumero=0;
-      document.querySelectorAll('#gradeSemana *').forEach(el=>{
-        const s=(el.textContent||'').trim();
-        const m=s.match(/#(\d+)\s*\/\s*(\d+)/);
-        if(m){maxNumero=Math.max(maxNumero,Number(m[1]));maxTotal=Math.max(maxTotal,Number(m[2]));}
-      });
-      // Feitos vêm do status do conteúdo, quando disponível.
-      const pagina=(document.querySelector('main')?.innerText||'');
-      const st=pagina.match(/STATUS DO CONTEÚDO\s*(\d+)\s*\/\s*(\d+)\s*tópicos/i);
-      if(st) return {feito:Number(st[1]),total:Number(st[2])};
-      // Fallback pela tabela do edital.
-      const area=document.getElementById('aba-edital');
-      if(area){
-        const cbs=[...area.querySelectorAll('input[type="checkbox"]')].filter(x=>!x.disabled);
-        if(cbs.length) return {feito:cbs.filter(x=>x.checked).length,total:cbs.length};
+      // V42: fonte oficial = editalVerticalizado. Revisões nunca entram neste contador.
+      const mapa=estado?.editalVerticalizado||{};
+      const topicos=Object.values(mapa).flatMap(v=>Array.isArray(v)?v:[]);
+      if(topicos.length){
+        return {feito:topicos.filter(t=>t && t.t===true).length,total:topicos.length};
       }
+      // Fallback apenas para estados antigos.
+      let maxTotal=0;
+      document.querySelectorAll('#gradeSemana *').forEach(el=>{
+        const m=(el.textContent||'').match(/#(\d+)\s*\/\s*(\d+)/);
+        if(m)maxTotal=Math.max(maxTotal,Number(m[2]));
+      });
       return {feito:0,total:maxTotal};
     }
 
@@ -6814,9 +6821,9 @@ function renderResumoPlanejamentoV40(){
  const cfg=estado.planejamentoV40||{}, mats=cfg.materias||{}, ativos=Object.entries(mats).filter(([,v])=>v.ativa!==false);
  const horas=Object.values(cfg.disponibilidade||{}).reduce((a,b)=>a+Number(b||0),0);
  const rev=cfg.revisoes||{}, rs=[rev.d1&&'D1',rev.d7&&'D7',rev.d15&&'D15',rev.d30&&'D30'].filter(Boolean).join(', ')||'Nenhuma';
- box.innerHTML=`<div class="resumo-card-v40"><small>Matérias selecionadas</small><b>${ativos.length}</b></div>
+ box.innerHTML=`<div class="resumo-card-v40"><small>Matérias selecionadas</small><b>${ativos.length}${ativos.length?' — '+ativos.map(([n])=>n).join(', '):''}</b></div>
  <div class="resumo-card-v40"><small>Disponibilidade semanal</small><b>${horas}h</b></div>
- <div class="resumo-card-v40"><small>Ritmo</small><b>${document.getElementById('planejamentoPorDiaV40')?.value||estado.porDia||2} por dia</b></div>
+ <div class="resumo-card-v40"><small>Ritmo</small><b>${document.getElementById('planejamentoPorDiaV40')?.value||estado.porDia||2} tópicos por dia</b></div>
  <div class="resumo-card-v40"><small>Revisões preferidas</small><b>${rs}</b></div>
  <div class="resumo-card-v40"><small>Início</small><b>${document.getElementById('planejamentoInicioAuto')?.value||'—'}</b></div>
  <div class="resumo-card-v40"><small>Prova</small><b>${document.getElementById('planejamentoProvaAuto')?.value||'—'}</b></div>`;
@@ -6848,6 +6855,7 @@ function hojeISOPlanV41(){
   return `${y}-${m}-${dia}`;
 }
 function usarHojePlanejamentoV41(){const e=document.getElementById('planejamentoInicioAuto');if(e)e.value=hojeISOPlanV41()}
+function escolherDataProvaV42(){const e=document.getElementById('planejamentoProvaAuto');if(!e)return;try{e.showPicker()}catch(_){e.focus();e.click()}}
 function dataBRPlanV41(v){if(!v)return '—';const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}/${m[2]}/${m[1]}`:v}
 function minRevPlanV41(id,padrao){return Math.max(5,Number(document.getElementById(id)?.value||padrao))}
 
@@ -6893,9 +6901,9 @@ function renderResumoPlanejamentoV40(){
  const cfg=estado.planejamentoV40||{},mats=cfg.materias||{},ativos=Object.entries(mats).filter(([,v])=>v.ativa!==false);
  const horas=Object.values(cfg.disponibilidade||{}).reduce((a,b)=>a+Number(b||0),0),r=cfg.revisoes||{};
  const rev=[r.d1&&`D1 • ${r.minD1||15} min`,r.d7&&`D7 • ${r.minD7||20} min`,r.d15&&`D15 • ${r.minD15||25} min`,r.d30&&`D30 • ${r.minD30||30} min`].filter(Boolean).join(' | ')||'Nenhuma';
- box.innerHTML=`<div class="resumo-card-v40"><small>Matérias selecionadas</small><b>${ativos.length}</b></div>
+ box.innerHTML=`<div class="resumo-card-v40"><small>Matérias selecionadas</small><b>${ativos.length}${ativos.length?' — '+ativos.map(([n])=>n).join(', '):''}</b></div>
  <div class="resumo-card-v40"><small>Disponibilidade semanal</small><b>${horas}h</b></div>
- <div class="resumo-card-v40"><small>Ritmo</small><b>${document.getElementById('planejamentoPorDiaV40')?.value||estado.porDia||2} por dia</b></div>
+ <div class="resumo-card-v40"><small>Ritmo</small><b>${document.getElementById('planejamentoPorDiaV40')?.value||estado.porDia||2} tópicos por dia</b></div>
  <div class="resumo-card-v40"><small>Revisões ${r.automatico!==false?'automáticas':'manuais'}</small><b>${rev}</b></div>
  <div class="resumo-card-v40"><small>Início</small><b>${dataBRPlanV41(document.getElementById('planejamentoInicioAuto')?.value)}</b></div>
  <div class="resumo-card-v40"><small>Prova</small><b>${dataBRPlanV41(document.getElementById('planejamentoProvaAuto')?.value)}</b></div>`;
@@ -6918,7 +6926,7 @@ function aplicarPlanejamentoV40(){
  const pd=Math.max(1,Math.min(8,Number(document.getElementById('planejamentoPorDiaV40')?.value||estado.porDia||2)));estado.porDia=pd;
  const i=document.getElementById('planejamentoInicioAuto')?.value||hojeISOPlanV41(),p=document.getElementById('planejamentoProvaAuto')?.value||'';
  estado.dataInicio=i;estado.inicioEstudos=i;estado.planejamento=estado.planejamento||{};estado.planejamento.inicio=i;
- if(p){estado.dataProva=p;estado.planejamento.prova=p}
+ if(p){estado.dataProva=p;estado.planejamento.prova=p}else{estado.dataProva='';delete estado.planejamento.prova}
  // Preferências de revisão ficam separadas: não incrementam total de tópicos.
  estado.revisoesAutomaticas=Object.assign({},cfg.revisoes||{});
  salvarEstado();
@@ -6927,25 +6935,41 @@ function aplicarPlanejamentoV40(){
  try{calcularPrevisaoFechamentoEdital()}catch(_){}
  // Usa o regenerador já existente do Ciclo, evitando duplicar uma segunda lógica de cronograma.
  setTimeout(()=>{try{regenerarSemanaSeguroPlanV41()}catch(_){}},50);
- setTimeout(()=>document.getElementById('modalPlanV41')?.classList.add('show'),180);
+ setTimeout(()=>{const m=document.getElementById('modalPlanV41');if(m){m.querySelector('h3').textContent='Planejamento criado!';m.querySelector('p').textContent='Suas configurações foram salvas e a semana foi atualizada.';m.classList.add('show')}},180);
 }
 
 // Ao marcar um tópico concluído, registra as revisões futuras separadamente do edital.
 // A fila não cria tópicos; serve como agenda de revisão para integração com o Ciclo.
-function registrarRevisoesAutomaticasPlanV41(checkbox){
- const r=estado.revisoesAutomaticas;if(!r||r.automatico===false||!checkbox?.checked)return;
- const card=checkbox.closest('[data-topic-id], .task, .topic-card, article, li, div');
- const txt=(card?.innerText||'').trim().slice(0,500);if(!txt)return;
+function registrarRevisoesAutomaticasPlanV41(slot){
+ const r=estado.revisoesAutomaticas;if(!r||r.automatico===false||!slot||slot.revisaoId||!slot.topicoId)return;
  estado.agendaRevisoes=estado.agendaRevisoes||[];
- const base=new Date();base.setHours(12,0,0,0);
- [['D1',1,r.d1,r.minD1||15],['D7',7,r.d7,r.minD7||20],['D15',15,r.d15,r.minD15||25],['D30',30,r.d30,r.minD30||30]].forEach(([tipo,dias,on,min])=>{
-  if(!on)return;const d=new Date(base);d.setDate(d.getDate()+dias);
-  const data=d.toISOString().slice(0,10),chave=`${tipo}|${data}|${txt}`;
-  if(!estado.agendaRevisoes.some(x=>x.chave===chave))estado.agendaRevisoes.push({chave,tipo,data,minutos:min,texto:txt,revisao:true});
+ const topico=(estado.editalVerticalizado?.[slot.materia]||[]).find(t=>t.id===slot.topicoId);
+ const titulo=topico?.titulo||slot.assunto||'Revisão';
+ const mapa=[['1D',1,r.d1,r.minD1||15],['7D',7,r.d7,r.minD7||20],['15D',15,r.d15,r.minD15||25],['30D',30,r.d30,r.minD30||30]];
+ // Recria somente as revisões automáticas deste tópico; nunca cria tópico novo.
+ estado.agendaRevisoes=estado.agendaRevisoes.filter(x=>!(x.automaticaV42&&x.topicoId===slot.topicoId));
+ mapa.forEach(([tipo,dias,on,minutos])=>{
+   if(!on)return;const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+dias);
+   estado.agendaRevisoes.push({id:'rev_'+Math.random().toString(36).substr(2,7),materia:slot.materia,topicoId:slot.topicoId,topicoTitulo:titulo,tipo,dataPrevista:formatarDataChave(d),concluida:false,minutos:Number(minutos),automaticaV42:true});
  });
- salvarEstado();
+ normalizarAgendaRevisoes();sincronizarTodasSemanasComRevisoes();salvarEstado();
 }
-document.addEventListener('change',e=>{if(e.target?.matches('#gradeSemana input[type="checkbox"]'))registrarRevisoesAutomaticasPlanV41(e.target)});
+
+// V42: Timer regressivo para revisões.
+let revisaoTimerV42=null, revisaoRestanteV42=0, revisaoTotalV42=0;
+function iniciarRevisaoTimerV42(revId){
+ const rev=(estado.agendaRevisoes||[]).find(r=>r.id===revId);if(!rev)return;
+ revisaoTimerV42=revId;revisaoTotalV42=Math.max(1,Number(rev.minutos||({"1D":15,"7D":20,"15D":25,"30D":30}[rev.tipo])||15))*60;revisaoRestanteV42=revisaoTotalV42;
+ irParaTimerComMateria(rev.materia);resetarTimer();
+ const display=document.getElementById('timerDisplay');if(display)display.innerText=formatarTempo(revisaoRestanteV42);
+ const btn=document.getElementById('btnIniciarTimer');if(btn)btn.innerText='Iniciar revisão ('+rev.tipo+')';
+}
+function concluirRevisaoTimerV42(){
+ const rev=(estado.agendaRevisoes||[]).find(r=>r.id===revisaoTimerV42);if(!rev)return;
+ rev.concluida=true;registrarHoraEstudo(rev.materia,Math.round(revisaoTotalV42/60));salvarEstado();
+ revisaoTimerV42=null;revisaoRestanteV42=0;revisaoTotalV42=0;resetarTimer();renderizarAbaRevisoes();renderizarGrade();
+ const m=document.getElementById('modalPlanV41');if(m){m.querySelector('h3').textContent='Revisão concluída!';m.querySelector('p').textContent='O tempo foi registrado nas horas líquidas e a revisão foi marcada como concluída.';m.classList.add('show')}
+}
 </script>
 
   <button id="btnReabrirSidebar" class="sidebar-reopen"

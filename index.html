@@ -8560,6 +8560,166 @@ main.v35-modo-aba #v35AreaAba{
 })();
 </script>
 
+
+<!-- ===== V58: destrava modal "Registro salvo" / Novo Registro ===== -->
+<style id="v58-modal-fix">
+/* Modal sempre acima da aplicação e sem prender a navegação após fechar */
+.modal-overlay,
+[id*="modal"],
+[class*="modal"]{
+  isolation:auto;
+}
+</style>
+
+<script id="v58-modal-fix-js">
+(function(){
+  function fecharModalRegistroV58(){
+    /* tenta primeiro os fechamentos oficiais já existentes */
+    try{
+      if(typeof fecharModal==='function') fecharModal();
+    }catch(e){}
+    try{
+      if(typeof fecharModalV37==='function') fecharModalV37();
+    }catch(e){}
+
+    /* remove apenas o popup de confirmação "Registro salvo!" e seu overlay */
+    const candidatos=[...document.querySelectorAll('body *')];
+    candidatos.forEach(el=>{
+      const txt=(el.textContent||'').trim();
+      if(!txt.includes('Registro salvo!')) return;
+
+      /* sobe até o overlay que ocupa a tela */
+      let p=el;
+      for(let i=0;i<7 && p && p!==document.body;i++,p=p.parentElement){
+        const cs=getComputedStyle(p);
+        const r=p.getBoundingClientRect();
+        const telaGrande=(r.width >= innerWidth*0.75 && r.height >= innerHeight*0.75);
+        const fixo=(cs.position==='fixed' || cs.position==='absolute');
+        if(fixo && telaGrande){
+          p.style.display='none';
+          p.classList.remove('active','show','open');
+          break;
+        }
+      }
+    });
+
+    /* libera rolagem/cliques caso o modal tenha deixado o body travado */
+    document.documentElement.style.overflow='';
+    document.body.style.overflow='';
+    document.body.classList.remove('modal-open','overflow-hidden','no-scroll');
+
+    /* volta para a tela que estava aberta sem empilhar o calendário */
+    try{
+      const main=document.querySelector('#app-container > main');
+      if(main && document.getElementById('v35AreaAba')?.children.length){
+        main.classList.add('v35-modo-aba');
+      }
+    }catch(e){}
+  }
+
+  /* O "Fechar" desse popup às vezes é texto/div, não button.
+     Captura o clique antes dos handlers antigos. */
+  document.addEventListener('click',function(e){
+    const alvo=e.target.closest('button,[role="button"],a,div,span');
+    if(!alvo) return;
+    const txt=(alvo.textContent||'').trim();
+    if(txt!=='Fechar') return;
+
+    let p=alvo;
+    let ehRegistro=false;
+    for(let i=0;i<6 && p && p!==document.body;i++,p=p.parentElement){
+      if((p.textContent||'').includes('Registro salvo!')){
+        ehRegistro=true; break;
+      }
+    }
+    if(!ehRegistro) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    fecharModalRegistroV58();
+  },true);
+
+  /* ESC também fecha, como segurança */
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Escape') return;
+    const existe=[...document.querySelectorAll('body *')]
+      .some(x=>(x.textContent||'').includes('Registro salvo!') && getComputedStyle(x).display!=='none');
+    if(existe) fecharModalRegistroV58();
+  },true);
+
+  window.fecharModalRegistroV58=fecharModalRegistroV58;
+})();
+</script>
+
+
+<!-- ===== V59: login correto no modo claro/escuro ===== -->
+<style id="v59-login-theme-fix">
+/* Campos do login no modo claro */
+body:not(.dark-mode) #login-screen input,
+body:not(.dark-mode) #loginScreen input,
+body:not(.dark-mode) .login-screen input,
+body:not(.dark-mode) .login-card input,
+body:not(.dark-mode) input[type="password"],
+body:not(.dark-mode) input[type="text"].login-input{
+  background:#f8fafc !important;
+  color:#0f172a !important;
+  border:1px solid #cbd5e1 !important;
+  box-shadow:none !important;
+  caret-color:#0f172a !important;
+}
+body:not(.dark-mode) #login-screen input:focus,
+body:not(.dark-mode) #loginScreen input:focus,
+body:not(.dark-mode) .login-screen input:focus,
+body:not(.dark-mode) .login-card input:focus{
+  background:#fff !important;
+  border-color:#4f7cff !important;
+  outline:2px solid rgba(79,124,255,.15) !important;
+}
+
+/* Login no modo escuro continua escuro */
+body.dark-mode #login-screen input,
+body.dark-mode #loginScreen input,
+body.dark-mode .login-screen input,
+body.dark-mode .login-card input{
+  background:#111d31 !important;
+  color:#f8fafc !important;
+  border:1px solid #334155 !important;
+}
+
+/* placeholders */
+body:not(.dark-mode) #login-screen input::placeholder,
+body:not(.dark-mode) #loginScreen input::placeholder,
+body:not(.dark-mode) .login-screen input::placeholder,
+body:not(.dark-mode) .login-card input::placeholder{
+  color:#94a3b8 !important;
+}
+</style>
+
+<script id="v59-login-theme-fix-js">
+(function(){
+  /* Alguns estilos antigos aplicavam o fundo escuro diretamente no input.
+     Ao exibir o login, remove somente estilos inline de cor/fundo dos campos. */
+  function corrigirLoginClaroV59(){
+    const dark=document.body.classList.contains('dark-mode');
+    if(dark) return;
+    const seletores=[
+      '#login-screen input','#loginScreen input',
+      '.login-screen input','.login-card input'
+    ];
+    document.querySelectorAll(seletores.join(',')).forEach(inp=>{
+      inp.style.setProperty('background','#f8fafc','important');
+      inp.style.setProperty('color','#0f172a','important');
+      inp.style.setProperty('border','1px solid #cbd5e1','important');
+      inp.style.setProperty('caret-color','#0f172a','important');
+    });
+  }
+  document.addEventListener('DOMContentLoaded',corrigirLoginClaroV59);
+  window.addEventListener('load',corrigirLoginClaroV59);
+  setTimeout(corrigirLoginClaroV59,100);
+})();
+</script>
+
 </body>
 </html>
 

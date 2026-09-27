@@ -1725,7 +1725,9 @@ body.modo-aba-ampla-v32-desativado #aba-desafio .desafio-v29{
 /* ===== V35: aba selecionada ocupa a tela principal ===== */
 main.v35-modo-aba > .main-header,
 main.v35-modo-aba > #cardPrevisaoTerminoEdital,
-main.v35-modo-aba > #gradeSemana{
+main.v35-modo-aba > #gradeSemana,
+main.v35-modo-aba > #frequenciaV38,
+main.v35-modo-aba > #mobileDiasV38{
   display:none !important;
 }
 #v35AreaAba{
@@ -1784,10 +1786,65 @@ main.v35-modo-aba #v35AreaAba{
 body.light .dash-stats-v36 article,body.light .dash-card-v36{background:#fff}body.light .dash-hero-v36{background:linear-gradient(135deg,#effaff,#f5f2ff)}
 @media(max-width:900px){.dash-stats-v36{grid-template-columns:1fr 1fr}.dash-grid-v36{grid-template-columns:1fr}}
 @media(max-width:520px){.dash-v36{padding:0}.dash-hero-v36{padding:18px;align-items:flex-start}.dash-hero-v36 h2{font-size:23px}.dash-date-v36{display:none}.dash-stats-v36{gap:8px}.dash-stats-v36 article{padding:13px}.dash-stats-v36 strong{font-size:18px}.dash-card-v36{padding:16px}}
+
+/* ===== V38: Ciclo moderno + frequência de estudos ===== */
+.freq-v38{
+  margin:0 0 14px;
+  padding:14px 16px;
+  border:1px solid var(--border,#243248);
+  border-radius:15px;
+  background:var(--card,#111c2e);
+}
+.freq-head-v38{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:10px}
+.freq-head-v38 strong{font-size:13px;color:#22b8ff}
+.freq-head-v38 span{font-size:11px;opacity:.7}
+.freq-days-v38{display:grid;grid-template-columns:repeat(14,1fr);gap:5px}
+.freq-day-v38{height:27px;border-radius:6px;background:rgba(130,150,180,.14);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;opacity:.85}
+.freq-day-v38.done{background:#22c875;color:#06150d;opacity:1}
+.freq-day-v38.partial{background:#f0bd2e;color:#241b00;opacity:1}
+.freq-legend-v38{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-size:10px;opacity:.75}
+.freq-dot-v38{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;background:rgba(130,150,180,.35)}
+.freq-dot-v38.done{background:#22c875}.freq-dot-v38.partial{background:#f0bd2e}
+
+/* Cards do ciclo: aparência de agenda moderna sem mudar estrutura/JS */
+#gradeSemana{gap:14px!important}
+#gradeSemana > *{
+  border-radius:16px!important;
+  box-shadow:0 7px 22px rgba(0,0,0,.10);
+  transition:transform .15s ease,box-shadow .15s ease;
+}
+#gradeSemana > *:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,.16)}
+#gradeSemana input[type="checkbox"]{accent-color:#20c978}
+body.light .freq-v38{background:#fff}
+body.light #gradeSemana > *{box-shadow:0 5px 18px rgba(30,55,85,.09)}
+
+/* Mobile: seletor horizontal de dias + somente o dia selecionado */
+.mobile-days-v38{display:none}
+@media(max-width:760px){
+  .freq-v38{padding:12px;margin-bottom:10px}
+  .freq-days-v38{grid-template-columns:repeat(7,1fr)}
+  .freq-day-v38:nth-child(-n+7){display:none}
+  .mobile-days-v38{
+    display:flex;gap:7px;overflow-x:auto;padding:4px 2px 11px;
+    scrollbar-width:none;
+  }
+  .mobile-days-v38::-webkit-scrollbar{display:none}
+  .mobile-day-v38{
+    min-width:52px;border:1px solid var(--border,#243248);background:var(--card,#111c2e);
+    border-radius:12px;padding:8px 6px;color:inherit;text-align:center;cursor:pointer;
+  }
+  .mobile-day-v38 b{display:block;font-size:10px;opacity:.65;text-transform:uppercase}
+  .mobile-day-v38 span{display:block;font-size:16px;font-weight:800;margin-top:3px}
+  .mobile-day-v38.active{border-color:#27b8ff;box-shadow:0 0 0 1px #27b8ff inset}
+  #gradeSemana.v38-mobile-selected > *{display:none!important}
+  #gradeSemana.v38-mobile-selected > *.v38-dia-visivel{display:block!important}
+  #gradeSemana.v38-mobile-selected{grid-template-columns:1fr!important}
+  #gradeSemana > *{min-height:auto!important}
+}
 </style>
 </head>
 <body>
-<!-- V37: V36 + correção da leitura de usuário, edital, questões, horas e assuntos do Dashboard. -->
+<!-- V38: V37 + Ciclo moderno responsivo e frequência de estudos; lógica original preservada. -->
 
 
   <div id="celebrationOverlay">
@@ -2385,6 +2442,21 @@ body.light .dash-stats-v36 article,body.light .dash-card-v36{background:#fff}bod
           <span style="font-size: 1.1rem; font-weight: 700; color: var(--primary);" id="displayProgressoTopicosStatus">0 / 0 tópicos</span>
         </div>
       </div>
+
+      
+      <section id="frequenciaV38" class="freq-v38">
+        <div class="freq-head-v38">
+          <strong>🔥 Frequência de estudos</strong>
+          <span id="freqResumoV38">Últimos 14 dias</span>
+        </div>
+        <div id="freqDiasV38" class="freq-days-v38"></div>
+        <div class="freq-legend-v38">
+          <span><i class="freq-dot-v38 done"></i>Estudo concluído</span>
+          <span><i class="freq-dot-v38 partial"></i>Estudo parcial</span>
+          <span><i class="freq-dot-v38"></i>Sem estudo</span>
+        </div>
+      </section>
+      <nav id="mobileDiasV38" class="mobile-days-v38" aria-label="Dias da semana"></nav>
 
       <section class="week-grid" id="gradeSemana"></section>
       <section id="v35AreaAba" aria-live="polite"></section>
@@ -6460,6 +6532,91 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
         setTimeout(renderizarDashboardV37,120);
       }
     });
+
+    // ===== V38: frequência + navegação mobile; não altera geração do Ciclo =====
+    function dataDMYV38(s){
+      const m=String(s||'').match(/(\d{2})\/(\d{2})(?:\/(\d{4}))?/);
+      if(!m) return null;
+      const y=m[3]?Number(m[3]):new Date().getFullYear();
+      return new Date(y,Number(m[2])-1,Number(m[1]));
+    }
+
+    function renderFrequenciaV38(){
+      const box=document.getElementById('freqDiasV38'); if(!box)return;
+      const hoje=new Date(); hoje.setHours(0,0,0,0);
+      const cards=[...document.querySelectorAll('#gradeSemana > *')];
+      let html='';
+      for(let i=13;i>=0;i--){
+        const d=new Date(hoje); d.setDate(hoje.getDate()-i);
+        const dm=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+        const card=cards.find(c=>(c.innerText||'').includes(dm));
+        let cls='';
+        if(card){
+          const cbs=[...card.querySelectorAll('input[type="checkbox"]')];
+          const feitos=cbs.filter(c=>c.checked).length;
+          if(cbs.length && feitos===cbs.length) cls='done';
+          else if(feitos>0) cls='partial';
+        }
+        html+='<div class="freq-day-v38 '+cls+'" title="'+dm+'">'+String(d.getDate()).padStart(2,'0')+'</div>';
+      }
+      box.innerHTML=html;
+    }
+
+    function renderMobileDiasV38(){
+      const nav=document.getElementById('mobileDiasV38');
+      const grade=document.getElementById('gradeSemana');
+      if(!nav||!grade)return;
+      const cards=[...grade.children];
+      if(!cards.length){nav.innerHTML='';return;}
+      const nomes=['DOM','SEG','TER','QUA','QUI','SEX','SÁB'];
+      nav.innerHTML=cards.map((card,i)=>{
+        const tx=card.innerText||'';
+        const m=tx.match(/(\d{2})\/(\d{2})/);
+        const dt=m?dataDMYV38(m[0]):null;
+        return '<button type="button" class="mobile-day-v38" data-i="'+i+'"><b>'+(dt?nomes[dt.getDay()]:'DIA')+'</b><span>'+(m?m[1]:'—')+'</span></button>';
+      }).join('');
+
+      nav.querySelectorAll('.mobile-day-v38').forEach(btn=>{
+        btn.addEventListener('click',function(){
+          const idx=Number(this.dataset.i);
+          nav.querySelectorAll('.mobile-day-v38').forEach(b=>b.classList.remove('active'));
+          this.classList.add('active');
+          cards.forEach(c=>c.classList.remove('v38-dia-visivel'));
+          if(cards[idx]) cards[idx].classList.add('v38-dia-visivel');
+          grade.classList.add('v38-mobile-selected');
+        });
+      });
+
+      let alvo=0;
+      const hoje=new Date(), dm=String(hoje.getDate()).padStart(2,'0')+'/'+String(hoje.getMonth()+1).padStart(2,'0');
+      const achou=cards.findIndex(c=>(c.innerText||'').includes(dm));
+      if(achou>=0) alvo=achou;
+      nav.querySelector('[data-i="'+alvo+'"]')?.click();
+    }
+
+    function atualizarVisualCicloV38(){
+      renderFrequenciaV38();
+      renderMobileDiasV38();
+    }
+
+    // Atualiza depois que o Ciclo é aberto/regenerado ou um checklist muda.
+    document.addEventListener('click',function(e){
+      const b=e.target.closest('.tab-btn');
+      if(b && (b.getAttribute('onclick')||'').includes('aba-ciclo')){
+        setTimeout(atualizarVisualCicloV38,120);
+      }
+      if(e.target && e.target.matches('#gradeSemana input[type="checkbox"]')){
+        setTimeout(renderFrequenciaV38,30);
+      }
+    });
+    window.addEventListener('resize',function(){
+      if(window.innerWidth>760){
+        document.getElementById('gradeSemana')?.classList.remove('v38-mobile-selected');
+      }else{
+        setTimeout(renderMobileDiasV38,50);
+      }
+    });
+    setTimeout(atualizarVisualCicloV38,400);
 </script>
 
   <button id="btnReabrirSidebar" class="sidebar-reopen"

@@ -9585,3 +9585,118 @@ html[data-theme="light"] .login-card input{
 })();
 </script>
 
+
+<!-- ===== V63: EXCLUSÃO REAL/PERSISTENTE DO HISTÓRICO DE QUESTÕES ===== -->
+<script id="v63-delete-questions-persistent">
+(function(){
+  function norm(s){return String(s||'').trim().toLowerCase()}
+  function dadosCard(card){
+    const t=(card.innerText||card.textContent||'').trim();
+    const linhas=t.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+    const materia=linhas.find(x=>!/uso da vírgula|^\d|excluir|🗑/i.test(x))||'';
+    const assunto=linhas.find(x=>/uso da vírgula/i.test(x))||'';
+    const dm=t.match(/(\d{2}\/\d{2}\/\d{4})/);
+    const nums=[...t.matchAll(/(?:✅|✔️?)\s*(\d+)|(?:❌|✖️?)\s*(\d+)/g)]
+      .map(m=>Number(m[1]||m[2]));
+    return {materia,assunto,data:dm?dm[1]:'',nums,texto:t};
+  }
+  function combina(obj,d){
+    if(!obj||typeof obj!=='object')return false;
+    const blob=norm(JSON.stringify(obj));
+    let pontos=0;
+    if(d.materia && blob.includes(norm(d.materia))) pontos++;
+    if(d.assunto && blob.includes(norm(d.assunto))) pontos++;
+    if(d.data && (blob.includes(d.data)||blob.includes(d.data.split('/').reverse().join('-')))) pontos++;
+    d.nums.forEach(n=>{if(blob.includes(String(n))) pontos+=.2});
+    return pontos>=2 || (d.materia&&d.assunto&&blob.includes(norm(d.materia))&&blob.includes(norm(d.assunto)));
+  }
+  function removerRec(obj,d,depth=0){
+    if(depth>8||!obj)return 0;
+    let n=0;
+    if(Array.isArray(obj)){
+      for(let i=obj.length-1;i>=0;i--){
+        if(combina(obj[i],d)){obj.splice(i,1);n++}
+        else if(obj[i]&&typeof obj[i]==='object') n+=removerRec(obj[i],d,depth+1);
+      }
+    }else if(typeof obj==='object'){
+      for(const k of Object.keys(obj)){
+        const v=obj[k];
+        if(v&&typeof v==='object') n+=removerRec(v,d,depth+1);
+      }
+    }
+    return n;
+  }
+  function persistir(){
+    ['salvarEstado','salvarDados','saveData','salvarLocal','persistirEstado'].forEach(fn=>{
+      try{if(typeof window[fn]==='function')window[fn]()}catch(e){}
+    });
+    try{
+      /* Atualiza chaves existentes do localStorage que armazenam o estado. */
+      for(let i=0;i<localStorage.length;i++){
+        const k=localStorage.key(i);
+        const raw=localStorage.getItem(k);
+        if(!raw||raw[0]!=='{')continue;
+        try{
+          const o=JSON.parse(raw);
+          if(o && (o.questoes||o.historicoQuestoes||o.registrosQuestoes||o.estado)){
+            /* só substitui quando a referência principal for reconhecível */
+            if(window.estado && (o.estado||o.questoes||o.historicoQuestoes)){
+              if(o.estado) o.estado=window.estado;
+              else {
+                if(window.estado.questoes!==undefined)o.questoes=window.estado.questoes;
+                if(window.estado.historicoQuestoes!==undefined)o.historicoQuestoes=window.estado.historicoQuestoes;
+                if(window.estado.registrosQuestoes!==undefined)o.registrosQuestoes=window.estado.registrosQuestoes;
+              }
+              localStorage.setItem(k,JSON.stringify(o));
+            }
+          }
+        }catch(e){}
+      }
+    }catch(e){}
+  }
+  function excluir(card){
+    const d=dadosCard(card);
+    if(!confirm('Excluir definitivamente este registro de questões?\n\n'+
+      (d.materia||'Registro')+(d.assunto?'\n'+d.assunto:'')+(d.data?'\n'+d.data:''))) return;
+
+    let removidos=0;
+    try{
+      if(window.estado) removidos+=removerRec(window.estado,d);
+      ['questoes','historicoQuestoes','registrosQuestoes','historicoDeQuestoes'].forEach(k=>{
+        if(window[k] && window[k]!==window.estado) removidos+=removerRec(window[k],d);
+      });
+    }catch(e){}
+
+    persistir();
+    card.remove();
+
+    /* força a própria tela a ser redesenhada a partir dos dados já alterados */
+    ['renderQuestoes','renderizarQuestoes','atualizarQuestoes','renderHistoricoQuestoes',
+     'atualizarHistoricoQuestoes','atualizarDashboard'].forEach(fn=>{
+      try{if(typeof window[fn]==='function')window[fn]()}catch(e){}
+    });
+
+    if(!removidos){
+      alert('O item saiu da tela, mas não encontrei o registro correspondente nos dados salvos. Se ele voltar ao recarregar, preciso ajustar a estrutura específica do histórico.');
+    }
+  }
+
+  document.addEventListener('click',function(e){
+    const lixeira=e.target.closest('button,[role="button"]');
+    if(!lixeira)return;
+    const s=(lixeira.textContent||'')+' '+(lixeira.title||'')+' '+(lixeira.getAttribute('aria-label')||'');
+    if(!/🗑|excluir|apagar/i.test(s))return;
+
+    /* só intercepta lixeiras dentro de um registro do histórico de questões */
+    let card=lixeira.parentElement;
+    for(let i=0;i<5&&card;i++,card=card.parentElement){
+      const t=card.innerText||'';
+      if(/\d{2}\/\d{2}\/\d{4}/.test(t) && (/[✅✔].*\d/.test(t)||/[❌✖].*\d/.test(t))){
+        e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+        excluir(card); return;
+      }
+    }
+  },true);
+})();
+</script>
+

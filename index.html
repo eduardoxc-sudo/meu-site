@@ -7783,3 +7783,216 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 </body>
 </html>
+
+
+<!-- =========================================================
+ V48.1 HOTFIX — SIDEBAR FIXA + CONTEÚDO FORA DA SIDEBAR
+ + BOTÃO TEMA VISÍVEL ABAIXO DE "SINCRONIZADO"
+ ========================================================= -->
+<style id="v481-layout-hotfix">
+  /* Desktop: a lateral nunca deve receber/encobrir o conteúdo principal */
+  @media (min-width: 769px) {
+    #app, .app, .app-shell, .layout, .main-layout {
+      min-width: 0 !important;
+    }
+
+    aside, .sidebar, #sidebar, .side-menu, .app-sidebar {
+      width: 220px !important;
+      min-width: 220px !important;
+      max-width: 220px !important;
+      box-sizing: border-box !important;
+      overflow-x: hidden !important;
+    }
+
+    main, .main, #main, .main-content, #mainContent, .content, .page-content,
+    .workspace, .dashboard-content {
+      min-width: 0 !important;
+      overflow-x: hidden !important;
+    }
+
+    body {
+      overflow-x: hidden !important;
+    }
+
+    /* Se a estrutura usa sidebar fixa */
+    body.v481-fixed-sidebar main,
+    body.v481-fixed-sidebar .main-content,
+    body.v481-fixed-sidebar #mainContent,
+    body.v481-fixed-sidebar .page-content {
+      margin-left: 220px !important;
+      width: calc(100% - 220px) !important;
+      max-width: calc(100% - 220px) !important;
+      box-sizing: border-box !important;
+    }
+
+    body.v481-fixed-sidebar aside,
+    body.v481-fixed-sidebar .sidebar,
+    body.v481-fixed-sidebar #sidebar,
+    body.v481-fixed-sidebar .app-sidebar {
+      position: fixed !important;
+      left: 0 !important;
+      top: 0 !important;
+      bottom: 0 !important;
+      z-index: 100 !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+    }
+  }
+
+  /* Botão de tema */
+  #v481-theme-toggle {
+    width: calc(100% - 28px);
+    margin: 8px 14px 10px;
+    min-height: 36px;
+    border-radius: 9px;
+    border: 1px solid rgba(255,255,255,.25);
+    background: rgba(255,255,255,.12);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+  }
+  #v481-theme-toggle:hover { background: rgba(255,255,255,.20); }
+
+  /* Mobile: menu não força a página a caber dentro dele */
+  @media (max-width: 768px) {
+    main, .main, #main, .main-content, #mainContent, .content, .page-content {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin-left: 0 !important;
+      min-width: 0 !important;
+    }
+    aside, .sidebar, #sidebar, .side-menu, .app-sidebar {
+      overflow-x: hidden !important;
+    }
+  }
+</style>
+
+<script>
+(function v481Hotfix(){
+  function qsAny(list, root=document){
+    for (const s of list) {
+      const el=root.querySelector(s);
+      if(el) return el;
+    }
+    return null;
+  }
+
+  function getSidebar(){
+    return qsAny(['#sidebar','.sidebar','aside','.side-menu','.app-sidebar']);
+  }
+
+  function getMain(){
+    return qsAny(['#mainContent','.main-content','main','.page-content','.content','.workspace']);
+  }
+
+  function repairLayout(){
+    const side=getSidebar(), main=getMain();
+    if(!side || !main || side===main || side.contains(main)) return;
+
+    const cs=getComputedStyle(side);
+    if(innerWidth>768 && cs.position==='fixed'){
+      document.body.classList.add('v481-fixed-sidebar');
+    } else {
+      document.body.classList.remove('v481-fixed-sidebar');
+    }
+  }
+
+  function themeIsDark(){
+    return document.documentElement.classList.contains('dark') ||
+           document.body.classList.contains('dark') ||
+           document.body.classList.contains('dark-mode') ||
+           document.documentElement.getAttribute('data-theme')==='dark' ||
+           document.body.getAttribute('data-theme')==='dark';
+  }
+
+  function refreshThemeButton(btn){
+    const dark=themeIsDark();
+    btn.innerHTML = dark ? '☀️ <span>Modo claro</span>' : '🌙 <span>Modo escuro</span>';
+    btn.title = dark ? 'Ativar modo claro' : 'Ativar modo escuro';
+  }
+
+  function toggleThemeCompat(btn){
+    /* Primeiro tenta reaproveitar o controle de tema já existente */
+    const candidates=[...document.querySelectorAll('button,[role="button"],a')].filter(el=>{
+      if(el===btn) return false;
+      const t=(el.textContent||'').toLowerCase();
+      return t.includes('modo escuro') || t.includes('modo claro') ||
+             t.trim()==='escuro' || t.trim()==='claro';
+    });
+    if(candidates.length){
+      candidates[0].click();
+      setTimeout(()=>refreshThemeButton(btn),80);
+      return;
+    }
+
+    /* fallback compatível */
+    const dark=!themeIsDark();
+    document.documentElement.classList.toggle('dark',dark);
+    document.body.classList.toggle('dark-mode',dark);
+    document.documentElement.setAttribute('data-theme',dark?'dark':'light');
+    document.body.setAttribute('data-theme',dark?'dark':'light');
+    try{ localStorage.setItem('theme',dark?'dark':'light'); }catch(e){}
+    refreshThemeButton(btn);
+  }
+
+  function installThemeButton(){
+    const side=getSidebar();
+    if(!side || document.getElementById('v481-theme-toggle')) return;
+
+    const btn=document.createElement('button');
+    btn.id='v481-theme-toggle';
+    btn.type='button';
+    btn.addEventListener('click',()=>toggleThemeCompat(btn));
+    refreshThemeButton(btn);
+
+    /* Preferência: imediatamente abaixo da linha "Sincronizado" */
+    const all=[...side.querySelectorAll('*')];
+    const sync=all.find(el=>{
+      const t=(el.textContent||'').trim().toLowerCase();
+      return t==='sincronizado' || (t.includes('sincronizado') && t.length<35);
+    });
+
+    if(sync){
+      let anchor=sync;
+      /* sobe até um bloco pequeno, sem engolir o menu */
+      while(anchor.parentElement && anchor.parentElement!==side &&
+            anchor.parentElement.textContent.trim().length<80){
+        anchor=anchor.parentElement;
+      }
+      anchor.insertAdjacentElement('afterend',btn);
+    } else {
+      side.insertBefore(btn, side.children[Math.min(2,side.children.length)] || null);
+    }
+  }
+
+  /* Impede que conteúdo de página permaneça dentro da sidebar por acidente */
+  function rescuePageContent(){
+    const side=getSidebar(), main=getMain();
+    if(!side || !main) return;
+    if(side.contains(main)){
+      const wrapper=side.parentElement || document.body;
+      wrapper.insertBefore(main, side.nextSibling);
+    }
+  }
+
+  function run(){
+    rescuePageContent();
+    repairLayout();
+    installThemeButton();
+  }
+
+  document.addEventListener('DOMContentLoaded',run);
+  window.addEventListener('resize',repairLayout);
+  setTimeout(run,100);
+  setTimeout(run,500);
+  setTimeout(run,1200);
+
+  /* SPAs podem reconstruir o menu/conteúdo */
+  const mo=new MutationObserver(()=>{ clearTimeout(window.__v481t); window.__v481t=setTimeout(run,40); });
+  mo.observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>

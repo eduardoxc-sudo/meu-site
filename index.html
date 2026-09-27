@@ -2888,7 +2888,7 @@ body:not(.light-mode) .dash-card-v36{background:#111c2e!important}
             <button id="viewListaV47" onclick="mudarVisaoCicloV47('lista')">☷ Lista</button>
             <button id="viewMesV47" onclick="mudarVisaoCicloV47('mes')">📆 Mês</button>
           </div>
-          <button class="btn btn-outline" onclick="alternarTema()" id="btnTema">☀️ Claro</button>
+          
         </div>
       </header>
 
@@ -7994,5 +7994,136 @@ document.addEventListener('DOMContentLoaded',()=>{
   /* SPAs podem reconstruir o menu/conteúdo */
   const mo=new MutationObserver(()=>{ clearTimeout(window.__v481t); window.__v481t=setTimeout(run,40); });
   mo.observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+
+<!-- V48.2 — PALETA UNIFICADA + TEMA SOMENTE NA SIDEBAR -->
+<style id="v482-theme-system">
+:root{
+  --v482-accent:#6d4aff;
+  --v482-accent2:#3b82f6;
+  --v482-success:#16a36a;
+  --v482-warning:#d99a16;
+  --v482-danger:#e5484d;
+}
+html[data-theme="light"]{
+  --bg:#f5f7fb!important;
+  --surface:#ffffff!important;
+  --surface-2:#f8fafc!important;
+  --card:#ffffff!important;
+  --text:#172033!important;
+  --text-muted:#64748b!important;
+  --border:#dce3ee!important;
+}
+html[data-theme="dark"]{
+  --bg:#0b1220!important;
+  --surface:#111c2e!important;
+  --surface-2:#152238!important;
+  --card:#111c2e!important;
+  --text:#f3f6fb!important;
+  --text-muted:#9fb0c8!important;
+  --border:#263750!important;
+}
+body{background:var(--bg)!important;color:var(--text)!important}
+main,.main-content,#mainContent,.page-content,.content,.workspace{
+  background:var(--bg)!important;color:var(--text)!important;
+}
+.card,.panel,.box,.timer-card,.dash-card-v36,.dash-stats-v36 article,
+.day-column,.lista-dia-v47,.mes-dia-v47,.revisao-card-item,.materia-plan-v40,
+.wizard-v40,.resumo-card-v40,.desafio-v29{
+  background:var(--surface)!important;color:var(--text)!important;border-color:var(--border)!important;
+}
+html[data-theme="light"] .dash-card-v36,
+html[data-theme="light"] .dash-stats-v36 article{
+  box-shadow:0 6px 18px rgba(30,41,59,.06)!important;
+}
+html[data-theme="dark"] .dash-card-v36,
+html[data-theme="dark"] .dash-stats-v36 article{
+  box-shadow:none!important;
+}
+h1,h2,h3,h4,strong,b,label,.day-title-text{color:var(--text)!important}
+p,small,.muted,.text-muted{color:var(--text-muted)!important}
+input,select,textarea{
+  background:var(--surface-2)!important;color:var(--text)!important;border-color:var(--border)!important;
+}
+.btn-primary,.btn-novo-registro-v47{
+  background:linear-gradient(135deg,var(--v482-accent2),var(--v482-accent))!important;
+  color:white!important;border-color:transparent!important;
+}
+#v481-theme-toggle{
+  background:rgba(255,255,255,.14)!important;
+  border:1px solid rgba(255,255,255,.28)!important;
+  color:#fff!important;
+}
+#v481-theme-toggle:hover{background:rgba(255,255,255,.22)!important}
+
+/* O tema antigo nunca aparece no Ciclo nem em outra área principal. */
+#btnTema{display:none!important}
+.controls-top #btnTema,.tab-content #btnTema,main #btnTema{display:none!important}
+
+/* Sidebar mantém identidade roxa nos dois temas. */
+aside,.sidebar,#sidebar,.side-menu,.app-sidebar{
+  background:linear-gradient(180deg,#5b21d6 0%,#7c3aed 52%,#6d28d9 100%)!important;
+  color:#fff!important;
+}
+aside a,.sidebar a,#sidebar a,.side-menu a,.app-sidebar a,
+aside button:not(#v481-theme-toggle),.sidebar button:not(#v481-theme-toggle){
+  color:inherit;
+}
+</style>
+
+<script>
+(function(){
+  function sidebar(){
+    return document.querySelector('#sidebar,.sidebar,aside,.side-menu,.app-sidebar');
+  }
+  function darkNow(){
+    return document.documentElement.getAttribute('data-theme') !== 'light';
+  }
+  function updateThemeButton(){
+    const b=document.getElementById('v481-theme-toggle');
+    if(!b)return;
+    b.innerHTML=darkNow()?'☀️ <span>Modo claro</span>':'🌙 <span>Modo escuro</span>';
+  }
+  function removeOldThemeButtons(){
+    document.querySelectorAll('#btnTema').forEach(b=>b.remove());
+    [...document.querySelectorAll('main button,.main-content button,.tab-content button')].forEach(b=>{
+      const t=(b.textContent||'').trim().toLowerCase();
+      if(t==='☀️ claro'||t==='🌙 escuro'||t==='modo claro'||t==='modo escuro') b.remove();
+    });
+  }
+  function ensureSidebarTheme(){
+    const side=sidebar(); if(!side)return;
+    let b=document.getElementById('v481-theme-toggle');
+    if(!b){
+      b=document.createElement('button');
+      b.id='v481-theme-toggle'; b.type='button';
+      b.onclick=function(){
+        if(typeof alternarTema==='function') alternarTema();
+        else{
+          const next=darkNow()?'light':'dark';
+          document.documentElement.setAttribute('data-theme',next);
+          try{localStorage.setItem('theme',next)}catch(e){}
+        }
+        setTimeout(updateThemeButton,20);
+      };
+    }
+    const nodes=[...side.querySelectorAll('*')];
+    const sync=nodes.find(x=>(x.textContent||'').trim().toLowerCase()==='sincronizado');
+    if(sync){
+      let row=sync;
+      while(row.parentElement && row.parentElement!==side && row.parentElement.textContent.trim().length<80) row=row.parentElement;
+      if(b.previousElementSibling!==row) row.insertAdjacentElement('afterend',b);
+    }else if(!b.isConnected) side.prepend(b);
+    updateThemeButton();
+  }
+  function fix(){
+    removeOldThemeButtons();
+    ensureSidebarTheme();
+  }
+  document.addEventListener('DOMContentLoaded',fix);
+  setTimeout(fix,100); setTimeout(fix,600); setTimeout(fix,1500);
+  new MutationObserver(()=>{clearTimeout(window.__v482);window.__v482=setTimeout(fix,50)})
+    .observe(document.documentElement,{subtree:true,childList:true});
 })();
 </script>

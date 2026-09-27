@@ -1680,10 +1680,18 @@
       color:var(--text-muted);
       font-size:.74rem;
     }
+
+.desafio-v29{max-width:1100px;margin:auto}.desafio-hero-v29{display:flex;justify-content:space-between;gap:15px;padding:18px;border:1px solid var(--border);border-radius:16px;background:linear-gradient(135deg,rgba(14,165,233,.12),rgba(99,102,241,.08));margin-bottom:12px}.desafio-kicker-v29{font-size:.68rem;font-weight:900;color:var(--primary)}.desafio-hero-v29 h2{margin:5px 0}.desafio-hero-v29 p{margin:0;color:var(--text-muted);font-size:.78rem}.desafio-pontos-v29{text-align:center;min-width:135px;padding:10px;border:1px solid var(--border);border-radius:13px;background:var(--bg-card)}.desafio-pontos-v29 small,.desafio-pontos-v29 span{display:block;font-size:.62rem}.desafio-pontos-v29 strong{display:block;font-size:1.55rem;color:var(--primary)}.desafio-toolbar-v29{display:flex;gap:8px;margin:10px 0;flex-wrap:wrap}.desafio-toolbar-v29 select{flex:1}.admin-desafio-v29,.desafio-card-v29{border:1px solid var(--border);border-radius:13px;padding:12px;background:var(--bg-card);margin:10px 0}.admin-desafio-grid-v29{display:grid;grid-template-columns:2fr 2fr 1.2fr auto;gap:7px;margin-top:9px}.desafio-stats-v29{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.desafio-stats-v29>div{border:1px solid var(--border);border-radius:10px;padding:10px}.desafio-stats-v29 span{display:block;font-size:.6rem;color:var(--text-muted)}.desafio-grid-v29{display:grid;grid-template-columns:1.4fr .8fr;gap:10px}.ranking-item-v29{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:8px;padding:10px 5px;border-bottom:1px solid var(--border)}.ranking-rei-v29{background:linear-gradient(90deg,rgba(245,158,11,.15),transparent);border-radius:9px}.ranking-pos-v29{text-align:center;font-weight:900}.ranking-nome-v29{font-size:.8rem;font-weight:800}.ranking-meta-v29{font-size:.6rem;color:var(--text-muted)}.ranking-pontos-v29{font-weight:900;color:var(--primary)}.regras-pontos-v29>div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:.74rem}.desafio-aviso-v29,.desafio-vazio-v29{font-size:.68rem;color:var(--text-muted);padding:10px}.admin-desafio-item-v29{display:flex;gap:6px;align-items:center;padding-top:8px;margin-top:8px;border-top:1px solid var(--border);font-size:.7rem}@media(max-width:760px){.desafio-hero-v29{flex-direction:column}.desafio-stats-v29{grid-template-columns:1fr 1fr}.desafio-grid-v29,.admin-desafio-grid-v29{grid-template-columns:1fr}}
+
+.modal-regras-v30{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-regras-box-v30{width:min(680px,100%);max-height:88vh;overflow:auto;background:var(--bg-card);color:var(--text);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.modal-regras-head-v30{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;border-bottom:1px solid var(--border);padding-bottom:11px;margin-bottom:12px}.modal-regras-head-v30 small{font-size:.62rem;color:var(--primary);font-weight:900}.modal-regras-head-v30 h3{margin:3px 0 0}
+.regra-bloco-v30{padding:11px;border:1px solid var(--border);border-radius:11px;margin:8px 0;background:rgba(56,189,248,.04)}.regra-bloco-v30 h4{margin:0 0 7px;font-size:.82rem}.regra-bloco-v30 p,.regra-bloco-v30 li{font-size:.73rem;line-height:1.55}.regra-pontos-v30{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:.74rem}.regra-pontos-v30 b{color:var(--primary)}
+.regra-custom-v30{white-space:pre-wrap}
 </style>
 </head>
 <body>
-<!-- V28: categorias de Editais com acesso público, usuários autorizados ou senha. -->
+<!-- V30: V29 + botão e janela de Regras do Desafio + regras adicionais do ADM. -->
 
 
   <div id="celebrationOverlay">
@@ -1753,6 +1761,7 @@
         <button class="tab-btn" onclick="trocarAba('aba-questoes', this)">Questões</button>
         <button class="tab-btn" onclick="trocarAba('aba-edital-vert', this)">Edital</button>
         <button class="tab-btn" onclick="trocarAba('aba-progresso', this)">📈 Progresso</button>
+        <button class="tab-btn" onclick="trocarAba('aba-desafio', this); carregarDesafioV29()">🏆 Desafio</button>
         <button id="btnAbaMotivacaoV21" class="tab-btn" style="display:none;" onclick="trocarAba('aba-motivacao-v21', this)">💬 Motivação</button>
         <button class="tab-btn" onclick="trocarAba('aba-planejamento', this)">Planejamento</button>
         <button class="tab-btn" onclick="trocarAba('aba-edital', this)">Edital TXT</button>
@@ -2047,7 +2056,58 @@
         </div>
       </div>
 
-      <div id="aba-planejamento" class="tab-content">
+      
+      <div id="aba-desafio" class="tab-content" style="display:none;">
+        <div class="desafio-v29">
+          <div class="desafio-hero-v29">
+            <div><div class="desafio-kicker-v29">🏆 COMPETIÇÃO DE ESTUDOS</div>
+              <h2 id="desafioTituloV29">Desafio</h2>
+              <p id="desafioDescricaoV29">Escolha um desafio ativo e avance estudando.</p></div>
+            <div class="desafio-pontos-v29"><small>SEUS PONTOS</small><strong id="meusPontosV29">0</strong><span id="minhaPosicaoV29">—</span></div>
+          </div>
+          <div class="desafio-toolbar-v29">
+            <select id="selectDesafioV29" onchange="selecionarDesafioV29(this.value)"><option value="">Selecione um desafio...</option></select>
+            <button class="btn btn-primary" id="btnParticiparDesafioV29" onclick="participarDesafioV29()" style="display:none;">🎮 Participar</button>
+            <button class="btn btn-outline" type="button" onclick="abrirRegrasDesafioV30()">📜 Regras do Desafio</button>
+          </div>
+          <div id="adminDesafioV29" class="admin-desafio-v29" style="display:none;">
+            <b>👑 Administração do Desafio</b>
+            <div class="admin-desafio-grid-v29">
+              <select id="adminEditalDesafioV29"><option value="">Selecione um edital pronto...</option></select>
+              <input id="adminNomeDesafioV29" placeholder="Nome do desafio (opcional)">
+              <input id="adminFimDesafioV29" type="date">
+              <textarea id="adminRegrasDesafioV30" placeholder="Regras adicionais do desafio (opcional)" style="min-height:42px;resize:vertical;"></textarea>
+              <button class="btn btn-primary" onclick="ativarDesafioEditalV29()">🏆 Ativar desafio</button>
+            </div>
+            <div id="adminListaDesafiosV29"></div>
+          </div>
+          <div class="desafio-stats-v29">
+            <div><span>🔥 Sequência</span><strong id="sequenciaV29">0 dias</strong></div>
+            <div><span>✅ Tópicos</span><strong id="topicosDesafioV29">0</strong></div>
+            <div><span>👥 Participantes</span><strong id="participantesV29">0</strong></div>
+            <div><span>⏳ Termina</span><strong id="fimDesafioV29">—</strong></div>
+          </div>
+          <div class="desafio-grid-v29">
+            <section class="desafio-card-v29"><h3>👑 Ranking</h3><div id="rankingDesafioV29"><div class="desafio-vazio-v29">Selecione um desafio.</div></div></section>
+            <section class="desafio-card-v29"><h3>🎯 Pontuação</h3>
+              <div class="regras-pontos-v29"><div>✅ Cartão <b>+10</b></div><div>🔁 1D <b>+5</b></div><div>🔁 7D <b>+10</b></div><div>🔁 15D <b>+15</b></div><div>🔁 30D <b>+20</b></div></div>
+              <div class="desafio-aviso-v29">🛡️ Cada cartão pontua apenas uma vez.</div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <div id="modalRegrasDesafioV30" class="modal-regras-v30" style="display:none;" onclick="if(event.target===this)fecharRegrasDesafioV30()">
+        <div class="modal-regras-box-v30">
+          <div class="modal-regras-head-v30">
+            <div><small>🏆 DESAFIO</small><h3 id="modalRegrasTituloV30">📜 Regras do Desafio</h3></div>
+            <button class="btn btn-outline" type="button" onclick="fecharRegrasDesafioV30()">✕</button>
+          </div>
+          <div id="modalRegrasConteudoV30"></div>
+        </div>
+      </div>
+
+<div id="aba-planejamento" class="tab-content">
         <div class="planejamento-auto planejamento-simples">
           <div class="planejamento-datas">
             <div class="field">
@@ -5781,6 +5841,66 @@
       aplicarPermissoesCategoriasV27();
     }
 
+
+    // ===== V29: Desafio / competição =====
+    let desafioSelecionadoV29='', desafiosCacheV29={};
+    function escV29(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}
+    function adminV29(){return typeof ehAdministradorEduardoV26==='function'&&ehAdministradorEduardoV26()}
+    async function carregarDesafioV29(){
+      const a=document.getElementById('adminDesafioV29');if(a)a.style.display=adminV29()?'block':'none';if(!rtdb)return;
+      const [ds,es]=await Promise.all([rtdb.ref('desafios').once('value'),rtdb.ref('editais_prontos').once('value')]);
+      desafiosCacheV29=ds.val()||{};renderSelectDesafiosV29();renderAdminDesafiosV29(es.val()||{});
+      if(desafioSelecionadoV29&&desafiosCacheV29[desafioSelecionadoV29])selecionarDesafioV29(desafioSelecionadoV29);
+    }
+    function renderSelectDesafiosV29(){const s=document.getElementById('selectDesafioV29');if(!s)return;s.innerHTML='<option value="">Selecione um desafio...</option>'+Object.entries(desafiosCacheV29).filter(([_,d])=>d&&d.ativo!==false).map(([id,d])=>`<option value="${escV29(id)}">${escV29(d.nome||'Desafio')}</option>`).join('');if(desafioSelecionadoV29)s.value=desafioSelecionadoV29}
+    function renderAdminDesafiosV29(editais){if(!adminV29())return;const s=document.getElementById('adminEditalDesafioV29');if(s)s.innerHTML='<option value="">Selecione um edital pronto...</option>'+Object.entries(editais).map(([id,e])=>`<option value="${escV29(id)}">${escV29(e?.titulo||'Edital')}</option>`).join('');const l=document.getElementById('adminListaDesafiosV29');if(l)l.innerHTML=Object.entries(desafiosCacheV29).map(([id,d])=>`<div class="admin-desafio-item-v29"><span style="flex:1">🏆 <b>${escV29(d.nome||'Desafio')}</b> — ${d.ativo===false?'Encerrado':'Ativo'}</span><button class="btn btn-outline" onclick="alternarDesafioV29('${id}',${d.ativo===false})">${d.ativo===false?'▶️ Reabrir':'⏹️ Encerrar'}</button><button class="btn btn-danger" onclick="excluirDesafioV29('${id}')">🗑️</button></div>`).join('')}
+    async function ativarDesafioEditalV29(){if(!adminV29()){alert('Somente Eduardo pode criar desafios.');return}const eid=document.getElementById('adminEditalDesafioV29')?.value||'';if(!eid){alert('Selecione um edital pronto.');return}const es=await rtdb.ref('editais_prontos/'+eid).once('value'),ed=es.val()||{},nome=(document.getElementById('adminNomeDesafioV29')?.value||'').trim()||('Desafio '+(ed.titulo||'Edital')),fim=document.getElementById('adminFimDesafioV29')?.value||'',regrasTexto=(document.getElementById('adminRegrasDesafioV30')?.value||'').trim(),ref=rtdb.ref('desafios').push();await ref.set({nome,editalId:eid,editalTitulo:ed.titulo||'Edital',fim:fim||null,ativo:true,criadoEm:new Date().toISOString(),criadoPor:usuarioAtivo,regrasTexto:regrasTexto,regras:{cartao:10,d1:5,d7:10,d15:15,d30:20}});desafioSelecionadoV29=ref.key;carregarDesafioV29()}
+    async function alternarDesafioV29(id,ativo){if(!adminV29())return;await rtdb.ref('desafios/'+id+'/ativo').set(!!ativo);carregarDesafioV29()}
+    async function excluirDesafioV29(id){if(!adminV29()||!confirm('Excluir este desafio e seu ranking?'))return;await Promise.all([rtdb.ref('desafios/'+id).remove(),rtdb.ref('ranking_desafios/'+id).remove(),rtdb.ref('pontos_desafios/'+id).remove()]);if(desafioSelecionadoV29===id)desafioSelecionadoV29='';carregarDesafioV29()}
+    async function selecionarDesafioV29(id){desafioSelecionadoV29=id||'';if(!id){renderRankingV29({});return}const d=desafiosCacheV29[id];if(!d)return;document.getElementById('desafioTituloV29').textContent=d.nome||'Desafio';document.getElementById('desafioDescricaoV29').textContent='Edital: '+(d.editalTitulo||'—');document.getElementById('fimDesafioV29').textContent=d.fim?new Date(d.fim+'T12:00:00').toLocaleDateString('pt-BR'):'Sem data';const s=await rtdb.ref('ranking_desafios/'+id).once('value'),r=s.val()||{};renderRankingV29(r);const eu=r[String(usuarioAtivo||'').toLowerCase()],b=document.getElementById('btnParticiparDesafioV29');if(b)b.style.display=eu?'none':'inline-flex'}
+    async function participarDesafioV29(){if(!desafioSelecionadoV29){alert('Selecione um desafio.');return}const d=desafiosCacheV29[desafioSelecionadoV29];if(!d||d.ativo===false){alert('Este desafio não está ativo.');return}const u=String(usuarioAtivo||'').trim().toLowerCase();await rtdb.ref('ranking_desafios/'+desafioSelecionadoV29+'/'+u).set({nome:usuarioAtivo,pontos:0,topicos:0,sequencia:0,ultimoEstudo:null,entrouEm:new Date().toISOString()});selecionarDesafioV29(desafioSelecionadoV29)}
+    function renderRankingV29(r){const b=document.getElementById('rankingDesafioV29');if(!b)return;const a=Object.entries(r||{}).map(([id,x])=>({id,...(x||{})})).sort((x,y)=>(+y.pontos||0)-(+x.pontos||0)),uid=String(usuarioAtivo||'').toLowerCase(),mi=a.findIndex(x=>x.id===uid),eu=mi>=0?a[mi]:null;document.getElementById('meusPontosV29').textContent=eu?.pontos||0;document.getElementById('minhaPosicaoV29').textContent=mi>=0?(mi+1)+'º lugar':'Ainda não participa';document.getElementById('sequenciaV29').textContent=(eu?.sequencia||0)+' dias';document.getElementById('topicosDesafioV29').textContent=eu?.topicos||0;document.getElementById('participantesV29').textContent=a.length;b.innerHTML=a.length?a.map((x,i)=>`<div class="ranking-item-v29 ${i===0?'ranking-rei-v29':''}"><div class="ranking-pos-v29">${i===0?'👑🥇':i===1?'🥈':i===2?'🥉':(i+1)+'º'}</div><div><div class="ranking-nome-v29">${escV29(x.nome||x.id)}</div><div class="ranking-meta-v29">🔥 ${x.sequencia||0} dias · ✅ ${x.topicos||0} tópicos</div></div><div class="ranking-pontos-v29">${x.pontos||0} pts</div></div>`).join(''):'<div class="desafio-vazio-v29">Ainda não há participantes.</div>'}
+    function sequenciaV29(r){const h=new Date();h.setHours(0,0,0,0);if(!r?.ultimoEstudo)return 1;const u=new Date(r.ultimoEstudo);u.setHours(0,0,0,0);const d=Math.round((h-u)/86400000);return d===0?(+r.sequencia||1):d===1?(+r.sequencia||0)+1:1}
+    async function pontuarChecklistDesafioV29(chave,tipo='cartao'){if(!rtdb||!usuarioAtivo||!chave)return;const uid=String(usuarioAtivo).trim().toLowerCase();for(const[did,d]of Object.entries(desafiosCacheV29).filter(([_,x])=>x&&x.ativo!==false)){const pr=await rtdb.ref('ranking_desafios/'+did+'/'+uid).once('value');if(!pr.exists())continue;const evref=rtdb.ref('pontos_desafios/'+did+'/'+uid+'/'+String(chave).replace(/[.#$\[\]\/]/g,'_')),ev=await evref.once('value');if(ev.exists())continue;const pts=+(d.regras?.[tipo]??d.regras?.cartao??10),at=pr.val()||{};await evref.set({pontos:pts,tipo,data:new Date().toISOString()});await rtdb.ref('ranking_desafios/'+did+'/'+uid).update({nome:usuarioAtivo,pontos:(+at.pontos||0)+pts,topicos:(+at.topicos||0)+1,sequencia:sequenciaV29(at),ultimoEstudo:new Date().toISOString()})}if(desafioSelecionadoV29)selecionarDesafioV29(desafioSelecionadoV29)}
+
+    // ===== V30: Regras visíveis do Desafio =====
+    function abrirRegrasDesafioV30(){
+      const modal=document.getElementById('modalRegrasDesafioV30');
+      const conteudo=document.getElementById('modalRegrasConteudoV30');
+      const titulo=document.getElementById('modalRegrasTituloV30');
+      if(!modal||!conteudo)return;
+
+      const d=desafioSelecionadoV29 ? desafiosCacheV29[desafioSelecionadoV29] : null;
+      if(titulo) titulo.textContent='📜 '+(d?.nome||'Regras do Desafio');
+      const r=d?.regras||{cartao:10,d1:5,d7:10,d15:15,d30:20};
+      const fim=d?.fim ? new Date(d.fim+'T12:00:00').toLocaleDateString('pt-BR') : 'Sem data definida';
+
+      conteudo.innerHTML=`
+        <div class="regra-bloco-v30"><h4>🎮 Como participar</h4>
+          <p>Selecione um desafio ativo e clique em <b>Participar</b>. Somente desafios criados pelo administrador aparecem aqui.</p></div>
+        <div class="regra-bloco-v30"><h4>🎯 Como ganhar pontos</h4>
+          <div class="regra-pontos-v30">
+            <span>✅ Cartão concluído</span><b>+${Number(r.cartao??10)} pts</b>
+            <span>🔁 Revisão D1</span><b>+${Number(r.d1??5)} pts</b>
+            <span>🔁 Revisão D7</span><b>+${Number(r.d7??10)} pts</b>
+            <span>🔁 Revisão D15</span><b>+${Number(r.d15??15)} pts</b>
+            <span>🔁 Revisão D30</span><b>+${Number(r.d30??20)} pts</b>
+          </div></div>
+        <div class="regra-bloco-v30"><h4>🛡️ Pontuação justa</h4>
+          <p>Cada cartão ou revisão pode gerar pontos somente uma vez no mesmo desafio. Desmarcar e marcar novamente não gera pontos extras.</p></div>
+        <div class="regra-bloco-v30"><h4>👑 Ranking</h4>
+          <p>Os participantes são ordenados pela pontuação. O 1º colocado aparece com a coroa 👑 e a medalha de ouro 🥇.</p></div>
+        <div class="regra-bloco-v30"><h4>🔥 Sequência</h4>
+          <p>A sequência mostra os dias consecutivos em que o participante pontuou estudando no desafio.</p></div>
+        <div class="regra-bloco-v30"><h4>⏳ Duração</h4><p>Término: <b>${escV29(fim)}</b>.</p></div>
+        ${d?.regrasTexto ? `<div class="regra-bloco-v30"><h4>📌 Regras adicionais do administrador</h4><p class="regra-custom-v30">${escV29(d.regrasTexto)}</p></div>` : ''}
+      `;
+      modal.style.display='flex';
+    }
+    function fecharRegrasDesafioV30(){
+      const modal=document.getElementById('modalRegrasDesafioV30');
+      if(modal)modal.style.display='none';
+    }
     // ===== V23: Horas líquidas por matéria dentro de Progresso =====
     function historicoHorasV23() {
       if (typeof estado === 'undefined' || !estado) return [];
@@ -5862,6 +5982,8 @@
     document.addEventListener('DOMContentLoaded', function() {
       setTimeout(renderizarHorasProgressoV23, 300);
     });
+
+    document.addEventListener('change',function(e){const c=e.target;if(!(c instanceof HTMLInputElement)||c.type!=='checkbox'||!c.checked)return;const card=c.closest('[data-topic-id],[data-id],.task-card,.card,.study-card,.cronograma-card'),explicit=c.dataset?.topicId||c.dataset?.id||card?.dataset?.topicId||card?.dataset?.id||'',tx=(card?.innerText||c.closest('label')?.innerText||'').trim().replace(/\s+/g,' ').slice(0,180),dia=card?.dataset?.date||card?.dataset?.dia||'',ch=explicit||(dia+'|'+tx);if(!ch)return;let tipo='cartao',z=tx.toLowerCase();if(/\b30d\b/.test(z))tipo='d30';else if(/\b15d\b/.test(z))tipo='d15';else if(/\b7d\b/.test(z))tipo='d7';else if(/\b1d\b/.test(z))tipo='d1';setTimeout(()=>pontuarChecklistDesafioV29(ch,tipo),100)});
 </script>
 
   <button id="btnReabrirSidebar" class="sidebar-reopen"

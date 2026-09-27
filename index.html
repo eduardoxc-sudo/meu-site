@@ -1688,10 +1688,43 @@
 .modal-regras-head-v30{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;border-bottom:1px solid var(--border);padding-bottom:11px;margin-bottom:12px}.modal-regras-head-v30 small{font-size:.62rem;color:var(--primary);font-weight:900}.modal-regras-head-v30 h3{margin:3px 0 0}
 .regra-bloco-v30{padding:11px;border:1px solid var(--border);border-radius:11px;margin:8px 0;background:rgba(56,189,248,.04)}.regra-bloco-v30 h4{margin:0 0 7px;font-size:.82rem}.regra-bloco-v30 p,.regra-bloco-v30 li{font-size:.73rem;line-height:1.55}.regra-pontos-v30{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:.74rem}.regra-pontos-v30 b{color:var(--primary)}
 .regra-custom-v30{white-space:pre-wrap}
+
+/* ===== V32: modo de conteúdo amplo ===== */
+body.modo-aba-ampla-v32 .main-content,
+body.modo-aba-ampla-v32 main,
+body.modo-aba-ampla-v32 .content-area{
+  width:100%!important;max-width:none!important;
+}
+body.modo-aba-ampla-v32 #cronograma,
+body.modo-aba-ampla-v32 #calendar,
+body.modo-aba-ampla-v32 .calendar-container,
+body.modo-aba-ampla-v32 .cronograma-container{
+  display:none!important;
+}
+body.modo-aba-ampla-v32 .tab-content.active{
+  width:100%!important;max-width:none!important;
+}
+body.modo-aba-ampla-v32 #aba-desafio .desafio-v29{
+  width:100%;max-width:1200px;margin:0 auto;padding:12px 16px 28px;box-sizing:border-box;
+}
+@media(max-width:760px){
+  body.modo-aba-ampla-v32 #aba-desafio .desafio-v29{padding:10px 8px 24px}
+  #aba-desafio .desafio-toolbar-v29{display:grid!important;grid-template-columns:1fr!important}
+  #aba-desafio .desafio-toolbar-v29>*{width:100%!important;min-width:0!important;box-sizing:border-box}
+  #aba-desafio .admin-desafio-grid-v29{display:grid!important;grid-template-columns:1fr!important}
+  #aba-desafio .admin-desafio-grid-v29>*{width:100%!important;min-width:0!important;box-sizing:border-box}
+  #aba-desafio .desafio-stats-v29{display:grid!important;grid-template-columns:1fr 1fr!important}
+  #aba-desafio .desafio-grid-v29{display:grid!important;grid-template-columns:1fr!important}
+  #aba-desafio .desafio-hero-v29{display:flex!important;flex-direction:column!important}
+  #aba-desafio .desafio-pontos-v29{width:100%!important;box-sizing:border-box}
+}
+@media(max-width:420px){
+  #aba-desafio .desafio-stats-v29{grid-template-columns:1fr 1fr!important;gap:7px!important}
+}
 </style>
 </head>
 <body>
-<!-- V31: V30 + correção da exibição da aba Desafio e carregamento automático do painel. -->
+<!-- V32: V31 + abas em área ampla, cronograma oculto fora do Ciclo e Desafio responsivo. -->
 
 
   <div id="celebrationOverlay">
@@ -3180,7 +3213,32 @@
       const regexTopicoNumerado = /^(\d+[\.\-\)]|\d+\.\d+[\.\-\)]|[a-z]\))\s*(.+)/i;
 
       linhas.forEach(linha => {
-        if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSUNTO|TEORIA|TOTAL|ERROS|ACERTOS|1º|2º|3º)/i.test(linha)) return;
+        
+    // ===== V32: Ciclo mostra cronograma; demais abas usam área ampla =====
+    function aplicarModoAbaAmplaV32(idAba){
+      const ciclo = idAba === 'aba-ciclo';
+      document.body.classList.toggle('modo-aba-ampla-v32', !ciclo);
+
+      // Procura os blocos principais do cronograma sem interferir nas abas.
+      const seletores = [
+        '#cronograma','#calendar','.calendar-container','.cronograma-container',
+        '#areaCronograma','#cronogramaContainer','.schedule-container'
+      ];
+      seletores.forEach(sel=>{
+        document.querySelectorAll(sel).forEach(el=>{
+          if(el.closest('.tab-content') && !el.closest('#aba-ciclo')) return;
+          el.style.display = ciclo ? '' : 'none';
+        });
+      });
+
+      // No celular, recolhe a lateral quando uma função for escolhida.
+      if(!ciclo && window.innerWidth<=760){
+        document.body.classList.add('sidebar-collapsed');
+        document.body.classList.add('sidebar-recolhida');
+      }
+    }
+
+if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSUNTO|TEORIA|TOTAL|ERROS|ACERTOS|1º|2º|3º)/i.test(linha)) return;
 
         const matchDisc = linha.match(regexCabecalho);
         if ((matchDisc && !regexTopicoNumerado.test(linha)) || (!regexTopicoNumerado.test(linha) && linha.length < 40 && !linha.includes('.'))) {
@@ -3226,6 +3284,7 @@
 
     // ---------- Navegação por abas ----------
     function trocarAba(idAba, btnEl) {
+      aplicarModoAbaAmplaV32(idAba);
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
       const aba = document.getElementById(idAba);

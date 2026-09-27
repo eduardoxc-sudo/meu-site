@@ -8720,6 +8720,136 @@ body:not(.dark-mode) .login-card input::placeholder{
 })();
 </script>
 
+
+<!-- ===== V60: atualização imediata das setas + modal + login claro ===== -->
+<style id="v60-fixes">
+/* Login claro: força os DOIS campos para o mesmo visual */
+body:not(.dark-mode) #login-screen input,
+body:not(.dark-mode) #loginScreen input,
+body:not(.dark-mode) .login-screen input,
+body:not(.dark-mode) .login-card input,
+body:not(.dark-mode) input[type="text"],
+body:not(.dark-mode) input[type="password"]{
+  background:#f8fafc !important;
+  color:#0f172a !important;
+  border:1px solid #cbd5e1 !important;
+  -webkit-text-fill-color:#0f172a !important;
+  box-shadow:none !important;
+}
+body:not(.dark-mode) input:-webkit-autofill,
+body:not(.dark-mode) input:-webkit-autofill:hover,
+body:not(.dark-mode) input:-webkit-autofill:focus{
+  -webkit-text-fill-color:#0f172a !important;
+  -webkit-box-shadow:0 0 0 1000px #f8fafc inset !important;
+  box-shadow:0 0 0 1000px #f8fafc inset !important;
+}
+
+/* modal de confirmação */
+.v60-hidden{display:none !important}
+</style>
+
+<script id="v60-fixes-js">
+(function(){
+  function renderAtualV60(){
+    /* Atualiza cabeçalho/data e todas as visões sem exigir clique em Semana/Mês */
+    try{ if(typeof atualizarVisualCicloV38==='function') atualizarVisualCicloV38(); }catch(e){}
+    try{ if(typeof renderizarCronograma==='function') renderizarCronograma(); }catch(e){}
+    try{ if(typeof renderSemana==='function') renderSemana(); }catch(e){}
+    try{ if(typeof atualizarCabecalhoSemana==='function') atualizarCabecalhoSemana(); }catch(e){}
+
+    const mes=document.getElementById('mesCicloV47');
+    const lista=document.getElementById('listaCicloV47');
+    const semana=document.getElementById('gradeSemana');
+
+    try{
+      if(mes && getComputedStyle(mes).display!=='none' && typeof renderMesCicloV47==='function')
+        renderMesCicloV47();
+    }catch(e){}
+    try{
+      if(lista && getComputedStyle(lista).display!=='none' && typeof renderListaCicloV47==='function')
+        renderListaCicloV47();
+    }catch(e){}
+    try{
+      if(semana && getComputedStyle(semana).display!=='none' && typeof renderizarCronograma==='function')
+        renderizarCronograma();
+    }catch(e){}
+  }
+
+  /* As setas de navegação passam a atualizar imediatamente a visão atual. */
+  document.addEventListener('click',function(e){
+    const b=e.target.closest('button');
+    if(!b) return;
+    const txt=(b.textContent||'').trim();
+    const oc=b.getAttribute('onclick')||'';
+    const ehSeta = txt==='◀' || txt==='▶' || txt==='‹' || txt==='›' ||
+                   oc.includes('mudarSemana') || oc.includes('navegarSemana');
+    if(!ehSeta) return;
+    setTimeout(renderAtualV60,0);
+    setTimeout(renderAtualV60,60);
+  },false);
+
+  /* Fechamento definitivo do popup "Registro salvo!" */
+  function fecharRegistroV60(){
+    const nodes=[...document.querySelectorAll('body *')];
+    let caixa=null;
+    for(const n of nodes){
+      const t=(n.textContent||'').trim();
+      if(t.includes('Registro salvo!') && t.includes('Fechar')){
+        const r=n.getBoundingClientRect();
+        if(r.width>250 && r.width<700 && r.height>120 && r.height<500){
+          caixa=n; break;
+        }
+      }
+    }
+    if(caixa){
+      let p=caixa;
+      for(let i=0;i<8 && p && p!==document.body;i++,p=p.parentElement){
+        const r=p.getBoundingClientRect();
+        const cs=getComputedStyle(p);
+        if((cs.position==='fixed'||cs.position==='absolute') &&
+           r.width>=innerWidth*.8 && r.height>=innerHeight*.8){
+          p.remove();
+          break;
+        }
+      }
+      if(caixa.isConnected) caixa.remove();
+    }
+    document.body.style.overflow='';
+    document.documentElement.style.overflow='';
+    document.body.classList.remove('modal-open','no-scroll','overflow-hidden');
+    renderAtualV60();
+  }
+
+  document.addEventListener('click',function(e){
+    const a=e.target.closest('button,a,[role="button"],div,span');
+    if(!a || (a.textContent||'').trim()!=='Fechar') return;
+    let p=a, ok=false;
+    for(let i=0;i<7 && p;i++,p=p.parentElement){
+      if((p.textContent||'').includes('Registro salvo!')){ok=true;break}
+    }
+    if(!ok)return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    fecharRegistroV60();
+  },true);
+
+  /* corrige autofill/tema ao mostrar o login */
+  function loginClaroV60(){
+    if(document.body.classList.contains('dark-mode')) return;
+    document.querySelectorAll(
+      '#login-screen input,#loginScreen input,.login-screen input,.login-card input'
+    ).forEach(i=>{
+      i.style.setProperty('background','#f8fafc','important');
+      i.style.setProperty('color','#0f172a','important');
+      i.style.setProperty('-webkit-text-fill-color','#0f172a','important');
+      i.style.setProperty('border','1px solid #cbd5e1','important');
+    });
+  }
+  setInterval(loginClaroV60,500);
+  window.renderAtualV60=renderAtualV60;
+})();
+</script>
+
 </body>
 </html>
 

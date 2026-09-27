@@ -3755,13 +3755,7 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
             atualizarIndicadorPresenca();
             calcularPrevisaoFechamentoEdital();
 
-            avisoV43(
-              'Edital carregado! 📚',
-              `O edital "${dados.titulo}" foi carregado. Agora configure seu Planejamento Inteligente para o sistema montar o ciclo de acordo com sua disponibilidade.`,
-              '✓',
-              'Continuar para Planejamento',
-              "fecharAvisoV43();abrirPlanejamentoV47()"
-            );
+            avisoEditalCarregadoV50(dados.titulo);
           }
         });
       }
@@ -7882,6 +7876,89 @@ window.addEventListener('load',()=>setTimeout(atualizarBotaoTemaV49,120));
 const obsTemaV49=new MutationObserver(atualizarBotaoTemaV49);
 document.addEventListener('DOMContentLoaded',()=>{
   obsTemaV49.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+});
+</script>
+
+
+<style id="v50-edital-modal-fix">
+/* O aviso de edital nunca bloqueia a tela permanentemente. */
+#modalAvisoV43.v50-edital-ok .modal-box,
+.modal-overlay.v50-edital-ok .modal-box{position:relative}
+.v50-close-edital{
+ position:absolute;right:12px;top:9px;border:0;background:transparent;
+ color:var(--text-muted);font-size:1.35rem;cursor:pointer;z-index:4
+}
+</style>
+
+<script id="v50-edital-flow-fix">
+function fecharQualquerAvisoV50(){
+  try{ if(typeof fecharAvisoV43==='function') fecharAvisoV43(); }catch(e){}
+  document.querySelectorAll('.modal-overlay').forEach(m=>{
+    const txt=(m.textContent||'').toLowerCase();
+    if(txt.includes('edital carregado')){
+      m.classList.remove('active','show','open');
+      m.style.display='none';
+      m.setAttribute('aria-hidden','true');
+    }
+  });
+  document.body.style.overflow='';
+  document.documentElement.style.overflow='';
+}
+function irPlanejamentoV50(){
+  fecharQualquerAvisoV50();
+  let btn=[...document.querySelectorAll('.tab-btn')].find(b=>
+    (b.getAttribute('onclick')||'').includes('aba-planejamento') ||
+    (b.textContent||'').toLowerCase().includes('planejamento')
+  );
+  if(btn){
+    btn.click();
+  }else if(typeof trocarAba==='function'){
+    try{trocarAba('aba-planejamento',null)}catch(e){}
+  }else{
+    document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
+    document.getElementById('aba-planejamento')?.classList.add('active');
+  }
+  setTimeout(()=>{
+    try{if(typeof iniciarPlanejamentoV40==='function') iniciarPlanejamentoV40()}catch(e){}
+    window.scrollTo({top:0,behavior:'smooth'});
+  },100);
+}
+function avisoEditalCarregadoV50(titulo){
+  /* Em vez de depender do callback em string do modal antigo,
+     cria o aviso e depois liga o botão diretamente. */
+  if(typeof avisoV43==='function'){
+    avisoV43(
+      'Edital carregado! 📚',
+      'O edital "'+titulo+'" foi carregado. Agora configure seu Planejamento Inteligente para montar o ciclo.',
+      '✓',
+      'Continuar para Planejamento',
+      ''
+    );
+    setTimeout(()=>{
+      const overlays=[...document.querySelectorAll('.modal-overlay')];
+      const modal=overlays.find(m=>(m.textContent||'').includes('Edital carregado'));
+      if(!modal){ irPlanejamentoV50(); return; }
+      modal.classList.add('v50-edital-ok');
+
+      const botoes=[...modal.querySelectorAll('button')];
+      const continuar=botoes.find(b=>(b.textContent||'').toLowerCase().includes('continuar'));
+      if(continuar){
+        continuar.onclick=function(ev){ev.preventDefault();ev.stopPropagation();irPlanejamentoV50();};
+      }
+
+      if(!modal.querySelector('.v50-close-edital')){
+        const x=document.createElement('button');
+        x.className='v50-close-edital'; x.type='button'; x.innerHTML='×';
+        x.title='Fechar'; x.onclick=fecharQualquerAvisoV50;
+        (modal.querySelector('.modal-box')||modal).appendChild(x);
+      }
+    },30);
+  }else{
+    irPlanejamentoV50();
+  }
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') fecharQualquerAvisoV50();
 });
 </script>
 

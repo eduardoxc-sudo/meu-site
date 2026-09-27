@@ -9458,349 +9458,114 @@ html[data-theme="light"] .login-card input{
 
 
 <!-- ===== V62: NOVO REGISTRO + MATÉRIAS/REVISÕES + EXCLUSÃO DE QUESTÕES ===== -->
-<style id="v62-registro-questoes">
-.v62-info-registro{
-  margin:10px 0 14px;padding:11px 12px;border:1px solid var(--border,#334155);
-  border-radius:10px;background:var(--surface-2,#152238);font-size:12px;
-}
-.v62-info-registro b{display:block;margin-bottom:5px}
-.v62-revisoes-lista{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
-.v62-chip{padding:3px 7px;border-radius:999px;border:1px solid #38bdf8;color:#38bdf8;font-size:11px}
-.v62-delete-q{
-  border:1px solid #ef4444!important;color:#ef4444!important;background:transparent!important;
-  border-radius:7px!important;padding:5px 8px!important;cursor:pointer!important
-}
-</style>
 
-<script id="v62-registro-questoes-js">
-(function(){
-  function materiasV62(){
-    const set=new Set();
-    try{
-      if(window.estado){
-        const fontes=[estado.disciplinas,estado.materias,estado.edital?.disciplinas];
-        fontes.forEach(f=>{
-          if(Array.isArray(f)) f.forEach(x=>set.add(typeof x==='string'?x:(x.nome||x.materia||'')));
-          else if(f && typeof f==='object') Object.keys(f).forEach(k=>set.add(k));
-        });
-      }
-    }catch(e){}
-    document.querySelectorAll('select').forEach(s=>{
-      if(/disciplina|mat[eé]ria/i.test((s.previousElementSibling?.textContent||'')+' '+s.id+' '+s.name)){
-        [...s.options].forEach(o=>{if(o.value) set.add(o.textContent.trim())});
-      }
-    });
-    return [...set].filter(Boolean);
-  }
 
-  function revisoesV62(){
-    const r=[];
-    try{
-      const cfg=window.estado?.configRevisoes || window.estado?.revisoesConfig ||
-                window.estado?.planejamento?.revisoes || [1,7,15,30];
-      if(Array.isArray(cfg)) cfg.forEach(x=>{
-        const n=typeof x==='object'?(x.dias||x.dia||x.valor):x;
-        if(n!==undefined) r.push(String(n).toUpperCase().startsWith('D')?String(n):'D'+n);
-      });
-    }catch(e){}
-    return r.length?[...new Set(r)]:['D1','D7','D15','D30'];
-  }
 
-  function melhorarNovoRegistroV62(){
-    const all=[...document.querySelectorAll('body *')];
-    const titulo=all.find(x=>(x.textContent||'').trim()==='Registrar estudo');
-    if(!titulo) return;
-    let modal=titulo;
-    for(let i=0;i<6 && modal.parentElement;i++){
-      if(modal.querySelector?.('select') && modal.querySelector?.('input')) break;
-      modal=modal.parentElement;
-    }
-    if(!modal || modal.querySelector('.v62-info-registro')) return;
-
-    const sel=[...modal.querySelectorAll('select')].find(s=>/disciplina|mat[eé]ria/i.test(
-      (s.previousElementSibling?.textContent||'')+' '+s.id+' '+s.name
-    )) || modal.querySelector('select');
-
-    if(sel){
-      const atual=sel.value;
-      const existentes=new Set([...sel.options].map(o=>o.value));
-      materiasV62().forEach(m=>{
-        if(!existentes.has(m)){ const o=document.createElement('option');o.value=m;o.textContent=m;sel.appendChild(o); }
-      });
-      if(atual) sel.value=atual;
-    }
-
-    const box=document.createElement('div');
-    box.className='v62-info-registro';
-    box.innerHTML='<b>📚 Matéria e revisões</b>'+
-      '<span>A matéria selecionada acima será usada neste registro.</span>'+
-      '<div class="v62-revisoes-lista">'+
-      revisoesV62().map(x=>'<span class="v62-chip">🔄 '+x+'</span>').join('')+
-      '</div>';
-    const salvar=[...modal.querySelectorAll('button')].find(b=>/salvar registro/i.test(b.textContent||''));
-    if(salvar) salvar.parentElement.insertBefore(box,salvar);
-    else modal.appendChild(box);
-  }
-
-  /* Exclusão robusta para questões registradas pelo próprio sistema. */
-  function instalarExcluirQuestoesV62(){
-    const candidatos=[...document.querySelectorAll('main *')];
-    candidatos.forEach(card=>{
-      const t=(card.textContent||'').trim();
-      if(!t || !(/acertos/i.test(t)&&(/erros/i.test(t)||/\d+%/.test(t)))) return;
-      const r=card.getBoundingClientRect();
-      if(r.height<35 || r.height>220 || r.width<250) return;
-      if(card.querySelector('.v62-delete-q')) return;
-
-      /* Evita colocar vários botões em ancestrais do mesmo registro. */
-      if([...card.children].some(c=>(c.textContent||'').includes('🗑'))) return;
-
-      const btn=document.createElement('button');
-      btn.className='v62-delete-q';
-      btn.type='button'; btn.title='Excluir este registro de questões'; btn.textContent='🗑 Excluir';
-      btn.addEventListener('click',function(e){
-        e.preventDefault();e.stopPropagation();
-        if(!confirm('Excluir este registro de questões?')) return;
-
-        /* Primeiro tenta o botão/lixeira oficial, quando existir. */
-        const oficial=[...card.querySelectorAll('button')].find(b=>b!==btn &&
-          (/🗑|excluir|apagar/i.test((b.textContent||'')+' '+(b.title||'')+' '+(b.getAttribute('aria-label')||''))));
-        if(oficial){ oficial.click(); return; }
-
-        /* Fallback visual + procura funções oficiais conhecidas através do onclick do card. */
-        card.remove();
-        try{
-          if(typeof salvarEstado==='function') salvarEstado();
-          if(typeof atualizarDashboard==='function') atualizarDashboard();
-        }catch(err){}
-      });
-      card.appendChild(btn);
-    });
-  }
-
-  const obs=new MutationObserver(()=>{melhorarNovoRegistroV62();instalarExcluirQuestoesV62()});
-  obs.observe(document.body,{childList:true,subtree:true});
-  document.addEventListener('click',()=>setTimeout(()=>{melhorarNovoRegistroV62();instalarExcluirQuestoesV62()},80));
-  setTimeout(()=>{melhorarNovoRegistroV62();instalarExcluirQuestoesV62()},500);
-})();
-</script>
 
 
 <!-- ===== V63: EXCLUSÃO REAL/PERSISTENTE DO HISTÓRICO DE QUESTÕES ===== -->
-<script id="v63-delete-questions-persistent">
-(function(){
-  function norm(s){return String(s||'').trim().toLowerCase()}
-  function dadosCard(card){
-    const t=(card.innerText||card.textContent||'').trim();
-    const linhas=t.split(/\n+/).map(x=>x.trim()).filter(Boolean);
-    const materia=linhas.find(x=>!/uso da vírgula|^\d|excluir|🗑/i.test(x))||'';
-    const assunto=linhas.find(x=>/uso da vírgula/i.test(x))||'';
-    const dm=t.match(/(\d{2}\/\d{2}\/\d{4})/);
-    const nums=[...t.matchAll(/(?:✅|✔️?)\s*(\d+)|(?:❌|✖️?)\s*(\d+)/g)]
-      .map(m=>Number(m[1]||m[2]));
-    return {materia,assunto,data:dm?dm[1]:'',nums,texto:t};
-  }
-  function combina(obj,d){
-    if(!obj||typeof obj!=='object')return false;
-    const blob=norm(JSON.stringify(obj));
-    let pontos=0;
-    if(d.materia && blob.includes(norm(d.materia))) pontos++;
-    if(d.assunto && blob.includes(norm(d.assunto))) pontos++;
-    if(d.data && (blob.includes(d.data)||blob.includes(d.data.split('/').reverse().join('-')))) pontos++;
-    d.nums.forEach(n=>{if(blob.includes(String(n))) pontos+=.2});
-    return pontos>=2 || (d.materia&&d.assunto&&blob.includes(norm(d.materia))&&blob.includes(norm(d.assunto)));
-  }
-  function removerRec(obj,d,depth=0){
-    if(depth>8||!obj)return 0;
-    let n=0;
-    if(Array.isArray(obj)){
-      for(let i=obj.length-1;i>=0;i--){
-        if(combina(obj[i],d)){obj.splice(i,1);n++}
-        else if(obj[i]&&typeof obj[i]==='object') n+=removerRec(obj[i],d,depth+1);
-      }
-    }else if(typeof obj==='object'){
-      for(const k of Object.keys(obj)){
-        const v=obj[k];
-        if(v&&typeof v==='object') n+=removerRec(v,d,depth+1);
-      }
-    }
-    return n;
-  }
-  function persistir(){
-    ['salvarEstado','salvarDados','saveData','salvarLocal','persistirEstado'].forEach(fn=>{
-      try{if(typeof window[fn]==='function')window[fn]()}catch(e){}
-    });
-    try{
-      /* Atualiza chaves existentes do localStorage que armazenam o estado. */
-      for(let i=0;i<localStorage.length;i++){
-        const k=localStorage.key(i);
-        const raw=localStorage.getItem(k);
-        if(!raw||raw[0]!=='{')continue;
-        try{
-          const o=JSON.parse(raw);
-          if(o && (o.questoes||o.historicoQuestoes||o.registrosQuestoes||o.estado)){
-            /* só substitui quando a referência principal for reconhecível */
-            if(window.estado && (o.estado||o.questoes||o.historicoQuestoes)){
-              if(o.estado) o.estado=window.estado;
-              else {
-                if(window.estado.questoes!==undefined)o.questoes=window.estado.questoes;
-                if(window.estado.historicoQuestoes!==undefined)o.historicoQuestoes=window.estado.historicoQuestoes;
-                if(window.estado.registrosQuestoes!==undefined)o.registrosQuestoes=window.estado.registrosQuestoes;
-              }
-              localStorage.setItem(k,JSON.stringify(o));
-            }
-          }
-        }catch(e){}
-      }
-    }catch(e){}
-  }
-  function excluir(card){
-    const d=dadosCard(card);
-    if(!confirm('Excluir definitivamente este registro de questões?\n\n'+
-      (d.materia||'Registro')+(d.assunto?'\n'+d.assunto:'')+(d.data?'\n'+d.data:''))) return;
 
-    let removidos=0;
-    try{
-      if(window.estado) removidos+=removerRec(window.estado,d);
-      ['questoes','historicoQuestoes','registrosQuestoes','historicoDeQuestoes'].forEach(k=>{
-        if(window[k] && window[k]!==window.estado) removidos+=removerRec(window[k],d);
-      });
-    }catch(e){}
-
-    persistir();
-    card.remove();
-
-    /* força a própria tela a ser redesenhada a partir dos dados já alterados */
-    ['renderQuestoes','renderizarQuestoes','atualizarQuestoes','renderHistoricoQuestoes',
-     'atualizarHistoricoQuestoes','atualizarDashboard'].forEach(fn=>{
-      try{if(typeof window[fn]==='function')window[fn]()}catch(e){}
-    });
-
-    if(!removidos){
-      alert('O item saiu da tela, mas não encontrei o registro correspondente nos dados salvos. Se ele voltar ao recarregar, preciso ajustar a estrutura específica do histórico.');
-    }
-  }
-
-  document.addEventListener('click',function(e){
-    const lixeira=e.target.closest('button,[role="button"]');
-    if(!lixeira)return;
-    const s=(lixeira.textContent||'')+' '+(lixeira.title||'')+' '+(lixeira.getAttribute('aria-label')||'');
-    if(!/🗑|excluir|apagar/i.test(s))return;
-
-    /* só intercepta lixeiras dentro de um registro do histórico de questões */
-    let card=lixeira.parentElement;
-    for(let i=0;i<5&&card;i++,card=card.parentElement){
-      const t=card.innerText||'';
-      if(/\d{2}\/\d{2}\/\d{4}/.test(t) && (/[✅✔].*\d/.test(t)||/[❌✖].*\d/.test(t))){
-        e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
-        excluir(card); return;
-      }
-    }
-  },true);
-})();
-</script>
 
 
 <!-- ===== V64: REVISÕES + EXCLUSÃO + RECRIAR SEMANA ===== -->
-<style id="v64-fixes">
-/* Esconde apenas botões "Excluir" injetados soltos; mantém lixeiras dos registros */
-.v62-delete-q { display:none!important; }
-#v64-recriar-semana{
-  width:100%; margin-top:10px; padding:11px 14px; border:0; border-radius:9px;
-  font-weight:700; cursor:pointer; color:#fff;
-  background:linear-gradient(90deg,#2f80ed,#6947ff);
-}
-.v64-revisoes-auto{
-  margin:10px 0;padding:12px 14px;border:1px solid #2b3d57;border-radius:10px;
-  background:var(--surface,#111c2e);
-}
-.v64-revisoes-auto small{display:block;color:#9fb0c8;margin-bottom:3px}
-.v64-revisoes-auto strong{color:var(--text,#f3f6fb)}
+
+
+<!-- ===== V65: correção estrutural ===== -->
+<style id="v65-fixes">
+#btnRegenerarSemanaV65{margin-left:6px}
+.mes-cont-v65{margin-top:8px;display:flex;flex-direction:column;gap:5px}
+.mes-item-v65{font-size:11px;line-height:1.25;padding:5px 6px;border-radius:7px;background:rgba(56,189,248,.08);border-left:3px solid #38bdf8}
+.mes-item-v65.rev{background:rgba(139,92,246,.10);border-left-color:#8b5cf6}
+.mes-item-v65.feito{opacity:.58;text-decoration:line-through}
 </style>
-
-<script id="v64-fixes-js">
+<script id="v65-fixes-js">
 (function(){
-  const REV = [
-    {d:'D1',m:15},{d:'D7',m:20},{d:'D15',m:25},{d:'D30',m:30}
-  ];
-
-  function mostrarRevisoes(){
-    const titulo=[...document.querySelectorAll('body *')]
-      .find(x=>(x.textContent||'').trim()==='Registrar estudo');
-    if(!titulo) return;
-    let modal=titulo;
-    for(let i=0;i<7&&modal.parentElement;i++){
-      if(modal.querySelector?.('button') &&
-         [...modal.querySelectorAll('button')].some(b=>/salvar registro/i.test(b.textContent||''))) break;
-      modal=modal.parentElement;
-    }
-    if(!modal || modal.querySelector('.v64-revisoes-auto')) return;
-
-    /* remove bloco de chips da V62 para não duplicar */
-    modal.querySelectorAll('.v62-info-registro').forEach(x=>x.remove());
-
-    const box=document.createElement('div');
-    box.className='v64-revisoes-auto';
-    box.innerHTML='<small>Revisões automáticas</small><strong>'+
-      REV.map(r=>r.d+' • '+r.m+' min').join(' | ')+'</strong>';
-    const salvar=[...modal.querySelectorAll('button')].find(b=>/salvar registro/i.test(b.textContent||''));
-    if(salvar) salvar.before(box);
+  function garantirIdsQuestoesV65(){
+    if(!window.estado)return;
+    estado.historicoQuestoes=Array.isArray(estado.historicoQuestoes)?estado.historicoQuestoes:[];
+    let mudou=false;
+    estado.historicoQuestoes.forEach((q,i)=>{
+      if(!q.id){q.id='qz_'+Date.now().toString(36)+'_'+i+'_'+Math.random().toString(36).slice(2,7);mudou=true}
+    });
+    if(mudou && typeof salvarEstado==='function') salvarEstado();
   }
 
-  /* Procura e aciona a rotina REAL já existente de regeneração/recriação da semana. */
-  function acionarRecriarSemana(){
-    const candidatos=[
-      'regenerarSemana','recriarSemana','gerarSemana','regenerarEstaSemana',
-      'gerarCronogramaSemana','montarSemana','reorganizarSemana'
-    ];
-    for(const n of candidatos){
-      if(typeof window[n]==='function'){
-        if(confirm('Recriar a semana atual usando o planejamento configurado?')) {
-          window[n]();
-          setTimeout(()=>location.reload(),150);
-        }
-        return;
+  /* Exclusão real: usa exclusivamente o id do registro salvo. */
+  window.excluirRegistroQuestao=function(id){
+    garantirIdsQuestoesV65();
+    const q=(estado.historicoQuestoes||[]).find(x=>x.id===id);
+    if(!q)return;
+    if(!confirm('Excluir este registro de questões?\\n\\n'+q.materia+(q.assunto?'\\n'+q.assunto:'')))return;
+    estado.historicoQuestoes=(estado.historicoQuestoes||[]).filter(x=>x.id!==id);
+    if(typeof salvarEstado==='function') salvarEstado();
+    if(typeof atualizarVisualizacaoQuestoes==='function') atualizarVisualizacaoQuestoes();
+    if(typeof renderizarProgressoV20==='function') renderizarProgressoV20();
+    if(typeof atualizarDashboardV36==='function') atualizarDashboardV36();
+  };
+
+  /* Corrige também registros criados pelo modal Novo Registro: passam a nascer com ID. */
+  const salvarNovoOriginal=window.salvarNovoRegistroV47;
+  if(typeof salvarNovoOriginal==='function'){
+    window.salvarNovoRegistroV47=function(){
+      const antes=(estado.historicoQuestoes||[]).length;
+      salvarNovoOriginal.apply(this,arguments);
+      const arr=estado.historicoQuestoes||[];
+      for(let i=antes;i<arr.length;i++){
+        if(!arr[i].id)arr[i].id='qz_'+Date.now().toString(36)+'_'+i+'_'+Math.random().toString(36).slice(2,7);
       }
+      if(typeof salvarEstado==='function')salvarEstado();
+    };
+  }
+
+  function botaoRegenerarV65(){
+    if(document.getElementById('btnRegenerarSemanaV65'))return;
+    const aba=document.getElementById('aba-ciclo')||document.getElementById('aba-meu-plano');
+    if(!aba || getComputedStyle(aba).display==='none')return;
+    const ref=[...aba.querySelectorAll('button')].find(b=>/novo registro/i.test(b.textContent||'')) ||
+              [...aba.querySelectorAll('button')].find(b=>/semana/i.test(b.textContent||''));
+    if(!ref)return;
+    const b=document.createElement('button');
+    b.id='btnRegenerarSemanaV65'; b.className='btn btn-primary';
+    b.textContent='⚡ Regenerar Esta Semana';
+    b.onclick=()=>{ if(confirm('Regenerar a semana atual? As marcações concluídas serão preservadas.')) gerarCronogramaSemanaAtual(true,true); };
+    ref.insertAdjacentElement('afterend',b);
+  }
+
+  /* Mês útil: mostra matéria/tópico/revisão em vez de apenas "2 atividades". */
+  window.renderizarMesV47=function(){
+    const el=document.getElementById('gradeMesV47')||document.querySelector('.grade-mes-v47');
+    if(!el)return;
+    const base=(typeof dataReferenciaCicloV47!=='undefined'&&dataReferenciaCicloV47)?new Date(dataReferenciaCicloV47):new Date();
+    const ano=base.getFullYear(), mes=base.getMonth(), primeiro=new Date(ano,mes,1), ultimo=new Date(ano,mes+1,0);
+    const nomes=['domingo','segunda','terca','quarta','quinta','sexta','sabado'];
+    let html='';
+    for(let i=0;i<primeiro.getDay();i++)html+='<div></div>';
+    for(let d=1;d<=ultimo.getDate();d++){
+      const dt=new Date(ano,mes,d), chaveData=(typeof formatarDataChave==='function'?formatarDataChave(dt):'');
+      const segunda=new Date(dt); const dow=segunda.getDay(); segunda.setDate(segunda.getDate()-(dow===0?6:dow-1));
+      const chaveSemana='semana_'+(typeof formatarDataChave==='function'?formatarDataChave(segunda):'');
+      const nome=nomes[dt.getDay()];
+      const slots=(estado.semanas?.[chaveSemana]?.[nome]||estado.semanas?.[chaveSemana]?.[nome.normalize("NFD").replace(/[\\u0300-\\u036f]/g,"")]||[]);
+      let itens=slots.map(s=>{
+        const rev=!!(s.revisaoId||s.tipo==='revisao'||/revis/i.test(s.tipo||''));
+        const materia=s.materia||s.disciplina||'Estudo';
+        const top=s.topicoTitulo||s.topico||s.titulo||'';
+        return '<div class="mes-item-v65 '+(rev?'rev ':'')+(s.feito?'feito':'')+'">'+
+          (rev?'🔄 ':'📘 ')+'<b>'+materia+'</b>'+(top?'<br>'+top:'')+'</div>';
+      }).join('');
+      if(!itens)itens='<span style="color:var(--text-muted);font-size:11px">—</span>';
+      html+='<div class="mes-dia-v47 '+(chaveData===formatarDataChave(new Date())?'hoje':'')+'"><div class="mes-num-v47">'+d+'</div><div class="mes-cont-v65">'+itens+'</div></div>';
     }
-    /* procura botão antigo oculto */
-    const antigo=[...document.querySelectorAll('button')].find(b=>
-      b.id!=='v64-recriar-semana' && /recriar.*semana|regenerar.*semana/i.test(b.textContent||''));
-    if(antigo){ antigo.click(); return; }
-    alert('A rotina de recriar semana não foi encontrada nesta tela. Abra Meu Plano e tente novamente.');
-  }
-
-  function recolocarBotaoSemana(){
-    if(document.getElementById('v64-recriar-semana')) return;
-    const bodytxt=document.body.innerText||'';
-    if(!/Meu Plano|Cronograma/i.test(bodytxt)) return;
-
-    const ancora=[...document.querySelectorAll('button')].find(b=>
-      /limpar checkbox|desmarcar|resetar edital/i.test(b.textContent||''));
-    if(!ancora) return;
-
-    const btn=document.createElement('button');
-    btn.id='v64-recriar-semana';
-    btn.type='button';
-    btn.textContent='⚡ Recriar Esta Semana';
-    btn.onclick=acionarRecriarSemana;
-    ancora.insertAdjacentElement('beforebegin',btn);
-  }
-
-  /* Remove o registro de questões usando a lixeira ORIGINAL do item.
-     A V63 continua cuidando da persistência; aqui evitamos o botão Excluir solto. */
-  function limparExcluirSolto(){
-    document.querySelectorAll('.v62-delete-q').forEach(b=>b.remove());
-  }
+    el.innerHTML=html;
+  };
 
   function run(){
-    mostrarRevisoes();
-    recolocarBotaoSemana();
-    limparExcluirSolto();
+    garantirIdsQuestoesV65();
+    botaoRegenerarV65();
   }
-  new MutationObserver(()=>setTimeout(run,0)).observe(document.body,{childList:true,subtree:true});
-  document.addEventListener('click',()=>setTimeout(run,60),true);
-  window.addEventListener('load',run);
-  setTimeout(run,300);
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(run,400));
+  document.addEventListener('click',()=>setTimeout(run,80));
+  setTimeout(run,700);
 })();
 </script>
 

@@ -1690,25 +1690,25 @@
 .regra-custom-v30{white-space:pre-wrap}
 
 /* ===== V32: modo de conteúdo amplo ===== */
-body.modo-aba-ampla-v32 .main-content,
-body.modo-aba-ampla-v32 main,
-body.modo-aba-ampla-v32 .content-area{
+body.modo-aba-ampla-v32-desativado .main-content,
+body.modo-aba-ampla-v32-desativado main,
+body.modo-aba-ampla-v32-desativado .content-area{
   width:100%!important;max-width:none!important;
 }
-body.modo-aba-ampla-v32 #cronograma,
-body.modo-aba-ampla-v32 #calendar,
-body.modo-aba-ampla-v32 .calendar-container,
-body.modo-aba-ampla-v32 .cronograma-container{
+body.modo-aba-ampla-v32-desativado #cronograma,
+body.modo-aba-ampla-v32-desativado #calendar,
+body.modo-aba-ampla-v32-desativado .calendar-container,
+body.modo-aba-ampla-v32-desativado .cronograma-container{
   display:none!important;
 }
-body.modo-aba-ampla-v32 .tab-content.active{
+body.modo-aba-ampla-v32-desativado .tab-content.active{
   width:100%!important;max-width:none!important;
 }
-body.modo-aba-ampla-v32 #aba-desafio .desafio-v29{
+body.modo-aba-ampla-v32-desativado #aba-desafio .desafio-v29{
   width:100%;max-width:1200px;margin:0 auto;padding:12px 16px 28px;box-sizing:border-box;
 }
 @media(max-width:760px){
-  body.modo-aba-ampla-v32 #aba-desafio .desafio-v29{padding:10px 8px 24px}
+  body.modo-aba-ampla-v32-desativado #aba-desafio .desafio-v29{padding:10px 8px 24px}
   #aba-desafio .desafio-toolbar-v29{display:grid!important;grid-template-columns:1fr!important}
   #aba-desafio .desafio-toolbar-v29>*{width:100%!important;min-width:0!important;box-sizing:border-box}
   #aba-desafio .admin-desafio-grid-v29{display:grid!important;grid-template-columns:1fr!important}
@@ -1724,7 +1724,7 @@ body.modo-aba-ampla-v32 #aba-desafio .desafio-v29{
 </style>
 </head>
 <body>
-<!-- V32: V31 + abas em área ampla, cronograma oculto fora do Ciclo e Desafio responsivo. -->
+<!-- V33: abas destravadas; modo amplo V32 desativado com segurança; responsividade do Desafio preservada. -->
 
 
   <div id="celebrationOverlay">
@@ -3284,7 +3284,6 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
 
     // ---------- Navegação por abas ----------
     function trocarAba(idAba, btnEl) {
-      aplicarModoAbaAmplaV32(idAba);
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
       const aba = document.getElementById(idAba);

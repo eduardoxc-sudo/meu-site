@@ -1722,45 +1722,50 @@ body.modo-aba-ampla-v32-desativado #aba-desafio .desafio-v29{
   #aba-desafio .desafio-stats-v29{grid-template-columns:1fr 1fr!important;gap:7px!important}
 }
 
-/* ===== V34: cada aba abre sozinha, sem alterar trocarAba() ===== */
-/* Quando uma aba funcional estiver ativa, o painel do Ciclo/cronograma não ocupa a tela. */
-body.v34-aba-exclusiva .workspace > .calendar-panel,
-body.v34-aba-exclusiva .workspace > .cronograma-panel,
-body.v34-aba-exclusiva .workspace > #calendarPanel,
-body.v34-aba-exclusiva .workspace > #cronogramaPanel {
+/* ===== V35: aba selecionada ocupa a tela principal ===== */
+main.v35-modo-aba > .main-header,
+main.v35-modo-aba > #cardPrevisaoTerminoEdital,
+main.v35-modo-aba > #gradeSemana{
   display:none !important;
 }
-
-/* A área da aba escolhida aproveita toda a largura disponível. */
-body.v34-aba-exclusiva .tab-content.active {
-  width:100% !important;
-  max-width:none !important;
+#v35AreaAba{
+  display:none;
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+  padding:18px;
+}
+main.v35-modo-aba #v35AreaAba{
+  display:block;
+}
+#v35AreaAba > .tab-content{
+  display:none;
+  width:100%;
+  max-width:1200px;
+  margin:0 auto;
   box-sizing:border-box;
 }
-
-/* Desafio continua responsivo. */
-body.v34-aba-exclusiva #aba-desafio.active .desafio-v29 {
-  width:100% !important;
-  max-width:1200px !important;
-  margin:0 auto !important;
+#v35AreaAba > .tab-content.active{
+  display:block;
+}
+#v35AreaAba #aba-desafio .desafio-v29{
+  width:100%;
+  max-width:1200px;
+  margin:0 auto;
   box-sizing:border-box;
 }
-
 @media(max-width:760px){
-  body.v34-aba-exclusiva .tab-content.active{
-    padding-left:8px !important;
-    padding-right:8px !important;
-  }
-  body.v34-aba-exclusiva #aba-desafio .desafio-v29{
-    width:100% !important;
-    max-width:none !important;
-    padding:8px !important;
-  }
+  #v35AreaAba{padding:10px 8px 24px}
+  #v35AreaAba > .tab-content.active{max-width:none}
+  #v35AreaAba #aba-desafio .desafio-v29{padding:0}
+  #v35AreaAba #aba-desafio .admin-desafio-grid-v29{grid-template-columns:1fr!important}
+  #v35AreaAba #aba-desafio .admin-desafio-grid-v29>*{width:100%!important;min-width:0!important}
+  #v35AreaAba #aba-desafio .desafio-grid-v29{grid-template-columns:1fr!important}
 }
 </style>
 </head>
 <body>
-<!-- V34: V33 estável + visual exclusivo por aba sem modificar a navegação original. -->
+<!-- V35: V33 estável + aba selecionada movida para a tela principal; Ciclo mantém o cronograma. -->
 
 
   <div id="celebrationOverlay">
@@ -2303,6 +2308,7 @@ body.v34-aba-exclusiva #aba-desafio.active .desafio-v29 {
       </div>
 
       <section class="week-grid" id="gradeSemana"></section>
+      <section id="v35AreaAba" aria-live="polite"></section>
     </main>
   </div>
 
@@ -6080,23 +6086,53 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
 
     document.addEventListener('change',function(e){const c=e.target;if(!(c instanceof HTMLInputElement)||c.type!=='checkbox'||!c.checked)return;const card=c.closest('[data-topic-id],[data-id],.task-card,.card,.study-card,.cronograma-card'),explicit=c.dataset?.topicId||c.dataset?.id||card?.dataset?.topicId||card?.dataset?.id||'',tx=(card?.innerText||c.closest('label')?.innerText||'').trim().replace(/\s+/g,' ').slice(0,180),dia=card?.dataset?.date||card?.dataset?.dia||'',ch=explicit||(dia+'|'+tx);if(!ch)return;let tipo='cartao',z=tx.toLowerCase();if(/\b30d\b/.test(z))tipo='d30';else if(/\b15d\b/.test(z))tipo='d15';else if(/\b7d\b/.test(z))tipo='d7';else if(/\b1d\b/.test(z))tipo='d1';setTimeout(()=>pontuarChecklistDesafioV29(ch,tipo),100)});
 
-    // ===== V34: modo exclusivo aplicado depois da navegacao original =====
-    function aplicarAbaExclusivaV34(idAba){
-      // Ciclo é a única tela que mantém o cronograma.
-      document.body.classList.toggle('v34-aba-exclusiva', idAba !== 'aba-ciclo');
+    // ===== V35: mover visualmente a aba escolhida para a tela principal =====
+    let abaMovidaV35 = null;
+    let marcadorAbaV35 = null;
+
+    function restaurarAbaMovidaV35(){
+      if(abaMovidaV35 && marcadorAbaV35 && marcadorAbaV35.parentNode){
+        marcadorAbaV35.parentNode.insertBefore(abaMovidaV35, marcadorAbaV35);
+        marcadorAbaV35.remove();
+      }
+      abaMovidaV35 = null;
+      marcadorAbaV35 = null;
+      const main = document.querySelector('#app-container > main');
+      if(main) main.classList.remove('v35-modo-aba');
+      const area = document.getElementById('v35AreaAba');
+      if(area) area.innerHTML = '';
     }
 
+    function mostrarAbaNaTelaPrincipalV35(idAba){
+      // Sempre devolve a aba anterior ao lugar original primeiro.
+      restaurarAbaMovidaV35();
+
+      // Ciclo continua usando o cronograma normal.
+      if(idAba === 'aba-ciclo') return;
+
+      const aba = document.getElementById(idAba);
+      const area = document.getElementById('v35AreaAba');
+      const main = document.querySelector('#app-container > main');
+      if(!aba || !area || !main) return;
+
+      // Marca exatamente onde a aba estava para poder devolvê-la sem quebrar o menu.
+      marcadorAbaV35 = document.createComment('v35-posicao-'+idAba);
+      aba.parentNode.insertBefore(marcadorAbaV35, aba);
+      abaMovidaV35 = aba;
+
+      area.appendChild(aba);
+      main.classList.add('v35-modo-aba');
+    }
+
+    // Executa DEPOIS do onclick original. Não altera trocarAba().
     document.addEventListener('click', function(event){
       const botao = event.target.closest('.tab-btn');
       if(!botao) return;
-
       const acao = botao.getAttribute('onclick') || '';
       const match = acao.match(/trocarAba\(\s*['"]([^'"]+)['"]/);
       if(!match) return;
-
-      // Espera o clique original terminar. Não interfere em trocarAba().
       setTimeout(function(){
-        aplicarAbaExclusivaV34(match[1]);
+        mostrarAbaNaTelaPrincipalV35(match[1]);
       }, 0);
     });
 </script>

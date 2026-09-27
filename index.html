@@ -9312,3 +9312,147 @@ aside button:not(#v481-theme-toggle),.sidebar button:not(#v481-theme-toggle){
   }
 })();
 </script>
+
+
+<!-- ===== V61: MODO ESCURO COMPLETO E ISOLADO ===== -->
+<style id="v61-dark-complete">
+/* Esta correção só atua quando o tema REAL é escuro. */
+html[data-theme="dark"],
+html.dark{
+  color-scheme:dark;
+  --bg:#0b1220!important;
+  --surface:#111c2e!important;
+  --surface-2:#152238!important;
+  --card:#111c2e!important;
+  --text:#f3f6fb!important;
+  --text-muted:#9fb0c8!important;
+  --border:#2b3d57!important;
+}
+
+/* Fundo geral */
+html[data-theme="dark"] body,
+html.dark body,
+body.dark-mode{
+  background:#0b1220!important;
+  color:#f3f6fb!important;
+}
+
+/* Painéis, cards, linhas e blocos que ainda estavam brancos */
+html[data-theme="dark"] :is(
+  main,.main-content,#mainContent,.page-content,.content,.workspace,
+  .card,.panel,.box,.timer-card,.day-column,.lista-dia-v47,.mes-dia-v47,
+  .revisao-card-item,.materia-plan-v40,.wizard-v40,.resumo-card-v40,.desafio-v29,
+  .dash-card-v36,.dash-stats-v36 article,
+  .materia-item,.disciplina-item,.sessao-item,.historico-item,
+  .questao-item,.prioridade-item,.revisao-item,.edital-item,
+  .categoria-edital,.grupo-edital,.edital-card,.topic-card,
+  .timer-box,.timer-panel,.stats-card,.progress-card
+){
+  background:#111c2e!important;
+  color:#f3f6fb!important;
+  border-color:#2b3d57!important;
+  box-shadow:none!important;
+}
+
+/* Qualquer card branco criado dinamicamente dentro das áreas principais */
+html[data-theme="dark"] main :is(
+  [class*="card"],[class*="item"],[class*="row"],[class*="box"]
+){
+  border-color:#2b3d57!important;
+}
+
+/* Textos */
+html[data-theme="dark"] main :is(h1,h2,h3,h4,h5,h6,strong,b,label){
+  color:#f3f6fb!important;
+}
+html[data-theme="dark"] main :is(p,small,.muted,.text-muted,.descricao,.subtitulo){
+  color:#9fb0c8!important;
+}
+
+/* Inputs/selects/textarea no escuro */
+html[data-theme="dark"] main :is(input,select,textarea),
+html[data-theme="dark"] .modal :is(input,select,textarea){
+  background:#152238!important;
+  color:#f3f6fb!important;
+  -webkit-text-fill-color:#f3f6fb!important;
+  border-color:#3a4d69!important;
+}
+html[data-theme="dark"] main :is(input,textarea)::placeholder{
+  color:#7f91aa!important;
+  -webkit-text-fill-color:#7f91aa!important;
+}
+
+/* Cards de atividades/revisões que apareciam totalmente brancos */
+html[data-theme="dark"] main :is(
+  .atividade,.atividade-card,.card-atividade,.item-atividade,
+  .revisao-card,.card-revisao,.session-card,.sessao-card
+){
+  background:#152238!important;
+  color:#f3f6fb!important;
+  border-color:#344862!important;
+}
+
+/* Mantém cores semânticas/ações, mas com texto legível */
+html[data-theme="dark"] main .btn-primary,
+html[data-theme="dark"] main [class*="primary"]{
+  color:#fff!important;
+}
+html[data-theme="dark"] main button:not(.btn-primary):not([class*="primary"]){
+  border-color:#3a4d69;
+}
+
+/* Não escurecer cartões deliberadamente claros do LOGIN quando o tema é claro.
+   Esta regra existe apenas para neutralizar o patch amplo da V60. */
+html[data-theme="light"] #login-screen input,
+html[data-theme="light"] #loginScreen input,
+html[data-theme="light"] .login-screen input,
+html[data-theme="light"] .login-card input{
+  background:#f8fafc!important;
+  color:#0f172a!important;
+  -webkit-text-fill-color:#0f172a!important;
+  border:1px solid #cbd5e1!important;
+}
+</style>
+
+<script id="v61-theme-sync">
+(function(){
+  function syncV61(){
+    const html=document.documentElement;
+    const theme=html.getAttribute('data-theme') ||
+      (html.classList.contains('dark') ? 'dark' : 'light');
+
+    /* Sincroniza as classes antigas sem trocar o tema escolhido. */
+    document.body.classList.toggle('dark-mode',theme==='dark');
+    document.body.setAttribute('data-theme',theme);
+
+    /* Remove cores inline deixadas pelo patch do login SOMENTE quando escuro. */
+    if(theme==='dark'){
+      document.querySelectorAll(
+        '#login-screen input,#loginScreen input,.login-screen input,.login-card input'
+      ).forEach(i=>{
+        i.style.removeProperty('background');
+        i.style.removeProperty('color');
+        i.style.removeProperty('-webkit-text-fill-color');
+        i.style.removeProperty('border');
+        i.style.removeProperty('caret-color');
+      });
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded',syncV61);
+  window.addEventListener('load',syncV61);
+
+  new MutationObserver(syncV61).observe(document.documentElement,{
+    attributes:true,
+    attributeFilter:['data-theme','class']
+  });
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('#v481-theme-toggle')) setTimeout(syncV61,30);
+  },true);
+
+  setTimeout(syncV61,50);
+  setTimeout(syncV61,500);
+})();
+</script>
+

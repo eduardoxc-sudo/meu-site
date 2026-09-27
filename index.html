@@ -1928,6 +1928,49 @@ body.light-mode .modal-box{color:#0f172a}
 body.light-mode .text-muted, body.light-mode [class*="muted"]{color:#52647a}
 
 </style>
+
+<style id="v45-light-fix">
+/* V45 - contraste real no modo claro */
+body.light-mode .dashboard-card,
+body.light-mode .dash-card,
+body.light-mode .home-card,
+body.light-mode #aba-inicio [class*="card"]:not(.card-estimativa-edital),
+body.light-mode #aba-planejamento .planning-card,
+body.light-mode #aba-planejamento [class*="materia"],
+body.light-mode #aba-planejamento [class*="step"],
+body.light-mode #aba-planejamento [class*="wizard"]{
+  color:#f8fafc !important;
+}
+body.light-mode .dashboard-card *,
+body.light-mode .dash-card *,
+body.light-mode .home-card *,
+body.light-mode #aba-inicio [class*="card"]:not(.card-estimativa-edital) *,
+body.light-mode #aba-planejamento .planning-card *,
+body.light-mode #aba-planejamento [class*="materia"] *{
+  color:inherit;
+}
+body.light-mode #aba-inicio h1,
+body.light-mode #aba-inicio h2,
+body.light-mode #aba-inicio h3,
+body.light-mode #aba-inicio strong,
+body.light-mode #aba-planejamento h1,
+body.light-mode #aba-planejamento h2,
+body.light-mode #aba-planejamento h3,
+body.light-mode #aba-planejamento strong{
+  opacity:1 !important;
+}
+body.light-mode #aba-planejamento select,
+body.light-mode #aba-planejamento input,
+body.light-mode #aba-planejamento textarea{
+  color:#0f172a !important;
+  background:#fff !important;
+}
+body.light-mode #aba-planejamento label,
+body.light-mode #aba-planejamento [class*="label"]{
+  color:#93c5fd !important;
+}
+</style>
+
 </head>
 <body>
 <!-- V41: V40 + datas corrigidas, duracao/revisoes automaticas e aplicacao integrada ao Ciclo. -->
@@ -7184,6 +7227,68 @@ setTimeout(()=>{try{renderFrequenciaV38()}catch(_){}},500);
     </div>
   </div>
 </div>
+
+
+<script>
+/* ===== V45: correções finais de navegação, som e modo claro ===== */
+function abrirProgressoV45(){
+  try{
+    const btn=[...document.querySelectorAll('.tab-btn')].find(b =>
+      (b.getAttribute('onclick')||'').includes("aba-progresso")
+    );
+    if(typeof trocarAba === 'function'){
+      trocarAba('aba-progresso', btn || null);
+    } else {
+      document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
+      const aba=document.getElementById('aba-progresso');
+      if(aba) aba.classList.add('active');
+    }
+    document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('active'));
+    window.scrollTo({top:0,behavior:'smooth'});
+  }catch(e){ console.error('Falha ao abrir progresso:',e); }
+}
+
+/* Som sem arquivo externo: Web Audio API. */
+function tocarSomConclusaoV45(){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC) return;
+    const ctx=new AC();
+    const tocar=(freq,ini,dur)=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='sine'; o.frequency.value=freq;
+      g.gain.setValueAtTime(0.0001,ctx.currentTime+ini);
+      g.gain.exponentialRampToValueAtTime(0.16,ctx.currentTime+ini+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+ini+dur);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(ctx.currentTime+ini); o.stop(ctx.currentTime+ini+dur+.03);
+    };
+    if(ctx.state==='suspended') ctx.resume();
+    tocar(659,0,.18); tocar(784,.18,.18); tocar(1047,.36,.32);
+    setTimeout(()=>ctx.close().catch(()=>{}),900);
+  }catch(e){ console.warn('Som indisponível:',e); }
+}
+
+/* Dispara o som quando o modal de conclusão realmente aparece. */
+(function(){
+  const obs=new MutationObserver(()=>{
+    const vis=[...document.querySelectorAll('.modal-overlay')].find(m=>{
+      const t=(m.innerText||'').toLowerCase();
+      const cs=getComputedStyle(m);
+      return (t.includes('tempo de estudo concluído') || t.includes('revisão concluída')) &&
+             cs.display!=='none' && cs.visibility!=='hidden' && cs.opacity!=='0';
+    });
+    if(vis && vis.dataset.somV45!=='1'){
+      vis.dataset.somV45='1';
+      tocarSomConclusaoV45();
+    }
+    document.querySelectorAll('.modal-overlay').forEach(m=>{
+      if(m!==vis) delete m.dataset.somV45;
+    });
+  });
+  window.addEventListener('DOMContentLoaded',()=>obs.observe(document.body,{attributes:true,subtree:true,childList:true,attributeFilter:['class','style']}));
+})();
+</script>
 
 </body>
 </html>

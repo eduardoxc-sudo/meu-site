@@ -9910,3 +9910,79 @@ body.v71-timer #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!importan
 })();
 </script>
 
+
+<!-- ===== V73: EDITAL NOVO -> PLANEJAMENTO ===== -->
+<script id="v73-edital-planejamento">
+(function(){
+  function abrirPlanejamentoV73(){
+    /* fecha qualquer estado visual transitório antes da navegação */
+    document.body.classList.remove('v71-timer','timer-v70-aberto','timer-aberto-v69');
+    document.getElementById('v71Voltar')?.remove();
+
+    /* Preferência: usa o botão original do menu Planejamento. */
+    const btn=[...document.querySelectorAll('.tab-btn')].find(b=>{
+      const s=((b.textContent||'')+' '+(b.getAttribute('onclick')||'')).toLowerCase();
+      return s.includes('planejamento') || s.includes('aba-planejamento');
+    });
+    if(btn){
+      btn.click();
+      return true;
+    }
+
+    /* fallback para a função original de abas */
+    if(typeof ativarAbaPorId==='function'){
+      ativarAbaPorId('aba-planejamento');
+      return true;
+    }
+    return false;
+  }
+
+  /* Detecta a conclusão real do fluxo de edital.
+     Não interfere nos cliques internos do formulário. */
+  function ehConclusaoEditalV73(el){
+    if(!el)return false;
+    const txt=(el.textContent||'').trim().toLowerCase();
+    const oc=(el.getAttribute('onclick')||'').toLowerCase();
+    return (
+      /usar este edital|salvar edital|finalizar edital|concluir edital|confirmar edital|criar edital/.test(txt) ||
+      /salvaredital|finalizaredital|concluiredital|confirmaredital|usaredital/.test(oc)
+    );
+  }
+
+  document.addEventListener('click',function(e){
+    const b=e.target.closest('button,[role="button"]');
+    if(!ehConclusaoEditalV73(b))return;
+
+    /* deixa a rotina original salvar tudo primeiro */
+    setTimeout(function(){
+      const temEdital=!!(
+        estado?.editalAtivo ||
+        estado?.edital ||
+        (estado?.disciplinas && estado.disciplinas.length) ||
+        (estado?.editalVerticalizado && Object.keys(estado.editalVerticalizado).length)
+      );
+      if(temEdital) abrirPlanejamentoV73();
+    },180);
+  },false);
+
+  /* Se o fluxo usa funções em vez de botão reconhecível, envolve somente as funções
+     de conclusão e navega DEPOIS do retorno original. */
+  [
+    'salvarEdital','finalizarEdital','concluirEdital','confirmarEdital',
+    'usarEdital','selecionarEditalPronto','aplicarEditalPronto'
+  ].forEach(nome=>{
+    const original=window[nome];
+    if(typeof original!=='function' || original.__v73)return;
+    const wrapped=function(){
+      const r=original.apply(this,arguments);
+      Promise.resolve(r).finally(()=>setTimeout(abrirPlanejamentoV73,120));
+      return r;
+    };
+    wrapped.__v73=true;
+    window[nome]=wrapped;
+  });
+
+  window.abrirPlanejamentoV73=abrirPlanejamentoV73;
+})();
+</script>
+

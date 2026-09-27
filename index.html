@@ -1683,7 +1683,7 @@
 </style>
 </head>
 <body>
-<!-- V26 CONSOLIDADA: permissões, sincronização, planejamento, questões e timer revisados. -->
+<!-- V27: V26 consolidada + categorias administrativas de Editais Prontos. -->
 
 
   <div id="celebrationOverlay">
@@ -1806,6 +1806,14 @@
         </div>
 
         <label>Editais Disponíveis para Carregar</label>
+
+        <div id="adminCategoriasEditaisV27" style="display:none; margin:10px 0 12px;">
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <input id="novaCategoriaEditalV27" type="text" placeholder="Ex.: Carreiras Policiais" style="flex:1; min-width:180px;">
+            <button class="btn btn-primary" type="button" onclick="criarCategoriaEditalV27()">📁 + Nova categoria</button>
+          </div>
+        </div>
+
         <div id="listaBotoesEditaisProntos" style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
           <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 16px;">Carregando editais da nuvem...</div>
         </div>
@@ -2793,7 +2801,8 @@
         criadoPor: usuarioAtivo,
         dataCriacao: new Date().toLocaleDateString('pt-BR'),
         disciplinas: dadosExtraidos.map(d => ({ nome: d.nome, peso: d.peso || 3 })),
-        editalVerticalizado: {}
+        editalVerticalizado: {},
+        categoriaId: null
       };
 
       dadosExtraidos.forEach(d => {
@@ -2818,36 +2827,32 @@
           status.innerText = "Erro ao publicar: " + err.message;
         });
       }
-    }
-
-    function ouvirEditaisProntosNuvem() {
+    }    function ouvirEditaisProntosNuvem() {
       const container = document.getElementById('listaBotoesEditaisProntos');
       if (!rtdb || !container) return;
 
-      rtdb.ref("editais_prontos").on("value", snapshot => {
-        const editais = snapshot.val();
-        container.innerHTML = '';
-
-        if (!editais) {
-          container.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 16px;">Nenhum edital pronto cadastrado.</div>`;
-          return;
+      const atualizar = async () => {
+        try {
+          const [edSnap, catSnap] = await Promise.all([
+            rtdb.ref("editais_prontos").once("value"),
+            rtdb.ref("categorias_editais").once("value")
+          ]);
+          renderizarEditaisPorCategoriaV27(
+            container,
+            edSnap.val() || {},
+            catSnap.val() || {}
+          );
+        } catch (err) {
+          console.error("Erro ao carregar editais/categorias:", err);
+          container.innerHTML = '<div style="font-size:.8rem;color:var(--text-muted);padding:16px;text-align:center;">Não foi possível carregar os editais.</div>';
         }
+      };
 
-        Object.keys(editais).forEach(key => {
-          const item = editais[key];
-          const div = document.createElement('div');
-          div.className = 'edital-pronto-item';
-
-          div.innerHTML = `
-            <button class="btn-edital-verde" onclick="adquirirEditalPronto('${item.id}')">
-              <span>📗 ${item.titulo}</span>
-              <span style="font-size: 0.72rem; font-weight: normal; opacity: 0.9;">Adquirir Edital ➔</span>
-            </button>
-            <button class="btn btn-danger" style="padding: 10px 12px;" title="Excluir este edital" onclick="excluirEditalPronto('${item.id}')">🗑️</button>
-          `;
-          container.appendChild(div);
-        });
-      });
+      rtdb.ref("editais_prontos").off("value");
+      rtdb.ref("categorias_editais").off("value");
+      rtdb.ref("editais_prontos").on("value", atualizar);
+      rtdb.ref("categorias_editais").on("value", atualizar);
+      atualizar();
     }
 
     function adquirirEditalPronto(idEdital) {
@@ -5481,6 +5486,8 @@
         });
       }
 
+      if (typeof aplicarPermissoesCategoriasV27 === 'function') aplicarPermissoesCategoriasV27();
+
       if (!aba) return;
 
       // Na lista pública, todos podem adquirir/carregar.
@@ -5516,6 +5523,129 @@
       new MutationObserver(() => aplicarPermissoesEditaisV26())
         .observe(aba, { childList: true, subtree: true });
     });
+
+
+    // ===== V27: categorias administrativas para Editais Prontos =====
+    function escaparHtmlV27(valor) {
+      return String(valor == null ? '' : valor)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+
+    function aplicarPermissoesCategoriasV27() {
+      const admin = ehAdministradorEduardoV26();
+      const painel = document.getElementById('adminCategoriasEditaisV27');
+      if (painel) painel.style.display = admin ? 'block' : 'none';
+      document.querySelectorAll('.admin-edital-v27').forEach(el => {
+        el.style.display = admin ? '' : 'none';
+        el.disabled = !admin;
+      });
+    }
+
+    function criarCategoriaEditalV27() {
+      if (!ehAdministradorEduardoV26()) { alert('Somente Eduardo pode criar categorias.'); return; }
+      if (!rtdb) { alert('Sem conexão com a nuvem.'); return; }
+      const input=document.getElementById('novaCategoriaEditalV27');
+      const nome=String(input?.value||'').trim();
+      if (!nome) { alert('Digite o nome da categoria.'); return; }
+
+      const ref=rtdb.ref('categorias_editais').push();
+      ref.set({nome:nome, criadoEm:new Date().toISOString(), criadoPor:usuarioAtivo})
+        .then(()=>{ if(input) input.value=''; })
+        .catch(err=>alert('Erro ao criar categoria: '+err.message));
+    }
+
+    function renomearCategoriaEditalV27(id,nomeAtual) {
+      if (!ehAdministradorEduardoV26()) { alert('Somente Eduardo pode renomear categorias.'); return; }
+      const novo=prompt('Novo nome da categoria:',nomeAtual||'');
+      if (novo===null) return;
+      const nome=novo.trim();
+      if (!nome) { alert('O nome não pode ficar vazio.'); return; }
+      rtdb.ref('categorias_editais/'+id+'/nome').set(nome)
+        .catch(err=>alert('Erro ao renomear: '+err.message));
+    }
+
+    async function excluirCategoriaEditalV27(id,nome) {
+      if (!ehAdministradorEduardoV26()) { alert('Somente Eduardo pode excluir categorias.'); return; }
+      if (!confirm('Excluir a categoria "'+nome+'"?\\n\\nOs editais NÃO serão apagados. Eles irão para "Sem categoria".')) return;
+      try {
+        const snap=await rtdb.ref('editais_prontos').once('value');
+        const editais=snap.val()||{};
+        const updates={};
+        Object.entries(editais).forEach(([eid,ed])=>{
+          if(ed && ed.categoriaId===id) updates[eid+'/categoriaId']=null;
+        });
+        if(Object.keys(updates).length) await rtdb.ref('editais_prontos').update(updates);
+        await rtdb.ref('categorias_editais/'+id).remove();
+      } catch(err) { alert('Erro ao excluir categoria: '+err.message); }
+    }
+
+    async function moverEditalCategoriaV27(editalId,categoriaAtual) {
+      if (!ehAdministradorEduardoV26()) { alert('Somente Eduardo pode mover editais.'); return; }
+      try {
+        const snap=await rtdb.ref('categorias_editais').once('value');
+        const cats=Object.entries(snap.val()||{}).sort((a,b)=>
+          String(a[1]?.nome||'').localeCompare(String(b[1]?.nome||''),'pt-BR')
+        );
+        let msg='Mover edital para:\\n\\n0 - Sem categoria\\n';
+        cats.forEach(([id,c],i)=>{ msg+=(i+1)+' - '+(c.nome||'Categoria')+(id===categoriaAtual?' (atual)':'')+'\\n'; });
+        const resp=prompt(msg+'\\nDigite o número:');
+        if(resp===null) return;
+        const n=Number(resp);
+        if(!Number.isInteger(n)||n<0||n>cats.length){ alert('Opção inválida.'); return; }
+        const novo=n===0?null:cats[n-1][0];
+        await rtdb.ref('editais_prontos/'+editalId+'/categoriaId').set(novo);
+      } catch(err) { alert('Erro ao mover edital: '+err.message); }
+    }
+
+    function renderizarEditaisPorCategoriaV27(container,editais,categorias) {
+      const admin=ehAdministradorEduardoV26();
+      const cats=Object.entries(categorias||{}).map(([id,c])=>({id,nome:String(c?.nome||'Categoria')}))
+        .sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+      const grupos=new Map(cats.map(c=>[c.id,[]]));
+      const sem=[];
+
+      Object.entries(editais||{}).forEach(([id,ed])=>{
+        if(!ed) return;
+        const item={...ed,id:ed.id||id};
+        if(item.categoriaId && grupos.has(item.categoriaId)) grupos.get(item.categoriaId).push(item);
+        else sem.push(item);
+      });
+
+      const itemHtml=(ed)=>{
+        const titulo=escaparHtmlV27(ed.titulo||'Edital');
+        const id=escaparHtmlV27(ed.id);
+        const cat=escaparHtmlV27(ed.categoriaId||'');
+        return `<div class="edital-pronto-item">
+          <button class="btn-edital-verde" onclick="adquirirEditalPronto('${id}')">
+            <span>📗 ${titulo}</span>
+            <span style="font-size:.72rem;font-weight:normal;opacity:.9;">Adquirir Edital ➔</span>
+          </button>
+          ${admin?`<button class="btn btn-outline admin-edital-v27" style="padding:10px 12px;" title="Mover edital" onclick="moverEditalCategoriaV27('${id}','${cat}')">↪</button>
+          <button class="btn btn-danger admin-edital-v27" style="padding:10px 12px;" title="Excluir edital" onclick="excluirEditalPronto('${id}')">🗑️</button>`:''}
+        </div>`;
+      };
+
+      const grupoHtml=(id,nome,itens,especial=false)=>{
+        if(!itens.length && !admin) return '';
+        const sid=String(id).replace(/[^a-zA-Z0-9_-]/g,'_');
+        const safe=escaparHtmlV27(nome);
+        return `<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:6px;padding:8px;background:rgba(56,189,248,.06);">
+            <button class="btn btn-outline" style="flex:1;text-align:left;border:0;" onclick="const e=document.getElementById('cat_${sid}');e.style.display=e.style.display==='none'?'block':'none'">📁 ${safe} (${itens.length})</button>
+            ${admin&&!especial?`<button class="btn btn-outline admin-edital-v27" title="Renomear" onclick="renomearCategoriaEditalV27('${id}','${safe}')">✏️</button>
+            <button class="btn btn-danger admin-edital-v27" title="Excluir categoria" onclick="excluirCategoriaEditalV27('${id}','${safe}')">🗑️</button>`:''}
+          </div>
+          <div id="cat_${sid}" style="padding:6px;">${itens.length?itens.map(itemHtml).join(''):'<div style="padding:10px;color:var(--text-muted);">Categoria vazia.</div>'}</div>
+        </div>`;
+      };
+
+      let html='';
+      cats.forEach(c=>{ html+=grupoHtml(c.id,c.nome,grupos.get(c.id)||[]); });
+      if(sem.length||admin) html+=grupoHtml('sem_categoria','Sem categoria',sem,true);
+      container.innerHTML=html||'<div style="font-size:.8rem;color:var(--text-muted);text-align:center;padding:16px;">Nenhum edital pronto cadastrado.</div>';
+      aplicarPermissoesCategoriasV27();
+    }
 
     // ===== V23: Horas líquidas por matéria dentro de Progresso =====
     function historicoHorasV23() {

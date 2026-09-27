@@ -1911,6 +1911,22 @@ body.light .wizard-v40,body.light .materia-plan-v40,body.light .disp-dia-v40,bod
 [data-theme="light"] #gradeSemana>*,[data-theme="light"] #gradeSemana .slot,[data-theme="light"] #gradeSemana .card{color:#0f172a}
 @media(max-width:760px){.timer-program-v43{grid-template-columns:repeat(3,1fr)}}
 
+
+/* ===== V44: acabamento e consistência ===== */
+.timer-custom-v44{
+  display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);
+  border-radius:9px;padding:0 9px;min-height:36px;background:var(--bg-card);
+  color:var(--text);font-size:.72rem;font-weight:700;
+}
+.timer-custom-v44 input{
+  width:72px!important;min-width:72px!important;border:0!important;background:transparent!important;
+  color:var(--text)!important;padding:7px 2px!important;outline:none;
+}
+.timer-custom-v44 b{color:var(--text-muted);font-weight:700}
+body.light-mode .card, body.light-mode .dashboard-card, body.light-mode .tab-content,
+body.light-mode .modal-box{color:#0f172a}
+body.light-mode .text-muted, body.light-mode [class*="muted"]{color:#52647a}
+
 </style>
 </head>
 <body>
@@ -2158,7 +2174,7 @@ body.light .wizard-v40,body.light .materia-plan-v40,body.light .disp-dia-v40,bod
             <button type="button" onclick="definirTimerProgramadoV43(30)">30 min</button>
             <button type="button" onclick="definirTimerProgramadoV43(45)">45 min</button>
             <button type="button" onclick="definirTimerProgramadoV43(60)">60 min</button>
-            <input id="timerPersonalizadoV43" type="number" min="1" max="600" placeholder="min" onchange="definirTimerProgramadoV43(this.value)" title="Tempo personalizado em minutos">
+            <label class="timer-custom-v44" title="Tempo personalizado em minutos"><span>Personalizado</span><input id="timerPersonalizadoV43" type="number" min="1" max="600" placeholder="Ex.: 20" onchange="definirTimerProgramadoV43(this.value)"><b>min</b></label>
           </div>
           <div class="timer-context-v43" id="timerContextV43">Modo livre: o tempo conta para cima.</div>
           <div class="timer-display" id="timerDisplay">00:00:00</div>
@@ -3309,7 +3325,7 @@ body.light .wizard-v40,body.light .materia-plan-v40,body.light .disp-dia-v40,bod
             atualizarIndicadorPresenca();
             calcularPrevisaoFechamentoEdital();
 
-            alert(`Parabéns! O edital "${dados.titulo}" foi adquirido com sucesso.`);
+            alert(`Parabéns! O edital "${dados.titulo}" foi carregado com sucesso.`);
             trocarAba('aba-ciclo', document.querySelectorAll('.tab-btn')[0]);
           }
         });
@@ -3334,15 +3350,19 @@ body.light .wizard-v40,body.light .materia-plan-v40,body.light .disp-dia-v40,bod
     }
 
     function redefinirEditalManualmente() {
-      if (confirm('Tem certeza de que deseja resetar todo o edital e limpar os dados atuais?')) {
-        estado = obterEstadoPadrao();
-        const chave = chaveArmazenamento(usuarioAtivo);
-        localStorage.removeItem(chave);
-        if (rtdb && dbRefAtivo) {
-          dbRefAtivo.remove().catch(() => {});
-        }
+      if (confirm('Resetar o edital e o planejamento? Suas horas estudadas e seu histórico de questões serão preservados.')) {
+        const historicoHorasPreservado = Array.isArray(estado?.historicoHoras) ? [...estado.historicoHoras] : [];
+        const historicoQuestoesPreservado = Array.isArray(estado?.historicoQuestoes) ? [...estado.historicoQuestoes] : [];
+        const novoEstado = obterEstadoPadrao();
+
+        novoEstado.historicoHoras = historicoHorasPreservado;
+        novoEstado.historicoQuestoes = historicoQuestoesPreservado;
+        estado = novoEstado;
+
+        salvarEstado();
         atualizarUIAposCarregar();
-        alert('Edital resetado com sucesso! Vá na aba Editais Prontos para carregar um novo plano.');
+
+        alert('Edital e planejamento resetados. Horas líquidas e histórico de questões foram preservados.');
       }
     }
 
@@ -6189,7 +6209,7 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
         return `<div class="edital-pronto-item">
           <button class="btn-edital-verde" onclick="adquirirEditalPronto('${id}')">
             <span>📗 ${titulo}</span>
-            <span style="font-size:.72rem;font-weight:normal;opacity:.9;">Adquirir Edital ➔</span>
+            <span style="font-size:.72rem;font-weight:normal;opacity:.9;">Usar este edital ➔</span>
           </button>
           ${admin?`<button class="btn btn-outline admin-edital-v27" style="padding:10px 12px;" title="Mover edital" onclick="moverEditalCategoriaV27('${id}','${cat}')">↪</button>
           <button class="btn btn-danger admin-edital-v27" style="padding:10px 12px;" title="Excluir edital" onclick="excluirEditalPronto('${id}')">🗑️</button>`:''}
@@ -6649,6 +6669,24 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
       if(mp) mp.textContent=pct+'%';
       if(mb) mb.style.width=Math.max(0,Math.min(100,pct))+'%';
       if(mt) mt.textContent=ed.total ? ed.feito+' de '+ed.total+' tópicos concluídos no edital.' : 'Carregue um edital para acompanhar sua evolução.';
+
+      // V44: o Próximo estudo nunca aponta para tópico já concluído.
+      const proxV44=document.getElementById('dashProximoV36');
+      const mapaV44=estado?.editalVerticalizado||{};
+      const listaV44=[];
+      Object.entries(mapaV44).forEach(([materia,topicos])=>{
+        (Array.isArray(topicos)?topicos:[]).forEach(t=>listaV44.push({materia,t}));
+      });
+      const idxV44=listaV44.findIndex(x=>x.t && x.t.t!==true);
+      if(proxV44){
+        if(idxV44>=0){
+          const x=listaV44[idxV44];
+          const titulo=x.t.titulo||x.t.nome||x.t.assunto||'Próximo tópico';
+          proxV44.innerHTML='<strong>#'+(idxV44+1)+'/'+listaV44.length+'</strong><span>'+x.materia+' • '+titulo+'</span>';
+        }else if(listaV44.length){
+          proxV44.innerHTML='<strong>Edital concluído! 🎉</strong><span>Todos os '+listaV44.length+' tópicos foram concluídos.</span>';
+        }
+      }
 
       const at=document.getElementById('dashAtencaoV36');
       if(at){

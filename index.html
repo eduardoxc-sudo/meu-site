@@ -9528,3 +9528,111 @@ html[data-theme="light"] .login-card input{
 .mes-vazio-v66{color:var(--text-muted)}
 </style>
 
+
+<!-- ===== V67: REGENERAR SEMANA REAL + MÊS DETALHADO (OVERRIDE FINAL) ===== -->
+<style id="v67-final-style">
+#mesCicloV47 .mes-cont-v47{display:flex!important;flex-direction:column!important;gap:4px!important;margin-top:5px!important}
+#mesCicloV47 .mes-item-v67{padding:4px 5px!important;border-radius:6px!important;background:rgba(56,189,248,.09)!important;border-left:3px solid #38bdf8!important;font-size:10px!important;line-height:1.18!important;overflow:hidden!important}
+#mesCicloV47 .mes-item-v67.rev{background:rgba(139,92,246,.14)!important;border-left-color:#8b5cf6!important}
+#mesCicloV47 .mes-item-v67.feito{opacity:.55!important}
+#mesCicloV47 .mes-item-v67 b,#mesCicloV47 .mes-item-v67 span{display:block!important;white-space:normal!important;overflow-wrap:anywhere!important}
+#mesCicloV47 .mes-item-v67 span{margin-top:2px!important;color:var(--text-muted)!important}
+</style>
+
+<script id="v67-final-js">
+(function(){
+  /* Botão usa esta função global explícita, sem depender de onclick para função local. */
+  window.regenerarSemanaV67=function(){
+    try{
+      const segunda=obterSegundaFeira(new Date(dataReferencia));
+      const chave='semana_'+formatarDataChave(segunda);
+
+      if(!estado.disciplinas || !estado.disciplinas.length){
+        alert('Não há disciplinas configuradas. Carregue um edital ou configure as disciplinas primeiro.');
+        return;
+      }
+      if(!confirm('Regenerar a semana exibida?\\n\\nOs estudos pendentes serão reorganizados. Os concluídos serão preservados.')) return;
+
+      chaveSemanaAtiva=chave;
+      gerarSemanaAutomatica(chave,true,false);
+      salvarEstado();
+      renderizarGrade();
+      renderizarVisaoGeral();
+      calcularPrevisaoFechamentoEdital();
+
+      const modo=localStorage.getItem('visaoCicloV47')||'semana';
+      if(modo==='mes') window.renderMesCicloV47();
+      if(modo==='lista' && typeof renderListaCicloV47==='function') renderListaCicloV47();
+
+      alert('Semana regenerada com sucesso.');
+    }catch(err){
+      console.error(err);
+      alert('Não foi possível regenerar a semana: '+err.message);
+    }
+  };
+
+  /* Substitui os botões já existentes para garantir que chamem a função correta. */
+  function ligarBotao(){
+    [...document.querySelectorAll('button')].forEach(b=>{
+      if(/regenerar esta semana/i.test(b.textContent||'')){
+        b.onclick=null;
+        b.setAttribute('onclick','regenerarSemanaV67()');
+      }
+    });
+  }
+
+  /* Override FINAL: versões anteriores não podem voltar a mostrar apenas contagens. */
+  window.renderMesCicloV47=function(){
+    const el=document.getElementById('mesCicloV47');
+    if(!el)return;
+
+    const base=new Date(dataReferencia||new Date());
+    const ano=base.getFullYear(), mes=base.getMonth();
+    const primeiro=new Date(ano,mes,1), ultimo=new Date(ano,mes+1,0);
+    const cab=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    let html=cab.map(n=>'<div class="mes-head-v47">'+n+'</div>').join('');
+    for(let i=0;i<primeiro.getDay();i++)html+='<div></div>';
+
+    for(let d=1;d<=ultimo.getDate();d++){
+      const dt=new Date(ano,mes,d);
+      const segunda=obterSegundaFeira(dt);
+      const chave='semana_'+formatarDataChave(segunda);
+      const indice=(dt.getDay()+6)%7;
+      const nomeDia=DIAS[indice];
+      const slots=((estado.semanas||{})[chave]||{})[nomeDia]||[];
+
+      let conteudo='—';
+      if(slots.length){
+        conteudo=slots.map(s=>{
+          const rev=!!s.revisaoId;
+          let titulo=s.assunto||'';
+          if(rev) titulo=titulo.replace(/^🔁\s*Revisão:\s*/i,'');
+          return '<div class="mes-item-v67 '+(rev?'rev ':'')+(s.feito?'feito':'')+'">'+
+            '<b>'+(rev?'🔄 Revisão • ':'📘 ')+(s.materia||'Estudo')+'</b>'+
+            (titulo?'<span>'+titulo+'</span>':'')+
+          '</div>';
+        }).join('');
+      }
+
+      const hoje=formatarDataChave(dt)===formatarDataChave(new Date());
+      html+='<div class="mes-dia-v47 '+(hoje?'hoje':'')+'">'+
+        '<div class="mes-num-v47">'+d+'</div>'+
+        '<div class="mes-cont-v47">'+conteudo+'</div>'+
+      '</div>';
+    }
+    el.innerHTML=html;
+  };
+
+  /* A visão Mês sempre chama o renderer final. */
+  const mudarOriginal=window.mudarVisaoCicloV47;
+  window.mudarVisaoCicloV47=function(modo){
+    if(typeof mudarOriginal==='function') mudarOriginal(modo);
+    if(modo==='mes') setTimeout(window.renderMesCicloV47,0);
+  };
+
+  document.addEventListener('DOMContentLoaded',ligarBotao);
+  document.addEventListener('click',()=>setTimeout(ligarBotao,0));
+  setTimeout(ligarBotao,300);
+})();
+</script>
+

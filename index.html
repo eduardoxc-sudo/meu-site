@@ -5497,16 +5497,9 @@
     }
 
     function localizarPainelAdminEditaisV22() {
-      const aba = document.getElementById('aba-editais-prontos');
-      if (!aba) return null;
-
-      // Localiza o bloco pelo título visível do painel.
-      const candidatos = Array.from(aba.querySelectorAll('div, section, article'));
-      return candidatos.find(el => {
-        const txt = (el.textContent || '').trim();
-        return /Painel de Administração\s*\(Eduardo\)/i.test(txt) &&
-               /Publicar Edital na Nuvem/i.test(txt);
-      }) || null;
+      // O painel já possui um ID próprio. Usar busca por texto podia retornar
+      // o contêiner pai da aba inteira e ocultar também a lista/botão do admin.
+      return document.getElementById('painelCriadorEduardo');
     }
 
     function localizarListaEditaisV22() {
@@ -5525,7 +5518,7 @@
       const painel = localizarPainelAdminEditaisV22();
       const lista = localizarListaEditaisV22();
 
-      if (painel) painel.style.display = admin ? '' : 'none';
+      if (painel) painel.style.display = admin ? 'block' : 'none';
       if (lista) lista.style.display = '';
 
       // Segurança visual adicional:

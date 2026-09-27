@@ -1721,10 +1721,46 @@ body.modo-aba-ampla-v32-desativado #aba-desafio .desafio-v29{
 @media(max-width:420px){
   #aba-desafio .desafio-stats-v29{grid-template-columns:1fr 1fr!important;gap:7px!important}
 }
+
+/* ===== V34: cada aba abre sozinha, sem alterar trocarAba() ===== */
+/* Quando uma aba funcional estiver ativa, o painel do Ciclo/cronograma não ocupa a tela. */
+body.v34-aba-exclusiva .workspace > .calendar-panel,
+body.v34-aba-exclusiva .workspace > .cronograma-panel,
+body.v34-aba-exclusiva .workspace > #calendarPanel,
+body.v34-aba-exclusiva .workspace > #cronogramaPanel {
+  display:none !important;
+}
+
+/* A área da aba escolhida aproveita toda a largura disponível. */
+body.v34-aba-exclusiva .tab-content.active {
+  width:100% !important;
+  max-width:none !important;
+  box-sizing:border-box;
+}
+
+/* Desafio continua responsivo. */
+body.v34-aba-exclusiva #aba-desafio.active .desafio-v29 {
+  width:100% !important;
+  max-width:1200px !important;
+  margin:0 auto !important;
+  box-sizing:border-box;
+}
+
+@media(max-width:760px){
+  body.v34-aba-exclusiva .tab-content.active{
+    padding-left:8px !important;
+    padding-right:8px !important;
+  }
+  body.v34-aba-exclusiva #aba-desafio .desafio-v29{
+    width:100% !important;
+    max-width:none !important;
+    padding:8px !important;
+  }
+}
 </style>
 </head>
 <body>
-<!-- V33: abas destravadas; modo amplo V32 desativado com segurança; responsividade do Desafio preservada. -->
+<!-- V34: V33 estável + visual exclusivo por aba sem modificar a navegação original. -->
 
 
   <div id="celebrationOverlay">
@@ -6043,6 +6079,26 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
     });
 
     document.addEventListener('change',function(e){const c=e.target;if(!(c instanceof HTMLInputElement)||c.type!=='checkbox'||!c.checked)return;const card=c.closest('[data-topic-id],[data-id],.task-card,.card,.study-card,.cronograma-card'),explicit=c.dataset?.topicId||c.dataset?.id||card?.dataset?.topicId||card?.dataset?.id||'',tx=(card?.innerText||c.closest('label')?.innerText||'').trim().replace(/\s+/g,' ').slice(0,180),dia=card?.dataset?.date||card?.dataset?.dia||'',ch=explicit||(dia+'|'+tx);if(!ch)return;let tipo='cartao',z=tx.toLowerCase();if(/\b30d\b/.test(z))tipo='d30';else if(/\b15d\b/.test(z))tipo='d15';else if(/\b7d\b/.test(z))tipo='d7';else if(/\b1d\b/.test(z))tipo='d1';setTimeout(()=>pontuarChecklistDesafioV29(ch,tipo),100)});
+
+    // ===== V34: modo exclusivo aplicado depois da navegacao original =====
+    function aplicarAbaExclusivaV34(idAba){
+      // Ciclo é a única tela que mantém o cronograma.
+      document.body.classList.toggle('v34-aba-exclusiva', idAba !== 'aba-ciclo');
+    }
+
+    document.addEventListener('click', function(event){
+      const botao = event.target.closest('.tab-btn');
+      if(!botao) return;
+
+      const acao = botao.getAttribute('onclick') || '';
+      const match = acao.match(/trocarAba\(\s*['"]([^'"]+)['"]/);
+      if(!match) return;
+
+      // Espera o clique original terminar. Não interfere em trocarAba().
+      setTimeout(function(){
+        aplicarAbaExclusivaV34(match[1]);
+      }, 0);
+    });
 </script>
 
   <button id="btnReabrirSidebar" class="sidebar-reopen"

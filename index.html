@@ -1683,6 +1683,8 @@
 </style>
 </head>
 <body>
+<!-- V26 CONSOLIDADA: permissões, sincronização, planejamento, questões e timer revisados. -->
+
 
   <div id="celebrationOverlay">
     <div class="celebration-card">
@@ -2666,6 +2668,11 @@
     }
 
     function adminCriarNovoUsuario() {
+      if (!ehAdministradorEduardoV26()) {
+        alert("Esta função é exclusiva do administrador Eduardo.");
+        return;
+      }
+
       const nomeInput = document.getElementById('inputNovoNomeUsuario');
       const senhaInput = document.getElementById('inputNovaSenhaUsuario');
       const nome = nomeInput.value.trim();
@@ -2691,6 +2698,11 @@
     }
 
     function adminExcluirUsuario(nome) {
+      if (!ehAdministradorEduardoV26()) {
+        alert("Esta função é exclusiva do administrador Eduardo.");
+        return;
+      }
+
       if (nome.toLowerCase() === 'eduardo') {
         alert("O utilizador administrador Eduardo não pode ser excluído.");
         return;
@@ -2741,15 +2753,17 @@
       calcularPrevisaoFechamentoEdital();
       alert(`Todas as caixas foram ${marcar ? 'marcadas como concluídas' : 'desmarcadas'} com sucesso!`);
     }
-
     function configurarAbaEditaisProntos() {
-      const painelAdmin = document.getElementById('painelCriadorEduardo');
-      const ehEduardo = String(usuarioAtivo || '').trim().toLowerCase() === 'eduardo';
-      if (painelAdmin) painelAdmin.style.display = ehEduardo ? 'block' : 'none';
+      aplicarPermissoesEditaisV26();
       ouvirEditaisProntosNuvem();
     }
 
     function publicarNovoEditalPronto() {
+      if (!ehAdministradorEduardoV26()) {
+        alert("Somente Eduardo pode publicar editais.");
+        return;
+      }
+
       const titulo = document.getElementById('tituloNovoEditalPronto').value.trim();
       const texto = document.getElementById('textoNovoEditalPronto').value.trim();
       const status = document.getElementById('statusPublicacaoEdital');
@@ -2883,15 +2897,22 @@
         });
       }
     }
-
     function excluirEditalPronto(idEdital) {
-      if (confirm("Remover este edital pronto da nuvem? Ele deixará de aparecer na lista.")) {
-        if (rtdb) {
-          rtdb.ref("editais_prontos/" + idEdital).remove().then(() => {
-            alert("Edital pronto removido!");
-          });
-        }
+      if (!ehAdministradorEduardoV26()) {
+        alert("Somente Eduardo pode excluir editais.");
+        return;
       }
+      if (!confirm("Remover este edital pronto da nuvem? Ele deixará de aparecer na lista.")) return;
+      if (!rtdb) {
+        alert("Sem conexão com a nuvem.");
+        return;
+      }
+
+      rtdb.ref("editais_prontos/" + idEdital).remove().then(() => {
+        alert("Edital pronto removido!");
+      }).catch(err => {
+        alert("Não foi possível remover o edital: " + err.message);
+      });
     }
 
     function redefinirEditalManualmente() {
@@ -2912,7 +2933,6 @@
       sessionStorage.removeItem('usuario_ativo');
       location.reload();
     }
-
     function abrirApp() {
       const telaLogin = document.getElementById('tela-login');
       const appContainer = document.getElementById('app-container');
@@ -2924,53 +2944,88 @@
       if (lblUser) lblUser.innerText = usuarioAtivo;
       if (lblCron) lblCron.innerText = `Cronograma de ${usuarioAtivo}`;
 
-      configurarAbaEditaisProntos();
-      configurarPainelAdminUsuarios();
-      configurarMotivacaoV21();
-
       const chave = chaveArmazenamento(usuarioAtivo);
       const salvos = localStorage.getItem(chave);
+
       if (salvos) {
-        try { estado = JSON.parse(salvos); } catch (e) { estado = obterEstadoPadrao(); }
+        try { estado = JSON.parse(salvos); }
+        catch (e) { estado = obterEstadoPadrao(); }
       } else {
         estado = obterEstadoPadrao();
       }
 
+      // Primeiro renderiza somente os dados deste usuário.
       dataReferencia = new Date();
       atualizarUIAposCarregar();
+      configurarAbaEditaisProntos();
+      configurarPainelAdminUsuarios();
+      configurarMotivacaoV21();
+      aplicarPermissoesEditaisV26();
       atualizarStatusNuvem("☁️ Pronto", "online");
+
+      // A mensagem de motivação é verificada uma vez por sessão/login.
+      motivacaoVerificadaV21 = false;
       setTimeout(verificarMotivacaoEntradaV21, 250);
 
-      if (rtdb) {
-        if (dbRefAtivo) dbRefAtivo.off();
-        dbRefAtivo = rtdb.ref("perfis/" + usuarioAtivo.toLowerCase());
+      if (!rtdb) return;
 
-        dbRefAtivo.once("value", snapshot => {
-          const dadosNuvem = snapshot.val();
-          if (dadosNuvem && dadosNuvem.estado && dadosNuvem.estado.disciplinas && dadosNuvem.estado.disciplinas.length > 0) {
-            estado = dadosNuvem.estado;
-            localStorage.setItem(chave, JSON.stringify(estado));
-            atualizarUIAposCarregar();
-            atualizarStatusNuvem("☁️ Sincronizado", "online");
-          }
-        });
-      }
+      if (dbRefAtivo) dbRefAtivo.off();
+      dbRefAtivo = rtdb.ref("perfis/" + usuarioAtivo.toLowerCase());
+
+      dbRefAtivo.once("value").then(snapshot => {
+        const dadosNuvem = snapshot.val();
+        if (!dadosNuvem || !dadosNuvem.estado) {
+          atualizarStatusNuvem("☁️ Pronto", "online");
+          return;
+        }
+
+        const localIso = localStorage.getItem(chave + '_atualizadoEm') || '';
+        const nuvemIso = dadosNuvem.atualizadoEm || '';
+        const localMs = Date.parse(localIso) || 0;
+        const nuvemMs = Date.parse(nuvemIso) || 0;
+
+        // Compatibilidade com perfis antigos:
+        // se não existe timestamp local, a nuvem continua sendo a fonte inicial.
+        const usarNuvem = !salvos || !localMs || nuvemMs > localMs;
+
+        if (usarNuvem) {
+          isReceivingFromCloud = true;
+          estado = dadosNuvem.estado;
+          localStorage.setItem(chave, JSON.stringify(estado));
+          if (nuvemIso) localStorage.setItem(chave + '_atualizadoEm', nuvemIso);
+          isReceivingFromCloud = false;
+          atualizarUIAposCarregar();
+          aplicarPermissoesEditaisV26();
+        }
+
+        atualizarStatusNuvem("☁️ Sincronizado", "online");
+      }).catch(err => {
+        console.error("Falha ao carregar perfil da nuvem:", err);
+        atualizarStatusNuvem("⚠️ Offline", "offline");
+      });
     }
-
     function salvarEstado() {
       if (!usuarioAtivo || isReceivingFromCloud) return;
+
       const chave = chaveArmazenamento(usuarioAtivo);
+      const agora = new Date().toISOString();
+
       localStorage.setItem(chave, JSON.stringify(estado));
+      localStorage.setItem(chave + '_atualizadoEm', agora);
 
       if (rtdb && dbRefAtivo) {
         atualizarStatusNuvem("☁️ Enviando...", "syncing");
         clearTimeout(debounceSalvarNuvem);
+
         debounceSalvarNuvem = setTimeout(() => {
           dbRefAtivo.set({
             estado: estado,
-            atualizadoEm: new Date().toISOString()
+            atualizadoEm: agora
           }).then(() => {
             atualizarStatusNuvem("☁️ Sincronizado", "online");
+          }).catch(err => {
+            console.error("Falha ao sincronizar:", err);
+            atualizarStatusNuvem("⚠️ Falha na sincronização", "offline");
           });
         }, 400);
       }
@@ -4377,15 +4432,27 @@
       const btn = document.getElementById('btnIniciarTimer');
       if (btn) { btn.innerText = 'Iniciar'; btn.classList.add('btn-primary'); btn.classList.remove('btn-outline'); }
     }
-
     function registrarHoraEstudo(materia, minutos) {
+      const nomeMateria = String(materia || '').trim();
+      const mins = Number(minutos);
+
+      if (!nomeMateria || !Number.isFinite(mins) || mins <= 0) {
+        alert("Não foi possível registrar o tempo: matéria ou duração inválida.");
+        return false;
+      }
+
       if (!estado.historicoHoras) estado.historicoHoras = [];
       estado.historicoHoras.push({
         id: 'hr_' + Math.random().toString(36).substr(2, 7),
-        materia, data: new Date().toISOString(), minutos
+        materia: nomeMateria,
+        data: new Date().toISOString(),
+        minutos: Math.round(mins)
       });
+
       salvarEstado();
       atualizarVisualizacaoHoras();
+      if (typeof renderizarHorasProgressoV23 === 'function') renderizarHorasProgressoV23();
+      return true;
     }
 
     function salvarTempoCronometrado() {
@@ -4600,15 +4667,21 @@
     // ---------- Sincronização manual com a nuvem ----------
     function forcarUploadNuvem() {
       if (!rtdb || !dbRefAtivo) { alert('Sem conexão com a nuvem.'); return; }
+
+      const agora = new Date().toISOString();
       atualizarStatusNuvem('☁️ Enviando...', 'syncing');
-      dbRefAtivo.set({ estado: estado, atualizadoEm: new Date().toISOString() }).then(() => {
+
+      dbRefAtivo.set({ estado: estado, atualizadoEm: agora }).then(() => {
+        const chave = chaveArmazenamento(usuarioAtivo);
+        localStorage.setItem(chave, JSON.stringify(estado));
+        localStorage.setItem(chave + '_atualizadoEm', agora);
         atualizarStatusNuvem('☁️ Sincronizado', 'online');
         alert('Dados enviados para a nuvem com sucesso!');
       }).catch(err => {
+        atualizarStatusNuvem('⚠️ Falha na sincronização', 'offline');
         alert('Erro ao enviar: ' + err.message);
       });
     }
-
     function forcarDownloadNuvem() {
       if (!rtdb || !dbRefAtivo) { alert('Sem conexão com a nuvem.'); return; }
       if (!confirm('Isso substituirá os dados locais deste aparelho pelos dados da nuvem. Continuar?')) return;
@@ -4616,19 +4689,32 @@
       atualizarStatusNuvem('☁️ Baixando...', 'syncing');
       dbRefAtivo.once('value').then(snapshot => {
         const dados = snapshot.val();
-        if (dados && dados.estado) {
-          isReceivingFromCloud = true;
-          estado = dados.estado;
-          const chave = chaveArmazenamento(usuarioAtivo);
-          localStorage.setItem(chave, JSON.stringify(estado));
-          isReceivingFromCloud = false;
-          atualizarUIAposCarregar();
-          atualizarStatusNuvem('☁️ Sincronizado', 'online');
-          alert('Dados da nuvem carregados com sucesso!');
-        } else {
+
+        if (!dados || !dados.estado) {
           alert('Nenhum dado encontrado na nuvem.');
           atualizarStatusNuvem('☁️ Pronto', 'online');
+          return;
         }
+
+        isReceivingFromCloud = true;
+        estado = dados.estado;
+
+        const chave = chaveArmazenamento(usuarioAtivo);
+        localStorage.setItem(chave, JSON.stringify(estado));
+        localStorage.setItem(
+          chave + '_atualizadoEm',
+          dados.atualizadoEm || new Date().toISOString()
+        );
+
+        isReceivingFromCloud = false;
+        atualizarUIAposCarregar();
+        aplicarPermissoesEditaisV26();
+        atualizarStatusNuvem('☁️ Sincronizado', 'online');
+        alert('Dados da nuvem carregados com sucesso!');
+      }).catch(err => {
+        isReceivingFromCloud = false;
+        atualizarStatusNuvem('⚠️ Falha na sincronização', 'offline');
+        alert('Erro ao baixar: ' + err.message);
       });
     }
 
@@ -5074,9 +5160,8 @@
 
       return 'usuario-sem-id';
     }
-
     function chaveDatasUsuarioV17() {
-      return 'estudoInteligente_v17_datas_' + encodeURIComponent(obterIdentificadorUsuarioV17());
+      return chaveArmazenamento(usuarioAtivo) + '_planejamento_legado';
     }
 
     function limparCamposDatasV17() {
@@ -5112,52 +5197,44 @@
 
       saida.textContent = dias === 0 ? 'Hoje' : `${dias} ${dias === 1 ? 'dia' : 'dias'}`;
     }
-
     function salvarDatasUsuarioV17() {
+      if (!usuarioAtivo) return;
       const inicio = document.getElementById('planejamentoInicioAuto');
       const prova = document.getElementById('planejamentoProvaAuto');
       if (!inicio || !prova) return;
 
-      const dados = {
-        inicio: inicio.value || '',
-        prova: prova.value || ''
-      };
-
-      // IMPORTANTE: não usa estado.dataInicio/dataProva globais.
-      // O armazenamento é exclusivamente pela chave do usuário.
-      try {
-        localStorage.setItem(chaveDatasUsuarioV17(), JSON.stringify(dados));
-      } catch (e) {}
+      if (!estado.planejamento) estado.planejamento = { inicio: '', prova: '' };
+      estado.planejamento.inicio = inicio.value || '';
+      estado.planejamento.prova = prova.value || '';
 
       calcularDiasV17();
+      salvarEstado();
     }
-
     function carregarDatasUsuarioV17() {
-      // Primeiro limpa para impedir que a tela mostre por alguns instantes
-      // as datas do usuário anterior.
-      limparCamposDatasV17();
+      const inicio = document.getElementById('planejamentoInicioAuto');
+      const prova = document.getElementById('planejamentoProvaAuto');
+      if (!inicio || !prova) return;
 
-      let dados = null;
-      try {
-        const salvo = localStorage.getItem(chaveDatasUsuarioV17());
-        if (salvo) dados = JSON.parse(salvo);
-      } catch (e) {}
+      if (!estado.planejamento) estado.planejamento = { inicio: '', prova: '' };
 
-      if (dados) {
-        const inicio = document.getElementById('planejamentoInicioAuto');
-        const prova = document.getElementById('planejamentoProvaAuto');
-
-        if (inicio) inicio.value = dados.inicio || '';
-        if (prova) prova.value = dados.prova || '';
+      // Migração única das versões antigas, somente para o próprio usuário.
+      if (!estado.planejamento.inicio && !estado.planejamento.prova) {
+        try {
+          const antigo = JSON.parse(localStorage.getItem(chaveDatasUsuarioV17()) || 'null');
+          if (antigo) {
+            estado.planejamento.inicio = antigo.inicio || '';
+            estado.planejamento.prova = antigo.prova || '';
+          }
+        } catch(e) {}
       }
 
+      inicio.value = estado.planejamento.inicio || '';
+      prova.value = estado.planejamento.prova || '';
       calcularDiasV17();
     }
-
     function ativarDatasUsuarioV17() {
       const inicio = document.getElementById('planejamentoInicioAuto');
       const prova = document.getElementById('planejamentoProvaAuto');
-
       if (inicio) {
         inicio.oninput = salvarDatasUsuarioV17;
         inicio.onchange = salvarDatasUsuarioV17;
@@ -5166,7 +5243,6 @@
         prova.oninput = salvarDatasUsuarioV17;
         prova.onchange = salvarDatasUsuarioV17;
       }
-
       carregarDatasUsuarioV17();
     }
 
@@ -5205,111 +5281,7 @@
       }
     });
 
-    // ===== V19: salvar e exibir o assunto selecionado no histórico =====
-    function obterTextoAssuntoSelecionadoV19() {
-      const sel = document.getElementById('questoesSelectAssunto');
-      if (!sel || !sel.value) return '';
-      const opt = sel.options[sel.selectedIndex];
-      return (opt?.textContent || '').trim();
-    }
-
-    function obterListaQuestoesV19() {
-      if (typeof estado === 'undefined' || !estado) return null;
-      if (Array.isArray(estado.registrosQuestoes)) return estado.registrosQuestoes;
-      if (Array.isArray(estado.questoes)) return estado.questoes;
-      if (Array.isArray(estado.historicoQuestoes)) return estado.historicoQuestoes;
-      return null;
-    }
-
-    // Captura o assunto ANTES da função antiga limpar os campos.
-    let assuntoPendenteV19 = '';
-    let assuntoIdPendenteV19 = '';
-
-    document.addEventListener('click', function(e) {
-      const btn = e.target.closest('button');
-      if (!btn || !/Registrar Questões/i.test(btn.textContent || '')) return;
-
-      const sel = document.getElementById('questoesSelectAssunto');
-      assuntoPendenteV19 = obterTextoAssuntoSelecionadoV19();
-      assuntoIdPendenteV19 = sel?.value || '';
-
-      // A função original registra primeiro. Logo depois completamos o registro.
-      setTimeout(function() {
-        if (!assuntoPendenteV19) return;
-
-        const lista = obterListaQuestoesV19();
-        if (!lista || !lista.length) return;
-
-        const ultimo = lista[lista.length - 1];
-        if (ultimo && typeof ultimo === 'object') {
-          ultimo.assunto = assuntoPendenteV19;
-          ultimo.nomeAssunto = assuntoPendenteV19;
-          if (assuntoIdPendenteV19) ultimo.assuntoId = assuntoIdPendenteV19;
-
-          if (typeof salvarEstado === 'function') {
-            try { salvarEstado(); } catch(e) {}
-          }
-        }
-
-        // Atualiza a lista da aba Questões e o Progresso.
-        if (typeof atualizarVisualizacaoQuestoes === 'function') {
-          try { atualizarVisualizacaoQuestoes(); } catch(e) {}
-        }
-        if (typeof renderizarProgressoV11 === 'function') {
-          try { renderizarProgressoV11(); } catch(e) {}
-        }
-
-        assuntoPendenteV19 = '';
-        assuntoIdPendenteV19 = '';
-      }, 20);
-    }, true);
-
-    // Acrescenta o assunto aos cartões já renderizados no histórico de questões.
-    function mostrarAssuntoHistoricoV19() {
-      const lista = obterListaQuestoesV19();
-      if (!lista || !lista.length) return;
-
-      // Procura os cartões do histórico pelo botão de lixeira.
-      const aba = document.getElementById('aba-questoes');
-      if (!aba) return;
-
-      const cards = Array.from(aba.querySelectorAll('div')).filter(el => {
-        const txt = el.textContent || '';
-        return /✓|✗|%/.test(txt) && el.querySelector('button');
-      });
-
-      // Prefere os containers menores.
-      const unicos = cards.filter(el =>
-        !Array.from(el.children).some(c => /✓|✗|%/.test(c.textContent || '') && c.querySelector?.('button'))
-      );
-
-      unicos.slice(-lista.length).forEach((card, i) => {
-        const reg = lista[Math.max(0, lista.length - unicos.length) + i];
-        const assunto =
-          reg?.assunto || reg?.nomeAssunto || reg?.conteudo || reg?.topico || '';
-        if (!assunto || card.querySelector('.assunto-historico-v19')) return;
-
-        const titulo = card.querySelector('strong,b');
-        const linha = document.createElement('div');
-        linha.className = 'assunto-historico-v19';
-        linha.textContent = assunto;
-
-        if (titulo) titulo.insertAdjacentElement('afterend', linha);
-        else card.prepend(linha);
-      });
-    }
-
-    // Observa renderizações da aba para inserir o assunto.
-    document.addEventListener('click', function(e) {
-      const btn = e.target.closest('button');
-      if (btn && /Questões/i.test(btn.textContent || '')) {
-        setTimeout(mostrarAssuntoHistoricoV19, 80);
-      }
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-      setTimeout(mostrarAssuntoHistoricoV19, 200);
-    });
+    // V26: camada V19 removida; o assunto é salvo diretamente no registro oficial.
 
     // ===== V20: progresso por matéria + gráfico + assunto correto =====
     function registrosProgressoV20(){
@@ -5492,133 +5464,58 @@
     });
 
 
-    // ===== V22: permissões da aba Editais Prontos =====
-    function ehEduardoV22() {
+    // ===== V26: permissões consolidadas =====
+    function ehAdministradorEduardoV26() {
       return String(usuarioAtivo || '').trim().toLowerCase() === 'eduardo';
     }
 
-    function localizarPainelAdminEditaisV22() {
-      // O painel já possui um ID próprio. Usar busca por texto podia retornar
-      // o contêiner pai da aba inteira e ocultar também a lista/botão do admin.
-      return document.getElementById('painelCriadorEduardo');
-    }
-
-    function localizarListaEditaisV22() {
+    function aplicarPermissoesEditaisV26() {
+      const admin = ehAdministradorEduardoV26();
+      const painel = document.getElementById('painelCriadorEduardo');
       const aba = document.getElementById('aba-editais-prontos');
-      if (!aba) return null;
 
-      const candidatos = Array.from(aba.querySelectorAll('div, section'));
-      return candidatos.find(el => {
-        const txt = (el.textContent || '').trim();
-        return /EDITAIS DISPONÍVEIS PARA CARREGAR/i.test(txt);
-      }) || null;
-    }
-
-    function aplicarPermissoesEditaisV22() {
-      const admin = ehEduardoV22();
-      const painel = localizarPainelAdminEditaisV22();
-      const lista = localizarListaEditaisV22();
-
-      if (painel) painel.style.display = admin ? 'block' : 'none';
-      if (lista) lista.style.display = '';
-
-      // IMPORTANTE: ao voltar para o perfil Eduardo, restaura os botões
-      // administrativos que podem ter sido ocultados quando outro usuário estava ativo.
-      if (admin && painel) {
-        painel.querySelectorAll('button').forEach(btn => {
-          btn.style.removeProperty('display');
-          btn.disabled = false;
+      if (painel) {
+        painel.style.display = admin ? 'block' : 'none';
+        painel.querySelectorAll('button,input,textarea').forEach(el => {
+          el.disabled = !admin;
         });
-        const publicar = painel.querySelector('button[onclick*="publicarNovoEditalPronto"]');
-        if (publicar) {
-          publicar.style.display = 'inline-flex';
-          publicar.style.width = '100%';
-          publicar.disabled = false;
-        }
       }
 
-      // Segurança visual adicional:
-      // para não-Eduardo, remove/oculta botões de apagar/administrar editais.
-      const aba = document.getElementById('aba-editais-prontos');
       if (!aba) return;
 
-      if (!admin) {
-        aba.querySelectorAll('button').forEach(btn => {
-          const txt = (btn.textContent || '').trim();
-          const titulo = (btn.title || '').trim();
+      // Na lista pública, todos podem adquirir/carregar.
+      // Excluir/editar/publicar permanece exclusivo de Eduardo.
+      aba.querySelectorAll('button').forEach(btn => {
+        if (painel && painel.contains(btn)) return;
 
-          // Mantém apenas aquisição/carregamento e navegação normal.
-          const permitido =
-            /Adquirir Edital|Carregar Edital|Usar Edital/i.test(txt);
+        const txt = `${btn.textContent || ''} ${btn.title || ''} ${btn.className || ''}`;
+        const acaoPublica = /Adquirir Edital|Carregar Edital|Usar Edital/i.test(txt);
+        const acaoAdmin = /Excluir|Apagar|Remover|Editar|Publicar|🗑|trash/i.test(txt);
 
-          const administrativo =
-            /Publicar|Excluir|Apagar|Remover|Editar/i.test(txt + ' ' + titulo) ||
-            /🗑|trash/i.test(txt + ' ' + titulo + ' ' + (btn.className || ''));
-
-          if (administrativo && !permitido) {
-            btn.style.display = 'none';
-            btn.disabled = true;
-          }
-        });
-      }
-    }
-
-    // Bloqueio funcional: mesmo que alguém tente chamar a função pelo console/interface,
-    // publicação/exclusão administrativa só é permitida ao Eduardo.
-    function protegerFuncaoAdminV22(nome) {
-      const original = window[nome];
-      if (typeof original !== 'function' || original.__protegidaV22) return;
-
-      const protegida = function(...args) {
-        if (!ehEduardoV22()) {
-          alert('Esta função administrativa está disponível somente para Eduardo.');
-          return;
+        if (acaoAdmin && !acaoPublica) {
+          btn.style.display = admin ? '' : 'none';
+          btn.disabled = !admin;
         }
-        return original.apply(this, args);
-      };
-      protegida.__protegidaV22 = true;
-      window[nome] = protegida;
-    }
-
-    function ativarSegurancaEditaisV22() {
-      [
-        'publicarEditalNaNuvem',
-        'publicarEdital',
-        'excluirEditalPronto',
-        'removerEditalPronto',
-        'deletarEditalPronto',
-        'excluirEditalNuvem',
-        'removerEditalNuvem'
-      ].forEach(protegerFuncaoAdminV22);
-
-      aplicarPermissoesEditaisV22();
+      });
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-      setTimeout(ativarSegurancaEditaisV22, 250);
+      setTimeout(aplicarPermissoesEditaisV26, 200);
     });
 
     document.addEventListener('click', function(e) {
       const btn = e.target.closest('button');
-      if (!btn) return;
-
-      if (/Editais Prontos/i.test(btn.textContent || '')) {
-        setTimeout(ativarSegurancaEditaisV22, 80);
+      if (btn && /Editais Prontos/i.test(btn.textContent || '')) {
+        setTimeout(aplicarPermissoesEditaisV26, 50);
       }
     });
 
-    // Reaplica quando a lista da nuvem for redesenhada.
-    if (typeof MutationObserver !== 'undefined') {
-      document.addEventListener('DOMContentLoaded', function() {
-        const aba = document.getElementById('aba-editais-prontos');
-        if (!aba) return;
-
-        const observer = new MutationObserver(function() {
-          aplicarPermissoesEditaisV22();
-        });
-        observer.observe(aba, { childList: true, subtree: true });
-      });
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+      const aba = document.getElementById('aba-editais-prontos');
+      if (!aba || typeof MutationObserver === 'undefined') return;
+      new MutationObserver(() => aplicarPermissoesEditaisV26())
+        .observe(aba, { childList: true, subtree: true });
+    });
 
     // ===== V23: Horas líquidas por matéria dentro de Progresso =====
     function historicoHorasV23() {

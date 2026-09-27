@@ -1762,10 +1762,32 @@ main.v35-modo-aba #v35AreaAba{
   #v35AreaAba #aba-desafio .admin-desafio-grid-v29>*{width:100%!important;min-width:0!important}
   #v35AreaAba #aba-desafio .desafio-grid-v29{grid-template-columns:1fr!important}
 }
+
+/* ===== V36: Dashboard / Inicio ===== */
+.dash-v36{width:100%;max-width:1240px;margin:0 auto;padding:4px;box-sizing:border-box}
+.dash-hero-v36{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:24px;border:1px solid var(--border,#243248);border-radius:18px;background:linear-gradient(135deg,rgba(20,184,255,.10),rgba(105,79,255,.08))}
+.dash-kicker-v36{font-size:12px;font-weight:800;color:#27b8ff;margin-bottom:6px}
+.dash-hero-v36 h2{font-size:28px;margin:0 0 5px}.dash-hero-v36 p{margin:0;opacity:.72}
+.dash-date-v36{font-size:13px;opacity:.7;text-align:right}
+.dash-stats-v36{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0}
+.dash-stats-v36 article,.dash-card-v36{border:1px solid var(--border,#243248);border-radius:16px;background:var(--card,#111c2e);box-sizing:border-box}
+.dash-stats-v36 article{padding:17px}.dash-stats-v36 span{display:block;font-size:12px;opacity:.72;margin-bottom:7px}.dash-stats-v36 strong{font-size:22px;color:#22b8ff}
+.dash-grid-v36{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dash-card-v36{padding:20px;min-width:0}.dash-title-row-v36{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.dash-title-row-v36 h3{margin:0;font-size:18px;color:#22b8ff}.dash-title-row-v36>span{font-weight:800}
+.dash-progress-v36{height:10px;border-radius:999px;background:rgba(130,150,180,.18);overflow:hidden}.dash-progress-v36 i{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#22b8ff,#6557ff);transition:width .3s ease}
+.dash-card-v36 p{font-size:13px;opacity:.76}.dash-next-content-v36{display:flex;flex-direction:column;gap:5px;margin-bottom:16px}.dash-next-content-v36 strong{font-size:17px}.dash-next-content-v36 span{font-size:13px;opacity:.72}
+.dash-start-v36{width:100%;border:0;border-radius:11px;padding:13px;font-weight:800;color:#fff;background:linear-gradient(90deg,#36baf4,#635cf5);cursor:pointer}
+.dash-list-v36{display:flex;flex-direction:column;gap:9px}.dash-att-item-v36{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(130,150,180,.13)}
+.dash-att-item-v36:last-child{border-bottom:0}.dash-att-item-v36 b{font-size:13px}.dash-att-item-v36 em{font-style:normal;font-weight:800}.dash-red-v36{color:#ff4e5b}.dash-yellow-v36{color:#f3c51c}.dash-green-v36{color:#24ce73}
+.dash-today-v36{display:flex;flex-direction:column;gap:6px}.dash-today-v36 strong{font-size:20px}.dash-today-v36 span{font-size:13px;opacity:.72}
+body.light .dash-stats-v36 article,body.light .dash-card-v36{background:#fff}body.light .dash-hero-v36{background:linear-gradient(135deg,#effaff,#f5f2ff)}
+@media(max-width:900px){.dash-stats-v36{grid-template-columns:1fr 1fr}.dash-grid-v36{grid-template-columns:1fr}}
+@media(max-width:520px){.dash-v36{padding:0}.dash-hero-v36{padding:18px;align-items:flex-start}.dash-hero-v36 h2{font-size:23px}.dash-date-v36{display:none}.dash-stats-v36{gap:8px}.dash-stats-v36 article{padding:13px}.dash-stats-v36 strong{font-size:18px}.dash-card-v36{padding:16px}}
 </style>
 </head>
 <body>
-<!-- V35: V33 estável + aba selecionada movida para a tela principal; Ciclo mantém o cronograma. -->
+<!-- V36: V35 + nova aba Inicio/Dashboard em modo somente leitura. -->
 
 
   <div id="celebrationOverlay">
@@ -1826,7 +1848,8 @@ main.v35-modo-aba #v35AreaAba{
       </div>
 
       <nav class="tab-nav">
-        <button class="tab-btn active" onclick="trocarAba('aba-ciclo', this)">Ciclo</button>
+        <button class="tab-btn" onclick="trocarAba('aba-inicio', this)">🏠 Início</button>
+          <button class="tab-btn active" onclick="trocarAba('aba-ciclo', this)">Ciclo</button>
         <button class="tab-btn" onclick="trocarAba('aba-editais-prontos', this)" style="color: #34d399; font-weight: 700;">Editais Prontos 🟢</button>
         <button class="tab-btn" onclick="trocarAba('aba-prioridades', this)">Prioridades</button>
         <button class="tab-btn" onclick="trocarAba('aba-revisoes', this)">Revisões ⏰</button>
@@ -1844,7 +1867,63 @@ main.v35-modo-aba #v35AreaAba{
       </nav>
 
       <!-- Aba 1: Ciclo -->
-      <div id="aba-ciclo" class="tab-content active">
+      
+        <div id="aba-inicio" class="tab-content">
+          <div class="dash-v36">
+            <section class="dash-hero-v36">
+              <div>
+                <div class="dash-kicker-v36">🏠 VISÃO GERAL</div>
+                <h2 id="dashSaudacaoV36">Olá! 👋</h2>
+                <p>Continue avançando rumo à sua aprovação.</p>
+              </div>
+              <div class="dash-date-v36" id="dashDataV36"></div>
+            </section>
+
+            <section class="dash-stats-v36">
+              <article><span>🔥 Sequência</span><strong id="dashSequenciaV36">0 dias</strong></article>
+              <article><span>⏱️ Horas líquidas</span><strong id="dashHorasV36">0h 00min</strong></article>
+              <article><span>✅ Edital</span><strong id="dashEditalV36">0 / 0</strong></article>
+              <article><span>🎯 Questões</span><strong id="dashQuestoesV36">—</strong></article>
+            </section>
+
+            <section class="dash-grid-v36">
+              <article class="dash-card-v36">
+                <div class="dash-title-row-v36">
+                  <h3>🎯 Meta da semana</h3>
+                  <span id="dashMetaPctV36">0%</span>
+                </div>
+                <div class="dash-progress-v36"><i id="dashMetaBarV36"></i></div>
+                <p id="dashMetaTextoV36">Comece a estudar para acompanhar sua semana.</p>
+              </article>
+
+              <article class="dash-card-v36 dash-next-v36">
+                <div class="dash-title-row-v36"><h3>📚 Próximo estudo</h3></div>
+                <div id="dashProximoV36" class="dash-next-content-v36">
+                  <strong>Nenhuma atividade programada.</strong>
+                  <span>Abra o Ciclo para organizar seus estudos.</span>
+                </div>
+                <button type="button" class="dash-start-v36" onclick="irParaCicloV36()">▶ Começar estudo</button>
+              </article>
+
+              <article class="dash-card-v36">
+                <div class="dash-title-row-v36"><h3>⚠️ Precisa de atenção</h3></div>
+                <div id="dashAtencaoV36" class="dash-list-v36">
+                  <p>Registre questões por assunto para identificar seus pontos de atenção.</p>
+                </div>
+              </article>
+
+              <article class="dash-card-v36">
+                <div class="dash-title-row-v36"><h3>📅 Hoje</h3></div>
+                <div id="dashHojeV36" class="dash-today-v36">
+                  <strong>0 atividades</strong>
+                  <span>Seu cronograma de hoje aparecerá aqui.</span>
+                </div>
+              </article>
+            </section>
+          </div>
+        </div>
+
+<div id="aba-ciclo" class="tab-content active">
         <div class="field">
           <label>Adicionar Disciplina</label>
           <div style="display: flex; gap: 6px;">
@@ -6134,6 +6213,111 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
       setTimeout(function(){
         mostrarAbaNaTelaPrincipalV35(match[1]);
       }, 0);
+    });
+
+    // ===== V36: Dashboard somente leitura; não altera Ciclo =====
+    function numeroSeguroV36(v){ const n=Number(v); return Number.isFinite(n)?n:0; }
+    function textoV36(v){ return (v==null?'':String(v)).trim(); }
+
+    function nomeUsuarioV36(){
+      try{
+        return textoV36(window.usuarioAtual?.nome || window.usuarioAtual?.usuario || window.currentUser?.nome || window.currentUser?.username || localStorage.getItem('usuarioAtual') || 'Estudante');
+      }catch(e){ return 'Estudante'; }
+    }
+
+    function irParaCicloV36(){
+      const btn=[...document.querySelectorAll('.tab-btn')].find(b=>(b.getAttribute('onclick')||'').includes("'aba-ciclo'") || (b.getAttribute('onclick')||'').includes('"aba-ciclo"'));
+      if(btn) btn.click();
+    }
+
+    function renderizarDashboardV36(){
+      const saud=document.getElementById('dashSaudacaoV36');
+      if(!saud) return;
+      saud.textContent='Olá, '+nomeUsuarioV36()+' 👋';
+      const data=document.getElementById('dashDataV36');
+      if(data) data.textContent=new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'2-digit',month:'long'}).format(new Date());
+
+      // Edital: lê checkboxes da tabela já existente.
+      const linhas=[...document.querySelectorAll('#aba-edital input[type="checkbox"]')];
+      const topicos=linhas.filter(x=>!x.disabled);
+      const feitos=topicos.filter(x=>x.checked).length;
+      const ed=document.getElementById('dashEditalV36');
+      if(ed) ed.textContent=feitos+' / '+topicos.length;
+
+      // Questões: tenta ler os indicadores já renderizados pela aba Questões/Progresso.
+      let totalQ=0, acertos=0;
+      const candidatos=[...document.querySelectorAll('#aba-questoes, #aba-progresso')];
+      candidatos.forEach(area=>{
+        const tx=area.innerText||'';
+        const mt=tx.match(/(?:Questões|Total Feitas)\s*(\d+)/i);
+        const ma=tx.match(/Acertos\s*(\d+)/i);
+        if(mt) totalQ=Math.max(totalQ,numeroSeguroV36(mt[1]));
+        if(ma) acertos=Math.max(acertos,numeroSeguroV36(ma[1]));
+      });
+      const taxa=totalQ?Math.round(acertos/totalQ*100):0;
+      const q=document.getElementById('dashQuestoesV36');
+      if(q) q.textContent=totalQ?(taxa+'% de acertos'):'—';
+
+      // Hoje/próximo estudo: lê cartões já existentes no cronograma.
+      const hoje=new Date();
+      const dd=String(hoje.getDate()).padStart(2,'0'), mm=String(hoje.getMonth()+1).padStart(2,'0');
+      const grade=document.getElementById('gradeSemana');
+      let cardDia=null;
+      if(grade){
+        cardDia=[...grade.children].find(el=>(el.innerText||'').includes(dd+'/'+mm));
+      }
+      let atividades=[];
+      if(cardDia){
+        atividades=[...cardDia.querySelectorAll('input[type="checkbox"]')].map(cb=>cb.closest('div,article,li')).filter(Boolean);
+        atividades=[...new Set(atividades)];
+      }
+      const hojeBox=document.getElementById('dashHojeV36');
+      if(hojeBox){
+        hojeBox.innerHTML='<strong>'+atividades.length+' atividade'+(atividades.length===1?'':'s')+'</strong><span>'+(atividades.length?'programada'+(atividades.length===1?'':'s')+' para hoje.':'Nenhuma atividade programada para hoje.')+'</span>';
+      }
+      const prox=document.getElementById('dashProximoV36');
+      if(prox && atividades.length){
+        const t=(atividades[0].innerText||'').split('\n').map(s=>s.trim()).filter(Boolean);
+        prox.innerHTML='<strong>'+ (t[0]||'Próximo estudo') +'</strong><span>'+ (t.slice(1,3).join(' • ')||'Abra o Ciclo para iniciar.') +'</span>';
+      }
+
+      // Meta visual: usa avanço do edital, sem criar/alterar dados.
+      const pct=topicos.length?Math.round(feitos/topicos.length*100):0;
+      const mp=document.getElementById('dashMetaPctV36'), mb=document.getElementById('dashMetaBarV36'), mt=document.getElementById('dashMetaTextoV36');
+      if(mp) mp.textContent=pct+'%';
+      if(mb) mb.style.width=Math.max(0,Math.min(100,pct))+'%';
+      if(mt) mt.textContent=topicos.length?feitos+' de '+topicos.length+' tópicos concluídos no edital.':'Carregue um edital para acompanhar sua evolução.';
+
+      // Pontos de atenção: aproveita o texto já calculado no Progresso.
+      const at=document.getElementById('dashAtencaoV36');
+      const prog=document.getElementById('aba-progresso');
+      if(at && prog){
+        const linhas=[...(prog.innerText||'').split('\n')].map(s=>s.trim()).filter(Boolean);
+        const achados=[];
+        linhas.forEach((s,i)=>{
+          const m=s.match(/(\d{1,3})%/);
+          if(m && numeroSeguroV36(m[1])<80){
+            const nome=linhas[Math.max(0,i-1)];
+            if(nome && !achados.some(x=>x.nome===nome)) achados.push({nome,pct:numeroSeguroV36(m[1])});
+          }
+        });
+        if(achados.length){
+          at.innerHTML=achados.slice(0,3).map(x=>'<div class="dash-att-item-v36"><b>'+x.nome+'</b><em class="'+(x.pct<60?'dash-red-v36':'dash-yellow-v36')+'">'+x.pct+'%</em></div>').join('');
+        }
+      }
+
+      // Horas e sequência: se os valores já existirem na interface, reaproveita.
+      const pagina=document.body.innerText||'';
+      const mh=pagina.match(/Horas líquidas\s*([\d]+h(?:\s*\d+min)?)/i);
+      const ms=pagina.match(/Sequência\s*(\d+\s*dias?)/i);
+      if(mh) document.getElementById('dashHorasV36').textContent=mh[1];
+      if(ms) document.getElementById('dashSequenciaV36').textContent=ms[1];
+    }
+
+    // Atualiza ao abrir Início sem tocar na função trocarAba.
+    document.addEventListener('click',function(e){
+      const b=e.target.closest('.tab-btn'); if(!b)return;
+      if((b.getAttribute('onclick')||'').includes('aba-inicio')) setTimeout(renderizarDashboardV36,50);
     });
 </script>
 

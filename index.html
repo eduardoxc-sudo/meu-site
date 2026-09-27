@@ -8456,6 +8456,110 @@ html,body{overflow-x:hidden}
 })();
 </script>
 
+
+<!-- ===== V57: corrige sobreposição das abas + Mês baseado nas semanas reais ===== -->
+<style id="v57-nav-month-fix">
+/* Quando outra aba está aberta, NENHUMA visão do Meu Plano pode ficar por cima dela. */
+main.v35-modo-aba > .main-header,
+main.v35-modo-aba > #cardPrevisaoTerminoEdital,
+main.v35-modo-aba > #frequenciaV38,
+main.v35-modo-aba > #mobileDiasV38,
+main.v35-modo-aba > #gradeSemana,
+main.v35-modo-aba > #listaCicloV47,
+main.v35-modo-aba > #mesCicloV47{
+  display:none !important;
+}
+
+/* A área da aba escolhida fica no topo, sem o Dashboard aparecer embaixo do calendário. */
+main.v35-modo-aba #v35AreaAba{
+  display:block !important;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  margin:0 !important;
+  box-sizing:border-box !important;
+}
+
+/* Grade mensal desktop */
+#mesCicloV47{
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  grid-template-columns:repeat(7,minmax(0,1fr)) !important;
+  gap:7px !important;
+  overflow:hidden !important;
+  box-sizing:border-box !important;
+}
+#mesCicloV47 > *{min-width:0 !important;box-sizing:border-box !important}
+#mesCicloV47 .mes-dia-v47{min-height:105px !important;overflow:hidden !important}
+</style>
+
+<script id="v57-nav-month-fix-js">
+(function(){
+  /* O mês passa a ler estado.semanas, em vez de copiar a semana visível na tela. */
+  window.renderMesCicloV47 = function(){
+    const el=document.getElementById('mesCicloV47');
+    if(!el) return;
+
+    const base = (typeof dataReferencia !== 'undefined' && dataReferencia instanceof Date)
+      ? new Date(dataReferencia)
+      : new Date();
+
+    const ano=base.getFullYear(), mes=base.getMonth();
+    const primeiro=new Date(ano,mes,1), ultimo=new Date(ano,mes+1,0);
+    const cab=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    let html=cab.map(n=>`<div class="mes-head-v47">${n}</div>`).join('');
+
+    for(let i=0;i<primeiro.getDay();i++) html+='<div class="mes-vazio-v57"></div>';
+
+    for(let d=1; d<=ultimo.getDate(); d++){
+      const dt=new Date(ano,mes,d);
+      dt.setHours(0,0,0,0);
+
+      const segunda=obterSegundaFeira(dt);
+      const chaveSemana='semana_'+formatarDataChave(segunda);
+      const semana=(estado && estado.semanas && estado.semanas[chaveSemana]) || {};
+
+      /* DIAS usa a mesma ordem do cronograma: segunda ... domingo. */
+      const indice=(dt.getDay()+6)%7;
+      const nomeDia=(typeof DIAS!=='undefined' && DIAS[indice]) ? DIAS[indice] : null;
+      const itens=(nomeDia && Array.isArray(semana[nomeDia])) ? semana[nomeDia] : [];
+
+      const pend=itens.filter(x=>!x.feito).length;
+      const concl=itens.filter(x=>x.feito).length;
+      const hoje=formatarDataChave(dt)===formatarDataChave(new Date());
+
+      let resumo='—';
+      if(itens.length){
+        resumo=`${itens.length} atividade(s)<br>${pend} pendente(s)`;
+        if(concl===itens.length) resumo+=`<br><span style="color:var(--success)">✓ concluído</span>`;
+      }
+
+      html+=`<div class="mes-dia-v47 ${hoje?'hoje':''}">
+        <div class="mes-num-v47">${d}</div>
+        <div class="mes-cont-v47">${resumo}</div>
+      </div>`;
+    }
+
+    el.innerHTML=html;
+  };
+
+  /* Garante que trocar de aba esconda imediatamente qualquer calendário mensal/lista. */
+  document.addEventListener('click',function(e){
+    const b=e.target.closest('.tab-btn');
+    if(!b) return;
+    const acao=b.getAttribute('onclick')||'';
+    const m=acao.match(/trocarAba\(\s*['"]([^'"]+)['"]/);
+    if(!m) return;
+
+    if(m[1] !== 'aba-ciclo'){
+      const main=document.querySelector('#app-container > main');
+      if(main) main.classList.add('v35-modo-aba');
+    }
+  },true);
+})();
+</script>
+
 </body>
 </html>
 

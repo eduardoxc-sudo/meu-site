@@ -8386,3 +8386,119 @@ aside button:not(#v481-theme-toggle),.sidebar button:not(#v481-theme-toggle){
     .observe(document.documentElement,{subtree:true,childList:true});
 })();
 </script>
+
+<!-- ===== V54: correções pontuais de renderização/navegação ===== -->
+<style id="v54-fixes">
+/* Mês sempre cabe na área principal, com as 7 colunas completas. */
+#mesCicloV47{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  grid-template-columns:repeat(7,minmax(0,1fr))!important;
+  gap:7px!important;
+  overflow:hidden!important;
+  padding:0 1px!important;
+}
+#mesCicloV47>*{min-width:0!important;max-width:100%!important}
+#mesCicloV47 .mes-dia-v47{min-width:0!important;padding:8px!important;overflow:hidden!important}
+#mesCicloV47 .mes-cont-v47{overflow-wrap:anywhere!important}
+#app-container>main,#v35AreaAba{min-width:0!important;max-width:100%!important}
+@media(max-width:768px){
+  #mesCicloV47{grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:3px!important;overflow-x:auto!important}
+  #mesCicloV47 .mes-dia-v47{min-height:72px!important;padding:5px!important}
+  #mesCicloV47 .mes-cont-v47{font-size:.58rem!important}
+}
+</style>
+<script id="v54-fixes-js">
+(function(){
+  function btnAbaV54(id){
+    return [...document.querySelectorAll('.tab-btn')].find(b=>(b.getAttribute('onclick')||'').includes(id));
+  }
+
+  /* Navega pelo MESMO clique do menu, para o V35 mover a aba ao main corretamente. */
+  function abrirAbaNormalV54(id){
+    const b=btnAbaV54(id);
+    if(b){ b.click(); return true; }
+    if(typeof trocarAba==='function') trocarAba(id,null);
+    if(typeof mostrarAbaNaTelaPrincipalV35==='function' && id!=='aba-ciclo'){
+      setTimeout(()=>mostrarAbaNaTelaPrincipalV35(id),0);
+    }
+    return false;
+  }
+
+  /* Meu Plano: ao ENTRAR no Ciclo, Semana deve realmente renderizar, não só parecer selecionada. */
+  function abrirSemanaV54(){
+    try{
+      if(typeof mudarVisaoCicloV47==='function') mudarVisaoCicloV47('semana');
+      if(typeof atualizarVisualCicloV38==='function') atualizarVisualCicloV38();
+      if(typeof renderizarCronograma==='function') renderizarCronograma();
+      if(typeof renderizarSemana==='function') renderizarSemana();
+    }catch(e){console.warn('V54 semana:',e)}
+  }
+
+  document.addEventListener('click',function(e){
+    const b=e.target.closest('.tab-btn'); if(!b)return;
+    const a=b.getAttribute('onclick')||'';
+    if(a.includes('aba-ciclo')){
+      /* O padrão ao reabrir Meu Plano é Semana, eliminando a tela vazia. */
+      setTimeout(abrirSemanaV54,70);
+      setTimeout(abrirSemanaV54,220);
+    }
+  },true);
+
+  /* Depois de criar o planejamento: Ver meu Ciclo abre já em Semana preenchida. */
+  window.verCicloPlanV41=function(){
+    try{if(typeof fecharModalPlanV41==='function') fecharModalPlanV41()}catch(e){}
+    abrirAbaNormalV54('aba-ciclo');
+    setTimeout(abrirSemanaV54,80);
+    setTimeout(abrirSemanaV54,260);
+  };
+
+  /* Botão do Timer: usa a navegação normal do menu; não abre Progresso dentro da sidebar. */
+  window.abrirProgressoV46=function(){
+    try{if(typeof fecharAvisoV43==='function') fecharAvisoV43()}catch(e){}
+    abrirAbaNormalV54('aba-progresso');
+    setTimeout(function(){
+      try{if(typeof renderizarProgressoV11==='function') renderizarProgressoV11()}catch(e){}
+      try{if(typeof renderizarProgresso==='function') renderizarProgresso()}catch(e){}
+      try{if(typeof atualizarProgresso==='function') atualizarProgresso()}catch(e){}
+      window.scrollTo({top:0,behavior:'smooth'});
+    },100);
+  };
+
+  /* Dashboard pós-login: espera o perfil real aparecer e atualiza a saudação. */
+  function atualizarNomeLoginV54(){
+    try{
+      const nome=(typeof usuarioDashboardV37==='function')?usuarioDashboardV37():'';
+      const el=document.getElementById('dashSaudacaoV36');
+      if(el && nome && nome!=='Estudante' && nome!=='—') el.textContent='Olá, '+nome+' 👋';
+      if(typeof renderizarDashboardV37==='function') renderizarDashboardV37();
+    }catch(e){}
+  }
+  function acompanharPerfilV54(){
+    let n=0;
+    const t=setInterval(function(){
+      n++; atualizarNomeLoginV54();
+      const el=document.getElementById('dashSaudacaoV36');
+      if((el && !/Olá,\s*(—|Estudante)\s*👋/.test(el.textContent||'')) || n>=30) clearInterval(t);
+    },150);
+  }
+  window.addEventListener('load',()=>setTimeout(acompanharPerfilV54,150));
+  const app=document.getElementById('app-container');
+  if(app){
+    new MutationObserver(()=>{
+      if(getComputedStyle(app).display!=='none') setTimeout(acompanharPerfilV54,80);
+    }).observe(app,{attributes:true,attributeFilter:['style','class']});
+  }
+
+  /* Se finalizar Planejamento e a semana for regenerada, prepara a visão Semana. */
+  const aplicarOriginal=window.aplicarPlanejamentoV40;
+  if(typeof aplicarOriginal==='function'){
+    window.aplicarPlanejamentoV40=function(){
+      const r=aplicarOriginal.apply(this,arguments);
+      setTimeout(abrirSemanaV54,260);
+      return r;
+    };
+  }
+})();
+</script>

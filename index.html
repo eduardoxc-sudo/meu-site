@@ -1864,10 +1864,21 @@ body.light #gradeSemana > *{box-shadow:0 5px 18px rgba(30,55,85,.09)}
 .wizard-footer-v40{display:flex;justify-content:flex-end;gap:9px;padding:16px 24px;border-top:1px solid var(--border,#243248)}
 body.light .wizard-v40,body.light .materia-plan-v40,body.light .disp-dia-v40,body.light .revisoes-grid-v40 label,body.light .resumo-card-v40{background:#fff}
 @media(max-width:760px){.wizard-head-v40{padding:17px;flex-direction:column}.wizard-steps-v40{padding:12px 10px}.wizard-step-v40{flex-direction:column;font-size:10px}.wizard-page-v40{padding:17px}.materias-grid-v40,.resumo-v40{grid-template-columns:1fr}.disp-grid-v40,.revisoes-grid-v40{grid-template-columns:repeat(2,1fr)}.materia-plan-controls-v40{grid-template-columns:1fr}.wizard-footer-v40{padding:13px 17px}}
+
+/* ===== V41: planejamento automático ===== */
+.date-row-v41{display:grid;grid-template-columns:1fr auto;gap:8px}.date-row-v41 .btn{white-space:nowrap}
+.auto-review-v41{display:flex;gap:9px;align-items:center;margin-top:17px;padding:12px 14px;border:1px solid rgba(34,200,117,.35);border-radius:12px;background:rgba(34,200,117,.07)}
+.auto-review-v41 input{accent-color:#22c875}
+.revisoes-grid-v40 em{font-style:normal;display:flex;align-items:center;gap:5px;margin-top:9px;font-size:11px;color:var(--text-muted)}
+.revisoes-grid-v40 em input{width:62px;padding:5px 6px;border:1px solid var(--border,#243248);border-radius:7px;background:var(--input,#08111f);color:inherit}
+.modal-plan-v41{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;padding:18px}
+.modal-plan-v41.show{display:flex}.modal-plan-card-v41{width:min(430px,100%);background:var(--card,#111c2e);border:1px solid var(--border,#243248);border-radius:18px;padding:24px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.38)}
+.modal-plan-icon-v41{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;margin:0 auto 12px;background:#22c875;color:#06150d;font-size:28px;font-weight:900}.modal-plan-card-v41 h3{margin:0 0 7px}.modal-plan-card-v41 p{color:var(--text-muted);margin:0 0 18px}.modal-plan-actions-v41{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}
+@media(max-width:600px){.date-row-v41{grid-template-columns:1fr}.date-row-v41 .btn{width:100%}}
 </style>
 </head>
 <body>
-<!-- V40: V39 estável + Planejamento em 4 etapas; Ciclo/Pesos/Prioridades preservados. -->
+<!-- V41: V40 + datas corrigidas, duracao/revisoes automaticas e aplicacao integrada ao Ciclo. -->
 
 
   <div id="celebrationOverlay">
@@ -2368,7 +2379,7 @@ body.light .wizard-v40,body.light .materia-plan-v40,body.light .disp-dia-v40,bod
       <h3>🗓️ Sua disponibilidade</h3>
       <p class="wizard-help-v40">Informe o tempo disponível. Esses dados ficam salvos no seu perfil.</p>
       <div class="planejamento-datas">
-        <div class="field"><label>INÍCIO DOS ESTUDOS</label><input type="date" id="planejamentoInicioAuto"></div>
+        <div class="field"><label>INÍCIO DOS ESTUDOS</label><div class="date-row-v41"><input type="date" id="planejamentoInicioAuto"><button type="button" class="btn btn-outline" onclick="usarHojePlanejamentoV41()">📅 Hoje</button></div></div>
         <div class="field"><label>DATA DA PROVA</label><input type="date" id="planejamentoProvaAuto"></div>
       </div>
       <div class="disp-grid-v40" id="disponibilidadeDiasV40"></div>
@@ -2381,13 +2392,14 @@ body.light .wizard-v40,body.light .materia-plan-v40,body.light .disp-dia-v40,bod
     <section class="wizard-page-v40" data-page="3">
       <h3>🔁 Revisões espaçadas</h3>
       <p class="wizard-help-v40">Escolha o padrão do planejamento. As revisões já marcadas individualmente no Edital continuam preservadas.</p>
+      <label class="auto-review-v41"><input type="checkbox" id="planRevAutoV41" checked> <b>🔄 Gerar revisões automaticamente ao concluir um tópico</b></label>
       <div class="revisoes-grid-v40">
-        <label><input type="checkbox" id="planRevD1V40" checked><span><b>D1</b><small>1 dia depois</small></span></label>
-        <label><input type="checkbox" id="planRevD7V40" checked><span><b>D7</b><small>7 dias depois</small></span></label>
-        <label><input type="checkbox" id="planRevD15V40" checked><span><b>D15</b><small>15 dias depois</small></span></label>
-        <label><input type="checkbox" id="planRevD30V40" checked><span><b>D30</b><small>30 dias depois</small></span></label>
+        <label><input type="checkbox" id="planRevD1V40" checked><span><b>D1</b><small>1 dia depois</small><em>⏱ <input type="number" id="planRevMinD1V41" min="5" max="180" step="5" value="15"> min</em></span></label>
+        <label><input type="checkbox" id="planRevD7V40" checked><span><b>D7</b><small>7 dias depois</small><em>⏱ <input type="number" id="planRevMinD7V41" min="5" max="180" step="5" value="20"> min</em></span></label>
+        <label><input type="checkbox" id="planRevD15V40" checked><span><b>D15</b><small>15 dias depois</small><em>⏱ <input type="number" id="planRevMinD15V41" min="5" max="180" step="5" value="25"> min</em></span></label>
+        <label><input type="checkbox" id="planRevD30V40" checked><span><b>D30</b><small>30 dias depois</small><em>⏱ <input type="number" id="planRevMinD30V41" min="5" max="180" step="5" value="30"> min</em></span></label>
       </div>
-      <div class="wizard-note-v40">ℹ️ Nesta versão, essas opções ficam salvas como preferência do planejamento. A lógica atual de D1/D7/D15/D30 do Edital não é alterada.</div>
+      <div class="wizard-note-v40">ℹ️ D1, D7, D15 e D30 são atividades de revisão. Elas não criam novas matérias nem aumentam a quantidade de tópicos do edital.</div>
     </section>
 
     <section class="wizard-page-v40" data-page="4">
@@ -6829,6 +6841,111 @@ function iniciarPlanejamentoV40(){
 document.addEventListener('click',e=>{
  const b=e.target.closest('.tab-btn');if(b&&(b.getAttribute('onclick')||'').includes('aba-planejamento'))setTimeout(iniciarPlanejamentoV40,100);
 });
+
+// ===== V41: datas, revisões automáticas, resumo e aplicação completa =====
+function hojeISOPlanV41(){
+  const d=new Date(), y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dia=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dia}`;
+}
+function usarHojePlanejamentoV41(){const e=document.getElementById('planejamentoInicioAuto');if(e)e.value=hojeISOPlanV41()}
+function dataBRPlanV41(v){if(!v)return '—';const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}/${m[2]}/${m[1]}`:v}
+function minRevPlanV41(id,padrao){return Math.max(5,Number(document.getElementById(id)?.value||padrao))}
+
+function salvarRascunhoPlanejamentoV40(){
+ estado.planejamentoV40=estado.planejamentoV40||{};
+ const mats={};
+ document.querySelectorAll('.plan-mat-check-v40').forEach(ch=>{
+  const n=ch.dataset.mat;
+  mats[n]={ativa:ch.checked,peso:Number(document.querySelector(`.plan-mat-peso-v40[data-mat="${CSS.escape(n)}"]`)?.value||3),conhecimento:document.querySelector(`.plan-mat-conh-v40[data-mat="${CSS.escape(n)}"]`)?.value||'Intermediário'};
+ });
+ if(Object.keys(mats).length)estado.planejamentoV40.materias=mats;
+ const disp={};document.querySelectorAll('#disponibilidadeDiasV40 [data-dia]').forEach(x=>disp[x.dataset.dia]=Number(x.value||0));
+ if(Object.keys(disp).length)estado.planejamentoV40.disponibilidade=disp;
+ estado.planejamentoV40.revisoes={
+   automatico:!!document.getElementById('planRevAutoV41')?.checked,
+   d1:!!document.getElementById('planRevD1V40')?.checked,minD1:minRevPlanV41('planRevMinD1V41',15),
+   d7:!!document.getElementById('planRevD7V40')?.checked,minD7:minRevPlanV41('planRevMinD7V41',20),
+   d15:!!document.getElementById('planRevD15V40')?.checked,minD15:minRevPlanV41('planRevMinD15V41',25),
+   d30:!!document.getElementById('planRevD30V40')?.checked,minD30:minRevPlanV41('planRevMinD30V41',30)
+ };
+ salvarEstado();
+}
+function restaurarRevisoesPlanejamentoV40(){
+ const r=estado.planejamentoV40?.revisoes||{automatico:true,d1:true,d7:true,d15:true,d30:true,minD1:15,minD7:20,minD15:25,minD30:30};
+ const a=document.getElementById('planRevAutoV41');if(a)a.checked=r.automatico!==false;
+ [['planRevD1V40','d1'],['planRevD7V40','d7'],['planRevD15V40','d15'],['planRevD30V40','d30']].forEach(([id,k])=>{const e=document.getElementById(id);if(e)e.checked=r[k]!==false});
+ [['planRevMinD1V41','minD1',15],['planRevMinD7V41','minD7',20],['planRevMinD15V41','minD15',25],['planRevMinD30V41','minD30',30]].forEach(([id,k,p])=>{const e=document.getElementById(id);if(e)e.value=r[k]||p});
+}
+function renderDisponibilidadeV40(){
+ const box=document.getElementById('disponibilidadeDiasV40');if(!box)return;
+ const disp=estado.planejamentoV40?.disponibilidade||{};
+ box.innerHTML=diasPlanejamentoV40.map(d=>`<div class="disp-dia-v40"><b>${d}</b><input type="number" min="0" max="12" step="0.5" data-dia="${d}" value="${Number(disp[d]??2)}"><small>horas</small></div>`).join('');
+ const p=document.getElementById('planejamentoPorDiaV40');if(p)p.value=estado.porDia||2;
+ const i=document.getElementById('planejamentoInicioAuto'),pr=document.getElementById('planejamentoProvaAuto');
+ const ini=estado.inicioEstudos||estado.dataInicio||estado.planejamento?.inicio||'';
+ if(i)i.value=/^20\d{2}-\d{2}-\d{2}$/.test(ini)?ini:hojeISOPlanV41();
+ const prova=estado.dataProva||estado.planejamento?.prova||'';
+ if(pr)pr.value=/^20\d{2}-\d{2}-\d{2}$/.test(prova)?prova:'';
+}
+function renderResumoPlanejamentoV40(){
+ salvarRascunhoPlanejamentoV40();
+ const box=document.getElementById('resumoPlanejamentoV40');if(!box)return;
+ const cfg=estado.planejamentoV40||{},mats=cfg.materias||{},ativos=Object.entries(mats).filter(([,v])=>v.ativa!==false);
+ const horas=Object.values(cfg.disponibilidade||{}).reduce((a,b)=>a+Number(b||0),0),r=cfg.revisoes||{};
+ const rev=[r.d1&&`D1 • ${r.minD1||15} min`,r.d7&&`D7 • ${r.minD7||20} min`,r.d15&&`D15 • ${r.minD15||25} min`,r.d30&&`D30 • ${r.minD30||30} min`].filter(Boolean).join(' | ')||'Nenhuma';
+ box.innerHTML=`<div class="resumo-card-v40"><small>Matérias selecionadas</small><b>${ativos.length}</b></div>
+ <div class="resumo-card-v40"><small>Disponibilidade semanal</small><b>${horas}h</b></div>
+ <div class="resumo-card-v40"><small>Ritmo</small><b>${document.getElementById('planejamentoPorDiaV40')?.value||estado.porDia||2} por dia</b></div>
+ <div class="resumo-card-v40"><small>Revisões ${r.automatico!==false?'automáticas':'manuais'}</small><b>${rev}</b></div>
+ <div class="resumo-card-v40"><small>Início</small><b>${dataBRPlanV41(document.getElementById('planejamentoInicioAuto')?.value)}</b></div>
+ <div class="resumo-card-v40"><small>Prova</small><b>${dataBRPlanV41(document.getElementById('planejamentoProvaAuto')?.value)}</b></div>`;
+}
+function fecharModalPlanV41(){document.getElementById('modalPlanV41')?.classList.remove('show')}
+function verCicloPlanV41(){
+ fecharModalPlanV41();
+ const b=[...document.querySelectorAll('.tab-btn')].find(x=>(x.getAttribute('onclick')||'').includes('aba-ciclo'));if(b)b.click();
+}
+function regenerarSemanaSeguroPlanV41(){
+ const b=[...document.querySelectorAll('button')].find(x=>(x.textContent||'').includes('Regenerar Esta Semana'));
+ if(b){b.click();return true}
+ return false;
+}
+function aplicarPlanejamentoV40(){
+ salvarRascunhoPlanejamentoV40();
+ const cfg=estado.planejamentoV40||{},mats=cfg.materias||{};
+ // Pesos/seleção ficam registrados sem excluir tópicos ou matérias existentes.
+ (estado.disciplinas||[]).forEach(d=>{if(typeof d==='object'&&mats[d.nome])d.peso=Number(mats[d.nome].peso||d.peso||3)});
+ const pd=Math.max(1,Math.min(8,Number(document.getElementById('planejamentoPorDiaV40')?.value||estado.porDia||2)));estado.porDia=pd;
+ const i=document.getElementById('planejamentoInicioAuto')?.value||hojeISOPlanV41(),p=document.getElementById('planejamentoProvaAuto')?.value||'';
+ estado.dataInicio=i;estado.inicioEstudos=i;estado.planejamento=estado.planejamento||{};estado.planejamento.inicio=i;
+ if(p){estado.dataProva=p;estado.planejamento.prova=p}
+ // Preferências de revisão ficam separadas: não incrementam total de tópicos.
+ estado.revisoesAutomaticas=Object.assign({},cfg.revisoes||{});
+ salvarEstado();
+ const old=document.getElementById('materiasPorDia');if(old)old.value=pd;
+ try{renderizarPesos()}catch(_){}
+ try{calcularPrevisaoFechamentoEdital()}catch(_){}
+ // Usa o regenerador já existente do Ciclo, evitando duplicar uma segunda lógica de cronograma.
+ setTimeout(()=>{try{regenerarSemanaSeguroPlanV41()}catch(_){}},50);
+ setTimeout(()=>document.getElementById('modalPlanV41')?.classList.add('show'),180);
+}
+
+// Ao marcar um tópico concluído, registra as revisões futuras separadamente do edital.
+// A fila não cria tópicos; serve como agenda de revisão para integração com o Ciclo.
+function registrarRevisoesAutomaticasPlanV41(checkbox){
+ const r=estado.revisoesAutomaticas;if(!r||r.automatico===false||!checkbox?.checked)return;
+ const card=checkbox.closest('[data-topic-id], .task, .topic-card, article, li, div');
+ const txt=(card?.innerText||'').trim().slice(0,500);if(!txt)return;
+ estado.agendaRevisoes=estado.agendaRevisoes||[];
+ const base=new Date();base.setHours(12,0,0,0);
+ [['D1',1,r.d1,r.minD1||15],['D7',7,r.d7,r.minD7||20],['D15',15,r.d15,r.minD15||25],['D30',30,r.d30,r.minD30||30]].forEach(([tipo,dias,on,min])=>{
+  if(!on)return;const d=new Date(base);d.setDate(d.getDate()+dias);
+  const data=d.toISOString().slice(0,10),chave=`${tipo}|${data}|${txt}`;
+  if(!estado.agendaRevisoes.some(x=>x.chave===chave))estado.agendaRevisoes.push({chave,tipo,data,minutos:min,texto:txt,revisao:true});
+ });
+ salvarEstado();
+}
+document.addEventListener('change',e=>{if(e.target?.matches('#gradeSemana input[type="checkbox"]'))registrarRevisoesAutomaticasPlanV41(e.target)});
 </script>
 
   <button id="btnReabrirSidebar" class="sidebar-reopen"
@@ -6843,5 +6960,17 @@ document.addEventListener('click',e=>{
 
   <div class="mobile-menu-overlay" id="mobileMenuOverlay"
        onclick="fecharMenuMobile()"></div>
+
+<div id="modalPlanV41" class="modal-plan-v41" aria-hidden="true">
+  <div class="modal-plan-card-v41">
+    <div class="modal-plan-icon-v41">✓</div>
+    <h3>Planejamento criado!</h3>
+    <p>Suas configurações foram salvas e a semana foi atualizada.</p>
+    <div class="modal-plan-actions-v41">
+      <button type="button" class="btn btn-outline" onclick="fecharModalPlanV41()">Continuar aqui</button>
+      <button type="button" class="btn btn-primary" onclick="verCicloPlanV41()">📚 Ver meu Ciclo</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

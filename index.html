@@ -1841,10 +1841,33 @@ body.light #gradeSemana > *{box-shadow:0 5px 18px rgba(30,55,85,.09)}
   #gradeSemana.v38-mobile-selected{grid-template-columns:1fr!important}
   #gradeSemana > *{min-height:auto!important}
 }
+
+/* ===== V40: Planejamento em etapas ===== */
+.wizard-v40{max-width:1050px;margin:0 auto;background:var(--card,#111c2e);border:1px solid var(--border,#243248);border-radius:18px;overflow:hidden}
+.wizard-head-v40{display:flex;justify-content:space-between;gap:18px;padding:22px 24px;border-bottom:1px solid var(--border,#243248)}
+.wizard-head-v40 small{color:var(--primary,#29b6f6);font-weight:800}.wizard-head-v40 h2{margin:5px 0}.wizard-head-v40 p,.wizard-help-v40{color:var(--text-muted);margin:0}
+#wizardContadorV40{white-space:nowrap;font-size:12px;color:var(--text-muted)}
+.wizard-steps-v40{display:grid;grid-template-columns:repeat(4,1fr);padding:16px 24px;gap:8px;border-bottom:1px solid var(--border,#243248)}
+.wizard-step-v40{border:0;background:transparent;color:var(--text-muted);display:flex;align-items:center;gap:8px;justify-content:center;cursor:pointer}
+.wizard-step-v40 b{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:rgba(130,150,180,.16)}
+.wizard-step-v40.active{color:var(--primary,#29b6f6);font-weight:800}.wizard-step-v40.active b{background:var(--primary,#29b6f6);color:#06131c}
+.wizard-page-v40{display:none;padding:22px 24px}.wizard-page-v40.active{display:block}.wizard-page-v40 h3{margin:0 0 6px}
+.materias-grid-v40{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+.materia-plan-v40{border:1px solid var(--border,#243248);border-radius:13px;padding:13px;background:rgba(0,0,0,.08)}
+.materia-plan-top-v40{display:flex;gap:9px;align-items:center;margin-bottom:11px}.materia-plan-top-v40 input{accent-color:#22c875}
+.materia-plan-controls-v40{display:grid;grid-template-columns:1fr 1fr;gap:9px}.materia-plan-controls-v40 label{font-size:11px;color:var(--text-muted)}.materia-plan-controls-v40 select{margin-top:4px;width:100%}
+.disp-grid-v40{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}.disp-dia-v40{border:1px solid var(--border,#243248);border-radius:12px;padding:10px}.disp-dia-v40 b{display:block;margin-bottom:6px}.disp-dia-v40 input{width:100%}
+.wizard-narrow-v40{max-width:280px}.revisoes-grid-v40{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+.revisoes-grid-v40 label{border:1px solid var(--border,#243248);border-radius:13px;padding:14px;display:flex;gap:10px;cursor:pointer}.revisoes-grid-v40 input{accent-color:#22c875}.revisoes-grid-v40 span{display:flex;flex-direction:column}.revisoes-grid-v40 small{color:var(--text-muted);margin-top:3px}
+.wizard-note-v40{margin-top:15px;padding:12px;border-radius:10px;background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.25);font-size:12px;color:var(--text-muted)}
+.resumo-v40{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}.resumo-card-v40{border:1px solid var(--border,#243248);border-radius:13px;padding:14px}.resumo-card-v40 small{color:var(--text-muted);display:block;margin-bottom:5px}
+.wizard-footer-v40{display:flex;justify-content:flex-end;gap:9px;padding:16px 24px;border-top:1px solid var(--border,#243248)}
+body.light .wizard-v40,body.light .materia-plan-v40,body.light .disp-dia-v40,body.light .revisoes-grid-v40 label,body.light .resumo-card-v40{background:#fff}
+@media(max-width:760px){.wizard-head-v40{padding:17px;flex-direction:column}.wizard-steps-v40{padding:12px 10px}.wizard-step-v40{flex-direction:column;font-size:10px}.wizard-page-v40{padding:17px}.materias-grid-v40,.resumo-v40{grid-template-columns:1fr}.disp-grid-v40,.revisoes-grid-v40{grid-template-columns:repeat(2,1fr)}.materia-plan-controls-v40{grid-template-columns:1fr}.wizard-footer-v40{padding:13px 17px}}
 </style>
 </head>
 <body>
-<!-- V39 base estavel: Inicio automatico + botao Edital TXT removido do menu; logica interna preservada. -->
+<!-- V40: V39 estável + Planejamento em 4 etapas; Ciclo/Pesos/Prioridades preservados. -->
 
 
   <div id="celebrationOverlay">
@@ -2318,26 +2341,70 @@ body.light #gradeSemana > *{box-shadow:0 5px 18px rgba(30,55,85,.09)}
       </div>
 
 <div id="aba-planejamento" class="tab-content">
-        <div class="planejamento-auto planejamento-simples">
-          <div class="planejamento-datas">
-            <div class="field">
-              <label>INÍCIO DOS ESTUDOS</label>
-              <input type="date" id="planejamentoInicioAuto" onchange="salvarDatasUsuarioV17()" oninput="salvarDatasUsuarioV17()">
-            </div>
-            <div class="field">
-              <label>DATA DA PROVA</label>
-              <input type="date" id="planejamentoProvaAuto" onchange="salvarDatasUsuarioV17()" oninput="salvarDatasUsuarioV17()">
-            </div>
-          </div>
-
-          <div class="planejamento-resultado-simples">
-            <span>Dias faltando até a prova</span>
-            <strong id="pvDiasFaltando">—</strong>
-          </div>
-        </div>
+  <div class="wizard-v40">
+    <div class="wizard-head-v40">
+      <div>
+        <small>✨ PLANEJAMENTO INTELIGENTE</small>
+        <h2>Criar Planejamento</h2>
+        <p>Configure seu plano em etapas. Nada será aplicado até você confirmar.</p>
       </div>
+      <span id="wizardContadorV40">Etapa 1 de 4</span>
+    </div>
 
-      <!-- Aba 10: Edital TXT -->
+    <div class="wizard-steps-v40">
+      <button type="button" class="wizard-step-v40 active" data-step="1" onclick="irEtapaPlanejamentoV40(1)"><b>1</b><span>Matérias</span></button>
+      <button type="button" class="wizard-step-v40" data-step="2" onclick="irEtapaPlanejamentoV40(2)"><b>2</b><span>Disponibilidade</span></button>
+      <button type="button" class="wizard-step-v40" data-step="3" onclick="irEtapaPlanejamentoV40(3)"><b>3</b><span>Revisões</span></button>
+      <button type="button" class="wizard-step-v40" data-step="4" onclick="irEtapaPlanejamentoV40(4)"><b>4</b><span>Confirmar</span></button>
+    </div>
+
+    <section class="wizard-page-v40 active" data-page="1">
+      <h3>📚 Configure suas matérias</h3>
+      <p class="wizard-help-v40">As matérias do edital atual aparecem aqui. Defina importância e seu conhecimento atual.</p>
+      <div id="planejamentoMateriasV40" class="materias-grid-v40"></div>
+    </section>
+
+    <section class="wizard-page-v40" data-page="2">
+      <h3>🗓️ Sua disponibilidade</h3>
+      <p class="wizard-help-v40">Informe o tempo disponível. Esses dados ficam salvos no seu perfil.</p>
+      <div class="planejamento-datas">
+        <div class="field"><label>INÍCIO DOS ESTUDOS</label><input type="date" id="planejamentoInicioAuto"></div>
+        <div class="field"><label>DATA DA PROVA</label><input type="date" id="planejamentoProvaAuto"></div>
+      </div>
+      <div class="disp-grid-v40" id="disponibilidadeDiasV40"></div>
+      <div class="field wizard-narrow-v40">
+        <label>MATÉRIAS / TÓPICOS POR DIA</label>
+        <input type="number" id="planejamentoPorDiaV40" min="1" max="8" value="2">
+      </div>
+    </section>
+
+    <section class="wizard-page-v40" data-page="3">
+      <h3>🔁 Revisões espaçadas</h3>
+      <p class="wizard-help-v40">Escolha o padrão do planejamento. As revisões já marcadas individualmente no Edital continuam preservadas.</p>
+      <div class="revisoes-grid-v40">
+        <label><input type="checkbox" id="planRevD1V40" checked><span><b>D1</b><small>1 dia depois</small></span></label>
+        <label><input type="checkbox" id="planRevD7V40" checked><span><b>D7</b><small>7 dias depois</small></span></label>
+        <label><input type="checkbox" id="planRevD15V40" checked><span><b>D15</b><small>15 dias depois</small></span></label>
+        <label><input type="checkbox" id="planRevD30V40" checked><span><b>D30</b><small>30 dias depois</small></span></label>
+      </div>
+      <div class="wizard-note-v40">ℹ️ Nesta versão, essas opções ficam salvas como preferência do planejamento. A lógica atual de D1/D7/D15/D30 do Edital não é alterada.</div>
+    </section>
+
+    <section class="wizard-page-v40" data-page="4">
+      <h3>✅ Confirmar planejamento</h3>
+      <p class="wizard-help-v40">Confira antes de aplicar. O Ciclo só será alterado quando você clicar em “Aplicar planejamento”.</p>
+      <div id="resumoPlanejamentoV40" class="resumo-v40"></div>
+    </section>
+
+    <div class="wizard-footer-v40">
+      <button type="button" class="btn btn-outline" id="btnVoltarPlanV40" onclick="moverEtapaPlanejamentoV40(-1)" style="visibility:hidden">← Voltar</button>
+      <button type="button" class="btn btn-primary" id="btnProximoPlanV40" onclick="moverEtapaPlanejamentoV40(1)">Próximo →</button>
+      <button type="button" class="btn btn-primary" id="btnAplicarPlanV40" onclick="aplicarPlanejamentoV40()" style="display:none">⚡ Aplicar planejamento</button>
+    </div>
+  </div>
+</div>
+
+<!-- Aba 10: Edital TXT -->
       <div id="aba-edital" class="tab-content">
         <div class="field">
           <label for="textoEdital">Texto do Edital Verticalizado</label>
@@ -6661,6 +6728,107 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
     document.addEventListener('DOMContentLoaded',function(){
       observerInicioV39.observe(document.body,{attributes:true,childList:true,subtree:true,attributeFilter:['style','class']});
     });
+
+// ===== V40: assistente de Planejamento; preserva Ciclo/Pesos/Prioridades =====
+let etapaPlanejamentoV40=1;
+const diasPlanejamentoV40=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+
+function materiasPlanejamentoV40(){
+  const nomes=[];
+  (estado.disciplinas||[]).forEach(d=>{const n=typeof d==='string'?d:d.nome;if(n&&!nomes.includes(n))nomes.push(n)});
+  Object.keys(estado.editalVerticalizado||{}).forEach(n=>{if(n&&!nomes.includes(n))nomes.push(n)});
+  return nomes;
+}
+function escV40(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function renderMateriasPlanejamentoV40(){
+  const box=document.getElementById('planejamentoMateriasV40');if(!box)return;
+  const cfg=estado.planejamentoV40?.materias||{};
+  const nomes=materiasPlanejamentoV40();
+  box.innerHTML=nomes.length?nomes.map((n,i)=>{
+    const c=cfg[n]||{};
+    const item=(estado.disciplinas||[]).find(d=>(typeof d==='string'?d:d.nome)===n);
+    const peso=Number(c.peso||item?.peso||3);
+    return `<div class="materia-plan-v40">
+      <div class="materia-plan-top-v40"><input type="checkbox" class="plan-mat-check-v40" data-mat="${escV40(n)}" ${c.ativa===false?'':'checked'}><b>${escV40(n)}</b></div>
+      <div class="materia-plan-controls-v40">
+       <label>Importância<select class="plan-mat-peso-v40" data-mat="${escV40(n)}">
+        <option value="5" ${peso>=5?'selected':''}>Alta</option><option value="3" ${peso>1&&peso<5?'selected':''}>Média</option><option value="1" ${peso<=1?'selected':''}>Baixa</option>
+       </select></label>
+       <label>Conhecimento<select class="plan-mat-conh-v40" data-mat="${escV40(n)}">
+        <option ${c.conhecimento==='Iniciante'?'selected':''}>Iniciante</option><option ${!c.conhecimento||c.conhecimento==='Intermediário'?'selected':''}>Intermediário</option><option ${c.conhecimento==='Avançado'?'selected':''}>Avançado</option>
+       </select></label>
+      </div></div>`;
+  }).join(''):'<div class="wizard-note-v40">Nenhuma matéria carregada. Adicione disciplinas no Ciclo ou carregue um Edital Pronto primeiro.</div>';
+}
+function renderDisponibilidadeV40(){
+ const box=document.getElementById('disponibilidadeDiasV40');if(!box)return;
+ const disp=estado.planejamentoV40?.disponibilidade||{};
+ box.innerHTML=diasPlanejamentoV40.map(d=>`<div class="disp-dia-v40"><b>${d}</b><input type="number" min="0" max="12" step="0.5" data-dia="${d}" value="${Number(disp[d]??2)}"><small>horas</small></div>`).join('');
+ const p=document.getElementById('planejamentoPorDiaV40');if(p)p.value=estado.porDia||2;
+ const i=document.getElementById('planejamentoInicioAuto'),pr=document.getElementById('planejamentoProvaAuto');
+ if(i&&!i.value)i.value=estado.inicioEstudos||estado.dataInicio||estado.planejamento?.inicio||'';
+ if(pr&&!pr.value)pr.value=estado.dataProva||estado.planejamento?.prova||'';
+}
+function salvarRascunhoPlanejamentoV40(){
+ estado.planejamentoV40=estado.planejamentoV40||{};
+ const mats={};
+ document.querySelectorAll('.plan-mat-check-v40').forEach(ch=>{
+  const n=ch.dataset.mat;
+  mats[n]={ativa:ch.checked,peso:Number(document.querySelector(`.plan-mat-peso-v40[data-mat="${CSS.escape(n)}"]`)?.value||3),conhecimento:document.querySelector(`.plan-mat-conh-v40[data-mat="${CSS.escape(n)}"]`)?.value||'Intermediário'};
+ });
+ if(Object.keys(mats).length)estado.planejamentoV40.materias=mats;
+ const disp={};document.querySelectorAll('#disponibilidadeDiasV40 [data-dia]').forEach(x=>disp[x.dataset.dia]=Number(x.value||0));
+ if(Object.keys(disp).length)estado.planejamentoV40.disponibilidade=disp;
+ estado.planejamentoV40.revisoes={d1:!!document.getElementById('planRevD1V40')?.checked,d7:!!document.getElementById('planRevD7V40')?.checked,d15:!!document.getElementById('planRevD15V40')?.checked,d30:!!document.getElementById('planRevD30V40')?.checked};
+ salvarEstado();
+}
+function restaurarRevisoesPlanejamentoV40(){
+ const r=estado.planejamentoV40?.revisoes||{d1:true,d7:true,d15:true,d30:true};
+ [['planRevD1V40','d1'],['planRevD7V40','d7'],['planRevD15V40','d15'],['planRevD30V40','d30']].forEach(([id,k])=>{const e=document.getElementById(id);if(e)e.checked=r[k]!==false});
+}
+function irEtapaPlanejamentoV40(n){
+ salvarRascunhoPlanejamentoV40(); etapaPlanejamentoV40=Math.max(1,Math.min(4,n));
+ document.querySelectorAll('.wizard-page-v40').forEach(x=>x.classList.toggle('active',Number(x.dataset.page)===etapaPlanejamentoV40));
+ document.querySelectorAll('.wizard-step-v40').forEach(x=>x.classList.toggle('active',Number(x.dataset.step)===etapaPlanejamentoV40));
+ const c=document.getElementById('wizardContadorV40');if(c)c.textContent=`Etapa ${etapaPlanejamentoV40} de 4`;
+ const v=document.getElementById('btnVoltarPlanV40'),p=document.getElementById('btnProximoPlanV40'),a=document.getElementById('btnAplicarPlanV40');
+ if(v)v.style.visibility=etapaPlanejamentoV40===1?'hidden':'visible';if(p)p.style.display=etapaPlanejamentoV40===4?'none':'inline-flex';if(a)a.style.display=etapaPlanejamentoV40===4?'inline-flex':'none';
+ if(etapaPlanejamentoV40===4)renderResumoPlanejamentoV40();
+}
+function moverEtapaPlanejamentoV40(delta){irEtapaPlanejamentoV40(etapaPlanejamentoV40+delta)}
+function renderResumoPlanejamentoV40(){
+ salvarRascunhoPlanejamentoV40();
+ const box=document.getElementById('resumoPlanejamentoV40');if(!box)return;
+ const cfg=estado.planejamentoV40||{}, mats=cfg.materias||{}, ativos=Object.entries(mats).filter(([,v])=>v.ativa!==false);
+ const horas=Object.values(cfg.disponibilidade||{}).reduce((a,b)=>a+Number(b||0),0);
+ const rev=cfg.revisoes||{}, rs=[rev.d1&&'D1',rev.d7&&'D7',rev.d15&&'D15',rev.d30&&'D30'].filter(Boolean).join(', ')||'Nenhuma';
+ box.innerHTML=`<div class="resumo-card-v40"><small>Matérias selecionadas</small><b>${ativos.length}</b></div>
+ <div class="resumo-card-v40"><small>Disponibilidade semanal</small><b>${horas}h</b></div>
+ <div class="resumo-card-v40"><small>Ritmo</small><b>${document.getElementById('planejamentoPorDiaV40')?.value||estado.porDia||2} por dia</b></div>
+ <div class="resumo-card-v40"><small>Revisões preferidas</small><b>${rs}</b></div>
+ <div class="resumo-card-v40"><small>Início</small><b>${document.getElementById('planejamentoInicioAuto')?.value||'—'}</b></div>
+ <div class="resumo-card-v40"><small>Prova</small><b>${document.getElementById('planejamentoProvaAuto')?.value||'—'}</b></div>`;
+}
+function aplicarPlanejamentoV40(){
+ salvarRascunhoPlanejamentoV40();
+ const cfg=estado.planejamentoV40||{}, mats=cfg.materias||{};
+ (estado.disciplinas||[]).forEach(d=>{if(typeof d==='object'&&mats[d.nome])d.peso=Number(mats[d.nome].peso||d.peso||3)});
+ const pd=Math.max(1,Math.min(8,Number(document.getElementById('planejamentoPorDiaV40')?.value||estado.porDia||2)));estado.porDia=pd;
+ const i=document.getElementById('planejamentoInicioAuto')?.value||'',p=document.getElementById('planejamentoProvaAuto')?.value||'';
+ if(i){estado.dataInicio=i;estado.inicioEstudos=i;estado.planejamento=estado.planejamento||{};estado.planejamento.inicio=i}
+ if(p){estado.dataProva=p;estado.planejamento=estado.planejamento||{};estado.planejamento.prova=p}
+ salvarEstado();
+ const old=document.getElementById('materiasPorDia');if(old)old.value=pd;
+ try{renderizarPesos()}catch(_){}
+ try{calcularPrevisaoFechamentoEdital()}catch(_){}
+ alert('Planejamento aplicado. As configurações foram salvas. O cronograma existente não foi apagado; use “Regenerar Esta Semana” no Ciclo quando quiser aplicar o novo ritmo.');
+}
+function iniciarPlanejamentoV40(){
+ renderMateriasPlanejamentoV40();renderDisponibilidadeV40();restaurarRevisoesPlanejamentoV40();irEtapaPlanejamentoV40(1);
+}
+document.addEventListener('click',e=>{
+ const b=e.target.closest('.tab-btn');if(b&&(b.getAttribute('onclick')||'').includes('aba-planejamento'))setTimeout(iniciarPlanejamentoV40,100);
+});
 </script>
 
   <button id="btnReabrirSidebar" class="sidebar-reopen"

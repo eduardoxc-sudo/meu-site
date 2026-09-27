@@ -2948,6 +2948,7 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
 
         <div class="controls-top">
           <button class="btn btn-primary btn-novo-registro-v47" onclick="abrirNovoRegistroV47()">＋ Novo Registro</button>
+          <button class="btn btn-primary" onclick="gerarCronogramaSemanaAtual(true, true)">⚡ Regenerar Esta Semana</button>
           <button class="btn btn-success" onclick="adminMarcarTodosTopicos(true)" title="Marcar todas as caixas de seleção">☑️ Marcar Tudo</button>
           <button class="btn btn-outline" onclick="adminMarcarTodosTopicos(false)" style="border-color: rgba(239, 68, 68, 0.4); color: var(--danger);" title="Desmarcar todas as caixas">Desmarcar</button>
           
@@ -5494,6 +5495,16 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
     }
 
     function atualizarVisualizacaoQuestoes() {
+      if (!estado.historicoQuestoes) estado.historicoQuestoes = [];
+      let idsCorrigidos = false;
+      estado.historicoQuestoes.forEach((q, i) => {
+        if (!q.id) {
+          q.id = 'qz_' + Date.now().toString(36) + '_' + i + '_' + Math.random().toString(36).substr(2,5);
+          idsCorrigidos = true;
+        }
+      });
+      if (idsCorrigidos) salvarEstado();
+
       const filtro = document.getElementById('filtroQuestoesMateria');
       const filtroVal = filtro ? filtro.value : 'TODAS';
       const lista = (estado.historicoQuestoes || []).filter(q => filtroVal === 'TODAS' || q.materia === filtroVal);
@@ -5539,9 +5550,17 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
     }
 
     function excluirRegistroQuestao(id) {
+      const registro = (estado.historicoQuestoes || []).find(q => q.id === id);
+      if (!registro) {
+        atualizarVisualizacaoQuestoes();
+        return;
+      }
+      if (!confirm('Excluir este registro de questões?\n\n' + registro.materia + (registro.assunto ? '\n' + registro.assunto : ''))) return;
       estado.historicoQuestoes = (estado.historicoQuestoes || []).filter(q => q.id !== id);
       salvarEstado();
       atualizarVisualizacaoQuestoes();
+      if (typeof renderizarProgressoV20 === 'function') renderizarProgressoV20();
+      if (typeof renderizarDashboardV36 === 'function') renderizarDashboardV36();
     }
 
     // ---------- Planeamento ----------
@@ -7792,17 +7811,47 @@ function renderListaCicloV47(){
 }
 function renderMesCicloV47(){
   const el=document.getElementById('mesCicloV47'); if(!el)return;
-  const agora=new Date(), ano=agora.getFullYear(), mes=agora.getMonth(), primeiro=new Date(ano,mes,1), ultimo=new Date(ano,mes+1,0);
-  const nomes=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-  let html=nomes.map(n=>`<div class="mes-head-v47">${n}</div>`).join('');
+
+  // O mês acompanha a semana/data atualmente navegada.
+  const base = (typeof dataReferencia !== 'undefined' && dataReferencia) ? new Date(dataReferencia) : new Date();
+  const ano=base.getFullYear(), mes=base.getMonth();
+  const primeiro=new Date(ano,mes,1), ultimo=new Date(ano,mes+1,0);
+  const cab=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const diasEstado=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+
+  let html=cab.map(n=>`<div class="mes-head-v47">${n}</div>`).join('');
   for(let i=0;i<primeiro.getDay();i++) html+='<div></div>';
-  const semana=dadosSemanaDOMV47();
+
   for(let d=1;d<=ultimo.getDate();d++){
-    const dt=new Date(ano,mes,d), hoje=d===agora.getDate();
-    const nome=nomes[dt.getDay()].toLowerCase().slice(0,3);
-    const ach=semana.find(x=>x.titulo.toLowerCase().startsWith(nome));
-    const pend=ach?ach.itens.filter(x=>!x.feito).length:0;
-    html+=`<div class="mes-dia-v47 ${hoje?'hoje':''}"><div class="mes-num-v47">${d}</div><div class="mes-cont-v47">${ach&&ach.itens.length?ach.itens.length+' atividade(s)<br>'+pend+' pendente(s)':'—'}</div></div>`;
+    const dt=new Date(ano,mes,d);
+    const segunda=obterSegundaFeira(dt);
+    const chaveSemana='semana_'+formatarDataChave(segunda);
+    const nomeDia=diasEstado[dt.getDay()];
+    const slots=((estado.semanas||{})[chaveSemana]||{})[nomeDia]||[];
+
+    const itens=slots.map(slot=>{
+      const rev=!!slot.revisaoId;
+      const materia=slot.materia||'Estudo';
+      let assunto='';
+      if(rev){
+        assunto=(slot.revisaoLabel||slot.labelRevisao||slot.tipoRevisao||'Revisão');
+      }else if(slot.topicoId){
+        for(const mat of Object.keys(estado.editalVerticalizado||{})){
+          const top=(estado.editalVerticalizado[mat]||[]).find(t=>t.id===slot.topicoId);
+          if(top){assunto=top.titulo||top.nome||top.assunto||'';break}
+        }
+      }
+      return `<div class="mes-item-v66 ${rev?'rev':''} ${slot.feito?'feito':''}">
+        <b>${rev?'🔄':'📘'} ${materia}</b>
+        ${assunto?`<span>${assunto}</span>`:''}
+      </div>`;
+    }).join('');
+
+    const hoje=formatarDataChave(dt)===formatarDataChave(new Date());
+    html+=`<div class="mes-dia-v47 ${hoje?'hoje':''}">
+      <div class="mes-num-v47">${d}</div>
+      <div class="mes-cont-v47 mes-cont-v66">${itens||'<span class="mes-vazio-v66">—</span>'}</div>
+    </div>`;
   }
   el.innerHTML=html;
 }
@@ -7831,7 +7880,7 @@ function salvarNovoRegistroV47(){
   if(min>0 && typeof registrarHoraEstudo==='function') registrarHoraEstudo(materia,min);
   if(q>0){
     estado.historicoQuestoes=Array.isArray(estado.historicoQuestoes)?estado.historicoQuestoes:[];
-    estado.historicoQuestoes.push({materia,assunto,total:q,acertos:a,erros:e,data:new Date().toISOString(),tipo:tipoRegistroV47});
+    estado.historicoQuestoes.push({id:'qz_'+Math.random().toString(36).substr(2,9),materia,assunto,total:q,acertos:a,erros:e,data:new Date().toISOString(),tipo:tipoRegistroV47});
   }
   estado.historicoRegistrosV47=Array.isArray(estado.historicoRegistrosV47)?estado.historicoRegistrosV47:[];
   estado.historicoRegistrosV47.push({tipo:tipoRegistroV47,materia,assunto,minutos:min,questoes:q,acertos:a,erros:e,data:new Date().toISOString()});
@@ -9469,103 +9518,13 @@ html[data-theme="light"] .login-card input{
 
 <!-- ===== V64: REVISÕES + EXCLUSÃO + RECRIAR SEMANA ===== -->
 
-
-<!-- ===== V65: correção estrutural ===== -->
-<style id="v65-fixes">
-#btnRegenerarSemanaV65{margin-left:6px}
-.mes-cont-v65{margin-top:8px;display:flex;flex-direction:column;gap:5px}
-.mes-item-v65{font-size:11px;line-height:1.25;padding:5px 6px;border-radius:7px;background:rgba(56,189,248,.08);border-left:3px solid #38bdf8}
-.mes-item-v65.rev{background:rgba(139,92,246,.10);border-left-color:#8b5cf6}
-.mes-item-v65.feito{opacity:.58;text-decoration:line-through}
+<style id="v66-month-style">
+.mes-cont-v66{display:flex!important;flex-direction:column!important;gap:4px!important;margin-top:6px!important}
+.mes-item-v66{display:block;padding:4px 5px;border-radius:6px;background:rgba(56,189,248,.09);border-left:3px solid #38bdf8;font-size:10px;line-height:1.2;overflow:hidden}
+.mes-item-v66.rev{background:rgba(139,92,246,.12);border-left-color:#8b5cf6}
+.mes-item-v66.feito{opacity:.55}
+.mes-item-v66 b,.mes-item-v66 span{display:block;white-space:normal;overflow-wrap:anywhere}
+.mes-item-v66 span{margin-top:2px;color:var(--text-muted)}
+.mes-vazio-v66{color:var(--text-muted)}
 </style>
-<script id="v65-fixes-js">
-(function(){
-  function garantirIdsQuestoesV65(){
-    if(!window.estado)return;
-    estado.historicoQuestoes=Array.isArray(estado.historicoQuestoes)?estado.historicoQuestoes:[];
-    let mudou=false;
-    estado.historicoQuestoes.forEach((q,i)=>{
-      if(!q.id){q.id='qz_'+Date.now().toString(36)+'_'+i+'_'+Math.random().toString(36).slice(2,7);mudou=true}
-    });
-    if(mudou && typeof salvarEstado==='function') salvarEstado();
-  }
-
-  /* Exclusão real: usa exclusivamente o id do registro salvo. */
-  window.excluirRegistroQuestao=function(id){
-    garantirIdsQuestoesV65();
-    const q=(estado.historicoQuestoes||[]).find(x=>x.id===id);
-    if(!q)return;
-    if(!confirm('Excluir este registro de questões?\\n\\n'+q.materia+(q.assunto?'\\n'+q.assunto:'')))return;
-    estado.historicoQuestoes=(estado.historicoQuestoes||[]).filter(x=>x.id!==id);
-    if(typeof salvarEstado==='function') salvarEstado();
-    if(typeof atualizarVisualizacaoQuestoes==='function') atualizarVisualizacaoQuestoes();
-    if(typeof renderizarProgressoV20==='function') renderizarProgressoV20();
-    if(typeof atualizarDashboardV36==='function') atualizarDashboardV36();
-  };
-
-  /* Corrige também registros criados pelo modal Novo Registro: passam a nascer com ID. */
-  const salvarNovoOriginal=window.salvarNovoRegistroV47;
-  if(typeof salvarNovoOriginal==='function'){
-    window.salvarNovoRegistroV47=function(){
-      const antes=(estado.historicoQuestoes||[]).length;
-      salvarNovoOriginal.apply(this,arguments);
-      const arr=estado.historicoQuestoes||[];
-      for(let i=antes;i<arr.length;i++){
-        if(!arr[i].id)arr[i].id='qz_'+Date.now().toString(36)+'_'+i+'_'+Math.random().toString(36).slice(2,7);
-      }
-      if(typeof salvarEstado==='function')salvarEstado();
-    };
-  }
-
-  function botaoRegenerarV65(){
-    if(document.getElementById('btnRegenerarSemanaV65'))return;
-    const aba=document.getElementById('aba-ciclo')||document.getElementById('aba-meu-plano');
-    if(!aba || getComputedStyle(aba).display==='none')return;
-    const ref=[...aba.querySelectorAll('button')].find(b=>/novo registro/i.test(b.textContent||'')) ||
-              [...aba.querySelectorAll('button')].find(b=>/semana/i.test(b.textContent||''));
-    if(!ref)return;
-    const b=document.createElement('button');
-    b.id='btnRegenerarSemanaV65'; b.className='btn btn-primary';
-    b.textContent='⚡ Regenerar Esta Semana';
-    b.onclick=()=>{ if(confirm('Regenerar a semana atual? As marcações concluídas serão preservadas.')) gerarCronogramaSemanaAtual(true,true); };
-    ref.insertAdjacentElement('afterend',b);
-  }
-
-  /* Mês útil: mostra matéria/tópico/revisão em vez de apenas "2 atividades". */
-  window.renderizarMesV47=function(){
-    const el=document.getElementById('gradeMesV47')||document.querySelector('.grade-mes-v47');
-    if(!el)return;
-    const base=(typeof dataReferenciaCicloV47!=='undefined'&&dataReferenciaCicloV47)?new Date(dataReferenciaCicloV47):new Date();
-    const ano=base.getFullYear(), mes=base.getMonth(), primeiro=new Date(ano,mes,1), ultimo=new Date(ano,mes+1,0);
-    const nomes=['domingo','segunda','terca','quarta','quinta','sexta','sabado'];
-    let html='';
-    for(let i=0;i<primeiro.getDay();i++)html+='<div></div>';
-    for(let d=1;d<=ultimo.getDate();d++){
-      const dt=new Date(ano,mes,d), chaveData=(typeof formatarDataChave==='function'?formatarDataChave(dt):'');
-      const segunda=new Date(dt); const dow=segunda.getDay(); segunda.setDate(segunda.getDate()-(dow===0?6:dow-1));
-      const chaveSemana='semana_'+(typeof formatarDataChave==='function'?formatarDataChave(segunda):'');
-      const nome=nomes[dt.getDay()];
-      const slots=(estado.semanas?.[chaveSemana]?.[nome]||estado.semanas?.[chaveSemana]?.[nome.normalize("NFD").replace(/[\\u0300-\\u036f]/g,"")]||[]);
-      let itens=slots.map(s=>{
-        const rev=!!(s.revisaoId||s.tipo==='revisao'||/revis/i.test(s.tipo||''));
-        const materia=s.materia||s.disciplina||'Estudo';
-        const top=s.topicoTitulo||s.topico||s.titulo||'';
-        return '<div class="mes-item-v65 '+(rev?'rev ':'')+(s.feito?'feito':'')+'">'+
-          (rev?'🔄 ':'📘 ')+'<b>'+materia+'</b>'+(top?'<br>'+top:'')+'</div>';
-      }).join('');
-      if(!itens)itens='<span style="color:var(--text-muted);font-size:11px">—</span>';
-      html+='<div class="mes-dia-v47 '+(chaveData===formatarDataChave(new Date())?'hoje':'')+'"><div class="mes-num-v47">'+d+'</div><div class="mes-cont-v65">'+itens+'</div></div>';
-    }
-    el.innerHTML=html;
-  };
-
-  function run(){
-    garantirIdsQuestoesV65();
-    botaoRegenerarV65();
-  }
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(run,400));
-  document.addEventListener('click',()=>setTimeout(run,80));
-  setTimeout(run,700);
-})();
-</script>
 

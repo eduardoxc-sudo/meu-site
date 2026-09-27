@@ -2062,6 +2062,55 @@ body.light .wizard-v40 textarea,
 }
 </style>
 
+
+<style id="v47-modern-ui">
+/* ===== V47 — interface moderna, preservando a lógica V46 ===== */
+main{background:
+ radial-gradient(circle at 85% 0%,rgba(56,189,248,.06),transparent 28%),
+ var(--bg)}
+.main-header{padding:4px 0 18px;border-bottom:1px solid var(--border)}
+.day-column{border-radius:18px!important;box-shadow:0 8px 24px rgba(0,0,0,.08)!important}
+.slot-card{border-radius:12px!important}
+.view-switch-v47{display:inline-flex;padding:3px;background:var(--surface);border:1px solid var(--border);border-radius:10px}
+.view-switch-v47 button{border:0;background:transparent;color:var(--text-muted);padding:7px 10px;border-radius:7px;font-size:.75rem;font-weight:800;cursor:pointer}
+.view-switch-v47 button.active{background:var(--primary);color:#fff;box-shadow:0 3px 10px var(--primary-glow)}
+.btn-novo-registro-v47{white-space:nowrap}
+.lista-ciclo-v47{display:flex;flex-direction:column;gap:10px}
+.lista-dia-v47{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:15px}
+.lista-dia-v47 h3{color:var(--primary);font-size:.92rem;margin-bottom:10px}
+.lista-item-v47{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--border)}
+.lista-item-v47:first-of-type{border-top:0}
+.lista-item-v47 b{font-size:.82rem}.lista-item-v47 span{font-size:.75rem;color:var(--text-muted)}
+.mes-ciclo-v47{grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.mes-head-v47{font-size:.68rem;font-weight:800;color:var(--text-muted);text-align:center;padding:6px}
+.mes-dia-v47{min-height:100px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:9px}
+.mes-dia-v47.hoje{border-color:var(--primary);box-shadow:0 0 0 1px var(--primary)}
+.mes-num-v47{font-size:.75rem;font-weight:900;color:var(--text)}
+.mes-cont-v47{margin-top:9px;font-size:.67rem;color:var(--text-muted);line-height:1.4}
+.modal-registro-v47{max-width:520px!important}
+.registro-head-v47{display:flex;justify-content:space-between;align-items:flex-start}
+.registro-head-v47 span{font-size:.66rem;font-weight:900;color:var(--primary);letter-spacing:.12em}
+.registro-head-v47 h3{margin-top:4px;font-size:1.25rem}
+.registro-head-v47 button{border:0;background:transparent;color:var(--text-muted);font-size:1.6rem;cursor:pointer}
+.tipo-registro-v47{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.tipo-registro-v47 button{padding:9px;border:1px solid var(--border);border-radius:9px;background:var(--bg);color:var(--text-muted);font-weight:800;cursor:pointer}
+.tipo-registro-v47 button.active{border-color:var(--primary);color:var(--primary);background:var(--primary-glow)}
+.registro-grid-v47{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.registro-revisoes-v47{padding:10px;border:1px solid rgba(99,102,241,.28);background:rgba(99,102,241,.07);border-radius:10px}
+.registro-revisoes-v47 strong{display:block;color:var(--accent);font-size:.78rem}
+.registro-revisoes-v47 span{display:block;color:var(--text-muted);font-size:.7rem;margin-top:3px}
+body.light .day-column,body.light .lista-dia-v47,body.light .mes-dia-v47,
+[data-theme="light"] .day-column,[data-theme="light"] .lista-dia-v47,[data-theme="light"] .mes-dia-v47{
+ box-shadow:0 8px 24px rgba(15,23,42,.06)!important
+}
+@media(max-width:768px){
+ .view-switch-v47{width:100%;display:grid;grid-template-columns:repeat(3,1fr)}
+ .mes-ciclo-v47{grid-template-columns:repeat(2,1fr)}
+ .mes-head-v47{display:none}
+ .registro-grid-v47{grid-template-columns:1fr 1fr}
+}
+</style>
+
 </head>
 <body>
 <!-- V41: V40 + datas corrigidas, duracao/revisoes automaticas e aplicacao integrada ao Ciclo. -->
@@ -2689,6 +2738,7 @@ body.light .wizard-v40 textarea,
         </div>
 
         <div class="controls-top">
+          <button class="btn btn-primary btn-novo-registro-v47" onclick="abrirNovoRegistroV47()">＋ Novo Registro</button>
           <button class="btn btn-success" onclick="adminMarcarTodosTopicos(true)" title="Marcar todas as caixas de seleção">☑️ Marcar Tudo</button>
           <button class="btn btn-outline" onclick="adminMarcarTodosTopicos(false)" style="border-color: rgba(239, 68, 68, 0.4); color: var(--danger);" title="Desmarcar todas as caixas">Desmarcar</button>
           
@@ -2703,6 +2753,11 @@ body.light .wizard-v40 textarea,
             <button class="btn btn-outline" style="padding: 4px 10px;" onclick="navegarSemana(1)">▶</button>
           </div>
           <button class="btn btn-primary" style="padding: 6px 10px;" onclick="forcarSincronizacaoHoje()">↺ Hoje</button>
+          <div class="view-switch-v47" aria-label="Modo de visualização">
+            <button id="viewSemanaV47" class="active" onclick="mudarVisaoCicloV47('semana')">📅 Semana</button>
+            <button id="viewListaV47" onclick="mudarVisaoCicloV47('lista')">☷ Lista</button>
+            <button id="viewMesV47" onclick="mudarVisaoCicloV47('mes')">📆 Mês</button>
+          </div>
           <button class="btn btn-outline" onclick="alternarTema()" id="btnTema">☀️ Claro</button>
         </div>
       </header>
@@ -2736,8 +2791,38 @@ body.light .wizard-v40 textarea,
       <nav id="mobileDiasV38" class="mobile-days-v38" aria-label="Dias da semana"></nav>
 
       <section class="week-grid" id="gradeSemana"></section>
+      <section id="listaCicloV47" class="lista-ciclo-v47" style="display:none"></section>
+      <section id="mesCicloV47" class="mes-ciclo-v47" style="display:none"></section>
       <section id="v35AreaAba" aria-live="polite"></section>
     </main>
+  </div>
+
+
+  <div class="modal-overlay" id="modalNovoRegistroV47">
+    <div class="modal-box modal-registro-v47">
+      <div class="registro-head-v47">
+        <div><span>NOVO REGISTRO</span><h3>Registrar estudo</h3></div>
+        <button onclick="fecharNovoRegistroV47()" aria-label="Fechar">×</button>
+      </div>
+      <div class="tipo-registro-v47">
+        <button class="active" data-tipo="Teoria" onclick="selecionarTipoRegistroV47(this)">📖 Teoria</button>
+        <button data-tipo="Revisão" onclick="selecionarTipoRegistroV47(this)">🔁 Revisão</button>
+        <button data-tipo="Questões" onclick="selecionarTipoRegistroV47(this)">📝 Questões</button>
+      </div>
+      <div class="field"><label>Disciplina</label><select id="registroMateriaV47"></select></div>
+      <div class="field"><label>Assunto</label><input id="registroAssuntoV47" placeholder="Assunto estudado"></div>
+      <div class="registro-grid-v47">
+        <div class="field"><label>Minutos</label><input id="registroMinutosV47" type="number" min="1" value="30"></div>
+        <div class="field"><label>Questões</label><input id="registroQuestoesV47" type="number" min="0" value="0"></div>
+        <div class="field"><label>Acertos</label><input id="registroAcertosV47" type="number" min="0" value="0"></div>
+        <div class="field"><label>Erros</label><input id="registroErrosV47" type="number" min="0" value="0"></div>
+      </div>
+      <div class="registro-revisoes-v47">
+        <strong>Revisões do tópico</strong>
+        <span>O sistema continua usando as revisões configuradas no Planejamento (1D, 7D, 15D e 30D).</span>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="salvarNovoRegistroV47()">✓ Salvar registro</button>
+    </div>
   </div>
 
   <div class="modal-overlay" id="modalManualHoras">
@@ -3437,10 +3522,12 @@ body.light .wizard-v40 textarea,
             estado.agendaRevisoes = [];
             estado.diasCompletosLog = [];
 
+            // V47: o edital é carregado primeiro; o ciclo só será montado
+            // depois que o utilizador concluir o Planejamento Inteligente.
             dataReferencia = new Date();
             const segunda = obterSegundaFeira(dataReferencia);
             chaveSemanaAtiva = `semana_${formatarDataChave(segunda)}`;
-            gerarSemanaAutomatica(chaveSemanaAtiva, false, true);
+            estado.planejamentoPendenteV47 = true;
 
             const chave = chaveArmazenamento(usuarioAtivo);
             localStorage.setItem(chave, JSON.stringify(estado));
@@ -3459,8 +3546,13 @@ body.light .wizard-v40 textarea,
             atualizarIndicadorPresenca();
             calcularPrevisaoFechamentoEdital();
 
-            alert(`Parabéns! O edital "${dados.titulo}" foi carregado com sucesso.`);
-            trocarAba('aba-ciclo', document.querySelectorAll('.tab-btn')[0]);
+            avisoV43(
+              'Edital carregado! 📚',
+              `O edital "${dados.titulo}" foi carregado. Agora configure seu Planejamento Inteligente para o sistema montar o ciclo de acordo com sua disponibilidade.`,
+              '✓',
+              'Continuar para Planejamento',
+              "fecharAvisoV43();abrirPlanejamentoV47()"
+            );
           }
         });
       }
@@ -7447,6 +7539,102 @@ function abrirProgressoV46(){
     console.error('Erro ao abrir Progresso:', e);
   }
 }
+</script>
+
+
+<script id="v47-modern-js">
+let tipoRegistroV47='Teoria';
+
+function abrirPlanejamentoV47(){
+  const btn=[...document.querySelectorAll('.tab-btn')].find(b=>(b.getAttribute('onclick')||'').includes('aba-planejamento'));
+  if(btn) btn.click();
+  else if(typeof trocarAba==='function') trocarAba('aba-planejamento',null);
+  setTimeout(()=>{ if(typeof iniciarPlanejamentoV40==='function') iniciarPlanejamentoV40(); },120);
+}
+
+function mudarVisaoCicloV47(modo){
+  const semana=document.getElementById('gradeSemana'), lista=document.getElementById('listaCicloV47'), mes=document.getElementById('mesCicloV47');
+  ['Semana','Lista','Mes'].forEach(x=>document.getElementById('view'+x+'V47')?.classList.remove('active'));
+  document.getElementById('view'+modo.charAt(0).toUpperCase()+modo.slice(1)+'V47')?.classList.add('active');
+  if(semana) semana.style.display=modo==='semana'?'grid':'none';
+  if(lista) lista.style.display=modo==='lista'?'flex':'none';
+  if(mes) mes.style.display=modo==='mes'?'grid':'none';
+  if(modo==='lista') renderListaCicloV47();
+  if(modo==='mes') renderMesCicloV47();
+  localStorage.setItem('visaoCicloV47',modo);
+}
+
+function dadosSemanaDOMV47(){
+  return [...document.querySelectorAll('#gradeSemana .day-column')].map(col=>({
+    titulo:col.querySelector('.day-title-text')?.textContent?.trim()||'Dia',
+    data:col.querySelector('.day-date-tag')?.textContent?.trim()||'',
+    itens:[...col.querySelectorAll('.slot-card')].map(c=>({
+      materia:c.querySelector('.slot-materia-title')?.textContent?.trim()||'Estudo',
+      assunto:c.querySelector('.slot-assunto-sub')?.textContent?.trim()||'',
+      feito:c.classList.contains('done')
+    }))
+  }));
+}
+function renderListaCicloV47(){
+  const el=document.getElementById('listaCicloV47'); if(!el)return;
+  const ds=dadosSemanaDOMV47();
+  el.innerHTML=ds.map(d=>`<article class="lista-dia-v47"><h3>${d.titulo} <small>${d.data}</small></h3>${
+    d.itens.length?d.itens.map(i=>`<div class="lista-item-v47"><div><b>${i.feito?'✓ ':''}${i.materia}</b><br><span>${i.assunto}</span></div><span>${i.feito?'Concluído':'Pendente'}</span></div>`).join(''):'<span style="color:var(--text-muted);font-size:.75rem">Sem estudos programados.</span>'
+  }</article>`).join('');
+}
+function renderMesCicloV47(){
+  const el=document.getElementById('mesCicloV47'); if(!el)return;
+  const agora=new Date(), ano=agora.getFullYear(), mes=agora.getMonth(), primeiro=new Date(ano,mes,1), ultimo=new Date(ano,mes+1,0);
+  const nomes=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  let html=nomes.map(n=>`<div class="mes-head-v47">${n}</div>`).join('');
+  for(let i=0;i<primeiro.getDay();i++) html+='<div></div>';
+  const semana=dadosSemanaDOMV47();
+  for(let d=1;d<=ultimo.getDate();d++){
+    const dt=new Date(ano,mes,d), hoje=d===agora.getDate();
+    const nome=nomes[dt.getDay()].toLowerCase().slice(0,3);
+    const ach=semana.find(x=>x.titulo.toLowerCase().startsWith(nome));
+    const pend=ach?ach.itens.filter(x=>!x.feito).length:0;
+    html+=`<div class="mes-dia-v47 ${hoje?'hoje':''}"><div class="mes-num-v47">${d}</div><div class="mes-cont-v47">${ach&&ach.itens.length?ach.itens.length+' atividade(s)<br>'+pend+' pendente(s)':'—'}</div></div>`;
+  }
+  el.innerHTML=html;
+}
+function abrirNovoRegistroV47(){
+  const m=document.getElementById('modalNovoRegistroV47'); if(!m)return;
+  const sel=document.getElementById('registroMateriaV47');
+  if(sel){
+    const nomes=[...new Set((estado?.disciplinas||[]).map(x=>typeof x==='string'?x:(x.nome||x.materia||'')).filter(Boolean))];
+    if(!nomes.length) Object.keys(estado?.editalVerticalizado||{}).forEach(x=>nomes.push(x));
+    sel.innerHTML=nomes.map(n=>`<option value="${String(n).replace(/"/g,'&quot;')}">${n}</option>`).join('');
+  }
+  m.style.display='flex';
+}
+function fecharNovoRegistroV47(){const m=document.getElementById('modalNovoRegistroV47');if(m)m.style.display='none'}
+function selecionarTipoRegistroV47(btn){
+  document.querySelectorAll('.tipo-registro-v47 button').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active'); tipoRegistroV47=btn.dataset.tipo||'Teoria';
+}
+function salvarNovoRegistroV47(){
+  const materia=document.getElementById('registroMateriaV47')?.value||'Estudo';
+  const assunto=document.getElementById('registroAssuntoV47')?.value?.trim()||'';
+  const min=Math.max(0,parseInt(document.getElementById('registroMinutosV47')?.value||0));
+  const q=Math.max(0,parseInt(document.getElementById('registroQuestoesV47')?.value||0));
+  const a=Math.max(0,parseInt(document.getElementById('registroAcertosV47')?.value||0));
+  const e=Math.max(0,parseInt(document.getElementById('registroErrosV47')?.value||0));
+  if(min>0 && typeof registrarHoraEstudo==='function') registrarHoraEstudo(materia,min);
+  if(q>0){
+    estado.historicoQuestoes=Array.isArray(estado.historicoQuestoes)?estado.historicoQuestoes:[];
+    estado.historicoQuestoes.push({materia,assunto,total:q,acertos:a,erros:e,data:new Date().toISOString(),tipo:tipoRegistroV47});
+  }
+  estado.historicoRegistrosV47=Array.isArray(estado.historicoRegistrosV47)?estado.historicoRegistrosV47:[];
+  estado.historicoRegistrosV47.push({tipo:tipoRegistroV47,materia,assunto,minutos:min,questoes:q,acertos:a,erros:e,data:new Date().toISOString()});
+  if(typeof salvarEstado==='function') salvarEstado();
+  fecharNovoRegistroV47();
+  if(typeof atualizarUIAposCarregar==='function') atualizarUIAposCarregar();
+  if(typeof avisoV43==='function') avisoV43('Registro salvo! ✓',`${tipoRegistroV47} de ${materia} registrada com sucesso.`,'✓','Fechar','fecharAvisoV43()');
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  setTimeout(()=>mudarVisaoCicloV47(localStorage.getItem('visaoCicloV47')||'semana'),500);
+});
 </script>
 
 </body>

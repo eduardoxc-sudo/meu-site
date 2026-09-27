@@ -1844,7 +1844,7 @@ body.light #gradeSemana > *{box-shadow:0 5px 18px rgba(30,55,85,.09)}
 </style>
 </head>
 <body>
-<!-- V38: V37 + Ciclo moderno responsivo e frequência de estudos; lógica original preservada. -->
+<!-- V39: V38 + Inicio abre automaticamente apos login; navegacao original preservada. -->
 
 
   <div id="celebrationOverlay">
@@ -6617,6 +6617,50 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
       }
     });
     setTimeout(atualizarVisualCicloV38,400);
+
+    // ===== V39: abrir Inicio automaticamente apos login =====
+    function abrirInicioV39(){
+      const app=document.getElementById('app-container');
+      if(app && getComputedStyle(app).display==='none') return false;
+
+      const btn=[...document.querySelectorAll('.tab-btn')].find(b=>{
+        const a=b.getAttribute('onclick')||'';
+        return a.includes("'aba-inicio'") || a.includes('"aba-inicio"');
+      });
+      if(!btn) return false;
+
+      // Usa o clique normal do sistema: preserva trocarAba, V35 e V38.
+      btn.click();
+      setTimeout(function(){
+        try{ if(typeof renderizarDashboardV37==='function') renderizarDashboardV37(); }catch(_){}
+      },150);
+      return true;
+    }
+
+    function aguardarInicioV39(){
+      let tentativas=0;
+      const timer=setInterval(function(){
+        tentativas++;
+        if(abrirInicioV39() || tentativas>=30) clearInterval(timer);
+      },100);
+    }
+
+    // Se a sessão já estiver autenticada ao recarregar.
+    window.addEventListener('load',function(){
+      setTimeout(aguardarInicioV39,100);
+    });
+
+    // Se o login ocorrer sem recarregar a página, detecta quando o painel aparece.
+    const observerInicioV39=new MutationObserver(function(){
+      const app=document.getElementById('app-container');
+      if(app && getComputedStyle(app).display!=='none'){
+        observerInicioV39.disconnect();
+        setTimeout(aguardarInicioV39,80);
+      }
+    });
+    document.addEventListener('DOMContentLoaded',function(){
+      observerInicioV39.observe(document.body,{attributes:true,childList:true,subtree:true,attributeFilter:['style','class']});
+    });
 </script>
 
   <button id="btnReabrirSidebar" class="sidebar-reopen"

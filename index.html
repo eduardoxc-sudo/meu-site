@@ -1971,6 +1971,97 @@ body.light-mode #aba-planejamento [class*="label"]{
 }
 </style>
 
+
+<style id="v46-light-theme-fix">
+/* ===== V46: MODO CLARO REAL ===== */
+/* Início */
+body.light .dash-stats-v36 article,
+body.light .dash-card-v36,
+[data-theme="light"] .dash-stats-v36 article,
+[data-theme="light"] .dash-card-v36{
+  background:#ffffff !important;
+  border-color:#d7e1ec !important;
+  color:#0f172a !important;
+}
+body.light .dash-stats-v36 span,
+body.light .dash-card-v36 p,
+body.light .dash-next-content-v36 span,
+body.light .dash-today-v36 span,
+body.light .dash-att-item-v36 b,
+[data-theme="light"] .dash-stats-v36 span,
+[data-theme="light"] .dash-card-v36 p,
+[data-theme="light"] .dash-next-content-v36 span,
+[data-theme="light"] .dash-today-v36 span,
+[data-theme="light"] .dash-att-item-v36 b{
+  color:#475569 !important;
+  opacity:1 !important;
+}
+body.light .dash-next-content-v36 strong,
+body.light .dash-today-v36 strong,
+body.light .dash-title-row-v36>span,
+[data-theme="light"] .dash-next-content-v36 strong,
+[data-theme="light"] .dash-today-v36 strong,
+[data-theme="light"] .dash-title-row-v36>span{
+  color:#0f172a !important;
+  opacity:1 !important;
+}
+
+/* Planejamento */
+body.light .wizard-v40,
+body.light .materia-plan-v40,
+body.light .disp-dia-v40,
+body.light .revisoes-grid-v40 label,
+body.light .resumo-card-v40,
+[data-theme="light"] .wizard-v40,
+[data-theme="light"] .materia-plan-v40,
+[data-theme="light"] .disp-dia-v40,
+[data-theme="light"] .revisoes-grid-v40 label,
+[data-theme="light"] .resumo-card-v40{
+  background:#ffffff !important;
+  color:#0f172a !important;
+  border-color:#d7e1ec !important;
+}
+body.light .wizard-v40 h1,
+body.light .wizard-v40 h2,
+body.light .wizard-v40 h3,
+body.light .wizard-v40 strong,
+body.light .materia-plan-v40,
+[data-theme="light"] .wizard-v40 h1,
+[data-theme="light"] .wizard-v40 h2,
+[data-theme="light"] .wizard-v40 h3,
+[data-theme="light"] .wizard-v40 strong,
+[data-theme="light"] .materia-plan-v40{
+  color:#0f172a !important;
+  opacity:1 !important;
+}
+body.light .wizard-v40 p,
+body.light .wizard-v40 small,
+body.light .wizard-v40 .wizard-step-v40,
+[data-theme="light"] .wizard-v40 p,
+[data-theme="light"] .wizard-v40 small,
+[data-theme="light"] .wizard-v40 .wizard-step-v40{
+  color:#52647a !important;
+  opacity:1 !important;
+}
+body.light .materia-plan-v40 label,
+body.light .wizard-v40 label,
+[data-theme="light"] .materia-plan-v40 label,
+[data-theme="light"] .wizard-v40 label{
+  color:#475569 !important;
+  opacity:1 !important;
+}
+body.light .wizard-v40 select,
+body.light .wizard-v40 input,
+body.light .wizard-v40 textarea,
+[data-theme="light"] .wizard-v40 select,
+[data-theme="light"] .wizard-v40 input,
+[data-theme="light"] .wizard-v40 textarea{
+  background:#f8fafc !important;
+  color:#0f172a !important;
+  border-color:#cbd5e1 !important;
+}
+</style>
+
 </head>
 <body>
 <!-- V41: V40 + datas corrigidas, duracao/revisoes automaticas e aplicacao integrada ao Ciclo. -->
@@ -7140,7 +7231,8 @@ function concluirTimerProgramadoV43(){
  timerRodando=false;clearInterval(timerInterval);timerProgramadoRestanteV43=0;
  const d=document.getElementById('timerDisplay');if(d)d.textContent='00:00:00';
  const b=document.getElementById('btnIniciarTimer');if(b){b.textContent='Iniciar';b.classList.add('btn-primary');b.classList.remove('btn-outline')}
- avisoV43('Tempo de estudo concluído!','Você completou '+min+' minuto(s) de '+(materia||'estudo')+'. O tempo foi registrado nas suas horas líquidas.','✓','<button type="button" class="btn btn-outline" onclick="fecharAvisoV43();selecionarModoTimerV43(\'livre\')">Continuar estudando</button><button type="button" class="btn btn-primary" onclick="fecharAvisoV43();trocarAba(\'aba-progresso\',document.querySelector(\'[onclick*=\\\"aba-progresso\\\"]\'))">📈 Ver meu progresso</button>');
+ tocarSomConclusaoV46();
+ avisoV43('Tempo de estudo concluído!','Você completou '+min+' minuto(s) de '+(materia||'estudo')+'. O tempo foi registrado nas suas horas líquidas.','✓','<button type="button" class="btn btn-outline" onclick="fecharAvisoV43();selecionarModoTimerV43(\'livre\')">Continuar estudando</button><button type="button" class="btn btn-primary" onclick="fecharAvisoV43();abrirProgressoV46()">📈 Ver meu progresso</button>');
 }
 // Sobrescreve somente o controle do Timer, preservando o restante do sistema.
 toggleTimer=function(){
@@ -7288,6 +7380,73 @@ function tocarSomConclusaoV45(){
   });
   window.addEventListener('DOMContentLoaded',()=>obs.observe(document.body,{attributes:true,subtree:true,childList:true,attributeFilter:['class','style']}));
 })();
+</script>
+
+
+<script id="v46-fixes">
+/* ===== V46: som confiável + botão Progresso ===== */
+let audioCtxV46 = null;
+
+function prepararAudioV46(){
+  try{
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    if(!audioCtxV46) audioCtxV46 = new AC();
+    if(audioCtxV46.state === 'suspended') audioCtxV46.resume().catch(()=>{});
+  }catch(e){}
+}
+
+/* O primeiro clique/toque desbloqueia o áudio do navegador. */
+document.addEventListener('pointerdown', prepararAudioV46, {capture:true});
+document.addEventListener('keydown', prepararAudioV46, {capture:true});
+
+function tocarSomConclusaoV46(){
+  try{
+    prepararAudioV46();
+    if(!audioCtxV46) return;
+    const ctx = audioCtxV46;
+    const nota = (freq, inicio, duracao) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + inicio);
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime + inicio);
+      gain.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + inicio + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + inicio + duracao);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + inicio);
+      osc.stop(ctx.currentTime + inicio + duracao + 0.03);
+    };
+    nota(523.25, 0.00, 0.18);
+    nota(659.25, 0.18, 0.18);
+    nota(783.99, 0.36, 0.18);
+    nota(1046.50,0.54, 0.38);
+  }catch(e){ console.warn('Não foi possível tocar o som:', e); }
+}
+
+function abrirProgressoV46(){
+  try{
+    fecharAvisoV43();
+    const abas = document.querySelectorAll('.tab-content');
+    abas.forEach(a => a.classList.remove('active'));
+
+    const destino = document.getElementById('aba-progresso');
+    if(destino) destino.classList.add('active');
+
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    const botao = [...document.querySelectorAll('.tab-btn')].find(b =>
+      (b.getAttribute('onclick') || '').includes("'aba-progresso'")
+    );
+    if(botao) botao.classList.add('active');
+
+    window.scrollTo({top:0, behavior:'smooth'});
+    if(typeof renderizarProgresso === 'function') renderizarProgresso();
+    if(typeof atualizarProgresso === 'function') atualizarProgresso();
+  }catch(e){
+    console.error('Erro ao abrir Progresso:', e);
+  }
+}
 </script>
 
 </body>

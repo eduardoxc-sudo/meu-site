@@ -1875,6 +1875,42 @@ body.light .wizard-v40,body.light .materia-plan-v40,body.light .disp-dia-v40,bod
 .modal-plan-v41.show{display:flex}.modal-plan-card-v41{width:min(430px,100%);background:var(--card,#111c2e);border:1px solid var(--border,#243248);border-radius:18px;padding:24px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.38)}
 .modal-plan-icon-v41{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;margin:0 auto 12px;background:#22c875;color:#06150d;font-size:28px;font-weight:900}.modal-plan-card-v41 h3{margin:0 0 7px}.modal-plan-card-v41 p{color:var(--text-muted);margin:0 0 18px}.modal-plan-actions-v41{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}
 @media(max-width:600px){.date-row-v41{grid-template-columns:1fr}.date-row-v41 .btn{width:100%}}
+
+
+/* ===== V43: contraste global, frequência colorida e Timer programado ===== */
+:root{--v43-card:var(--surface);--v43-soft:var(--text-muted)}
+/* Texto secundário sempre legível no tema escuro */
+.revisao-card-item,.revisao-card-item *{color:var(--text)}
+.revisao-card-item span[style*="text-muted"],.revisao-card-item small{color:var(--text-muted)!important}
+.revisao-card-item .btn-mini-acao{color:#7dd3fc!important;background:rgba(14,165,233,.10);border:1px solid rgba(56,189,248,.35)}
+.badge-revisao-tag{color:#7dd3fc!important}
+/* Frequência: concluído, parcial, hoje e sem estudo */
+.freq-day-v38{color:var(--text-muted);background:rgba(130,150,180,.14)}
+.freq-day-v38.done{background:#22c875!important;color:#062016!important;opacity:1}
+.freq-day-v38.partial{background:#f0bd2e!important;color:#2b2100!important;opacity:1}
+.freq-day-v38.today:not(.done):not(.partial){background:#38bdf8!important;color:#062033!important;opacity:1;box-shadow:0 0 0 2px rgba(56,189,248,.18)}
+.freq-dot-v38.today{background:#38bdf8}
+/* Timer programado */
+.timer-mode-v43{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.timer-mode-v43 button{padding:9px 10px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-weight:700;cursor:pointer}
+.timer-mode-v43 button.active{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border-color:transparent}
+.timer-program-v43{display:none;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-bottom:10px}
+.timer-program-v43.show{display:grid}
+.timer-program-v43 button,.timer-program-v43 input{min-width:0;padding:8px 5px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);text-align:center;font-weight:700}
+.timer-context-v43{text-align:center;color:var(--text-muted);font-size:.78rem;margin:-2px 0 10px}
+.timer-context-v43 strong{color:var(--primary)}
+/* Modal profissional genérico */
+.modal-v43{position:fixed;inset:0;z-index:100000;background:rgba(2,6,23,.72);display:none;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(3px)}
+.modal-v43.show{display:flex}.modal-card-v43{width:min(440px,100%);background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:20px;padding:24px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.42)}
+.modal-icon-v43{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;margin:0 auto 14px;background:rgba(16,185,129,.16);color:#34d399;font-size:34px;font-weight:900}.modal-card-v43 h3{font-size:1.25rem;margin-bottom:8px}.modal-card-v43 p{color:var(--text-muted);line-height:1.5;margin-bottom:18px}.modal-actions-v43{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
+/* Tema claro V43: elimina cartões escuros/textos apagados */
+[data-theme="light"] body,[data-theme="light"] main,[data-theme="light"] .main-content{background:#f8fafc;color:#0f172a}
+[data-theme="light"] .freq-v38,[data-theme="light"] .timer-card,[data-theme="light"] .card-total-horas,[data-theme="light"] .revisao-card-item,[data-theme="light"] .desafio-v29,[data-theme="light"] .modal-regras-box-v30,[data-theme="light"] .modal-plan-card-v41{background:#fff!important;color:#0f172a!important;border-color:#dbe4ee!important}
+[data-theme="light"] .freq-head-v38 span,[data-theme="light"] .freq-legend-v38,[data-theme="light"] .revisao-card-item small,[data-theme="light"] .modal-regras-box-v30 p{color:#475569!important;opacity:1!important}
+[data-theme="light"] .modal-regras-v30{background:rgba(15,23,42,.58)!important}
+[data-theme="light"] #gradeSemana>*,[data-theme="light"] #gradeSemana .slot,[data-theme="light"] #gradeSemana .card{color:#0f172a}
+@media(max-width:760px){.timer-program-v43{grid-template-columns:repeat(3,1fr)}}
+
 </style>
 </head>
 <body>
@@ -2113,6 +2149,18 @@ body.light .wizard-v40,body.light .materia-plan-v40,body.light .disp-dia-v40,bod
         </div>
 
         <div class="timer-card">
+          <div class="timer-mode-v43" id="timerModeV43">
+            <button type="button" id="timerLivreV43" class="active" onclick="selecionarModoTimerV43('livre')">⏱️ Cronômetro livre</button>
+            <button type="button" id="timerProgramadoV43" onclick="selecionarModoTimerV43('programado')">⏳ Tempo programado</button>
+          </div>
+          <div class="timer-program-v43" id="timerProgramV43">
+            <button type="button" onclick="definirTimerProgramadoV43(15)">15 min</button>
+            <button type="button" onclick="definirTimerProgramadoV43(30)">30 min</button>
+            <button type="button" onclick="definirTimerProgramadoV43(45)">45 min</button>
+            <button type="button" onclick="definirTimerProgramadoV43(60)">60 min</button>
+            <input id="timerPersonalizadoV43" type="number" min="1" max="600" placeholder="min" onchange="definirTimerProgramadoV43(this.value)" title="Tempo personalizado em minutos">
+          </div>
+          <div class="timer-context-v43" id="timerContextV43">Modo livre: o tempo conta para cima.</div>
           <div class="timer-display" id="timerDisplay">00:00:00</div>
           <div class="timer-controls">
             <button class="btn btn-primary" id="btnIniciarTimer" onclick="toggleTimer()">Iniciar</button>
@@ -6970,6 +7018,97 @@ function concluirRevisaoTimerV42(){
  revisaoTimerV42=null;revisaoRestanteV42=0;revisaoTotalV42=0;resetarTimer();renderizarAbaRevisoes();renderizarGrade();
  const m=document.getElementById('modalPlanV41');if(m){m.querySelector('h3').textContent='Revisão concluída!';m.querySelector('p').textContent='O tempo foi registrado nas horas líquidas e a revisão foi marcada como concluída.';m.classList.add('show')}
 }
+
+
+// ===== V43: Timer programado, avisos profissionais, contraste/frequência =====
+let modoTimerV43='livre', timerProgramadoTotalV43=0, timerProgramadoRestanteV43=0;
+function avisoV43(titulo,texto,icone='✓',acoes=''){
+ const m=document.getElementById('modalAvisoV43');if(!m)return;
+ document.getElementById('modalTituloV43').textContent=titulo;
+ document.getElementById('modalTextoV43').textContent=texto;
+ document.getElementById('modalIconV43').textContent=icone;
+ document.getElementById('modalAcoesV43').innerHTML=acoes||'<button type="button" class="btn btn-primary" onclick="fecharAvisoV43()">Continuar</button>';
+ m.classList.add('show');
+}
+function fecharAvisoV43(){document.getElementById('modalAvisoV43')?.classList.remove('show')}
+function selecionarModoTimerV43(modo){
+ if(revisaoTimerV42){avisoV43('Revisão em andamento','Durante uma revisão, o tempo é definido automaticamente.','↻');return}
+ modoTimerV43=modo==='programado'?'programado':'livre';
+ document.getElementById('timerLivreV43')?.classList.toggle('active',modoTimerV43==='livre');
+ document.getElementById('timerProgramadoV43')?.classList.toggle('active',modoTimerV43==='programado');
+ document.getElementById('timerProgramV43')?.classList.toggle('show',modoTimerV43==='programado');
+ if(modoTimerV43==='livre'){timerProgramadoTotalV43=timerProgramadoRestanteV43=0;resetarTimer();const c=document.getElementById('timerContextV43');if(c)c.innerHTML='Modo livre: o tempo conta para cima.'}
+ else {resetarTimer();const c=document.getElementById('timerContextV43');if(c)c.innerHTML='Escolha <strong>15, 30, 45, 60 min</strong> ou informe um tempo personalizado.'}
+}
+function definirTimerProgramadoV43(min){
+ if(revisaoTimerV42)return;min=Math.max(1,Math.min(600,Number(min)||0));if(!min)return;
+ modoTimerV43='programado';timerProgramadoTotalV43=Math.round(min*60);timerProgramadoRestanteV43=timerProgramadoTotalV43;timerSegundos=0;
+ const d=document.getElementById('timerDisplay');if(d)d.textContent=formatarTempo(timerProgramadoRestanteV43);
+ const c=document.getElementById('timerContextV43');if(c)c.innerHTML='<strong>Estudo programado:</strong> '+min+' min. O tempo será registrado ao concluir.';
+ const b=document.getElementById('btnIniciarTimer');if(b){b.textContent='Iniciar estudo';b.classList.add('btn-primary');b.classList.remove('btn-outline')}
+}
+function tempoRealEstudadoV43(){
+ if(revisaoTimerV42)return Math.max(0,revisaoTotalV42-revisaoRestanteV42);
+ if(modoTimerV43==='programado'&&timerProgramadoTotalV43)return Math.max(0,timerProgramadoTotalV43-timerProgramadoRestanteV43);
+ return Math.max(0,timerSegundos||0);
+}
+function concluirTimerProgramadoV43(){
+ const materia=document.getElementById('timerSelectMateria')?.value||'';
+ const seg=tempoRealEstudadoV43(),min=Math.max(1,Math.round(seg/60));
+ if(materia)registrarHoraEstudo(materia,min);
+ timerRodando=false;clearInterval(timerInterval);timerProgramadoRestanteV43=0;
+ const d=document.getElementById('timerDisplay');if(d)d.textContent='00:00:00';
+ const b=document.getElementById('btnIniciarTimer');if(b){b.textContent='Iniciar';b.classList.add('btn-primary');b.classList.remove('btn-outline')}
+ avisoV43('Tempo de estudo concluído!','Você completou '+min+' minuto(s) de '+(materia||'estudo')+'. O tempo foi registrado nas suas horas líquidas.','✓','<button type="button" class="btn btn-outline" onclick="fecharAvisoV43();selecionarModoTimerV43(\'livre\')">Continuar estudando</button><button type="button" class="btn btn-primary" onclick="fecharAvisoV43();trocarAba(\'aba-progresso\',document.querySelector(\'[onclick*=\\\"aba-progresso\\\"]\'))">📈 Ver meu progresso</button>');
+}
+// Sobrescreve somente o controle do Timer, preservando o restante do sistema.
+toggleTimer=function(){
+ const btn=document.getElementById('btnIniciarTimer');
+ if(!timerRodando){
+   if(!revisaoTimerV42&&modoTimerV43==='programado'&&timerProgramadoTotalV43<=0){avisoV43('Escolha o tempo','Selecione 15, 30, 45, 60 minutos ou informe um tempo personalizado.','⏳');return}
+   timerRodando=true;if(btn){btn.textContent='Pausar';btn.classList.remove('btn-primary');btn.classList.add('btn-outline')}
+   timerInterval=setInterval(()=>{
+     const display=document.getElementById('timerDisplay');
+     if(revisaoTimerV42){revisaoRestanteV42=Math.max(0,revisaoRestanteV42-1);if(display)display.textContent=formatarTempo(revisaoRestanteV42);if(revisaoRestanteV42<=0){timerRodando=false;clearInterval(timerInterval);concluirRevisaoTimerV42()}}
+     else if(modoTimerV43==='programado'){timerProgramadoRestanteV43=Math.max(0,timerProgramadoRestanteV43-1);if(display)display.textContent=formatarTempo(timerProgramadoRestanteV43);if(timerProgramadoRestanteV43<=0)concluirTimerProgramadoV43()}
+     else{timerSegundos++;if(display)display.textContent=formatarTempo(timerSegundos)}
+   },1000);
+ }else{timerRodando=false;clearInterval(timerInterval);if(btn){btn.textContent='Continuar';btn.classList.add('btn-primary');btn.classList.remove('btn-outline')}}
+};
+const resetarTimerBaseV43=resetarTimer;
+resetarTimer=function(){
+ timerRodando=false;clearInterval(timerInterval);timerSegundos=0;
+ if(!revisaoTimerV42&&modoTimerV43==='programado'&&timerProgramadoTotalV43>0)timerProgramadoRestanteV43=timerProgramadoTotalV43;
+ const display=document.getElementById('timerDisplay');
+ if(display)display.textContent=revisaoTimerV42?formatarTempo(revisaoRestanteV42):(modoTimerV43==='programado'&&timerProgramadoTotalV43?formatarTempo(timerProgramadoRestanteV43):'00:00:00');
+ const btn=document.getElementById('btnIniciarTimer');if(btn){btn.textContent=revisaoTimerV42?'Iniciar revisão':'Iniciar';btn.classList.add('btn-primary');btn.classList.remove('btn-outline')}
+};
+salvarTempoCronometrado=function(){
+ const seg=tempoRealEstudadoV43();
+ if(seg<60){avisoV43('Tempo mínimo não atingido','Estude pelo menos 1 minuto antes de salvar esta sessão.','⏱️');return}
+ const materia=document.getElementById('timerSelectMateria')?.value||'';if(!materia){avisoV43('Escolha uma disciplina','Selecione a disciplina antes de salvar o tempo.','📚');return}
+ const min=Math.max(1,Math.round(seg/60));registrarHoraEstudo(materia,min);
+ // Salvar uma revisão parcial registra apenas o tempo real; não conclui a revisão.
+ if(revisaoTimerV42){revisaoTotalV42=revisaoRestanteV42=0;revisaoTimerV42=null}
+ timerProgramadoTotalV43=timerProgramadoRestanteV43=0;modoTimerV43='livre';resetarTimer();selecionarModoTimerV43('livre');
+ avisoV43('Tempo salvo!','Foram registrados '+min+' minuto(s) de '+materia+' nas suas horas líquidas.','✓');
+};
+// Contexto visual quando uma revisão abre no Timer.
+const iniciarRevisaoTimerBaseV43=iniciarRevisaoTimerV42;
+iniciarRevisaoTimerV42=function(revId){
+ iniciarRevisaoTimerBaseV43(revId);
+ const rev=(estado.agendaRevisoes||[]).find(r=>r.id===revId),c=document.getElementById('timerContextV43');
+ document.getElementById('timerProgramV43')?.classList.remove('show');
+ if(c&&rev)c.innerHTML='<strong>🔄 Revisão '+rev.tipo+' • '+rev.materia+'</strong> — tempo planejado: '+(rev.minutos||15)+' min';
+};
+// Frequência V43: adiciona destaque azul para hoje sem apagar verde/amarelo.
+const renderFrequenciaBaseV43=renderFrequenciaV38;
+renderFrequenciaV38=function(){
+ renderFrequenciaBaseV43();const box=document.getElementById('freqDiasV38');if(!box)return;
+ const hoje=new Date(),dia=String(hoje.getDate()).padStart(2,'0');[...box.children].forEach(el=>{if(el.textContent.trim()===dia)el.classList.add('today')});
+};
+setTimeout(()=>{try{renderFrequenciaV38()}catch(_){}},500);
+
 </script>
 
   <button id="btnReabrirSidebar" class="sidebar-reopen"
@@ -6996,5 +7135,17 @@ function concluirRevisaoTimerV42(){
     </div>
   </div>
 </div>
+
+<div id="modalAvisoV43" class="modal-v43" role="dialog" aria-modal="true">
+  <div class="modal-card-v43">
+    <div class="modal-icon-v43" id="modalIconV43">✓</div>
+    <h3 id="modalTituloV43">Tudo certo!</h3>
+    <p id="modalTextoV43"></p>
+    <div class="modal-actions-v43" id="modalAcoesV43">
+      <button type="button" class="btn btn-primary" onclick="fecharAvisoV43()">Continuar</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

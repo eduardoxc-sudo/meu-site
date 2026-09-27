@@ -8040,6 +8040,255 @@ html,body{overflow-x:hidden}
 })();
 </script>
 
+
+
+<!-- ===== V55: correção MÊS + IMPRESSÃO/PDF + DASHBOARD após excluir dados ===== -->
+<style id="v55-final-fixes">
+/* ---------- MÊS: 7 colunas reais, sem sair da área principal ---------- */
+#mesCicloV47{
+  display:none;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+  grid-template-columns:repeat(7, minmax(0, 1fr)) !important;
+  grid-auto-flow:row !important;
+  gap:7px !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:visible !important;
+  align-items:stretch !important;
+}
+#mesCicloV47 .mes-head-v47,
+#mesCicloV47 .mes-dia-v47,
+#mesCicloV47 > div{
+  min-width:0 !important;
+  max-width:none !important;
+  width:auto !important;
+  box-sizing:border-box !important;
+}
+#mesCicloV47 .mes-dia-v47{
+  min-height:100px !important;
+  padding:8px !important;
+  overflow:hidden !important;
+}
+#mesCicloV47 .mes-cont-v47{
+  overflow-wrap:anywhere !important;
+  word-break:normal !important;
+}
+#aba-ciclo,
+#aba-ciclo .tab-inner,
+#aba-ciclo .content-wrapper,
+#v35AreaAba,
+#app-container > main{
+  min-width:0 !important;
+  box-sizing:border-box !important;
+}
+@media (min-width:769px){
+  #mesCicloV47{
+    grid-template-columns:repeat(7, minmax(0,1fr)) !important;
+    overflow-x:hidden !important;
+  }
+}
+@media (max-width:768px){
+  #mesCicloV47{
+    grid-template-columns:repeat(7, minmax(92px,1fr)) !important;
+    overflow-x:auto !important;
+    padding-bottom:6px !important;
+  }
+}
+
+/* ---------- IMPRESSÃO / PDF ---------- */
+@page{
+  size:A4 landscape;
+  margin:8mm;
+}
+@media print{
+  html,body{
+    width:100% !important;
+    min-width:0 !important;
+    height:auto !important;
+    margin:0 !important;
+    padding:0 !important;
+    background:#fff !important;
+    color:#111827 !important;
+    overflow:visible !important;
+    zoom:1 !important;
+  }
+
+  #app-container{
+    display:block !important;
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  aside,
+  #sidebar,
+  .sidebar,
+  .mobile-menu-button,
+  .mobile-menu-overlay,
+  .sidebar-reopen,
+  .controls-top,
+  .view-switch-v47,
+  .btn,
+  button,
+  .btn-sync-action,
+  .btn-play-mini{
+    display:none !important;
+  }
+
+  main,
+  #app-container > main,
+  #v35AreaAba,
+  #aba-ciclo{
+    position:static !important;
+    display:block !important;
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    transform:none !important;
+    overflow:visible !important;
+  }
+
+  /* Esconde outras abas: imprime somente o cronograma/ciclo */
+  .tab-content{display:none !important;}
+  #aba-ciclo{
+    display:block !important;
+  }
+
+  .main-header,
+  .card-estimativa-edital,
+  #freqCardV38,
+  .frequencia-card,
+  .frequency-card{
+    width:100% !important;
+    max-width:none !important;
+    box-sizing:border-box !important;
+    break-inside:avoid;
+  }
+
+  #gradeSemana{
+    width:100% !important;
+    max-width:none !important;
+    grid-template-columns:repeat(7,minmax(0,1fr)) !important;
+    gap:4mm !important;
+    overflow:visible !important;
+  }
+
+  #mesCicloV47{
+    width:100% !important;
+    max-width:none !important;
+    grid-template-columns:repeat(7,minmax(0,1fr)) !important;
+    gap:2.5mm !important;
+    overflow:visible !important;
+  }
+
+  #listaCicloV47{
+    width:100% !important;
+    max-width:none !important;
+  }
+
+  .day-column,
+  .mes-dia-v47,
+  .lista-dia-v47{
+    background:#fff !important;
+    color:#111827 !important;
+    border:1px solid #cbd5e1 !important;
+    box-shadow:none !important;
+    break-inside:avoid;
+  }
+
+  .slot-card{
+    background:#f8fafc !important;
+    color:#111827 !important;
+    border:1px solid #e2e8f0 !important;
+    box-shadow:none !important;
+  }
+
+  *{
+    -webkit-print-color-adjust:exact !important;
+    print-color-adjust:exact !important;
+  }
+}
+</style>
+
+<script id="v55-final-fixes-js">
+(function(){
+  function atualizarTudoDepoisDeExcluirV55(){
+    try{ if(typeof atualizarVisualizacaoHoras==='function') atualizarVisualizacaoHoras(); }catch(e){}
+    try{ if(typeof atualizarVisualizacaoQuestoes==='function') atualizarVisualizacaoQuestoes(); }catch(e){}
+    try{ if(typeof renderizarDashboardV37==='function') renderizarDashboardV37(); }catch(e){}
+    try{ if(typeof renderizarVisaoGeral==='function') renderizarVisaoGeral(); }catch(e){}
+    try{ if(typeof renderizarProgressoV20==='function') renderizarProgressoV20(); }catch(e){}
+    try{ if(typeof renderizarProgressoV11==='function') renderizarProgressoV11(); }catch(e){}
+    try{ if(typeof renderizarProgresso==='function') renderizarProgresso(); }catch(e){}
+    try{ if(typeof atualizarProgresso==='function') atualizarProgresso(); }catch(e){}
+  }
+
+  /* Ao apagar uma sessão de horas, o Dashboard muda na mesma hora. */
+  const excluirHoraOriginalV55 = window.excluirRegistroHora;
+  if(typeof excluirHoraOriginalV55 === 'function'){
+    window.excluirRegistroHora = function(id){
+      const r = excluirHoraOriginalV55.apply(this, arguments);
+      setTimeout(atualizarTudoDepoisDeExcluirV55, 30);
+      return r;
+    };
+  }
+
+  /* Ao apagar questões, o Dashboard/taxa muda na mesma hora. */
+  const excluirQuestaoOriginalV55 = window.excluirRegistroQuestao;
+  if(typeof excluirQuestaoOriginalV55 === 'function'){
+    window.excluirRegistroQuestao = function(id){
+      const r = excluirQuestaoOriginalV55.apply(this, arguments);
+      setTimeout(atualizarTudoDepoisDeExcluirV55, 30);
+      return r;
+    };
+  }
+
+  /* Reforço da visão Mês: limpa estilos antigos que podiam deslocar o grid. */
+  const mudarVisaoOriginalV55 = window.mudarVisaoCicloV47;
+  if(typeof mudarVisaoOriginalV55 === 'function'){
+    window.mudarVisaoCicloV47 = function(modo){
+      const r = mudarVisaoOriginalV55.apply(this, arguments);
+      if(modo === 'mes'){
+        const mes = document.getElementById('mesCicloV47');
+        if(mes){
+          mes.style.display='grid';
+          mes.style.width='100%';
+          mes.style.maxWidth='100%';
+          mes.style.marginLeft='0';
+          mes.style.marginRight='0';
+          mes.style.transform='none';
+        }
+        setTimeout(function(){
+          try{ if(typeof renderMesCicloV47==='function') renderMesCicloV47(); }catch(e){}
+        },20);
+      }
+      return r;
+    };
+  }
+
+  /* Antes de imprimir, garante que a visualização atual já esteja renderizada. */
+  window.addEventListener('beforeprint', function(){
+    try{
+      const mes=document.getElementById('mesCicloV47');
+      const lista=document.getElementById('listaCicloV47');
+      if(mes && getComputedStyle(mes).display!=='none' && typeof renderMesCicloV47==='function'){
+        renderMesCicloV47();
+      }
+      if(lista && getComputedStyle(lista).display!=='none' && typeof renderListaCicloV47==='function'){
+        renderListaCicloV47();
+      }
+    }catch(e){}
+  });
+})();
+</script>
+
 </body>
 </html>
 

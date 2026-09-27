@@ -9700,3 +9700,107 @@ html[data-theme="light"] .login-card input{
 })();
 </script>
 
+
+<!-- ===== V64: REVISÕES + EXCLUSÃO + RECRIAR SEMANA ===== -->
+<style id="v64-fixes">
+/* Esconde apenas botões "Excluir" injetados soltos; mantém lixeiras dos registros */
+.v62-delete-q { display:none!important; }
+#v64-recriar-semana{
+  width:100%; margin-top:10px; padding:11px 14px; border:0; border-radius:9px;
+  font-weight:700; cursor:pointer; color:#fff;
+  background:linear-gradient(90deg,#2f80ed,#6947ff);
+}
+.v64-revisoes-auto{
+  margin:10px 0;padding:12px 14px;border:1px solid #2b3d57;border-radius:10px;
+  background:var(--surface,#111c2e);
+}
+.v64-revisoes-auto small{display:block;color:#9fb0c8;margin-bottom:3px}
+.v64-revisoes-auto strong{color:var(--text,#f3f6fb)}
+</style>
+
+<script id="v64-fixes-js">
+(function(){
+  const REV = [
+    {d:'D1',m:15},{d:'D7',m:20},{d:'D15',m:25},{d:'D30',m:30}
+  ];
+
+  function mostrarRevisoes(){
+    const titulo=[...document.querySelectorAll('body *')]
+      .find(x=>(x.textContent||'').trim()==='Registrar estudo');
+    if(!titulo) return;
+    let modal=titulo;
+    for(let i=0;i<7&&modal.parentElement;i++){
+      if(modal.querySelector?.('button') &&
+         [...modal.querySelectorAll('button')].some(b=>/salvar registro/i.test(b.textContent||''))) break;
+      modal=modal.parentElement;
+    }
+    if(!modal || modal.querySelector('.v64-revisoes-auto')) return;
+
+    /* remove bloco de chips da V62 para não duplicar */
+    modal.querySelectorAll('.v62-info-registro').forEach(x=>x.remove());
+
+    const box=document.createElement('div');
+    box.className='v64-revisoes-auto';
+    box.innerHTML='<small>Revisões automáticas</small><strong>'+
+      REV.map(r=>r.d+' • '+r.m+' min').join(' | ')+'</strong>';
+    const salvar=[...modal.querySelectorAll('button')].find(b=>/salvar registro/i.test(b.textContent||''));
+    if(salvar) salvar.before(box);
+  }
+
+  /* Procura e aciona a rotina REAL já existente de regeneração/recriação da semana. */
+  function acionarRecriarSemana(){
+    const candidatos=[
+      'regenerarSemana','recriarSemana','gerarSemana','regenerarEstaSemana',
+      'gerarCronogramaSemana','montarSemana','reorganizarSemana'
+    ];
+    for(const n of candidatos){
+      if(typeof window[n]==='function'){
+        if(confirm('Recriar a semana atual usando o planejamento configurado?')) {
+          window[n]();
+          setTimeout(()=>location.reload(),150);
+        }
+        return;
+      }
+    }
+    /* procura botão antigo oculto */
+    const antigo=[...document.querySelectorAll('button')].find(b=>
+      b.id!=='v64-recriar-semana' && /recriar.*semana|regenerar.*semana/i.test(b.textContent||''));
+    if(antigo){ antigo.click(); return; }
+    alert('A rotina de recriar semana não foi encontrada nesta tela. Abra Meu Plano e tente novamente.');
+  }
+
+  function recolocarBotaoSemana(){
+    if(document.getElementById('v64-recriar-semana')) return;
+    const bodytxt=document.body.innerText||'';
+    if(!/Meu Plano|Cronograma/i.test(bodytxt)) return;
+
+    const ancora=[...document.querySelectorAll('button')].find(b=>
+      /limpar checkbox|desmarcar|resetar edital/i.test(b.textContent||''));
+    if(!ancora) return;
+
+    const btn=document.createElement('button');
+    btn.id='v64-recriar-semana';
+    btn.type='button';
+    btn.textContent='⚡ Recriar Esta Semana';
+    btn.onclick=acionarRecriarSemana;
+    ancora.insertAdjacentElement('beforebegin',btn);
+  }
+
+  /* Remove o registro de questões usando a lixeira ORIGINAL do item.
+     A V63 continua cuidando da persistência; aqui evitamos o botão Excluir solto. */
+  function limparExcluirSolto(){
+    document.querySelectorAll('.v62-delete-q').forEach(b=>b.remove());
+  }
+
+  function run(){
+    mostrarRevisoes();
+    recolocarBotaoSemana();
+    limparExcluirSolto();
+  }
+  new MutationObserver(()=>setTimeout(run,0)).observe(document.body,{childList:true,subtree:true});
+  document.addEventListener('click',()=>setTimeout(run,60),true);
+  window.addEventListener('load',run);
+  setTimeout(run,300);
+})();
+</script>
+

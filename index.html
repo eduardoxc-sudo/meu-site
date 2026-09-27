@@ -2241,6 +2241,84 @@ body:not(.light-mode) .dash-card-v36{background:#111c2e!important}
 }
 </style>
 
+
+<style id="v49-structural-fix">
+/* V49 — correção estrutural real, sem depender do breakpoint antigo */
+#app-container{
+  display:grid!important;
+  grid-template-columns:220px minmax(0,1fr)!important;
+  width:100%!important;
+  min-height:100vh!important;
+  align-items:stretch!important;
+}
+#app-container>aside{
+  width:220px!important;min-width:220px!important;max-width:220px!important;
+  position:relative!important;left:auto!important;top:auto!important;bottom:auto!important;
+  overflow-x:hidden!important;box-sizing:border-box!important;
+}
+#app-container>main{
+  width:auto!important;max-width:none!important;min-width:0!important;
+  margin-left:0!important;box-sizing:border-box!important;overflow-x:hidden!important;
+}
+body.v481-fixed-sidebar #app-container>main{
+  margin-left:0!important;width:auto!important;max-width:none!important;
+}
+body.v481-fixed-sidebar #app-container>aside{position:relative!important}
+
+/* O menu continua vertical mesmo em janelas menores de desktop. */
+#app-container>aside .tab-nav{
+  display:flex!important;flex-direction:column!important;grid-template-columns:none!important;
+}
+#app-container>aside .tab-btn{width:100%!important;justify-content:flex-start!important}
+
+/* Tema no local escolhido pelo usuário */
+.theme-sidebar-v49{
+  width:100%;margin:10px 0 8px;padding:9px 10px;border-radius:9px;
+  border:1px solid rgba(255,255,255,.24);
+  background:rgba(255,255,255,.13);color:#fff;font-weight:800;
+  cursor:pointer;text-align:center;
+}
+.theme-sidebar-v49:hover{background:rgba(255,255,255,.21)}
+#v481-theme-toggle,#btnTema{display:none!important}
+
+/* Paleta coerente */
+html[data-theme="light"] body{background:#f5f7fb!important;color:#172033!important}
+html[data-theme="light"] #app-container>main{background:#f5f7fb!important}
+html[data-theme="light"] .dash-card-v36,
+html[data-theme="light"] .dash-stats-v36 article,
+html[data-theme="light"] .day-column,
+html[data-theme="light"] .freq-v38,
+html[data-theme="light"] .card-estimativa-edital{
+  background:#fff!important;color:#172033!important;border-color:#e1e7f0!important;
+}
+html[data-theme="light"] .dash-card-v36 *,
+html[data-theme="light"] .dash-stats-v36 article *{color:inherit}
+html[data-theme="light"] .dash-card-v36 p,
+html[data-theme="light"] .dash-stats-v36 span{color:#66758b!important}
+
+html[data-theme="dark"] body{background:#0c1422!important;color:#edf3fb!important}
+html[data-theme="dark"] #app-container>main{background:#0c1422!important}
+html[data-theme="dark"] .dash-card-v36,
+html[data-theme="dark"] .dash-stats-v36 article,
+html[data-theme="dark"] .day-column,
+html[data-theme="dark"] .freq-v38,
+html[data-theme="dark"] .card-estimativa-edital{
+  background:#142136!important;color:#edf3fb!important;border-color:#273a55!important;
+}
+html[data-theme="dark"] .dash-card-v36 p,
+html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
+
+/* Só empilha em tela realmente pequena. */
+@media(max-width:559px){
+  #app-container{display:block!important}
+  #app-container>aside{width:100%!important;min-width:0!important;max-width:none!important}
+  #app-container>main{width:100%!important}
+  #app-container>aside .tab-nav{
+    display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important
+  }
+}
+</style>
+
 </head>
 <body>
 <!-- V41: V40 + datas corrigidas, duracao/revisoes automaticas e aplicacao integrada ao Ciclo. -->
@@ -2296,6 +2374,7 @@ body:not(.light-mode) .dash-card-v36{background:#111c2e!important}
           Perfil: <span id="labelNomeUsuario" class="user-badge">-</span>
         </div>
         <div id="statusSincronizacaoNuvem" class="sync-status">☁️ Pronto</div>
+        <button id="btnTemaSidebarV49" class="theme-sidebar-v49" onclick="alternarTemaV49()">🌙 Modo escuro</button>
         
         <div class="sync-actions">
           <button class="btn-sync-action" title="Envia todos os dados locais deste aparelho para a nuvem" onclick="forcarUploadNuvem()">⬆️ Enviar para Nuvem</button>
@@ -7778,6 +7857,31 @@ document.addEventListener('DOMContentLoaded',()=>{
       if(b) b.click();
     }
   },180);
+});
+</script>
+
+
+<script id="v49-theme-fix">
+function atualizarBotaoTemaV49(){
+  const b=document.getElementById('btnTemaSidebarV49');
+  if(!b)return;
+  const light=document.documentElement.getAttribute('data-theme')==='light';
+  b.textContent=light?'🌙 Modo escuro':'☀️ Modo claro';
+}
+function alternarTemaV49(){
+  const atual=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',atual);
+  if(typeof estado==='object'&&estado){estado.tema=atual}
+  try{if(typeof salvarEstado==='function') salvarEstado()}catch(e){}
+  atualizarBotaoTemaV49();
+}
+document.addEventListener('DOMContentLoaded',()=>setTimeout(atualizarBotaoTemaV49,80));
+window.addEventListener('load',()=>setTimeout(atualizarBotaoTemaV49,120));
+
+/* Sincroniza também quando o estado do usuário é carregado. */
+const obsTemaV49=new MutationObserver(atualizarBotaoTemaV49);
+document.addEventListener('DOMContentLoaded',()=>{
+  obsTemaV49.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 });
 </script>
 

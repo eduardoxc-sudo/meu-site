@@ -1691,7 +1691,7 @@
 </style>
 </head>
 <body>
-<!-- V30: V29 + botão e janela de Regras do Desafio + regras adicionais do ADM. -->
+<!-- V31: V30 + correção da exibição da aba Desafio e carregamento automático do painel. -->
 
 
   <div id="celebrationOverlay">
@@ -2057,7 +2057,7 @@
       </div>
 
       
-      <div id="aba-desafio" class="tab-content" style="display:none;">
+      <div id="aba-desafio" class="tab-content">
         <div class="desafio-v29">
           <div class="desafio-hero-v29">
             <div><div class="desafio-kicker-v29">🏆 COMPETIÇÃO DE ESTUDOS</div>
@@ -3242,6 +3242,7 @@
       if (idAba === 'aba-questoes') atualizarVisualizacaoQuestoes();
       if (idAba === 'aba-questoes') setTimeout(atualizarAssuntosQuestoesV11, 0);
       if (idAba === 'aba-progresso') setTimeout(renderizarProgressoV11, 0);
+      if (idAba === 'aba-desafio') setTimeout(carregarDesafioV29, 0);
       if (idAba === 'aba-planejamento') setTimeout(calcularDiasAteProvaV14, 0);
     }
 

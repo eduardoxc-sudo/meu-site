@@ -2111,6 +2111,136 @@ body.light .day-column,body.light .lista-dia-v47,body.light .mes-dia-v47,
 }
 </style>
 
+
+<style id="v48-visual-overhaul">
+/* =========================================================
+   V48 — REDESIGN VISÍVEL
+   Inspirado no layout de referência, sem remover a lógica V46/V47
+   ========================================================= */
+:root{
+ --v48-purple:#7c3aed;
+ --v48-purple2:#5b4df5;
+ --v48-cyan:#25b7f3;
+ --v48-soft:#f7f8fc;
+}
+#app-container{background:var(--bg)}
+aside{
+ width:232px!important;
+ background:linear-gradient(180deg,#5520b8 0%,#7436e8 42%,#8347ef 100%)!important;
+ border-right:0!important;
+ box-shadow:8px 0 30px rgba(37,20,79,.12);
+ color:#fff;
+}
+.sidebar-header{padding:22px 16px 14px!important;border-bottom:1px solid rgba(255,255,255,.12)!important}
+.sidebar-header h2{color:#fff!important;font-size:1.02rem!important;line-height:1.15}
+.user-tag,.sync-status{color:rgba(255,255,255,.78)!important}
+.user-badge{background:rgba(255,255,255,.16)!important;color:#fff!important}
+.btn-toggle-sidebar{color:#fff!important;border-color:rgba(255,255,255,.22)!important;background:rgba(255,255,255,.08)!important}
+.sync-actions{display:grid!important;grid-template-columns:1fr 1fr}
+.btn-sync-action{background:rgba(20,8,51,.18)!important;border-color:rgba(255,255,255,.16)!important;color:#fff!important;font-size:.62rem!important}
+.tab-nav{
+ display:flex!important;flex-direction:column!important;gap:3px!important;
+ padding:14px 10px!important;background:transparent!important;border:0!important
+}
+.tab-btn{
+ width:100%;display:flex!important;align-items:center;gap:10px;
+ padding:10px 12px!important;border:0!important;border-radius:9px!important;
+ background:transparent!important;color:rgba(255,255,255,.78)!important;
+ font-size:.72rem!important;text-align:left!important;box-shadow:none!important
+}
+.tab-btn:hover{background:rgba(255,255,255,.10)!important;color:#fff!important}
+.tab-btn.active{
+ background:#fff!important;color:#5322bb!important;
+ box-shadow:0 8px 20px rgba(32,10,75,.18)!important
+}
+.nav-ico-v48{width:20px;text-align:center;font-size:.9rem}
+.nav-dot-v48{width:7px;height:7px;border-radius:50%;background:#31d17c;margin-left:auto}
+.sidebar-footer{border-top:1px solid rgba(255,255,255,.13)!important}
+.sidebar-footer .btn{background:rgba(20,8,51,.16)!important;color:#fff!important;border-color:rgba(255,255,255,.18)!important}
+
+main{padding:26px 30px!important;background:var(--bg)!important}
+.main-header{
+ background:transparent!important;border:0!important;padding:0 0 18px!important;
+ align-items:center!important
+}
+.main-header h1{font-size:1.45rem!important}
+.controls-top{gap:7px!important}
+.btn-novo-registro-v47{
+ background:linear-gradient(135deg,var(--v48-purple),var(--v48-purple2))!important;
+ box-shadow:0 8px 18px rgba(124,58,237,.22)!important
+}
+.card-estimativa-edital{
+ border-radius:17px!important;
+ background:linear-gradient(110deg,rgba(124,58,237,.10),rgba(37,183,243,.07))!important;
+ border:1px solid rgba(124,58,237,.16)!important
+}
+.freq-v38{border-radius:16px!important}
+.day-column{border-radius:16px!important}
+.slot-card{border-radius:12px!important;transition:transform .18s,box-shadow .18s}
+.slot-card:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(15,23,42,.09)!important}
+
+/* Dashboard V48 */
+.dash-v36{max-width:none!important;padding:0!important}
+.dash-hero-v36{
+ position:relative;overflow:hidden;padding:28px 30px!important;border-radius:20px!important;
+ border:1px solid rgba(124,58,237,.16)!important;
+ background:linear-gradient(115deg,rgba(124,58,237,.14),rgba(37,183,243,.10),rgba(255,255,255,.02))!important
+}
+.dash-hero-v36:after{
+ content:"";position:absolute;width:260px;height:260px;border-radius:50%;
+ right:-70px;top:-150px;background:rgba(124,58,237,.10)
+}
+.dash-kicker-v36{color:var(--v48-purple)!important;letter-spacing:.08em!important}
+.dash-hero-v36 h2{font-size:30px!important}
+.dash-stats-v36{gap:14px!important;margin:16px 0!important}
+.dash-stats-v36 article{
+ position:relative;overflow:hidden;padding:19px!important;border-radius:15px!important;
+ border:1px solid var(--border)!important;background:var(--surface)!important;
+ box-shadow:0 6px 20px rgba(15,23,42,.045)
+}
+.dash-stats-v36 article:before{
+ content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
+ background:linear-gradient(var(--v48-purple),var(--v48-cyan))
+}
+.dash-stats-v36 strong{font-size:24px!important;color:var(--primary)!important}
+.dash-grid-v36{gap:16px!important}
+.dash-card-v36{
+ min-height:185px;border-radius:17px!important;background:var(--surface)!important;
+ border:1px solid var(--border)!important;box-shadow:0 7px 22px rgba(15,23,42,.045)!important
+}
+.dash-title-row-v36 h3{font-size:1rem!important}
+.dash-start-v36{
+ border-radius:10px!important;background:linear-gradient(90deg,var(--v48-purple),var(--v48-purple2))!important
+}
+
+/* Light: branco real e legível */
+body.light-mode main,body.light main,[data-theme="light"] main{background:#f7f8fc!important}
+body.light-mode .dash-stats-v36 article,body.light-mode .dash-card-v36,
+body.light .dash-stats-v36 article,body.light .dash-card-v36,
+[data-theme="light"] .dash-stats-v36 article,[data-theme="light"] .dash-card-v36{
+ background:#fff!important;color:#111827!important;border-color:#e5e7eb!important
+}
+body.light-mode .dash-stats-v36 span,body.light-mode .dash-card-v36 p,
+body.light .dash-stats-v36 span,body.light .dash-card-v36 p,
+[data-theme="light"] .dash-stats-v36 span,[data-theme="light"] .dash-card-v36 p{
+ color:#64748b!important;opacity:1!important
+}
+body.light-mode .dash-card-v36 strong,body.light .dash-card-v36 strong,[data-theme="light"] .dash-card-v36 strong{color:#111827!important}
+
+/* Dark: sidebar continua roxa; cards ganham contraste */
+body:not(.light-mode) .dash-stats-v36 article,
+body:not(.light-mode) .dash-card-v36{background:#111c2e!important}
+
+/* Mobile */
+@media(max-width:900px){
+ aside{width:100%!important;background:linear-gradient(135deg,#5520b8,#7c3aed)!important}
+ .tab-nav{display:grid!important;grid-template-columns:repeat(3,1fr)!important}
+ .tab-btn{justify-content:center!important}
+ .tab-btn span:last-of-type{font-size:.66rem}
+ main{padding:16px!important}
+}
+</style>
+
 </head>
 <body>
 <!-- V41: V40 + datas corrigidas, duracao/revisoes automaticas e aplicacao integrada ao Ciclo. -->
@@ -2174,21 +2304,21 @@ body.light .day-column,body.light .lista-dia-v47,body.light .mes-dia-v47,
       </div>
 
       <nav class="tab-nav">
-        <button class="tab-btn" onclick="trocarAba('aba-inicio', this)">🏠 Início</button>
-          <button class="tab-btn active" onclick="trocarAba('aba-ciclo', this)">Ciclo</button>
-        <button class="tab-btn" onclick="trocarAba('aba-editais-prontos', this)" style="color: #34d399; font-weight: 700;">Editais Prontos 🟢</button>
-        <button class="tab-btn" onclick="trocarAba('aba-prioridades', this)">Prioridades</button>
-        <button class="tab-btn" onclick="trocarAba('aba-revisoes', this)">Revisões ⏰</button>
-        <button class="tab-btn" onclick="trocarAba('aba-pesos', this)">Pesos</button>
-        <button class="tab-btn" onclick="trocarAba('aba-timer', this)">Timer</button>
-        <button class="tab-btn" onclick="trocarAba('aba-questoes', this)">Questões</button>
-        <button class="tab-btn" onclick="trocarAba('aba-edital-vert', this)">Edital</button>
-        <button class="tab-btn" onclick="trocarAba('aba-progresso', this)">📈 Progresso</button>
-        <button class="tab-btn" onclick="trocarAba('aba-desafio', this); carregarDesafioV29()">🏆 Desafio</button>
+        <button class="tab-btn" onclick="trocarAba('aba-inicio', this)"><span class="nav-ico-v48">⌂</span><span>Dashboard</span></button>
+          <button class="tab-btn active" onclick="trocarAba('aba-ciclo', this)"><span class="nav-ico-v48">▦</span><span>Meu Plano</span></button>
+        <button class="tab-btn" onclick="trocarAba('aba-editais-prontos', this)" style="color: #34d399; font-weight: 700;"><span class="nav-ico-v48">▤</span><span>Editais Prontos</span><i class="nav-dot-v48"></i></button>
+        <button class="tab-btn" onclick="trocarAba('aba-prioridades', this)"><span class="nav-ico-v48">★</span><span>Prioridades</span></button>
+        <button class="tab-btn" onclick="trocarAba('aba-revisoes', this)"><span class="nav-ico-v48">↻</span><span>Revisões</span></button>
+        <button class="tab-btn" onclick="trocarAba('aba-pesos', this)"><span class="nav-ico-v48">⚖</span><span>Pesos</span></button>
+        <button class="tab-btn" onclick="trocarAba('aba-timer', this)"><span class="nav-ico-v48">◷</span><span>Timer</span></button>
+        <button class="tab-btn" onclick="trocarAba('aba-questoes', this)"><span class="nav-ico-v48">✓</span><span>Questões</span></button>
+        <button class="tab-btn" onclick="trocarAba('aba-edital-vert', this)"><span class="nav-ico-v48">▥</span><span>Edital</span></button>
+        <button class="tab-btn" onclick="trocarAba('aba-progresso', this)"><span class="nav-ico-v48">↗</span><span>Progresso</span></button>
+        <button class="tab-btn" onclick="trocarAba('aba-desafio', this); carregarDesafioV29()"><span class="nav-ico-v48">♛</span><span>Desafio</span></button>
         <button id="btnAbaMotivacaoV21" class="tab-btn" style="display:none;" onclick="trocarAba('aba-motivacao-v21', this)">💬 Motivação</button>
-        <button class="tab-btn" onclick="trocarAba('aba-planejamento', this)">Planejamento</button>
+        <button class="tab-btn" onclick="trocarAba('aba-planejamento', this)"><span class="nav-ico-v48">↔</span><span>Planejamento</span></button>
         
-        <button class="tab-btn" onclick="trocarAba('aba-senha', this)">Segurança</button>
+        <button class="tab-btn" onclick="trocarAba('aba-senha', this)"><span class="nav-ico-v48">◇</span><span>Segurança</span></button>
         <button class="tab-btn" id="btnAbaUsuariosAdmin" onclick="trocarAba('aba-usuarios-admin', this)" style="display:none; color: #f59e0b; font-weight:700;">Gestão Utilizadores 👥</button>
       </nav>
 
@@ -2733,8 +2863,8 @@ body.light .day-column,body.light .lista-dia-v47,body.light .mes-dia-v47,
     <main>
       <header class="main-header">
         <div>
-          <h1 id="tituloCronograma">Cronograma Semanal</h1>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Ciclo de matérias com priorização inteligente de tópicos</p>
+          <h1 id="tituloCronograma">Meu Plano de Estudos</h1>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Organize sua semana, revise no tempo certo e acompanhe seu progresso</p>
         </div>
 
         <div class="controls-top">
@@ -7634,6 +7764,20 @@ function salvarNovoRegistroV47(){
 }
 document.addEventListener('DOMContentLoaded',()=>{
   setTimeout(()=>mudarVisaoCicloV47(localStorage.getItem('visaoCicloV47')||'semana'),500);
+});
+</script>
+
+
+<script id="v48-ui-js">
+document.addEventListener('DOMContentLoaded',()=>{
+  setTimeout(()=>{
+    // Melhora a apresentação inicial sem alterar dados.
+    const ativo=document.querySelector('.tab-content.active');
+    if(!ativo){
+      const b=[...document.querySelectorAll('.tab-btn')].find(x=>(x.getAttribute('onclick')||'').includes("aba-inicio"));
+      if(b) b.click();
+    }
+  },180);
 });
 </script>
 

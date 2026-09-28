@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 ===============================================================================
- V110 — MOBILE CONSULTA + SINCRONIZAÇÃO + SAIR — DESKTOP PRESERVADO
+ V111 — EDITAL: 1D/7D/15D/30D APENAS MARCADORES — REVISÃO AUTOMÁTICA PRESERVADA
  Não editar diretamente esta versão publicada.
  Fluxo recomendado:
  1. conservar este arquivo como versão estável;
@@ -2548,7 +2548,7 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
       <!-- Aba 3: Revisões Espaçadas -->
       <div id="aba-revisoes" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          Ao marcar 1D, 7D, 15D ou 30D no Edital, a revisão é agendada para a sua data e entra com destaque roxo no cronograma semanal.
+          As caixas 1D, 7D, 15D e 30D do Edital funcionam apenas como marcadores de revisões realizadas. O cronograma de revisão é gerado automaticamente pelo sistema.
         </p>
 
         <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
@@ -5374,66 +5374,21 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
       const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
       if (!topico) return;
 
+      // V111:
+      // As caixas 1D/7D/15D/30D do Edital Verticalizado são SOMENTE
+      // marcadores visuais de revisão realizada.
+      //
+      // Elas NÃO criam, removem, movem ou reagendam revisões.
+      // O agendamento fica exclusivamente a cargo da revisão automática
+      // já existente no sistema quando o tópico/estudo é concluído.
       const campo = 'r' + tipo.replace('D', '');
-      topico[campo] = ativo;
-
-      const diasMap = { '1D': 1, '7D': 7, '15D': 15, '30D': 30 };
-      if (!estado.agendaRevisoes) estado.agendaRevisoes = [];
-
-      const chaveRevisao = r => r.topicoId === topicoId && r.tipo === tipo;
-
-      if (ativo) {
-        // Nunca duplica D30 (nem 1D/7D/15D).
-        estado.agendaRevisoes = estado.agendaRevisoes.filter(r => !chaveRevisao(r));
-
-        const dataRev = new Date();
-        dataRev.setHours(0, 0, 0, 0);
-        dataRev.setDate(dataRev.getDate() + diasMap[tipo]);
-
-        estado.agendaRevisoes.push({
-          id: 'rev_' + Math.random().toString(36).substr(2, 7),
-          materia,
-          topicoId,
-          topicoTitulo: topico.titulo,
-          tipo,
-          dataPrevista: formatarDataChave(dataRev),
-          concluida: false,
-          minutos: Number((estado.revisoesAutomaticas||{})['minD'+tipo.replace('D','')] || ({'1D':15,'7D':20,'15D':25,'30D':30}[tipo]) || 15)
-        });
-      } else {
-        estado.agendaRevisoes = estado.agendaRevisoes.filter(r => !chaveRevisao(r));
-      }
-
-      normalizarAgendaRevisoes();
-
-      // Garante que a semana da revisão exista, mas NÃO gera matérias por causa
-      // do clique em D1/D7/D15/D30.
-      if (ativo) {
-        const revCriada = (estado.agendaRevisoes || []).find(r =>
-          r.topicoId === topicoId && r.tipo === tipo
-        );
-
-        if (revCriada && revCriada.dataPrevista) {
-          const p = revCriada.dataPrevista.split('-');
-          const dataDaRevisao = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
-          const segundaDaRevisao = obterSegundaFeira(dataDaRevisao);
-          const chaveSemanaRevisao = `semana_${formatarDataChave(segundaDaRevisao)}`;
-
-          if (!estado.semanas) estado.semanas = {};
-          if (!estado.semanas[chaveSemanaRevisao]) {
-            estado.semanas[chaveSemanaRevisao] = {};
-          }
-        }
-      }
-
-      // Apenas coloca/remove os cartões de revisão nas semanas.
-      // Nenhuma matéria normal é criada aqui.
-      sincronizarTodasSemanasComRevisoes();
+      topico[campo] = !!ativo;
 
       salvarEstado();
       renderizarEditalVerticalizado();
-      renderizarAbaRevisoes();
-      renderizarGrade();
+
+      // Atualiza apenas indicadores visuais que dependam do estado.
+      try { calcularPrevisaoFechamentoEdital(); } catch (_) {}
     }
 
     function renderizarAbaRevisoes() {

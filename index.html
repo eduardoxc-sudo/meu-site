@@ -13,6 +13,7 @@
 ===============================================================================
 -->
 
+<!-- V113 — CORREÇÃO DO STATUS DE SINCRONIZAÇÃO NO PC: aguarda Firebase Auth antes do RTDB; cronograma preservado. -->
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -5788,22 +5789,70 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
     }
 
     // ---------- Sincronização manual com a nuvem ----------
-    function forcarUploadNuvem() {
-      if (!rtdb || !dbRefAtivo) { alert('Sem conexão com a nuvem.'); return; }
+    async function forcarUploadNuvem() {
+      if (!rtdb || !dbRefAtivo) {
+        atualizarStatusNuvem('⚠️ Sem conexão', 'offline');
+        alert('Sem conexão com a nuvem.');
+        return;
+      }
+
+      // V113: antes do envio manual, confirma que o Firebase Auth já restaurou
+      // a sessão. Assim o RTDB não fica indefinidamente em "Enviando...".
+      if (auth && !auth.currentUser) {
+        atualizarStatusNuvem('☁️ Conectando...', 'syncing');
+        const autenticadoV113 = await new Promise(resolve => {
+          let terminou = false;
+          let cancelar = null;
+          const concluir = valor => {
+            if (terminou) return;
+            terminou = true;
+            try { if (typeof cancelar === 'function') cancelar(); } catch (_) {}
+            resolve(valor);
+          };
+          try {
+            cancelar = auth.onAuthStateChanged(user => concluir(!!user));
+          } catch (_) {
+            concluir(false);
+          }
+          setTimeout(() => concluir(!!auth.currentUser), 5000);
+        });
+
+        if (!autenticadoV113) {
+          atualizarStatusNuvem('⚠️ Sessão da nuvem indisponível', 'offline');
+          alert('A sessão do Firebase ainda não está disponível. Termine a sessão e entre novamente.');
+          return;
+        }
+      }
 
       const agora = new Date().toISOString();
       atualizarStatusNuvem('☁️ Enviando...', 'syncing');
 
-      dbRefAtivo.set({ estado: estado, atualizadoEm: agora }).then(() => {
+      let timeoutV113 = null;
+      const limiteV113 = new Promise((_, reject) => {
+        timeoutV113 = setTimeout(
+          () => reject(new Error('Tempo limite ao comunicar com a nuvem.')),
+          12000
+        );
+      });
+
+      try {
+        await Promise.race([
+          dbRefAtivo.set({ estado: estado, atualizadoEm: agora }),
+          limiteV113
+        ]);
+        clearTimeout(timeoutV113);
+
         const chave = chaveArmazenamento(usuarioAtivo);
         localStorage.setItem(chave, JSON.stringify(estado));
         localStorage.setItem(chave + '_atualizadoEm', agora);
         atualizarStatusNuvem('☁️ Sincronizado', 'online');
         alert('Dados enviados para a nuvem com sucesso!');
-      }).catch(err => {
+      } catch (err) {
+        clearTimeout(timeoutV113);
+        console.error('V113: falha no envio manual:', err);
         atualizarStatusNuvem('⚠️ Falha na sincronização', 'offline');
-        alert('Erro ao enviar: ' + err.message);
-      });
+        alert('Erro ao enviar: ' + (err?.message || err));
+      }
     }
     function forcarDownloadNuvem() {
       if (!rtdb || !dbRefAtivo) { alert('Sem conexão com a nuvem.'); return; }
@@ -5843,10 +5892,37 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
 
     /* ===================================================================== */
 
+    // V113 — ao restaurar uma sessão no PC, aguarda o Firebase Authentication
+    // restaurar o usuário antes de acessar o Realtime Database.
+    // Isso evita iniciar como Offline mesmo havendo internet.
     const sessaoSalva = sessionStorage.getItem('usuario_ativo');
     if (sessaoSalva) {
       usuarioAtivo = sessaoSalva;
-      abrirApp();
+
+      if (auth && typeof auth.onAuthStateChanged === 'function') {
+        let abriuV113 = false;
+        const abrirUmaVezV113 = () => {
+          if (abriuV113) return;
+          abriuV113 = true;
+          abrirApp();
+        };
+
+        const cancelarObsV113 = auth.onAuthStateChanged(user => {
+          if (user) {
+            try { sessionStorage.setItem('firebase_uid', user.uid); } catch (_) {}
+            if (typeof cancelarObsV113 === 'function') cancelarObsV113();
+            abrirUmaVezV113();
+          }
+        });
+
+        // Fallback: não deixa a tela presa caso o Auth demore/falhe.
+        setTimeout(() => {
+          if (typeof cancelarObsV113 === 'function') cancelarObsV113();
+          abrirUmaVezV113();
+        }, 5000);
+      } else {
+        abrirApp();
+      }
     } else {
       const tLogin = document.getElementById('tela-login');
       if (tLogin) tLogin.style.display = 'flex';

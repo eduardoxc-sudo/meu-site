@@ -4112,6 +4112,9 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
       });
     }
     function salvarEstado() {
+      // V133: funções usadas apenas para reconstruir/renderizar a interface
+      // nunca podem sobrescrever o perfil persistido.
+      if (window.__V133_RENDERIZANDO__) return;
       if (!usuarioAtivo || isReceivingFromCloud) return;
 
       const chave = chaveArmazenamento(usuarioAtivo);
@@ -4332,6 +4335,8 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
 
     // ---------- Carregamento geral da UI ----------
     function atualizarUIAposCarregar() {
+      const bloqueioAnteriorV133 = window.__V133_RENDERIZANDO__;
+      window.__V133_RENDERIZANDO__ = true;
       const padrao = obterEstadoPadrao();
       Object.keys(padrao).forEach(chave => {
         if (estado[chave] === undefined) estado[chave] = padrao[chave];
@@ -4360,6 +4365,7 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
 
       dataReferencia = new Date();
       atualizarSemanaAtiva();
+      window.__V133_RENDERIZANDO__ = bloqueioAnteriorV133 || false;
     }
 
     // ---------- Seletores de disciplina ----------
@@ -5763,7 +5769,12 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
 
       estado.planejamento.inicio = inputInicio ? inputInicio.value : estado.planejamento.inicio;
       estado.planejamento.prova = inputProva ? inputProva.value : estado.planejamento.prova;
-      salvarEstado();
+
+      // V133: atualizarPainelPlanejamento() também é chamada durante a
+      // reconstrução da interface (F5/login). Renderizar a tela NÃO pode
+      // persistir o estado, pois nesse instante ele pode estar incompleto.
+      // As ações reais do usuário continuam chamando salvarEstado()
+      // pelos seus próprios handlers.
 
       const elDias = document.getElementById('diasAteProva');
       const elSemanas = document.getElementById('semanasAteProva');
@@ -8331,8 +8342,10 @@ html,body{overflow-x:hidden}
   }
 
   function refrescarAbaAtualV53(){
-    /* Não esconde nem move containers. Só chama as rotinas existentes. */
-    try{if(typeof atualizarUIAposCarregar==='function') atualizarUIAposCarregar()}catch(e){}
+    /* V133: atualização visual somente.
+       atualizarUIAposCarregar() já é executada no fluxo correto de abrirApp().
+       Chamava-la novamente aqui após DOMContentLoaded fazia uma segunda
+       reconstrução e, na V126, podia persistir estado parcial. */
     try{if(typeof atualizarDashboardV36==='function') atualizarDashboardV36()}catch(e){}
     try{if(typeof renderDashboardV36==='function') renderDashboardV36()}catch(e){}
   }
@@ -11198,119 +11211,16 @@ body.v71-timer #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!importan
 </script>
 
 
-
 <!-- =========================================================
- V132 — DIAGNÓSTICO: QUEM ZERA O PERFIL NO F5
- Base: V126 funcional
- NÃO corrige nem restaura dados.
- Registra toda escrita em cronograma_perfil_eduardo:
- - tamanho anterior
- - tamanho novo
- - horário
- - stack trace (quem chamou)
- O log fica em sessionStorage para sobreviver ao F5.
+ V133 — CORREÇÃO DO RESET NO F5
+ Evidência V132:
+ cronograma_perfil_eduardo caiu de ~13830 para 380 bytes por:
+ refrescarAbaAtualV53 -> atualizarUIAposCarregar ->
+ atualizarPainelPlanejamento -> salvarEstado.
+
+ Correções:
+ - atualizarPainelPlanejamento não salva durante renderização;
+ - refrescarAbaAtualV53 não chama reconstrução completa;
+ - salvarEstado bloqueado enquanto atualizarUIAposCarregar renderiza;
+ - restante da V126 preservado.
 ========================================================== -->
-<style id="v132-css">
-#v132Diag{
- position:fixed;right:10px;bottom:10px;z-index:2147483647;
- width:min(620px,calc(100vw - 20px));max-height:62vh;overflow:auto;
- background:#080d18;color:#f8fafc;border:1px solid #64748b;border-radius:12px;
- padding:10px;font:11px/1.35 monospace;box-shadow:0 8px 30px rgba(0,0,0,.45)
-}
-#v132Diag .danger{color:#fca5a5;font-weight:bold}
-#v132Diag .ok{color:#86efac}
-#v132Diag pre{white-space:pre-wrap;word-break:break-word;background:#111827;padding:7px;border-radius:7px}
-#v132Diag button{padding:6px 9px;margin:6px 5px 0 0;cursor:pointer}
-</style>
-<script id="v132-js">
-(function(){
- const TARGET='cronograma_perfil_eduardo';
- const LOGKEY='v132_log_persistencia';
-
- function logs(){
-   try{return JSON.parse(sessionStorage.getItem(LOGKEY)||'[]')}catch(_){return []}
- }
- function saveLogs(a){
-   try{sessionStorage.setItem(LOGKEY,JSON.stringify(a.slice(-30)))}catch(_){}
- }
- function add(tipo,oldLen,newLen,extra){
-   const a=logs();
-   a.push({
-     hora:new Date().toISOString(),
-     tipo:tipo,antes:oldLen,depois:newLen,
-     extra:extra||'',
-     stack:(new Error('V132 rastreio')).stack||''
-   });
-   saveLogs(a);
-   setTimeout(render,0);
- }
-
- /* Instala o rastreio o mais cedo possível neste bloco. */
- const originalSet=Storage.prototype.setItem;
- const originalRemove=Storage.prototype.removeItem;
- const originalClear=Storage.prototype.clear;
-
- Storage.prototype.setItem=function(k,v){
-   if(this===localStorage && k===TARGET){
-     let old=''; try{old=originalGet.call(this,k)||''}catch(_){}
-     const novo=String(v??'');
-     add('setItem',old.length,novo.length,
-       novo.length < old.length ? 'DIMINUIU '+old.length+' → '+novo.length : '');
-   }
-   return originalSet.apply(this,arguments);
- };
- const originalGet=Storage.prototype.getItem;
-
- Storage.prototype.removeItem=function(k){
-   if(this===localStorage && k===TARGET){
-     let old='';try{old=originalGet.call(this,k)||''}catch(_){}
-     add('removeItem',old.length,0,'CHAVE REMOVIDA');
-   }
-   return originalRemove.apply(this,arguments);
- };
- Storage.prototype.clear=function(){
-   if(this===localStorage){
-     let old='';try{old=originalGet.call(this,TARGET)||''}catch(_){}
-     add('clear',old.length,0,'LOCALSTORAGE CLEAR');
-   }
-   return originalClear.apply(this,arguments);
- };
-
- function snapshot(label){
-   let raw='';try{raw=localStorage.getItem(TARGET)||''}catch(_){}
-   add(label,raw.length,raw.length,'snapshot');
- }
-
- function render(){
-   let box=document.getElementById('v132Diag');
-   if(!box){box=document.createElement('div');box.id='v132Diag';document.body.appendChild(box)}
-   let raw='';try{raw=localStorage.getItem(TARGET)||''}catch(_){}
-   const a=logs();
-   const last=a.slice(-8).reverse();
-   box.innerHTML=
-     '<b>V132 — Rastreio do F5</b><br>'+
-     'Chave: '+TARGET+'<br>'+
-     'Tamanho AGORA: <span class="'+(raw.length>1000?'ok':'danger')+'">'+raw.length+' bytes</span><br>'+
-     'Eventos registrados: '+a.length+'<br>'+
-     '<button id="v132Snap">Registrar estado agora</button>'+
-     '<button id="v132Clear">Limpar só o LOG</button>'+
-     last.map((x,i)=>
-       '<pre class="'+((x.depois<x.antes||x.depois<1000)?'danger':'')+'">'+
-       '#'+(a.length-i)+' '+x.hora+'\n'+
-       x.tipo+' | '+x.antes+' → '+x.depois+' bytes'+
-       (x.extra?'\n'+x.extra:'')+'\n'+
-       x.stack.split('\n').slice(1,7).join('\n')+
-       '</pre>'
-     ).join('');
-   document.getElementById('v132Snap').onclick=()=>snapshot('manual');
-   document.getElementById('v132Clear').onclick=()=>{
-     sessionStorage.removeItem(LOGKEY);render();
-   };
- }
- window.renderV132=render;
- document.addEventListener('DOMContentLoaded',()=>{snapshot('DOMContentLoaded');setTimeout(render,300)});
- window.addEventListener('pageshow',()=>{snapshot('pageshow');setTimeout(render,200)});
- setTimeout(render,800);
-})();
-</script>
-

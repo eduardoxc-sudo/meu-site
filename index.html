@@ -3268,6 +3268,24 @@ body { padding: 4mm !important; }
   grid-template-columns: repeat(7, minmax(0,1fr)) !important;
 }
 button, .btn, .btn-play-mini, .btn-mini-acao { display:none !important; }
+/* V142 — PDF econômico: fundo branco, texto escuro e bordas leves */
+body, body * {
+  color: #111827 !important;
+}
+#gradeSemana, #mesCicloV47, #listaCicloV47,
+.day-column, .mes-dia-v47, .lista-dia-v47,
+.slot-card, .study-card, .card, [class*="card"] {
+  background: #ffffff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+.day-column, .mes-dia-v47, .lista-dia-v47,
+.slot-card, .study-card {
+  border-color: #cbd5e1 !important;
+}
+.slot-card, .study-card {
+  break-inside: avoid !important;
+}
 * {
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;

@@ -10084,3 +10084,78 @@ window.V74=(function(){
 })();
 </script>
 
+
+<!-- ===== V75: FLASHCARDS + BANCO DE QUESTÕES NO MENU LATERAL ===== -->
+<style id="v75-menu-css">
+/* Esconde apenas os lançadores flutuantes da V74. Os módulos continuam intactos. */
+#v74-launcher{display:none!important}
+.v75-menu-btn{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border:0;
+  background:transparent;
+  color:inherit;
+  padding:11px 18px;
+  font:inherit;
+  font-weight:600;
+  text-align:left;
+  cursor:pointer;
+  border-radius:8px;
+}
+.v75-menu-btn:hover{background:rgba(255,255,255,.10)}
+</style>
+
+<script id="v75-menu-js">
+(function(){
+ function instalarV75(){
+   if(document.getElementById('v75-flash-menu')) return;
+
+   const botoes=[...document.querySelectorAll('.tab-btn')];
+   const questoes=botoes.find(b=>{
+     const s=((b.textContent||'')+' '+(b.getAttribute('onclick')||'')).toLowerCase();
+     return s.includes('questões') || s.includes('questoes') || s.includes('aba-questoes');
+   });
+
+   if(!questoes || !questoes.parentNode) return;
+
+   const flash=document.createElement('button');
+   flash.id='v75-flash-menu';
+   flash.type='button';
+   flash.className=(questoes.className||'tab-btn')+' v75-menu-btn';
+   flash.innerHTML='<span>🧠</span><span>Flashcards</span>';
+   flash.onclick=function(e){
+     e.preventDefault();
+     if(window.V74) V74.open('flash');
+   };
+
+   const banco=document.createElement('button');
+   banco.id='v75-banco-menu';
+   banco.type='button';
+   banco.className=(questoes.className||'tab-btn')+' v75-menu-btn';
+   banco.innerHTML='<span>🗃️</span><span>Banco de Questões</span>';
+   banco.onclick=function(e){
+     e.preventDefault();
+     if(window.V74) V74.open('quest');
+   };
+
+   questoes.insertAdjacentElement('afterend', banco);
+   questoes.insertAdjacentElement('afterend', flash);
+ }
+
+ if(document.readyState==='loading'){
+   document.addEventListener('DOMContentLoaded',()=>setTimeout(instalarV75,100));
+ }else{
+   setTimeout(instalarV75,100);
+ }
+
+ /* Se o menu for reconstruído pelo sistema, recoloca os dois atalhos. */
+ const obs=new MutationObserver(()=>instalarV75());
+ document.addEventListener('DOMContentLoaded',()=>{
+   const aside=document.querySelector('aside');
+   if(aside) obs.observe(aside,{childList:true,subtree:true});
+ });
+})();
+</script>
+

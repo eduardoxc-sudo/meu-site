@@ -9986,3 +9986,101 @@ body.v71-timer #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!importan
 })();
 </script>
 
+
+<!-- ===== V74: MÓDULOS ISOLADOS — FLASHCARDS + BANCO DE QUESTÕES ===== -->
+<style id="v74-modulos-css">
+#v74-launcher{position:fixed;right:18px;bottom:18px;z-index:700;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.v74-fab{border:0;border-radius:12px;padding:11px 14px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.18);background:#2563eb;color:#fff}
+#v74-modal{position:fixed;inset:0;z-index:750;background:rgba(0,0,0,.58);display:none;align-items:center;justify-content:center;padding:18px}
+#v74-modal.show{display:flex}
+.v74-panel{width:min(1100px,96vw);height:min(820px,92vh);overflow:auto;background:var(--card,#fff);color:var(--text,#172033);border:1px solid var(--border,#dbe3ef);border-radius:18px;padding:18px;box-shadow:0 25px 70px rgba(0,0,0,.3)}
+body.dark .v74-panel{background:#102036;color:#e6edf7;border-color:#2a405e}
+.v74-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.v74-head h2{margin:0}
+.v74-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.v74-tabs button,.v74-btn{border:1px solid var(--border,#ccd6e3);background:transparent;color:inherit;border-radius:10px;padding:9px 12px;cursor:pointer;font-weight:700}
+.v74-tabs button.active,.v74-primary{background:#2563eb!important;color:#fff!important;border-color:#2563eb!important}
+.v74-grid{display:grid;grid-template-columns:280px 1fr;gap:16px}.v74-box{border:1px solid var(--border,#dbe3ef);border-radius:14px;padding:14px}
+body.dark .v74-box{border-color:#2a405e}.v74-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.v74-list{display:grid;gap:8px;margin-top:10px}
+.v74-item{border:1px solid var(--border,#dbe3ef);border-radius:11px;padding:10px;cursor:pointer}.v74-item.sel{outline:2px solid #2563eb}
+body.dark .v74-item{border-color:#2a405e}.v74-muted{opacity:.72;font-size:.9rem}.v74-card{border:1px solid var(--border,#dbe3ef);border-radius:12px;padding:12px;margin:8px 0}
+body.dark .v74-card{border-color:#2a405e}.v74-card b{display:block;margin-bottom:5px}
+.v74-input,.v74-textarea{width:100%;box-sizing:border-box;border:1px solid var(--border,#cbd5e1);border-radius:10px;padding:10px;background:transparent;color:inherit}
+.v74-textarea{min-height:90px;resize:vertical}.v74-danger{border-color:#ef4444!important;color:#ef4444!important}
+#v74-sim-frame{width:100%;height:68vh;border:0;border-radius:12px;background:white}
+@media(max-width:760px){.v74-grid{grid-template-columns:1fr}#v74-launcher{left:10px;right:10px}.v74-fab{flex:1}}
+</style>
+
+<div id="v74-launcher">
+  <button class="v74-fab" onclick="V74.open('flash')">🧠 Flashcards</button>
+  <button class="v74-fab" onclick="V74.open('quest')">🗃️ Banco de Questões</button>
+</div>
+<div id="v74-modal"><div class="v74-panel">
+  <div class="v74-head"><h2 id="v74-title">Módulos</h2><button class="v74-btn" onclick="V74.close()">✕ Fechar</button></div>
+  <div class="v74-tabs">
+    <button id="v74-tab-flash" onclick="V74.show('flash')">🧠 Flashcards</button>
+    <button id="v74-tab-quest" onclick="V74.show('quest')">🗃️ Banco de Questões</button>
+  </div>
+  <div id="v74-body"></div>
+</div></div>
+
+<script id="v74-modulos-js">
+window.V74=(function(){
+ const KF='EI_V74_FLASH', KQ='EI_V74_QUEST';
+ let mode='flash', folder=null;
+ const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+ const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+ const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+ function admin(){ try{return estado?.usuario?.admin===true || estado?.usuario?.perfil==='admin' || localStorage.getItem('EI_V74_ADMIN')==='1'}catch(e){return false} }
+ function open(m){document.getElementById('v74-modal').classList.add('show');show(m)}
+ function close(){document.getElementById('v74-modal').classList.remove('show')}
+ function show(m){mode=m;folder=null;document.getElementById('v74-tab-flash').classList.toggle('active',m==='flash');document.getElementById('v74-tab-quest').classList.toggle('active',m==='quest');render()}
+ function render(){document.getElementById('v74-title').textContent=mode==='flash'?'🧠 Flashcards':'🗃️ Banco de Questões'; mode==='flash'?renderFlash():renderQuest()}
+
+ function folders(k){return load(k,{folders:[]})}
+ function addFolder(k){const n=prompt('Nome da pasta/matéria:');if(!n)return;const d=folders(k);d.folders.push({id:uid(),name:n,items:[]});save(k,d);render()}
+ function delFolder(k,id){if(!confirm('Excluir esta pasta e todo o conteúdo dela?'))return;const d=folders(k);d.folders=d.folders.filter(x=>x.id!==id);save(k,d);folder=null;render()}
+ function renameFolder(k,id){const d=folders(k),f=d.folders.find(x=>x.id===id);if(!f)return;const n=prompt('Novo nome:',f.name);if(!n)return;f.name=n;save(k,d);render()}
+
+ function folderPane(k,isAdmin){
+   const d=folders(k);
+   return `<div class="v74-box"><div class="v74-row"><b>📁 Pastas por matéria</b>${isAdmin||k===KF?`<button class="v74-btn v74-primary" onclick="V74.addFolder('${k}')">+ Pasta</button>`:''}</div>
+   <div class="v74-list">${d.folders.length?d.folders.map(f=>`<div class="v74-item ${folder===f.id?'sel':''}" onclick="V74.pick('${f.id}')"><b>${esc(f.name)}</b><span class="v74-muted">${f.items.length} item(ns)</span>${(isAdmin||k===KF)?`<div class="v74-row" style="margin-top:7px"><button class="v74-btn" onclick="event.stopPropagation();V74.renameFolder('${k}','${f.id}')">Renomear</button><button class="v74-btn v74-danger" onclick="event.stopPropagation();V74.delFolder('${k}','${f.id}')">Excluir</button></div>`:''}</div>`).join(''):'<span class="v74-muted">Nenhuma pasta criada.</span>'}</div></div>`;
+ }
+ function pick(id){folder=id;render()}
+
+ function renderFlash(){
+   const d=folders(KF),f=d.folders.find(x=>x.id===folder);
+   let right=`<div class="v74-box"><h3>Flashcards</h3><p class="v74-muted">Crie uma pasta de matéria e selecione-a para adicionar cartões.</p></div>`;
+   if(f) right=`<div class="v74-box"><h3>${esc(f.name)}</h3>
+     <div class="v74-card"><b>Novo flashcard</b><input id="v74-q" class="v74-input" placeholder="Pergunta"><textarea id="v74-a" class="v74-textarea" placeholder="Resposta"></textarea><div class="v74-row"><button class="v74-btn v74-primary" onclick="V74.addCard()">Salvar flashcard</button><button class="v74-btn" onclick="V74.exportCSV()">Exportar Anki CSV</button></div></div>
+     ${f.items.length?f.items.map(c=>`<div class="v74-card"><b>${esc(c.q)}</b><div>${esc(c.a)}</div><div class="v74-row" style="margin-top:8px"><button class="v74-btn" onclick="V74.editCard('${c.id}')">Editar</button><button class="v74-btn v74-danger" onclick="V74.delCard('${c.id}')">Excluir</button></div></div>`).join(''):'<p class="v74-muted">Ainda não há flashcards nesta pasta.</p>'}
+     <div class="v74-card"><b>✨ IA — próxima etapa</b><span class="v74-muted">A estrutura para pastas e cartões já está isolada. A conexão com IA para receber PDF/TXT/texto e gerar cartões será adicionada depois, sem colocar chave de API dentro do HTML.</span></div>
+   </div>`;
+   document.getElementById('v74-body').innerHTML=`<div class="v74-grid">${folderPane(KF,true)}${right}</div>`;
+ }
+ function addCard(){const q=document.getElementById('v74-q').value.trim(),a=document.getElementById('v74-a').value.trim();if(!q||!a)return alert('Preencha pergunta e resposta.');const d=folders(KF),f=d.folders.find(x=>x.id===folder);f.items.push({id:uid(),q,a});save(KF,d);render()}
+ function delCard(id){if(!confirm('Excluir este flashcard?'))return;const d=folders(KF),f=d.folders.find(x=>x.id===folder);f.items=f.items.filter(x=>x.id!==id);save(KF,d);render()}
+ function editCard(id){const d=folders(KF),f=d.folders.find(x=>x.id===folder),c=f.items.find(x=>x.id===id);const q=prompt('Pergunta:',c.q);if(q===null)return;const a=prompt('Resposta:',c.a);if(a===null)return;c.q=q;c.a=a;save(KF,d);render()}
+ function exportCSV(){const d=folders(KF),f=d.folders.find(x=>x.id===folder);const csv=f.items.map(x=>`${String(x.q).replaceAll(';',',')};${String(x.a).replaceAll(';',',')}`).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(f.name||'flashcards')+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+
+ function renderQuest(){
+   const d=folders(KQ),f=d.folders.find(x=>x.id===folder),isA=admin();
+   let right=`<div class="v74-box"><h3>Banco de Questões</h3><p class="v74-muted">Selecione uma pasta para abrir os simulados. O gerenciamento fica reservado ao perfil ADM.</p>${!isA?'<p class="v74-muted">🔒 Modo aluno: somente leitura.</p>':''}</div>`;
+   if(f) right=`<div class="v74-box"><div class="v74-row"><h3 style="margin-right:auto">${esc(f.name)}</h3>${isA?'<label class="v74-btn v74-primary">📥 Importar HTML<input type="file" accept=".html,text/html" hidden onchange="V74.importHTML(event)"></label>':''}</div>
+   ${f.items.length?f.items.map(s=>`<div class="v74-card"><b>📝 ${esc(s.name)}</b><span class="v74-muted">${esc(s.meta||'Simulado HTML')}</span><div class="v74-row" style="margin-top:8px"><button class="v74-btn v74-primary" onclick="V74.openSim('${s.id}')">▶ Abrir</button>${isA?`<button class="v74-btn" onclick="V74.renameSim('${s.id}')">Renomear</button><button class="v74-btn v74-danger" onclick="V74.delSim('${s.id}')">Excluir</button>`:''}</div></div>`).join(''):'<p class="v74-muted">Nenhum simulado arquivado nesta pasta.</p>'}
+   </div>`;
+   document.getElementById('v74-body').innerHTML=`<div class="v74-grid">${folderPane(KQ,isA)}${right}</div>`;
+ }
+ function importHTML(ev){
+   if(!admin())return alert('Somente o ADM pode importar simulados.');
+   const file=ev.target.files?.[0];if(!file||!folder)return;
+   const r=new FileReader();r.onload=()=>{const html=String(r.result);const title=(html.match(/<title>([\s\S]*?)<\/title>/i)||[])[1]||file.name;const d=folders(KQ),f=d.folders.find(x=>x.id===folder);f.items.push({id:uid(),name:title.replace(/<[^>]+>/g,''),meta:file.name,html});try{save(KQ,d);render()}catch(e){alert('Este HTML é grande demais para o armazenamento local do navegador. Para muitos simulados, precisaremos do backend/banco de dados.')}};r.readAsText(file,'UTF-8')
+ }
+ function openSim(id){const d=folders(KQ),f=d.folders.find(x=>x.id===folder),s=f.items.find(x=>x.id===id);if(!s)return;document.getElementById('v74-body').innerHTML=`<div class="v74-row" style="margin-bottom:10px"><button class="v74-btn" onclick="V74.render()">← Voltar ao banco</button><b>${esc(s.name)}</b></div><iframe id="v74-sim-frame" sandbox="allow-scripts allow-forms allow-modals allow-same-origin"></iframe>`;const fr=document.getElementById('v74-sim-frame');fr.srcdoc=s.html}
+ function delSim(id){if(!admin())return; if(!confirm('Excluir este simulado?'))return;const d=folders(KQ),f=d.folders.find(x=>x.id===folder);f.items=f.items.filter(x=>x.id!==id);save(KQ,d);render()}
+ function renameSim(id){if(!admin())return;const d=folders(KQ),f=d.folders.find(x=>x.id===folder),s=f.items.find(x=>x.id===id);const n=prompt('Novo nome:',s.name);if(!n)return;s.name=n;save(KQ,d);render()}
+
+ return {open,close,show,render,pick,addFolder,delFolder,renameFolder,addCard,delCard,editCard,exportCSV,importHTML,openSim,delSim,renameSim};
+})();
+</script>
+

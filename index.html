@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 ===============================================================================
- V100 — MIGRAÇÃO SEGURA PARA FIREBASE AUTH — NÃO APAGA CONTAS V98
+ V101 — MIGRAÇÃO EDUARDO CORRIGIDA — NÃO APAGA CONTAS V98
  Não editar diretamente esta versão publicada.
  Fluxo recomendado:
  1. conservar este arquivo como versão estável;
@@ -3466,7 +3466,9 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
       }
 
       const chave=uInput.toLowerCase();
-      const email=emailTecnicoV100(uInput);
+      const ehEduardoV101 = chave === 'eduardo';
+      const nomeCanonicoV101 = ehEduardoV101 ? 'Eduardo' : uInput;
+      const email=emailTecnicoV100(nomeCanonicoV101);
 
       try {
         // ETAPA A — se a conta já foi migrada, tenta Authentication.
@@ -3495,14 +3497,29 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
           }
         }
 
-        let nomePerfil=uInput;
+        let nomePerfil=nomeCanonicoV101;
         if (senhaLegada===null) {
           const locais=obterSenhasLocais();
           const encontrado=Object.keys(locais).find(k=>k.toLowerCase()===chave);
           if (encontrado) {
-            nomePerfil=encontrado;
+            nomePerfil = ehEduardoV101 ? 'Eduardo' : encontrado;
             senhaLegada=String(locais[encontrado]);
           }
+        }
+
+        // V101: compatibilidade específica do administrador.
+        // Algumas versões antigas mantêm a credencial Eduardo no objeto padrão,
+        // mesmo quando ela não está em /senhas no Firebase.
+        if (senhaLegada===null && ehEduardoV101) {
+          try {
+            const padrao = (typeof SENHAS_PADRAO !== 'undefined' && SENHAS_PADRAO)
+              ? SENHAS_PADRAO : {};
+            const kEdu = Object.keys(padrao).find(k=>k.toLowerCase()==='eduardo');
+            if (kEdu) {
+              nomePerfil='Eduardo';
+              senhaLegada=String(padrao[kEdu]);
+            }
+          } catch(_) {}
         }
 
         if (senhaLegada===null) {
@@ -3538,8 +3555,9 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
         // Registra o UID se a migração foi concluída, sem tocar na senha legada.
         if (uid && rtdb) {
           await rtdb.ref('usuariosAuth/'+uid).update({
-            nome:nomePerfil,
+            nome:ehEduardoV101 ? 'Eduardo' : nomePerfil,
             chave:chave,
+            administrador:ehEduardoV101,
             migrado:true,
             migradoEm:firebase.database.ServerValue.TIMESTAMP
           }).catch(()=>{});

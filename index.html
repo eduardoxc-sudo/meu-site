@@ -16,6 +16,10 @@
 <!-- V113 — CORREÇÃO DO STATUS DE SINCRONIZAÇÃO NO PC: aguarda Firebase Auth antes do RTDB; cronograma preservado. -->
 <!-- V114 — FIREBASE: remove valores undefined do payload antes de enviar; planejamento/prova e demais dados válidos preservados. -->
 <!-- V115 — STATUS INICIAL: Conectando → Sincronizado usando .info/connected do Firebase. -->
+<!-- V116 — EDITAL + SYNC AUTOMÁTICO:
+todos os envios do estado completo ao Firebase são sanitizados antes do RTDB,
+removendo somente propriedades undefined do payload. Dados válidos preservados.
+-->
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">

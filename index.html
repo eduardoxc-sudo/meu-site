@@ -9930,6 +9930,63 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
 })();
 </script>
 
+
+<!-- =========================================================
+ V135 — TELA INICIAL LIMPA + LEMBRA ÚLTIMA ABA
+ Base: V134 (mantém a correção de persistência/F5)
+========================================================== -->
+<style id="v135-css">
+#v135Boot{
+ position:fixed;inset:0;z-index:2147483647;
+ background:#0b1424;display:flex;align-items:center;justify-content:center;
+ color:#60a5fa;font-family:Arial,sans-serif;text-align:center
+}
+</style>
+<script id="v135-js">
+(function(){
+ const ABAKEY='studyflow_ultima_aba_v135';
+
+ function boot(){
+   if(document.getElementById('v135Boot')||!document.body)return;
+   const d=document.createElement('div');d.id='v135Boot';
+   d.innerHTML='<div><b style="font-size:20px">Plano de Estudos</b><br><span style="font-size:13px;color:#94a3b8">Carregando seu perfil...</span></div>';
+   document.body.appendChild(d);
+ }
+ function liberar(){
+   const d=document.getElementById('v135Boot');if(d)d.remove();
+ }
+ function idAbaDoBotao(b){
+   const oc=b.getAttribute('onclick')||'';
+   const m=oc.match(/['"](aba-[^'"]+)['"]/);
+   return m?m[1]:'';
+ }
+ document.addEventListener('click',function(e){
+   const b=e.target.closest('.tab-btn');if(!b)return;
+   const id=idAbaDoBotao(b);
+   if(id)try{sessionStorage.setItem(ABAKEY,id)}catch(_){}
+ },true);
+
+ function restaurarAba(){
+   let id='';try{id=sessionStorage.getItem(ABAKEY)||''}catch(_){}
+   if(!id)return;
+   const btn=[...document.querySelectorAll('.tab-btn')].find(b=>idAbaDoBotao(b)===id);
+   if(btn)btn.click();
+ }
+ function pronto(){
+   // deixa o fluxo original V134/V133 terminar e então restaura a aba.
+   setTimeout(function(){
+     restaurarAba();
+     liberar();
+   },500);
+   // segurança visual
+   setTimeout(liberar,1800);
+ }
+ if(document.readyState==='loading'){
+   document.addEventListener('DOMContentLoaded',function(){boot();pronto()},{once:true});
+ }else{boot();pronto()}
+})();
+</script>
+
 </body>
 </html>
 

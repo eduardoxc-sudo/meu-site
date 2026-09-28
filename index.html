@@ -9177,6 +9177,42 @@ button[onclick*='V74.open("quest")'],
 })();
 </script>
 
+
+
+<!-- ===== V94: REMOÇÃO DEFINITIVA DOS 2 ITENS LEGADOS DO MENU ===== -->
+<script id="v94-remove-exact-menu-items">
+(function(){
+  function normalizar(t){
+    return String(t||'')
+      .replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu,'')
+      .replace(/\s+/g,' ').trim().toLowerCase();
+  }
+  function remover(){
+    const alvos=new Set(['flashcards','banco de questões','banco de questoes']);
+    /* Procura no menu lateral inteiro, inclusive DIVs clicáveis criadas dinamicamente. */
+    const raiz=document.querySelector('.sidebar,aside,#sidebar') || document.body;
+    raiz.querySelectorAll('a,button,div,span,li').forEach(el=>{
+      if(!alvos.has(normalizar(el.textContent))) return;
+      /* sobe até o item clicável/linha, mas nunca remove sidebar/nav inteiros */
+      let alvo=el;
+      for(let i=0;i<4 && alvo.parentElement;i++){
+        if(alvo.matches('a,button,[onclick],[role="button"],.menu-item,.nav-item,.sidebar-item')) break;
+        const p=alvo.parentElement;
+        if(p.matches('.sidebar,aside,#sidebar,nav,body')) break;
+        if(alvos.has(normalizar(p.textContent))) alvo=p; else break;
+      }
+      if(!alvo.matches('.sidebar,aside,#sidebar,nav,body')) alvo.remove();
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(remover,250));
+  else setTimeout(remover,250);
+  /* Menus podem ser reconstruídos depois do login/sincronização. */
+  setTimeout(remover,800);
+  setTimeout(remover,1800);
+  document.addEventListener('click',()=>setTimeout(remover,50),true);
+})();
+</script>
+
 </body>
 </html>
 

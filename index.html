@@ -1,4 +1,18 @@
 <!DOCTYPE html>
+<!--
+===============================================================================
+ V97 — ÁREA PRINCIPAL PROTEGIDA PARA MANUTENÇÃO
+ Não editar diretamente esta versão publicada.
+ Fluxo recomendado:
+ 1. conservar este arquivo como versão estável;
+ 2. fazer alterações somente em uma cópia com novo número de versão;
+ 3. testar a cópia antes de substituir o index.html no GitHub.
+ Observação: HTML/JavaScript executado no navegador não pode ser tornado
+ secreto ou inviolável. A proteção real de contas/dados depende das regras
+ do Firebase e, idealmente, do Firebase Authentication.
+===============================================================================
+-->
+
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -3416,36 +3430,126 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
       atualizarSemanaAtiva();
     }
 
-    function autenticar() {
+    // ===== V97 — LOGIN MULTIDISPOSITIVO =====
+    // A nuvem (Firebase) passa a ser consultada antes do localStorage.
+    // O localStorage continua apenas como cache/fallback do próprio aparelho.
+    async function autenticar() {
       obterOuDesbloquearAudioContext();
-      const uInput = document.getElementById('usuario').value.trim();
-      const sInput = document.getElementById('senha').value.trim();
+
+      const campoUsuario = document.getElementById('usuario');
+      const campoSenha = document.getElementById('senha');
+      const botao = document.querySelector('#tela-login .btn-primary');
+      const uInput = (campoUsuario?.value || '').trim();
+      const sInput = (campoSenha?.value || '').trim();
       const erro = document.getElementById('msgErro');
 
-      const senhasLocais = obterSenhasLocais();
-      const usuarioEncontrado = Object.keys(senhasLocais).find(
-        key => key.toLowerCase() === uInput.toLowerCase()
-      );
+      if (erro) erro.style.display = 'none';
 
-      if (!usuarioEncontrado) {
+      if (!uInput || !sInput) {
         if (erro) {
           erro.style.display = 'block';
-          erro.innerText = 'Utilizador não autorizado.';
+          erro.innerText = 'Informe o utilizador e a palavra-passe.';
         }
         return;
       }
 
-      if (senhasLocais[usuarioEncontrado] === sInput) {
-        usuarioAtivo = usuarioEncontrado;
-        sessionStorage.setItem('usuario_ativo', usuarioAtivo);
-        abrirApp();
-      } else {
-        if (erro) {
-          erro.style.display = 'block';
-          erro.innerText = 'Palavra-passe incorreta!';
+      if (botao) {
+        botao.disabled = true;
+        botao.dataset.textoOriginal = botao.innerText;
+        botao.innerText = 'A verificar...';
+      }
+
+      try {
+        const chaveUsuario = uInput.toLowerCase();
+
+        // 1) Tenta autenticar pela base compartilhada.
+        if (rtdb) {
+          try {
+            const snap = await rtdb.ref('senhas/' + chaveUsuario).once('value');
+            const senhaNuvem = snap.val();
+
+            if (senhaNuvem !== null && senhaNuvem !== undefined) {
+              if (String(senhaNuvem) !== sInput) {
+                if (erro) {
+                  erro.style.display = 'block';
+                  erro.innerText = 'Palavra-passe incorreta!';
+                }
+                return;
+              }
+
+              // Guarda somente um cache local para compatibilidade com o sistema atual.
+              const senhasLocais = obterSenhasLocais();
+              const nomeExistente = Object.keys(senhasLocais).find(
+                k => k.toLowerCase() === chaveUsuario
+              );
+              const nomePerfil = nomeExistente || (chaveUsuario === 'eduardo' ? 'Eduardo' : uInput);
+              senhasLocais[nomePerfil] = String(senhaNuvem);
+              salvarSenhasLocais(senhasLocais);
+
+              usuarioAtivo = nomePerfil;
+              sessionStorage.setItem('usuario_ativo', usuarioAtivo);
+              abrirApp();
+              return;
+            }
+          } catch (erroFirebase) {
+            console.warn('Não foi possível consultar o login na nuvem:', erroFirebase);
+          }
+        }
+
+        // 2) Compatibilidade/fallback: contas que ainda só existem neste aparelho.
+        const senhasLocais = obterSenhasLocais();
+        const usuarioEncontrado = Object.keys(senhasLocais).find(
+          key => key.toLowerCase() === uInput.toLowerCase()
+        );
+
+        if (!usuarioEncontrado) {
+          if (erro) {
+            erro.style.display = 'block';
+            erro.innerText = rtdb
+              ? 'Utilizador não autorizado.'
+              : 'Sem ligação à nuvem e utilizador não encontrado neste aparelho.';
+          }
+          return;
+        }
+
+        if (String(senhasLocais[usuarioEncontrado]) === sInput) {
+          usuarioAtivo = usuarioEncontrado;
+          sessionStorage.setItem('usuario_ativo', usuarioAtivo);
+
+          // Se for uma conta local antiga, tenta publicá-la na nuvem
+          // para que passe a funcionar também nos outros aparelhos.
+          if (rtdb) {
+            rtdb.ref('senhas/' + usuarioAtivo.toLowerCase())
+              .set(String(sInput))
+              .catch(() => {});
+          }
+
+          abrirApp();
+        } else {
+          if (erro) {
+            erro.style.display = 'block';
+            erro.innerText = 'Palavra-passe incorreta!';
+          }
+        }
+      } finally {
+        if (botao) {
+          botao.disabled = false;
+          botao.innerText = botao.dataset.textoOriginal || 'Entrar no Painel';
         }
       }
     }
+
+    // Permite entrar pressionando Enter nos campos de acesso.
+    document.addEventListener('keydown', function(e) {
+      if (e.key !== 'Enter') return;
+      const tela = document.getElementById('tela-login');
+      if (!tela || getComputedStyle(tela).display === 'none') return;
+      const alvo = e.target;
+      if (alvo && (alvo.id === 'usuario' || alvo.id === 'senha')) {
+        e.preventDefault();
+        autenticar();
+      }
+    });
 
     function alterarPalavraPasse() {
       const atual = document.getElementById('senhaAtual').value.trim();
@@ -3499,11 +3603,32 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
       }
     }
 
-    function carregarListaUsuariosAdmin() {
+    async function carregarListaUsuariosAdmin() {
       const container = document.getElementById('listaUsuariosCadastradosAdmin');
       if (!container) return;
-      const senhasObj = obterSenhasLocais();
-      renderizarListaUsuariosAdminHtml(senhasObj);
+
+      // No perfil administrador, prioriza a lista compartilhada da nuvem.
+      if (rtdb) {
+        try {
+          const snap = await rtdb.ref('senhas').once('value');
+          const nuvem = snap.val() || {};
+          if (Object.keys(nuvem).length) {
+            const locais = obterSenhasLocais();
+            Object.keys(nuvem).forEach(chave => {
+              const nomeLocal = Object.keys(locais).find(k => k.toLowerCase() === chave.toLowerCase());
+              const nome = nomeLocal || (chave.toLowerCase() === 'eduardo' ? 'Eduardo' : chave);
+              locais[nome] = String(nuvem[chave]);
+            });
+            salvarSenhasLocais(locais);
+            renderizarListaUsuariosAdminHtml(locais);
+            return;
+          }
+        } catch (e) {
+          console.warn('Falha ao carregar utilizadores da nuvem:', e);
+        }
+      }
+
+      renderizarListaUsuariosAdminHtml(obterSenhasLocais());
     }
 
     function renderizarListaUsuariosAdminHtml(senhasObj) {

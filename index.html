@@ -4618,7 +4618,7 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
           ) {
             slotsDoDia.push({
               materia: rev.materia,
-              assunto: `🔁 Revisão: ${rev.topicoTitulo}`,
+              assunto: `🔁 Revisão ${rev.tipo}: ${rev.topicoTitulo}`,
               feito: false,
               revisaoId: rev.id,
               tipoRevisao: rev.tipo
@@ -4659,7 +4659,7 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
           ) {
             slotsDoDia.push({
               materia: rev.materia,
-              assunto: `🔁 Revisão: ${rev.topicoTitulo}`,
+              assunto: `🔁 Revisão ${rev.tipo}: ${rev.topicoTitulo}`,
               feito: false,
               revisaoId: rev.id,
               tipoRevisao: rev.tipo,
@@ -5116,7 +5116,7 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
             if (!idsExistentes.has(rev.id)) {
               slots.push({
                 materia: rev.materia,
-                assunto: `🔁 Revisão: ${rev.topicoTitulo}`,
+                assunto: `🔁 Revisão ${rev.tipo}: ${rev.topicoTitulo}`,
                 feito: false,
                 revisaoId: rev.id,
                 tipoRevisao: rev.tipo
@@ -9357,36 +9357,94 @@ window.V86ManualFlash={
 }
 </style>
 
-<!--
-╔══════════════════════════════════════════════════════════════════════╗
-║ ESTUDO INTELIGENTE — BASE PROTEGIDA V87                            ║
-║                                                                    ║
-║ REGRA DE MANUTENÇÃO:                                               ║
-║ 1. O código existente acima é o NÚCLEO ESTÁVEL (V86).              ║
-║ 2. NÃO editar/remover funções do núcleo para adicionar novidades.  ║
-║ 3. Novidades devem ser acrescentadas como módulos/extensões.        ║
-║ 4. Antes de alterar o núcleo, criar nova versão e manter backup.    ║
-║ 5. Flashcards/Banco de Questões devem evoluir por patches isolados. ║
-║                                                                    ║
-║ SHA-256 da base V86: cde3932a135ce0c1001adebebb20a05d6568c18499a93fcd699cc7a8809c70bb ║
-╚══════════════════════════════════════════════════════════════════════╝
--->
-<script id="ei-core-protection-manifest">
+
+
+<!-- ===== V89: SEM FLASHCARDS + CORREÇÃO DAS REVISÕES ===== -->
+<style id="v89-sem-flashcards">
+  /* Flashcards removidos da interface; Banco de Questões permanece. */
+  #v74-launcher .v74-fab:first-child,
+  #v74-tab-flash,
+  #v82-srs-bar,
+  #v82-study { display:none !important; }
+</style>
+
+<script id="v89-revisoes-fix">
 (function(){
   "use strict";
-  const CORE_VERSION = "V86";
-  const SHELL_VERSION = "V87";
-  const CORE_SHA256 = "cde3932a135ce0c1001adebebb20a05d6568c18499a93fcd699cc7a8809c70bb";
-  Object.defineProperty(window, "EI_BASE_PROTEGIDA", {
-    value: Object.freeze({
-      coreVersion: CORE_VERSION,
-      shellVersion: SHELL_VERSION,
-      coreSha256: CORE_SHA256,
-      policy: "CORE_CONGELADO_EXTENSOES_APENAS"
-    }),
-    writable: false,
-    configurable: false
-  });
+
+  function corrigirTitulosRevisoesV89(){
+    try{
+      if(!window.estado) return;
+      const agenda = Array.isArray(estado.agendaRevisoes) ? estado.agendaRevisoes : [];
+      const porId = new Map(agenda.map(r => [r.id, r]));
+
+      Object.values(estado.semanas || {}).forEach(semana => {
+        Object.keys(semana || {}).forEach(dia => {
+          (semana[dia] || []).forEach(slot => {
+            if(!slot || !slot.revisaoId) return;
+            const rev = porId.get(slot.revisaoId);
+            if(!rev) return;
+            slot.tipoRevisao = rev.tipo;
+            slot.assunto = `🔁 Revisão ${rev.tipo}: ${rev.topicoTitulo}`;
+          });
+        });
+      });
+
+      if(typeof salvarEstado === 'function') salvarEstado();
+    }catch(e){
+      console.warn('V89: não foi possível normalizar títulos antigos de revisão.', e);
+    }
+  }
+
+  function removerFlashcardsV89(){
+    try{
+      if(!window.V74) return;
+
+      /* Qualquer chamada antiga para Flashcards abre o Banco de Questões. */
+      const oldOpen = V74.open;
+      V74.open = function(m){
+        return oldOpen.call(V74, m === 'flash' ? 'quest' : m);
+      };
+
+      const oldShow = V74.show;
+      V74.show = function(m){
+        return oldShow.call(V74, m === 'flash' ? 'quest' : m);
+      };
+
+      /* Impede o sistema Anki/Flashcard de voltar a inserir sua barra. */
+      if(window.V82SRS){
+        V82SRS.inject = function(){};
+        V82SRS.startDue = function(){};
+        V82SRS.startAll = function(){};
+      }
+
+      document.querySelector('#v74-launcher .v74-fab:first-child')?.remove();
+      document.getElementById('v74-tab-flash')?.remove();
+      document.getElementById('v82-srs-bar')?.remove();
+      document.getElementById('v82-study')?.remove();
+    }catch(e){
+      console.warn('V89: falha ao retirar Flashcards.', e);
+    }
+  }
+
+  function executarV89(){
+    corrigirTitulosRevisoesV89();
+    removerFlashcardsV89();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', () => setTimeout(executarV89, 100));
+  } else {
+    setTimeout(executarV89, 100);
+  }
+
+  /* Reaplica só a limpeza visual caso algum render antigo recrie os botões. */
+  new MutationObserver(() => {
+    document.querySelector('#v74-launcher .v74-fab:first-child')?.remove();
+    document.getElementById('v74-tab-flash')?.remove();
+    document.getElementById('v82-srs-bar')?.remove();
+    document.getElementById('v82-study')?.remove();
+  }).observe(document.documentElement,{childList:true,subtree:true});
 })();
 </script>
 

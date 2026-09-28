@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 ===============================================================================
- V103 — MOBILE GAVETA CORRIGIDA — FIREBASE V102 PRESERVADO
+ V104 — MOBILE MEU PLANO CORRIGIDO — FIREBASE V102 PRESERVADO
  Não editar diretamente esta versão publicada.
  Fluxo recomendado:
  1. conservar este arquivo como versão estável;
@@ -9297,6 +9297,127 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
   window.alternarMenuMobile = function(){
     document.body.classList.toggle('mobile-menu-open');
   };
+})();
+</script>
+
+
+<!-- =========================================================
+ V104 MOBILE — Meu Plano: dias empilhados verticalmente
+ Base: V103. Não altera Firebase, login, dados ou revisões.
+========================================================== -->
+<style id="v104-meu-plano-mobile">
+@media (max-width:768px){
+  /* Contêineres semanais: uma coluna no celular. */
+  #conteudo-plano .week-grid,
+  #conteudo-plano .weekly-grid,
+  #conteudo-plano .semana-grid,
+  #conteudo-plano .days-grid,
+  #conteudo-plano .calendar-grid,
+  #conteudo-plano [class*="week"][class*="grid"],
+  #conteudo-plano [class*="semana"][class*="grid"],
+  #meu-plano .week-grid,
+  #meu-plano .weekly-grid,
+  #meu-plano .semana-grid,
+  #meu-plano .days-grid,
+  #meu-plano .calendar-grid,
+  #meuPlano .week-grid,
+  #meuPlano .weekly-grid,
+  #meuPlano .semana-grid,
+  #meuPlano .days-grid,
+  #meuPlano .calendar-grid{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    gap:12px !important;
+    overflow:visible !important;
+  }
+
+  /* Cartões/colunas dos dias nunca ficam fora da tela. */
+  #conteudo-plano .day-column,
+  #conteudo-plano .day-card,
+  #conteudo-plano .dia-card,
+  #conteudo-plano [class*="day-column"],
+  #conteudo-plano [class*="dia-column"],
+  #meu-plano .day-column,
+  #meu-plano .day-card,
+  #meu-plano .dia-card,
+  #meuPlano .day-column,
+  #meuPlano .day-card,
+  #meuPlano .dia-card{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+    box-sizing:border-box !important;
+  }
+
+  /* Remove largura mínima horizontal herdada do desktop. */
+  #conteudo-plano,
+  #meu-plano,
+  #meuPlano{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    overflow-x:hidden !important;
+    box-sizing:border-box !important;
+  }
+}
+</style>
+
+<script id="v104-meu-plano-mobile-js">
+(function(){
+  function ajustarMeuPlanoV104(){
+    if(!window.matchMedia('(max-width:768px)').matches) return;
+
+    /* Localiza a grade real pelos títulos dos dias, sem alterar os cartões. */
+    const nomes=['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado','Domingo'];
+    const todos=[...document.querySelectorAll('body *')];
+    const cabecalhos=todos.filter(el=>{
+      const t=(el.textContent||'').trim();
+      return nomes.includes(t) && el.children.length <= 3;
+    });
+
+    cabecalhos.forEach(h=>{
+      let card=h;
+      for(let i=0;i<5 && card?.parentElement;i++,card=card.parentElement){
+        const p=card.parentElement;
+        const txt=(p.textContent||'');
+        const qtd=nomes.filter(n=>txt.includes(n)).length;
+        if(qtd>=2){
+          p.style.setProperty('display','grid','important');
+          p.style.setProperty('grid-template-columns','minmax(0,1fr)','important');
+          p.style.setProperty('width','100%','important');
+          p.style.setProperty('max-width','100%','important');
+          p.style.setProperty('min-width','0','important');
+          p.style.setProperty('gap','12px','important');
+          p.style.setProperty('overflow','visible','important');
+          [...p.children].forEach(c=>{
+            c.style.setProperty('width','100%','important');
+            c.style.setProperty('max-width','100%','important');
+            c.style.setProperty('min-width','0','important');
+            c.style.setProperty('margin-left','0','important');
+            c.style.setProperty('margin-right','0','important');
+          });
+          break;
+        }
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(ajustarMeuPlanoV104,350));
+  window.addEventListener('resize',()=>setTimeout(ajustarMeuPlanoV104,100));
+  document.addEventListener('click',()=>setTimeout(ajustarMeuPlanoV104,250));
+
+  /* Observa quando Meu Plano é redesenhado. */
+  const obs=new MutationObserver(()=> {
+    clearTimeout(window.__v104PlanoTimer);
+    window.__v104PlanoTimer=setTimeout(ajustarMeuPlanoV104,120);
+  });
+  document.addEventListener('DOMContentLoaded',()=>{
+    obs.observe(document.body,{childList:true,subtree:true});
+  });
 })();
 </script>
 

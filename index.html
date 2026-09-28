@@ -11200,96 +11200,82 @@ body.v71-timer #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!importan
 
 
 <!-- =========================================================
- V129 — DIAGNÓSTICO DE PERSISTÊNCIA
- Base: V126 funcional.
- NÃO corrige nem altera a persistência.
- Apenas mostra o que existe no navegador antes/depois do F5.
+ V130 — DIAGNÓSTICO DE 3 FONTES
+ Base: V126
+ SOMENTE LEITURA: não salva, não restaura e não altera dados.
+ Compara:
+ 1) cronograma_perfil_<usuario>
+ 2) estado_estudo_<usuario>
+ 3) studyflow_backup_v127
 ========================================================== -->
-<style id="v129-diag-css">
-#v129Diag{
- position:fixed;right:12px;bottom:12px;z-index:2147483647;
- width:min(430px,calc(100vw - 24px));max-height:45vh;overflow:auto;
- background:#111827;color:#f9fafb;border:1px solid #475569;
- border-radius:12px;padding:10px 12px;font:12px/1.35 monospace;
- box-shadow:0 8px 30px rgba(0,0,0,.35)
-}
-#v129Diag b{font-family:Arial,sans-serif;font-size:13px}
-#v129Diag .ok{color:#86efac} #v129Diag .bad{color:#fca5a5}
-#v129Diag button{margin-top:8px;padding:6px 9px;cursor:pointer}
+<style id="v130-css">
+#v130Diag{position:fixed;right:10px;bottom:10px;z-index:2147483647;
+width:min(560px,calc(100vw - 20px));max-height:58vh;overflow:auto;
+background:#0b1220;color:#f8fafc;border:1px solid #475569;border-radius:12px;
+padding:10px;font:12px/1.35 monospace;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+#v130Diag table{width:100%;border-collapse:collapse;margin-top:8px}
+#v130Diag th,#v130Diag td{border-bottom:1px solid #334155;padding:5px;text-align:left}
+#v130Diag .yes{color:#86efac}.no{color:#fca5a5}
+#v130Diag button{margin-top:8px;padding:7px 10px;cursor:pointer}
 </style>
-
-<script id="v129-diag-js">
+<script id="v130-js">
 (function(){
- function safe(fn,def){try{return fn()}catch(_){return def}}
- function usuario(){
-   return safe(()=>usuarioAtivo,'') || safe(()=>localStorage.getItem('usuarioAtivo'),'') || '';
+ function safe(fn,d){try{return fn()}catch(_){return d}}
+ function user(){
+   return safe(()=>usuarioAtivo,'') ||
+          safe(()=>localStorage.getItem('usuarioAtivo'),'') || 'eduardo';
  }
- function chaveProvavel(){
-   var u=usuario();
-   var k=safe(()=>typeof chaveArmazenamento==='function'&&u?chaveArmazenamento(u):'','');
-   return k||'(chave ainda não disponível)';
- }
- function analisarRaw(raw){
-   if(!raw)return {existe:false,tamanho:0,edital:0,horas:0,questoes:0,revisoes:0,semanas:0};
-   var e=safe(()=>JSON.parse(raw),null);
-   if(!e)return {existe:true,tamanho:raw.length,erro:'JSON inválido',edital:0,horas:0,questoes:0,revisoes:0,semanas:0};
-   var edital=0;
-   safe(()=>Object.values(e.editalVerticalizado||{}).forEach(a=>{if(Array.isArray(a))edital+=a.length}),0);
-   return {
-     existe:true,tamanho:raw.length,edital:edital,
-     horas:Array.isArray(e.historicoHoras)?e.historicoHoras.length:0,
-     questoes:Array.isArray(e.historicoQuestoes)?e.historicoQuestoes.length:0,
-     revisoes:Array.isArray(e.agendaRevisoes)?e.agendaRevisoes.length:0,
-     semanas:Array.isArray(e.semanas)?e.semanas.length:0
-   };
- }
- function estadoMem(){
-   var e=safe(()=>estado,null);
-   if(!e)return {edital:0,horas:0,questoes:0,revisoes:0};
-   var edital=0;
-   safe(()=>Object.values(e.editalVerticalizado||{}).forEach(a=>{if(Array.isArray(a))edital+=a.length}),0);
-   return {
-     edital:edital,
-     horas:Array.isArray(e.historicoHoras)?e.historicoHoras.length:0,
-     questoes:Array.isArray(e.historicoQuestoes)?e.historicoQuestoes.length:0,
-     revisoes:Array.isArray(e.agendaRevisoes)?e.agendaRevisoes.length:0
-   };
- }
- function todasChaves(){
-   var out=[];
-   for(var i=0;i<localStorage.length;i++){
-     var k=localStorage.key(i);
-     if(/study|estado|usuario|edital|flux|planej|cron|progres/i.test(k||'')){
-       var v=localStorage.getItem(k)||'';
-       out.push(k+' ('+v.length+' bytes)');
-     }
+ function inspect(key){
+   var raw=safe(()=>localStorage.getItem(key),null);
+   var o=raw?safe(()=>JSON.parse(raw),null):null;
+   var root=o && o.estado && typeof o.estado==='object' ? o.estado : o;
+   var edital=0, concl=0;
+   if(root){
+     safe(()=>{
+       Object.values(root.editalVerticalizado||{}).forEach(a=>{
+         if(Array.isArray(a)){edital+=a.length; a.forEach(x=>{if(x&&x.feito)concl++})}
+       })
+     },0);
    }
-   return out;
+   function len(names){
+     if(!root)return 0;
+     for(var i=0;i<names.length;i++){
+       var a=root[names[i]];
+       if(Array.isArray(a))return a.length;
+     }
+     return 0;
+   }
+   return {
+     key:key, exists:!!raw, bytes:raw?raw.length:0, json:!!o,
+     edital:edital, concl:concl,
+     horas:len(['historicoHoras','sessoes','historicoSessoes']),
+     quest:len(['historicoQuestoes','registrosQuestoes','questoes']),
+     rev:len(['agendaRevisoes','revisoes','historicoRevisoes']),
+     keys:root&&typeof root==='object'?Object.keys(root).slice(0,18).join(', '):''
+   };
  }
  function render(){
-   var box=document.getElementById('v129Diag');
-   if(!box){box=document.createElement('div');box.id='v129Diag';document.body.appendChild(box)}
-   var k=chaveProvavel();
-   var raw=k.charAt(0)==='('?null:localStorage.getItem(k);
-   var a=analisarRaw(raw), m=estadoMem();
-   var ts=k.charAt(0)==='('?null:localStorage.getItem(k+'_atualizadoEm');
-   box.innerHTML=
-     '<b>V129 — Diagnóstico (não altera dados)</b><br>'+
-     'Usuário: '+String(usuario()||'(nenhum)')+'<br>'+
-     'Chave: '+String(k)+'<br>'+
-     'Local existe: <span class="'+(a.existe?'ok':'bad')+'">'+(a.existe?'SIM':'NÃO')+'</span><br>'+
-     'Tamanho local: '+a.tamanho+' bytes<br>'+
-     'Timestamp: '+String(ts||'(nenhum)')+'<br>'+
-     'LOCAL → edital '+a.edital+' | horas '+a.horas+' | questões '+a.questoes+' | revisões '+a.revisoes+' | semanas '+a.semanas+'<br>'+
-     'MEMÓRIA → edital '+m.edital+' | horas '+m.horas+' | questões '+m.questoes+' | revisões '+m.revisoes+'<br>'+
-     '<hr>Chaves relacionadas:<br>'+todasChaves().join('<br>')+
-     '<br><button type="button" id="v129Atualizar">Atualizar diagnóstico</button>';
-   var b=document.getElementById('v129Atualizar');if(b)b.onclick=render;
+   var u=String(user()).toLowerCase().trim();
+   var arr=[
+     inspect('cronograma_perfil_'+u),
+     inspect('estado_estudo_'+u),
+     inspect('studyflow_backup_v127')
+   ];
+   var box=document.getElementById('v130Diag');
+   if(!box){box=document.createElement('div');box.id='v130Diag';document.body.appendChild(box)}
+   box.innerHTML='<b>V130 — Comparação 3 fontes (somente leitura)</b><br>'+
+   'Usuário detectado: <b>'+u+'</b>'+
+   '<table><tr><th>Fonte</th><th>Bytes</th><th>Edital</th><th>Feitos</th><th>Horas</th><th>Quest.</th><th>Rev.</th></tr>'+
+   arr.map(x=>'<tr><td class="'+(x.exists?'yes':'no')+'">'+x.key+'</td><td>'+x.bytes+
+   '</td><td>'+x.edital+'</td><td>'+x.concl+'</td><td>'+x.horas+
+   '</td><td>'+x.quest+'</td><td>'+x.rev+'</td></tr>').join('')+
+   '</table><br><b>Campos encontrados:</b><br>'+
+   arr.map(x=>'<div style="margin:6px 0"><b>'+x.key+':</b> '+(x.keys||'(nenhum)')+'</div>').join('')+
+   '<button type="button" id="v130Refresh">Atualizar diagnóstico</button>';
+   document.getElementById('v130Refresh').onclick=render;
  }
- window.diagnosticoV129=render;
- document.addEventListener('DOMContentLoaded',()=>setTimeout(render,700));
- window.addEventListener('pageshow',()=>setTimeout(render,350));
- window.addEventListener('estado-carregado',()=>setTimeout(render,100));
+ window.diagnosticoV130=render;
+ document.addEventListener('DOMContentLoaded',()=>setTimeout(render,900));
+ window.addEventListener('pageshow',()=>setTimeout(render,500));
 })();
 </script>
-

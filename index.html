@@ -10066,85 +10066,117 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
 
 
 <!-- =========================================================
- V138 — LEMBRAR SOMENTE A ÚLTIMA ABA
- Base: V137
- Preserva:
- - correção do F5 sem zerar dados
- - correção da piscada/mistura do login
- Altera somente a restauração da aba após recarregar.
+ V139 — ÚLTIMA ABA, SEM TELA BRANCA
+ Base: V137 estável
+ Mantém:
+   - dados após F5
+   - correção da piscada do login
+ Estratégia:
+   - apenas memoriza o clique real do menu
+   - deixa TODO o boot original terminar
+   - depois executa UM clique real no botão salvo
+   - não intercepta trocarAba()
 ========================================================== -->
-<script id="v138-ultima-aba">
-(function () {
-  const KEY = 'studyflow_v138_ultima_aba';
-  let cliqueHumano = false;
+<script id="v139-ultima-aba">
+(function(){
+  const KEY = 'studyflow_v139_ultima_aba';
+  let restaurando = false;
 
-  function extrairAba(el) {
-    if (!el) return '';
-    const oc = el.getAttribute('onclick') || '';
+  function infoBotao(btn){
+    if(!btn) return null;
+    const oc = btn.getAttribute('onclick') || '';
     const m = oc.match(/trocarAba\s*\(\s*['"]([^'"]+)['"]/i);
-    return m ? m[1] : '';
+    if(!m) return null;
+    return {
+      aba: m[1],
+      texto: (btn.innerText || btn.textContent || '').trim().replace(/\s+/g,' ')
+    };
   }
 
-  // Guarda a aba escolhida pelo usuário.
-  document.addEventListener('pointerdown', function (e) {
+  // Salva SOMENTE interação física do usuário no menu.
+  document.addEventListener('pointerdown', function(e){
+    if(restaurando) return;
     const btn = e.target.closest('[onclick*="trocarAba"]');
-    if (!btn) return;
-    const aba = extrairAba(btn);
-    if (!aba) return;
-    cliqueHumano = true;
-    try { localStorage.setItem(KEY, aba); } catch (_) {}
-    setTimeout(function(){ cliqueHumano = false; }, 500);
+    const info = infoBotao(btn);
+    if(!info) return;
+    try {
+      localStorage.setItem(KEY, JSON.stringify(info));
+    } catch(_){}
   }, true);
 
-  function acharBotao(aba) {
-    const botoes = document.querySelectorAll('[onclick*="trocarAba"]');
-    for (const b of botoes) {
-      if (extrairAba(b) === aba) return b;
-    }
+  function ler(){
+    try {
+      const x = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if(x && x.aba) return x;
+    } catch(_){}
     return null;
   }
 
-  function restaurarUltimaAba() {
-    let aba = '';
-    try { aba = localStorage.getItem(KEY) || ''; } catch (_) {}
-    if (!aba || aba === 'aba-inicio') return false;
+  function achar(info){
+    const botoes = [...document.querySelectorAll('[onclick*="trocarAba"]')];
 
-    const btn = acharBotao(aba);
-    if (!btn) return false;
-
-    // Chama a função original do próprio sistema.
-    try {
-      if (typeof window.trocarAba === 'function') {
-        window.trocarAba(aba, btn);
-      } else {
-        btn.click();
-      }
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  // A aplicação força Dashboard durante a inicialização.
-  // Restauramos a escolha do usuário DEPOIS que o boot terminou.
-  function iniciarRestauracao() {
-    const tempos = [350, 700, 1200, 1800, 2600];
-    tempos.forEach(function(ms) {
-      setTimeout(function() {
-        if (!cliqueHumano) restaurarUltimaAba();
-      }, ms);
+    // Primeiro procura pelo destino exato.
+    let b = botoes.find(x => {
+      const i = infoBotao(x);
+      return i && i.aba === info.aba;
     });
+    if(b) return b;
+
+    // Reserva: procura pelo texto do item.
+    if(info.texto){
+      b = botoes.find(x => {
+        const t=(x.innerText||x.textContent||'').trim().replace(/\s+/g,' ');
+        return t === info.texto;
+      });
+    }
+    return b || null;
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', iniciarRestauracao, {once:true});
+  function appPronto(){
+    const app = document.getElementById('app-container') ||
+                document.querySelector('.app-container,#app');
+    if(!app) return false;
+    const s=getComputedStyle(app);
+    return s.display!=='none' && s.visibility!=='hidden';
+  }
+
+  function restaurarUmaVez(){
+    const info=ler();
+    if(!info || info.aba==='aba-inicio') return;
+
+    const btn=achar(info);
+    if(!btn) return;
+
+    restaurando=true;
+
+    // IMPORTANTE: clique real no item do menu.
+    // Não chama trocarAba diretamente e não bloqueia o boot.
+    try { btn.click(); } catch(_){}
+
+    setTimeout(function(){ restaurando=false; },300);
+  }
+
+  function iniciar(){
+    // Espera o sistema original terminar de montar Dashboard e dados.
+    let n=0;
+    const timer=setInterval(function(){
+      n++;
+      if(appPronto() && typeof window.trocarAba==='function' && n>=8){
+        clearInterval(timer);
+        // margem extra para atualizarUIAposCarregar/abrirApp terminarem.
+        setTimeout(restaurarUmaVez, 900);
+      } else if(n>=50){
+        clearInterval(timer);
+        setTimeout(restaurarUmaVez, 500);
+      }
+    },100);
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', iniciar, {once:true});
   } else {
-    iniciarRestauracao();
+    iniciar();
   }
-
-  window.addEventListener('pageshow', function() {
-    setTimeout(restaurarUltimaAba, 500);
-  });
 })();
 </script>
 

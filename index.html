@@ -10159,3 +10159,114 @@ window.V74=(function(){
 })();
 </script>
 
+
+<!-- ===== V76: ADM DO BANCO + IMPORTAÇÃO DE MATERIAL PARA FLASHCARDS ===== -->
+<style id="v76-css">
+.v76-import-box{margin-top:12px;border:1px dashed #7c8da5;border-radius:12px;padding:13px}
+.v76-import-box textarea{width:100%;min-height:150px;box-sizing:border-box;margin-top:8px}
+.v76-chip{display:inline-block;padding:5px 9px;border-radius:999px;background:#e8f1ff;color:#1769d2;font-size:12px;font-weight:800}
+body.dark .v76-chip{background:#183250;color:#72b7ff}
+</style>
+
+<script id="v76-js">
+(function(){
+ const MAT='EI_V76_FLASH_MATERIAL';
+
+ /* Reconhece o administrador já logado pelo sistema, sem alterar login/permissões existentes. */
+ function usuarioEhAdminV76(){
+   try{
+     const candidatos=[
+       estado?.usuario, estado?.user, estado?.usuarioAtual, estado?.perfilAtual,
+       window.usuarioAtual, window.currentUser
+     ].filter(Boolean);
+     for(const u of candidatos){
+       const s=JSON.stringify(u).toLowerCase();
+       if(u.admin===true || u.isAdmin===true || u.administrador===true ||
+          String(u.perfil||u.role||u.tipo||'').toLowerCase().includes('admin') ||
+          s.includes('"admin":true') || s.includes('"isadmin":true')) return true;
+     }
+
+     /* Compatibilidade com o painel "Gestão Utilizadores":
+        se o usuário possui acesso à gestão administrativa, libera o banco. */
+     const gestao=[...document.querySelectorAll('.tab-btn,button,a')].find(x=>
+       /gest[aã]o\s+utilizadores/i.test(x.textContent||'')
+     );
+     if(gestao && getComputedStyle(gestao).display!=='none') return true;
+
+     return localStorage.getItem('EI_V74_ADMIN')==='1';
+   }catch(e){ return false; }
+ }
+
+ /* Sobrescreve somente o detector local da V74 através de uma flag compatível.
+    Não toca na autenticação principal. */
+ function sincronizarAdminV76(){
+   if(usuarioEhAdminV76()) localStorage.setItem('EI_V74_ADMIN','1');
+ }
+
+ sincronizarAdminV76();
+ document.addEventListener('click',sincronizarAdminV76,true);
+
+ /* Complementa a tela Flashcards depois que a V74 termina de renderizar. */
+ function materialData(){try{return JSON.parse(localStorage.getItem(MAT))||{}}catch(e){return {}}}
+ function saveMaterial(v){localStorage.setItem(MAT,JSON.stringify(v))}
+
+ function adicionarImportador(){
+   const modal=document.getElementById('v74-modal');
+   if(!modal?.classList.contains('show')) return;
+   const title=document.getElementById('v74-title');
+   if(!title || !/flashcards/i.test(title.textContent||'')) return;
+   const body=document.getElementById('v74-body');
+   if(!body || body.querySelector('#v76-import')) return;
+
+   const selected=body.querySelector('.v74-item.sel');
+   if(!selected) return;
+
+   const nome=(selected.querySelector('b')?.textContent||'Pasta').trim();
+   const box=document.createElement('div');
+   box.id='v76-import';
+   box.className='v74-card v76-import-box';
+   box.innerHTML=`
+     <b>📚 Material para gerar flashcards</b>
+     <p class="v74-muted">Cole um conteúdo abaixo ou carregue um arquivo TXT. PDF será conectado junto com a IA/backend na próxima etapa.</p>
+     <label class="v74-btn">📄 Carregar TXT
+       <input id="v76-file" type="file" accept=".txt,text/plain" hidden>
+     </label>
+     <textarea id="v76-text" class="v74-textarea" placeholder="Cole aqui o material de estudo..."></textarea>
+     <div class="v74-row" style="margin-top:8px">
+       <button class="v74-btn v74-primary" id="v76-save">💾 Guardar material</button>
+       <span class="v76-chip">Pasta: ${nome.replace(/[<>&]/g,'')}</span>
+     </div>
+     <p class="v74-muted" id="v76-status"></p>`;
+
+   const target=body.querySelector('.v74-grid > .v74-box:nth-child(2)') || body;
+   target.appendChild(box);
+
+   const key=nome;
+   const md=materialData();
+   if(md[key]) box.querySelector('#v76-text').value=md[key];
+
+   box.querySelector('#v76-file').addEventListener('change',e=>{
+     const f=e.target.files?.[0]; if(!f)return;
+     const r=new FileReader();
+     r.onload=()=>box.querySelector('#v76-text').value=String(r.result||'');
+     r.readAsText(f,'UTF-8');
+   });
+   box.querySelector('#v76-save').onclick=()=>{
+     const md=materialData();
+     md[key]=box.querySelector('#v76-text').value;
+     saveMaterial(md);
+     box.querySelector('#v76-status').textContent='✓ Material guardado nesta pasta. Pronto para a futura geração com IA.';
+   };
+ }
+
+ const obs=new MutationObserver(()=>setTimeout(adicionarImportador,20));
+ window.addEventListener('DOMContentLoaded',()=>{
+   const m=document.getElementById('v74-modal');
+   if(m) obs.observe(m,{subtree:true,childList:true,attributes:true});
+ });
+ document.addEventListener('click',()=>setTimeout(adicionarImportador,40));
+
+ window.usuarioEhAdminV76=usuarioEhAdminV76;
+})();
+</script>
+

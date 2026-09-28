@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 ===============================================================================
- V99 — FIREBASE AUTH + SENHAS FORA DO DATABASE
+ V100 — MIGRAÇÃO SEGURA PARA FIREBASE AUTH — NÃO APAGA CONTAS V98
  Não editar diretamente esta versão publicada.
  Fluxo recomendado:
  1. conservar este arquivo como versão estável;
@@ -3096,13 +3096,11 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
       console.warn("Firebase local:", e);
     }
 
-    // V99: cada nome de utilizador vira um e-mail técnico interno.
-    // O utilizador continua digitando apenas o nome + senha na tela.
-    function emailTecnicoV99(nome) {
+    function emailTecnicoV100(nome) {
       const seguro = String(nome || '').trim().toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-        .replace(/[^a-z0-9._-]/g,'-')
-        .replace(/-+/g,'-').replace(/^-|-$/g,'');
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9._-]/g, '-')
+        .replace(/-+/g, '-').replace(/^-|-$/g, '');
       return (seguro || 'usuario') + '@estudo-inteligente.app';
     }
 
@@ -3461,93 +3459,109 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
         if (erro) { erro.style.display='block'; erro.innerText='Informe o utilizador e a palavra-passe.'; }
         return;
       }
-      if (botao) { botao.disabled=true; botao.dataset.textoOriginal=botao.innerText; botao.innerText='A verificar...'; }
+      if (botao) {
+        botao.disabled=true;
+        botao.dataset.textoOriginal=botao.innerText;
+        botao.innerText='A verificar...';
+      }
 
-      const chaveUsuario=uInput.toLowerCase();
-      const email=emailTecnicoV99(uInput);
+      const chave=uInput.toLowerCase();
+      const email=emailTecnicoV100(uInput);
 
       try {
-        // 1) Login seguro pelo Firebase Authentication.
+        // ETAPA A — se a conta já foi migrada, tenta Authentication.
         if (auth) {
           try {
             const cred=await auth.signInWithEmailAndPassword(email,sInput);
-            usuarioAtivo = uInput;
+            usuarioAtivo=uInput;
             sessionStorage.setItem('usuario_ativo',usuarioAtivo);
             sessionStorage.setItem('firebase_uid',cred.user.uid);
-            if(rtdb){
-              await rtdb.ref('usuarios/'+cred.user.uid).update({
-                nome:uInput, chave:chaveUsuario, ativo:true, ultimoLogin:firebase.database.ServerValue.TIMESTAMP
-              }).catch(()=>{});
-            }
             abrirApp();
             return;
-          } catch(eAuth) {
-            // Se a conta ainda não foi migrada, tenta o login legado UMA vez.
-            if(!['auth/user-not-found','auth/invalid-credential','auth/invalid-login-credentials'].includes(eAuth.code)){
-              if(eAuth.code==='auth/wrong-password'){
-                if(erro){erro.style.display='block';erro.innerText='Palavra-passe incorreta!';}
-                return;
-              }
-              console.warn('Firebase Auth:',eAuth.code,eAuth.message);
-            }
+          } catch(e) {
+            // Não interrompe: a V98 continua sendo a fonte segura durante a migração.
+            console.log('V100: conta ainda não autenticada no Firebase Auth.', e.code || e.message);
           }
         }
 
-        // 2) Migração automática das contas antigas da V98.
-        // Após confirmar a senha antiga, cria a conta no Authentication e APAGA
-        // a senha em texto simples do Realtime Database.
-        if(rtdb){
-          const snap=await rtdb.ref('senhas/'+chaveUsuario).once('value');
-          const senhaAntiga=snap.val();
-          if(senhaAntiga!==null && senhaAntiga!==undefined){
-            if(String(senhaAntiga)!==sInput){
-              if(erro){erro.style.display='block';erro.innerText='Palavra-passe incorreta!';}
-              return;
-            }
-            if(!auth) throw new Error('Firebase Authentication não foi carregado.');
+        // ETAPA B — valida EXATAMENTE como a V98: primeiro nuvem antiga, depois cache local.
+        let senhaLegada=null;
+        if (rtdb) {
+          try {
+            const snap=await rtdb.ref('senhas/'+chave).once('value');
+            if (snap.exists()) senhaLegada=String(snap.val());
+          } catch(e) {
+            console.warn('V100: leitura da conta antiga na nuvem falhou.',e);
+          }
+        }
 
-            try{
-              const cred=await auth.createUserWithEmailAndPassword(email,sInput);
-              await rtdb.ref('usuarios/'+cred.user.uid).set({
-                nome:uInput,chave:chaveUsuario,ativo:true,
-                criadoEm:firebase.database.ServerValue.TIMESTAMP
-              });
-              await rtdb.ref('senhas/'+chaveUsuario).remove();
-              usuarioAtivo=uInput;
-              sessionStorage.setItem('usuario_ativo',usuarioAtivo);
-              sessionStorage.setItem('firebase_uid',cred.user.uid);
-              abrirApp();
-              return;
-            }catch(eMig){
-              // Se já existe no Auth, tenta entrar novamente.
-              if(eMig.code==='auth/email-already-in-use'){
+        let nomePerfil=uInput;
+        if (senhaLegada===null) {
+          const locais=obterSenhasLocais();
+          const encontrado=Object.keys(locais).find(k=>k.toLowerCase()===chave);
+          if (encontrado) {
+            nomePerfil=encontrado;
+            senhaLegada=String(locais[encontrado]);
+          }
+        }
+
+        if (senhaLegada===null) {
+          if (erro) { erro.style.display='block'; erro.innerText='Utilizador não autorizado.'; }
+          return;
+        }
+        if (senhaLegada!==sInput) {
+          if (erro) { erro.style.display='block'; erro.innerText='Palavra-passe incorreta!'; }
+          return;
+        }
+
+        // ETAPA C — login V98 já foi validado. Agora tenta criar/migrar para Authentication.
+        // IMPORTANTE: a senha antiga NÃO é apagada nesta versão.
+        let uid='';
+        if (auth) {
+          try {
+            const cred=await auth.createUserWithEmailAndPassword(email,sInput);
+            uid=cred.user.uid;
+          } catch(eCriar) {
+            if (eCriar.code==='auth/email-already-in-use') {
+              try {
                 const cred=await auth.signInWithEmailAndPassword(email,sInput);
-                await rtdb.ref('senhas/'+chaveUsuario).remove().catch(()=>{});
-                usuarioAtivo=uInput;
-                sessionStorage.setItem('usuario_ativo',usuarioAtivo);
-                sessionStorage.setItem('firebase_uid',cred.user.uid);
-                abrirApp();
-                return;
+                uid=cred.user.uid;
+              } catch(eEntrar) {
+                console.warn('V100: conta Auth existe, mas a migração não foi concluída.',eEntrar);
               }
-              throw eMig;
+            } else {
+              console.warn('V100: não foi possível criar a conta Auth; mantendo login V98.',eCriar);
             }
           }
         }
 
-        if(erro){
-          erro.style.display='block';
-          erro.innerText='Utilizador não autorizado.';
+        // Registra o UID se a migração foi concluída, sem tocar na senha legada.
+        if (uid && rtdb) {
+          await rtdb.ref('usuariosAuth/'+uid).update({
+            nome:nomePerfil,
+            chave:chave,
+            migrado:true,
+            migradoEm:firebase.database.ServerValue.TIMESTAMP
+          }).catch(()=>{});
+          sessionStorage.setItem('firebase_uid',uid);
         }
+
+        // O acesso continua funcionando mesmo se a criação no Auth falhar.
+        usuarioAtivo=nomePerfil;
+        sessionStorage.setItem('usuario_ativo',usuarioAtivo);
+        abrirApp();
+
       } catch(e) {
-        console.error('V99 login:',e);
-        if(erro){
+        console.error('V100 login:',e);
+        if (erro) {
           erro.style.display='block';
-          erro.innerText = e.code==='auth/operation-not-allowed'
-            ? 'Ative Email/Palavra-passe no Firebase Authentication.'
-            : 'Não foi possível autenticar. Verifique a configuração do Firebase.';
+          erro.innerText='Não foi possível entrar. Tente novamente.';
         }
       } finally {
-        if(botao){botao.disabled=false;botao.innerText=botao.dataset.textoOriginal||'Entrar no Painel';}
+        if (botao) {
+          botao.disabled=false;
+          botao.innerText=botao.dataset.textoOriginal || 'Entrar no Painel';
+        }
       }
     }
 
@@ -3617,39 +3631,75 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
     }
 
     async function sincronizarUsuariosLocaisComNuvemV98() {
-      // V99: desativado. Senhas locais não são mais publicadas automaticamente.
-      return;
+      if (!rtdb || !ehAdministradorEduardoV26()) return;
+      const locais = obterSenhasLocais();
+      try {
+        for (const [nome, senha] of Object.entries(locais)) {
+          const chave = String(nome).trim().toLowerCase();
+          if (!chave) continue;
+          const ref = rtdb.ref("senhas/" + chave);
+          const atual = await ref.once("value");
+          if (!atual.exists()) {
+            await ref.set(String(senha));
+          }
+        }
+        console.log("V98: utilizadores locais sincronizados com a nuvem.");
+      } catch (e) {
+        console.error("V98: Firebase recusou a sincronização de utilizadores.", e);
+      }
     }
 
     async function carregarListaUsuariosAdmin() {
-      const container=document.getElementById('listaUsuariosCadastradosAdmin');
-      if(!container)return;
-      const nomes=new Set();
-      nomes.add('Eduardo');
-      if(rtdb){
-        try{
-          const us=await rtdb.ref('usuarios').once('value');
-          const obj=us.val()||{};
-          Object.values(obj).forEach(v=>{if(v&&v.nome)nomes.add(String(v.nome));});
-          // Contas V98 ainda não migradas.
-          const leg=await rtdb.ref('senhas').once('value');
-          Object.keys(leg.val()||{}).forEach(k=>nomes.add(k==='eduardo'?'Eduardo':k));
-        }catch(e){console.warn('Lista de utilizadores:',e);}
+      const container = document.getElementById('listaUsuariosCadastradosAdmin');
+      if (!container) return;
+
+      // No perfil administrador, prioriza a lista compartilhada da nuvem.
+      if (rtdb) {
+        try {
+          const snap = await rtdb.ref('senhas').once('value');
+          const nuvem = snap.val() || {};
+          if (Object.keys(nuvem).length) {
+            const locais = obterSenhasLocais();
+            Object.keys(nuvem).forEach(chave => {
+              const nomeLocal = Object.keys(locais).find(k => k.toLowerCase() === chave.toLowerCase());
+              const nome = nomeLocal || (chave.toLowerCase() === 'eduardo' ? 'Eduardo' : chave);
+              locais[nome] = String(nuvem[chave]);
+            });
+            salvarSenhasLocais(locais);
+            renderizarListaUsuariosAdminHtml(locais);
+            return;
+          }
+        } catch (e) {
+          console.warn('Falha ao carregar utilizadores da nuvem:', e);
+        }
       }
-      renderizarListaUsuariosAdminHtml([...nomes].sort((a,b)=>a.localeCompare(b)));
+
+      renderizarListaUsuariosAdminHtml(obterSenhasLocais());
     }
 
-    function renderizarListaUsuariosAdminHtml(usuarios) {
-      const container=document.getElementById('listaUsuariosCadastradosAdmin');
-      if(!container)return;
-      container.innerHTML='';
-      usuarios.forEach(u=>{
-        const item=document.createElement('div');
-        item.className='item-card';item.style.padding='8px 12px';
-        const isEduardo=u.toLowerCase()==='eduardo';
-        item.innerHTML=`<div><strong>${u}</strong><span style="font-size:.75rem;color:var(--text-muted);margin-left:6px;">🔐 senha protegida</span></div>
-        ${isEduardo?'<span style="font-size:.75rem;color:var(--primary);font-weight:800;">ADMIN</span>':
-        `<button class="btn btn-danger" style="padding:4px 8px;font-size:.75rem;" onclick="adminExcluirUsuario('${u.replaceAll("'","\\'")}')">🗑️ Eliminar acesso</button>`}`;
+    function renderizarListaUsuariosAdminHtml(senhasObj) {
+      const container = document.getElementById('listaUsuariosCadastradosAdmin');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const usuarios = Object.keys(senhasObj);
+      usuarios.forEach(u => {
+        const item = document.createElement('div');
+        item.className = 'item-card';
+        item.style.padding = '8px 12px';
+
+        const isEduardo = (u.toLowerCase() === 'eduardo');
+        const acaoBtn = isEduardo 
+          ? '<span style="font-size:0.75rem; color:var(--primary); font-weight:800;">ADMIN</span>' 
+          : `<button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="adminExcluirUsuario('${u}')">🗑️ Eliminar</button>`;
+
+        item.innerHTML = `
+          <div>
+            <strong>${u}</strong>
+            <span style="font-size:0.75rem; color:var(--text-muted); margin-left:6px;">(Senha: ${senhasObj[u]})</span>
+          </div>
+          ${acaoBtn}
+        `;
         container.appendChild(item);
       });
     }
@@ -3659,41 +3709,45 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
         alert("Esta função é exclusiva do administrador Eduardo.");
         return;
       }
-      const nomeInput=document.getElementById('inputNovoNomeUsuario');
-      const senhaInput=document.getElementById('inputNovaSenhaUsuario');
-      const nome=(nomeInput?.value||'').trim();
-      const senha=(senhaInput?.value||'').trim();
-      if(!nome||!senha){alert("Preencha o nome do utilizador e a palavra-passe.");return;}
-      if(senha.length<6){alert("Por segurança, use uma palavra-passe com pelo menos 6 caracteres.");return;}
-      if(!auth||!rtdb){alert("Firebase Authentication/Database não está disponível.");return;}
 
-      const email=emailTecnicoV99(nome);
-      let secundario=null;
-      try{
-        // App secundário: cria a conta sem tirar Eduardo da sessão principal.
-        const appName='admin-create-'+Date.now();
-        secundario=firebase.initializeApp(firebaseConfig,appName);
-        const auth2=secundario.auth();
-        const cred=await auth2.createUserWithEmailAndPassword(email,senha);
-        await rtdb.ref('usuarios/'+cred.user.uid).set({
-          nome:nome,chave:nome.toLowerCase(),ativo:true,
-          criadoPor:usuarioAtivo||'Eduardo',
-          criadoEm:firebase.database.ServerValue.TIMESTAMP
-        });
-        await auth2.signOut().catch(()=>{});
-        alert(`Utilizador "${nome}" criado com Firebase Authentication. A senha não foi guardada no banco.`);
-        nomeInput.value='';senhaInput.value='';
+      const nomeInput = document.getElementById('inputNovoNomeUsuario');
+      const senhaInput = document.getElementById('inputNovaSenhaUsuario');
+      const nome = (nomeInput?.value || '').trim();
+      const senha = (senhaInput?.value || '').trim();
+
+      if (!nome || !senha) {
+        alert("Preencha o nome do utilizador e a palavra-passe.");
+        return;
+      }
+
+      const chave = nome.toLowerCase();
+
+      // V98: primeiro confirma a gravação na nuvem. Só depois salva o cache local.
+      if (!rtdb) {
+        alert("A nuvem não está ligada. O utilizador NÃO foi criado. Verifique a ligação com o Firebase.");
+        return;
+      }
+
+      try {
+        await rtdb.ref("senhas/" + chave).set(String(senha));
+
+        // Confirma que o Firebase realmente recebeu o utilizador.
+        const confirmar = await rtdb.ref("senhas/" + chave).once("value");
+        if (String(confirmar.val()) !== String(senha)) {
+          throw new Error("A gravação não pôde ser confirmada.");
+        }
+
+        const senhas = obterSenhasLocais();
+        senhas[nome] = String(senha);
+        salvarSenhasLocais(senhas);
+
+        alert(`Utilizador "${nome}" criado na nuvem com sucesso! Agora pode entrar em outro celular/computador.`);
+        nomeInput.value = '';
+        senhaInput.value = '';
         await carregarListaUsuariosAdmin();
-      }catch(e){
-        console.error('V99 criar utilizador:',e);
-        const msg=e.code==='auth/operation-not-allowed'
-          ? 'Ative o método Email/Palavra-passe no Firebase Authentication.'
-          : e.code==='auth/email-already-in-use'
-          ? 'Este utilizador já possui uma conta de autenticação.'
-          : 'Não foi possível criar o utilizador: '+(e.message||e.code||'erro desconhecido');
-        alert(msg);
-      }finally{
-        if(secundario){try{await secundario.delete();}catch(_){}}
+      } catch (e) {
+        console.error("Erro ao criar utilizador na nuvem:", e);
+        alert("Não foi possível criar o utilizador na nuvem. O Firebase recusou a gravação. Verifique as regras do Realtime Database.");
       }
     }
 
@@ -3939,7 +3993,7 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
       if (dbRefAtivo) dbRefAtivo.off();
       sessionStorage.removeItem('usuario_ativo');
       sessionStorage.removeItem('firebase_uid');
-      try { if(auth) await auth.signOut(); } catch(e) {}
+      try { if (auth) await auth.signOut(); } catch(e) {}
       location.reload();
     }
     function abrirApp() {

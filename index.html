@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 ===============================================================================
- V105 — MOBILE MESMOS PLANOS DO DESKTOP — FIREBASE PRESERVADO
+ V106 — SINCRONIZAÇÃO DO PLANO ENTRE DISPOSITIVOS — FIREBASE AUTH PRESERVADO
  Não editar diretamente esta versão publicada.
  Fluxo recomendado:
  1. conservar este arquivo como versão estável;
@@ -4082,6 +4082,7 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
         const usarNuvem = !salvos || !localMs || nuvemMs > localMs;
 
         if (usarNuvem) {
+          // Outro aparelho/nuvem possui a versão mais recente.
           isReceivingFromCloud = true;
           estado = dadosNuvem.estado;
           localStorage.setItem(chave, JSON.stringify(estado));
@@ -4089,6 +4090,24 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
           isReceivingFromCloud = false;
           atualizarUIAposCarregar();
           aplicarPermissoesEditaisV26();
+        } else if (salvos && localMs > nuvemMs) {
+          // V106: o computador pode possuir o plano mais recente apenas no cache local.
+          // Nesse caso publica EXATAMENTE esse estado na nuvem para que celular/outros
+          // dispositivos recebam o mesmo cronograma. Não recria nem regenera semanas.
+          atualizarStatusNuvem("☁️ Sincronizando plano...", "syncing");
+          const estadoLocalV106 = estado;
+          const isoLocalV106 = localStorage.getItem(chave + '_atualizadoEm') || new Date().toISOString();
+
+          dbRefAtivo.set({
+            estado: estadoLocalV106,
+            atualizadoEm: isoLocalV106
+          }).then(() => {
+            atualizarStatusNuvem("☁️ Sincronizado", "online");
+          }).catch(err => {
+            console.error("V106: falha ao publicar plano local na nuvem:", err);
+            atualizarStatusNuvem("⚠️ Falha na sincronização", "offline");
+          });
+          return;
         }
 
         atualizarStatusNuvem("☁️ Sincronizado", "online");

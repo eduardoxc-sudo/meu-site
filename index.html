@@ -9802,237 +9802,150 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
 
 
 <!-- =========================================================
- V118 — DASHBOARD / TEMPO / QUESTÕES / REVISÕES
- Base: V117 estável.
- - Dashboard lê diretamente o estado persistido, não o texto de outras abas.
- - Horas líquidas = histórico de horas, inclusive Timer e revisões 1D/7D/15D/30D.
- - Questões/acertos/erros = históricos persistidos.
- - Atualização imediata após salvar registros/Timer/revisões.
- - Não altera cronograma, Edital, geração de revisões nem sincronização manual.
+ V118 — DASHBOARD LÊ OS DADOS REAIS DO ESTADO
+ - Horas líquidas: histórico real (Timer, manual e revisões)
+ - Questões: histórico real de questões
+ - Revisões espaçadas concluídas entram nas horas líquidas
+ - Evita o "pisca e volta para zero" causado pela leitura do DOM
+ - Não altera edital, cronograma, prioridades ou geração das revisões
 ========================================================== -->
-<script id="v118-dashboard-fonte-unica">
+<script id="v118-dashboard-dados-reais">
 (function(){
-  function arrV118(v){ return Array.isArray(v) ? v : []; }
-  function numV118(v){ const n=Number(v); return Number.isFinite(n) ? n : 0; }
+  const originalV36 = (typeof window.renderizarDashboardV36 === 'function')
+    ? window.renderizarDashboardV36 : null;
+  const originalV37 = (typeof window.renderizarDashboardV37 === 'function')
+    ? window.renderizarDashboardV37 : null;
 
-  function horasPersistidasV118(){
-    const regs = arrV118(window.estado?.historicoHoras);
-    const totalMin = regs.reduce((s,r)=>s + Math.max(0,numV118(r?.minutos)),0);
-    return Math.round(totalMin);
+  function estadoAtualV118(){
+    try{
+      if(typeof estado === 'object' && estado) return estado;
+    }catch(_){}
+    return null;
   }
 
-  function registrosQuestoesPersistidosV118(){
-    const fontes = [
-      ...arrV118(window.estado?.historicoQuestoes),
-      ...arrV118(window.estado?.registrosQuestoes),
-      ...arrV118(window.estado?.questoes)
-    ];
-    const vistos = new Set();
-    return fontes.filter((r,i)=>{
-      if(!r || typeof r!=='object') return false;
-      const chave = r.id || [
-        r.data||'', r.materia||r.disciplina||'', r.assunto||r.nomeAssunto||'',
-        r.acertos||0, r.erros||0, r.total||r.questoes||0
-      ].join('|');
-      if(vistos.has(chave)) return false;
-      vistos.add(chave);
-      return true;
-    });
+  function resumoHorasV118(){
+    const st = estadoAtualV118();
+    const hist = Array.isArray(st?.historicoHoras) ? st.historicoHoras : [];
+    const minutos = hist.reduce((s,h)=>{
+      const n = Number(h?.minutos || 0);
+      return s + (Number.isFinite(n) && n > 0 ? n : 0);
+    },0);
+    return {
+      minutos,
+      h: Math.floor(minutos/60),
+      m: Math.round(minutos%60)
+    };
   }
 
   function resumoQuestoesV118(){
+    const st = estadoAtualV118();
+    const hist = Array.isArray(st?.historicoQuestoes) ? st.historicoQuestoes : [];
     let total=0, acertos=0, erros=0;
-    registrosQuestoesPersistidosV118().forEach(r=>{
-      const a=Math.max(0,numV118(r.acertos));
-      const e=Math.max(0,numV118(r.erros));
-      let q=Math.max(0,numV118(r.total ?? r.questoes));
-      if(!q) q=a+e;
-      // Se total informado divergir, acertos+erros é a fonte mais consistente.
-      if(a+e>0) q=a+e;
-      total+=q; acertos+=a; erros+=e;
+
+    hist.forEach(q=>{
+      const a = Math.max(0, Number(q?.acertos || 0));
+      const e = Math.max(0, Number(q?.erros || 0));
+      let t = Number(q?.total);
+      if(!Number.isFinite(t) || t <= 0) t = a + e;
+
+      total += Math.max(0,t);
+      acertos += a;
+      erros += e;
     });
-    return {total,acertos,erros,taxa:total?Math.round(acertos*100/total):0};
+
+    const taxa = total > 0 ? Math.round((acertos/total)*100) : 0;
+    return {total,acertos,erros,taxa};
   }
 
-  function formatarMinV118(min){
-    min=Math.max(0,Math.round(numV118(min)));
-    return Math.floor(min/60)+'h '+String(min%60).padStart(2,'0')+'min';
+  function resumoEditalV118(){
+    const st = estadoAtualV118();
+    const mapa = st?.editalVerticalizado || {};
+    const todos = [];
+    Object.values(mapa).forEach(lista=>{
+      if(Array.isArray(lista)) lista.forEach(t=>todos.push(t));
+    });
+    return {
+      feito: todos.filter(t=>t && t.t===true).length,
+      total: todos.length
+    };
   }
 
-  window.atualizarIndicadoresPersistidosV118=function(){
+  function aplicarMetricasV118(){
+    const horas = resumoHorasV118();
+    const quest = resumoQuestoesV118();
+    const edital = resumoEditalV118();
+
+    const hEl = document.getElementById('dashHorasV36');
+    if(hEl) hEl.textContent = horas.h+'h '+String(horas.m).padStart(2,'0')+'min';
+
+    const qEl = document.getElementById('dashQuestoesV36');
+    if(qEl) qEl.textContent = quest.total ? quest.taxa+'% de acertos' : '—';
+
+    const edEl = document.getElementById('dashEditalV36');
+    if(edEl) edEl.textContent = edital.feito+' / '+edital.total;
+
+    const pct = edital.total ? Math.round((edital.feito/edital.total)*100) : 0;
+    const mp = document.getElementById('dashMetaPctV36');
+    const mb = document.getElementById('dashMetaBarV36');
+    const mt = document.getElementById('dashMetaTextoV36');
+    if(mp) mp.textContent = pct+'%';
+    if(mb) mb.style.width = Math.max(0,Math.min(100,pct))+'%';
+    if(mt) mt.textContent = edital.total
+      ? edital.feito+' de '+edital.total+' tópicos concluídos no edital.'
+      : 'Carregue um edital para acompanhar sua evolução.';
+  }
+
+  function renderV118(){
+    /* Mantém Hoje, Próximo estudo e demais elementos já existentes. */
     try{
-      // Primeiro deixa as rotinas antigas preencherem campos não relacionados.
-      if(typeof window.renderizarDashboardV37==='function' &&
-         window.renderizarDashboardV37 !== window.atualizarIndicadoresPersistidosV118){
-        window.renderizarDashboardV37();
-      }
+      if(originalV37) originalV37();
+      else if(originalV36) originalV36();
     }catch(_){}
 
-    const h=document.getElementById('dashHorasV36');
-    if(h) h.textContent=formatarMinV118(horasPersistidasV118());
-
-    const rq=resumoQuestoesV118();
-    const q=document.getElementById('dashQuestoesV36');
-    if(q) q.textContent=rq.total ? rq.taxa+'% de acertos' : '—';
-
-    // Mantém a aba Progresso coerente mesmo logo após login.
-    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-    set('progTotal',rq.total);
-    set('progAcertos',rq.acertos);
-    set('progErros',rq.erros);
-    set('progTaxa',rq.taxa+'%');
-
-    try{ if(typeof window.renderizarHorasProgressoV23==='function') window.renderizarHorasProgressoV23(); }catch(_){}
-    try{ if(typeof window.renderizarProgressoV11==='function') window.renderizarProgressoV11(); }catch(_){}
-  };
-
-  function refrescarV118(){
-    setTimeout(()=>{ try{ window.atualizarIndicadoresPersistidosV118(); }catch(_){} },30);
-    setTimeout(()=>{ try{ window.atualizarIndicadoresPersistidosV118(); }catch(_){} },180);
+    /* A fonte final das métricas passa a ser o estado salvo, não texto da tela. */
+    aplicarMetricasV118();
   }
 
-  // Após o carregamento completo do perfil (inclusive depois de sair/entrar).
-  const uiOriginalV118=window.atualizarUIAposCarregar;
-  if(typeof uiOriginalV118==='function'){
-    window.atualizarUIAposCarregar=function(){
-      const r=uiOriginalV118.apply(this,arguments);
-      try{ if(typeof window.renderizarProgressoV11==='function') window.renderizarProgressoV11(); }catch(_){}
-      try{ if(typeof window.renderizarHorasProgressoV23==='function') window.renderizarHorasProgressoV23(); }catch(_){}
-      refrescarV118();
-      return r;
-    };
-  }
+  /* Todas as versões antigas que chamarem V36/V37 passam pela correção. */
+  window.renderizarDashboardV36 = renderV118;
+  window.renderizarDashboardV37 = renderV118;
+  window.renderizarDashboardV118 = renderV118;
 
-  // Timer comum/manual: registrarHoraEstudo também é usado pelo Timer das revisões V42.
-  const horaOriginalV118=window.registrarHoraEstudo;
-  if(typeof horaOriginalV118==='function'){
-    window.registrarHoraEstudo=function(){
-      const r=horaOriginalV118.apply(this,arguments);
-      refrescarV118();
-      return r;
-    };
-  }
-
-  // Novo Registro: Teoria, Revisão e Questões.
-  const novoOriginalV118=window.salvarNovoRegistroV47;
-  if(typeof novoOriginalV118==='function'){
-    window.salvarNovoRegistroV47=function(){
-      const r=novoOriginalV118.apply(this,arguments);
-      try{ if(typeof window.atualizarVisualizacaoQuestoes==='function') window.atualizarVisualizacaoQuestoes(); }catch(_){}
-      try{ if(typeof window.renderizarProgressoV11==='function') window.renderizarProgressoV11(); }catch(_){}
-      refrescarV118();
-      return r;
-    };
-  }
-
-  // Registro feito diretamente na aba Questões.
-  const questOriginalV118=window.salvarRegistroQuestao;
-  if(typeof questOriginalV118==='function'){
-    window.salvarRegistroQuestao=function(){
-      const r=questOriginalV118.apply(this,arguments);
-      refrescarV118();
-      return r;
-    };
-  }
-
-  // Revisões espaçadas: reforça atualização ao concluir 1D/7D/15D/30D.
-  const revOriginalV118=window.concluirRevisaoTimerV42;
-  if(typeof revOriginalV118==='function'){
-    window.concluirRevisaoTimerV42=function(){
-      const r=revOriginalV118.apply(this,arguments);
-      refrescarV118();
-      return r;
-    };
-  }
-
-  document.addEventListener('DOMContentLoaded',refrescarV118);
-  window.addEventListener('load',refrescarV118);
-  document.addEventListener('click',e=>{
-    const b=e.target.closest('.tab-btn');
-    if(b && (b.getAttribute('onclick')||'').includes('aba-inicio')) refrescarV118();
-  });
-})();
-</script>
-
-
-<!-- =========================================================
- V119 — DASHBOARD SEM SOBRESCRITA
- Base: V118.
- Corrige o efeito "pisca o valor certo e volta para 0":
- aplica a fonte persistida depois das renderizações antigas.
- Não altera Firebase, sincronização, Edital, cronograma ou revisões.
-========================================================== -->
-<script id="v119-dashboard-sem-sobrescrita">
-(function(){
-  function aplicarV119(){
-    try{
-      if(typeof window.atualizarIndicadoresPersistidosV118 === 'function'){
-        window.atualizarIndicadoresPersistidosV118();
-      }
-    }catch(e){ console.warn('V119 dashboard:',e); }
-  }
-
-  // Depois de abrir qualquer aba, aplica o valor persistido por último.
-  document.addEventListener('click', function(e){
-    const alvo=e.target.closest('[onclick], .tab-btn, .nav-item, button, a');
-    if(!alvo) return;
-    setTimeout(aplicarV119, 0);
-    setTimeout(aplicarV119, 80);
-    setTimeout(aplicarV119, 300);
-  }, true);
-
-  // Reaplica após carregamento/login.
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(aplicarV119, 100);
-    setTimeout(aplicarV119, 500);
-    setTimeout(aplicarV119, 1200);
-  });
-  window.addEventListener('load', function(){
-    setTimeout(aplicarV119, 100);
-    setTimeout(aplicarV119, 700);
-  });
-
-  // Observa especificamente os dois indicadores do Dashboard.
-  // Se uma rotina antiga os sobrescrever, restaura a fonte persistida.
-  let bloqueioV119=false;
-  function observarV119(){
-    const ids=['dashHorasV36','dashQuestoesV36'];
-    ids.forEach(id=>{
-      const el=document.getElementById(id);
-      if(!el || el.dataset.v119Observado) return;
-      el.dataset.v119Observado='1';
-      new MutationObserver(()=>{
-        if(bloqueioV119) return;
-        bloqueioV119=true;
-        setTimeout(()=>{
-          aplicarV119();
-          bloqueioV119=false;
-        },0);
-      }).observe(el,{childList:true,characterData:true,subtree:true});
-    });
-  }
-
-  const obsDomV119=new MutationObserver(()=>{
-    observarV119();
-  });
+  /* Corrige imediatamente após carregar/login e após renderizações atrasadas. */
   document.addEventListener('DOMContentLoaded',()=>{
-    observarV119();
-    if(document.body) obsDomV119.observe(document.body,{childList:true,subtree:true});
+    [80,250,600,1200,2200].forEach(ms=>setTimeout(renderV118,ms));
+  });
+  window.addEventListener('load',()=>{
+    [100,500,1200,2500].forEach(ms=>setTimeout(renderV118,ms));
   });
 
-  // Depois de salvar tempo/registro, deixa a V118 recalcular e V119 prevalecer.
-  ['registrarHoraEstudo','salvarNovoRegistroV47','salvarRegistroQuestao','concluirRevisaoTimerV42']
+  /* Ao abrir Dashboard/Início, força a leitura do estado real. */
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('button,.tab-btn,[role="button"]');
+    if(!b) return;
+    const tx=(b.textContent||'').toLowerCase();
+    const oc=b.getAttribute('onclick')||'';
+    if(tx.includes('dashboard') || oc.includes('aba-inicio')){
+      setTimeout(renderV118,30);
+      setTimeout(renderV118,180);
+    }
+  },true);
+
+  /* Depois de salvar tempo/questões/revisão, atualiza sem depender de trocar de aba. */
+  ['registrarHoraEstudo','salvarRegistroQuestao','salvarNovoRegistroV47','concluirRevisaoTimerV42']
     .forEach(nome=>{
-      const original=window[nome];
-      if(typeof original!=='function' || original.__v119) return;
-      const wrapper=function(){
-        const r=original.apply(this,arguments);
-        setTimeout(aplicarV119,20);
-        setTimeout(aplicarV119,200);
-        return r;
-      };
-      wrapper.__v119=true;
-      window[nome]=wrapper;
+      try{
+        const fn=window[nome];
+        if(typeof fn!=='function' || fn.__v118) return;
+        const wrap=function(){
+          const r=fn.apply(this,arguments);
+          setTimeout(renderV118,20);
+          setTimeout(renderV118,180);
+          return r;
+        };
+        wrap.__v118=true;
+        window[nome]=wrap;
+      }catch(_){}
     });
 })();
 </script>

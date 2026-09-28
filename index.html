@@ -3966,11 +3966,10 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
             estado.planejamentoPendenteV47 = true;
 
             const chave = chaveArmazenamento(usuarioAtivo);
-            const agoraLocalV128 = new Date().toISOString();
             localStorage.setItem(chave, JSON.stringify(estado));
-            localStorage.setItem(chave + '_atualizadoEm', agoraLocalV128);
-            // V128: carregar edital NÃO envia automaticamente para a nuvem.
-            // Use o botão "Enviar para Nuvem" quando desejar publicar o estado do PC.
+            if (dbRefAtivo) {
+              dbRefAtivo.set({ estado: estado, atualizadoEm: new Date().toISOString() });
+            }
 
             renderizarPesos();
             atualizarSelectsMaterias();
@@ -4086,27 +4085,24 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
         const localMs = Date.parse(localIso) || 0;
         const nuvemMs = Date.parse(nuvemIso) || 0;
 
-        // V128: PC PRINCIPAL / SINCRONIZAÇÃO MANUAL.
-        // Se existe estado local, ele SEMPRE vence ao abrir/recarregar.
-        // A nuvem nunca substitui automaticamente o PC.
-        if (salvos) {
-          atualizarStatusNuvem("☁️ Sincronização manual", "online");
-          return;
-        }
+        // Compatibilidade com perfis antigos:
+        // se não existe timestamp local, a nuvem continua sendo a fonte inicial.
+        const usarNuvem = !salvos || !localMs || nuvemMs > localMs;
 
-        // Somente num aparelho sem qualquer estado local podemos usar a nuvem
-        // como recuperação inicial. Depois disso, o PC volta a ser a fonte principal.
-        if (dadosNuvem && dadosNuvem.estado) {
+        if (usarNuvem) {
+          // Outro aparelho/nuvem possui a versão mais recente.
           isReceivingFromCloud = true;
           estado = dadosNuvem.estado;
           localStorage.setItem(chave, JSON.stringify(estado));
-          localStorage.setItem(
-            chave + '_atualizadoEm',
-            nuvemIso || new Date().toISOString()
-          );
+          if (nuvemIso) localStorage.setItem(chave + '_atualizadoEm', nuvemIso);
           isReceivingFromCloud = false;
           atualizarUIAposCarregar();
           aplicarPermissoesEditaisV26();
+        } else if (salvos && localMs > nuvemMs) {
+          // V117: o PC é a fonte principal e não publica automaticamente ao entrar.
+          // Use "Enviar para Nuvem" quando quiser publicar as alterações.
+          atualizarStatusNuvem("☁️ Sincronização manual", "online");
+          return;
         }
 
         atualizarStatusNuvem("☁️ Sincronização manual", "online");
@@ -4118,21 +4114,28 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
     function salvarEstado() {
       if (!usuarioAtivo || isReceivingFromCloud) return;
 
-      // V128: toda alteração normal salva APENAS neste PC.
-      // A nuvem só é alterada pelo botão manual "Enviar para Nuvem".
       const chave = chaveArmazenamento(usuarioAtivo);
       const agora = new Date().toISOString();
 
-      try {
-        localStorage.setItem(chave, JSON.stringify(estado));
-        localStorage.setItem(chave + '_atualizadoEm', agora);
-      } catch (err) {
-        console.error("V128: falha ao salvar localmente:", err);
-        alert("Não foi possível salvar os dados neste navegador.");
-        return;
-      }
+      localStorage.setItem(chave, JSON.stringify(estado));
+      localStorage.setItem(chave + '_atualizadoEm', agora);
 
-      atualizarStatusNuvem("☁️ Sincronização manual", "online");
+      if (rtdb && dbRefAtivo) {
+        atualizarStatusNuvem("☁️ Enviando...", "syncing");
+        clearTimeout(debounceSalvarNuvem);
+
+        debounceSalvarNuvem = setTimeout(() => {
+          dbRefAtivo.set({
+            estado: estado,
+            atualizadoEm: agora
+          }).then(() => {
+            atualizarStatusNuvem("☁️ Sincronizado", "online");
+          }).catch(err => {
+            console.error("Falha ao sincronizar:", err);
+            atualizarStatusNuvem("⚠️ Falha na sincronização", "offline");
+          });
+        }, 400);
+      }
     }
 
     function atualizarIndicadorPresenca() {
@@ -11195,12 +11198,98 @@ body.v71-timer #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!importan
 </script>
 
 
+
 <!-- =========================================================
- V128 — PERSISTÊNCIA PC PRINCIPAL
- Correção na causa:
- 1. F5 sempre prefere o estado local existente.
- 2. Estado local não é substituído automaticamente pela nuvem.
- 3. salvarEstado() grava somente no PC.
- 4. Carregar edital grava também o timestamp local.
- 5. Enviar/Puxar da Nuvem continuam ações manuais.
+ V129 — DIAGNÓSTICO DE PERSISTÊNCIA
+ Base: V126 funcional.
+ NÃO corrige nem altera a persistência.
+ Apenas mostra o que existe no navegador antes/depois do F5.
 ========================================================== -->
+<style id="v129-diag-css">
+#v129Diag{
+ position:fixed;right:12px;bottom:12px;z-index:2147483647;
+ width:min(430px,calc(100vw - 24px));max-height:45vh;overflow:auto;
+ background:#111827;color:#f9fafb;border:1px solid #475569;
+ border-radius:12px;padding:10px 12px;font:12px/1.35 monospace;
+ box-shadow:0 8px 30px rgba(0,0,0,.35)
+}
+#v129Diag b{font-family:Arial,sans-serif;font-size:13px}
+#v129Diag .ok{color:#86efac} #v129Diag .bad{color:#fca5a5}
+#v129Diag button{margin-top:8px;padding:6px 9px;cursor:pointer}
+</style>
+
+<script id="v129-diag-js">
+(function(){
+ function safe(fn,def){try{return fn()}catch(_){return def}}
+ function usuario(){
+   return safe(()=>usuarioAtivo,'') || safe(()=>localStorage.getItem('usuarioAtivo'),'') || '';
+ }
+ function chaveProvavel(){
+   var u=usuario();
+   var k=safe(()=>typeof chaveArmazenamento==='function'&&u?chaveArmazenamento(u):'','');
+   return k||'(chave ainda não disponível)';
+ }
+ function analisarRaw(raw){
+   if(!raw)return {existe:false,tamanho:0,edital:0,horas:0,questoes:0,revisoes:0,semanas:0};
+   var e=safe(()=>JSON.parse(raw),null);
+   if(!e)return {existe:true,tamanho:raw.length,erro:'JSON inválido',edital:0,horas:0,questoes:0,revisoes:0,semanas:0};
+   var edital=0;
+   safe(()=>Object.values(e.editalVerticalizado||{}).forEach(a=>{if(Array.isArray(a))edital+=a.length}),0);
+   return {
+     existe:true,tamanho:raw.length,edital:edital,
+     horas:Array.isArray(e.historicoHoras)?e.historicoHoras.length:0,
+     questoes:Array.isArray(e.historicoQuestoes)?e.historicoQuestoes.length:0,
+     revisoes:Array.isArray(e.agendaRevisoes)?e.agendaRevisoes.length:0,
+     semanas:Array.isArray(e.semanas)?e.semanas.length:0
+   };
+ }
+ function estadoMem(){
+   var e=safe(()=>estado,null);
+   if(!e)return {edital:0,horas:0,questoes:0,revisoes:0};
+   var edital=0;
+   safe(()=>Object.values(e.editalVerticalizado||{}).forEach(a=>{if(Array.isArray(a))edital+=a.length}),0);
+   return {
+     edital:edital,
+     horas:Array.isArray(e.historicoHoras)?e.historicoHoras.length:0,
+     questoes:Array.isArray(e.historicoQuestoes)?e.historicoQuestoes.length:0,
+     revisoes:Array.isArray(e.agendaRevisoes)?e.agendaRevisoes.length:0
+   };
+ }
+ function todasChaves(){
+   var out=[];
+   for(var i=0;i<localStorage.length;i++){
+     var k=localStorage.key(i);
+     if(/study|estado|usuario|edital|flux|planej|cron|progres/i.test(k||'')){
+       var v=localStorage.getItem(k)||'';
+       out.push(k+' ('+v.length+' bytes)');
+     }
+   }
+   return out;
+ }
+ function render(){
+   var box=document.getElementById('v129Diag');
+   if(!box){box=document.createElement('div');box.id='v129Diag';document.body.appendChild(box)}
+   var k=chaveProvavel();
+   var raw=k.charAt(0)==='('?null:localStorage.getItem(k);
+   var a=analisarRaw(raw), m=estadoMem();
+   var ts=k.charAt(0)==='('?null:localStorage.getItem(k+'_atualizadoEm');
+   box.innerHTML=
+     '<b>V129 — Diagnóstico (não altera dados)</b><br>'+
+     'Usuário: '+String(usuario()||'(nenhum)')+'<br>'+
+     'Chave: '+String(k)+'<br>'+
+     'Local existe: <span class="'+(a.existe?'ok':'bad')+'">'+(a.existe?'SIM':'NÃO')+'</span><br>'+
+     'Tamanho local: '+a.tamanho+' bytes<br>'+
+     'Timestamp: '+String(ts||'(nenhum)')+'<br>'+
+     'LOCAL → edital '+a.edital+' | horas '+a.horas+' | questões '+a.questoes+' | revisões '+a.revisoes+' | semanas '+a.semanas+'<br>'+
+     'MEMÓRIA → edital '+m.edital+' | horas '+m.horas+' | questões '+m.questoes+' | revisões '+m.revisoes+'<br>'+
+     '<hr>Chaves relacionadas:<br>'+todasChaves().join('<br>')+
+     '<br><button type="button" id="v129Atualizar">Atualizar diagnóstico</button>';
+   var b=document.getElementById('v129Atualizar');if(b)b.onclick=render;
+ }
+ window.diagnosticoV129=render;
+ document.addEventListener('DOMContentLoaded',()=>setTimeout(render,700));
+ window.addEventListener('pageshow',()=>setTimeout(render,350));
+ window.addEventListener('estado-carregado',()=>setTimeout(render,100));
+})();
+</script>
+

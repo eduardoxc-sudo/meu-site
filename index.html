@@ -9800,6 +9800,160 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
 })();
 </script>
 
+
+<!-- =========================================================
+ V118 — DASHBOARD / TEMPO / QUESTÕES / REVISÕES
+ Base: V117 estável.
+ - Dashboard lê diretamente o estado persistido, não o texto de outras abas.
+ - Horas líquidas = histórico de horas, inclusive Timer e revisões 1D/7D/15D/30D.
+ - Questões/acertos/erros = históricos persistidos.
+ - Atualização imediata após salvar registros/Timer/revisões.
+ - Não altera cronograma, Edital, geração de revisões nem sincronização manual.
+========================================================== -->
+<script id="v118-dashboard-fonte-unica">
+(function(){
+  function arrV118(v){ return Array.isArray(v) ? v : []; }
+  function numV118(v){ const n=Number(v); return Number.isFinite(n) ? n : 0; }
+
+  function horasPersistidasV118(){
+    const regs = arrV118(window.estado?.historicoHoras);
+    const totalMin = regs.reduce((s,r)=>s + Math.max(0,numV118(r?.minutos)),0);
+    return Math.round(totalMin);
+  }
+
+  function registrosQuestoesPersistidosV118(){
+    const fontes = [
+      ...arrV118(window.estado?.historicoQuestoes),
+      ...arrV118(window.estado?.registrosQuestoes),
+      ...arrV118(window.estado?.questoes)
+    ];
+    const vistos = new Set();
+    return fontes.filter((r,i)=>{
+      if(!r || typeof r!=='object') return false;
+      const chave = r.id || [
+        r.data||'', r.materia||r.disciplina||'', r.assunto||r.nomeAssunto||'',
+        r.acertos||0, r.erros||0, r.total||r.questoes||0
+      ].join('|');
+      if(vistos.has(chave)) return false;
+      vistos.add(chave);
+      return true;
+    });
+  }
+
+  function resumoQuestoesV118(){
+    let total=0, acertos=0, erros=0;
+    registrosQuestoesPersistidosV118().forEach(r=>{
+      const a=Math.max(0,numV118(r.acertos));
+      const e=Math.max(0,numV118(r.erros));
+      let q=Math.max(0,numV118(r.total ?? r.questoes));
+      if(!q) q=a+e;
+      // Se total informado divergir, acertos+erros é a fonte mais consistente.
+      if(a+e>0) q=a+e;
+      total+=q; acertos+=a; erros+=e;
+    });
+    return {total,acertos,erros,taxa:total?Math.round(acertos*100/total):0};
+  }
+
+  function formatarMinV118(min){
+    min=Math.max(0,Math.round(numV118(min)));
+    return Math.floor(min/60)+'h '+String(min%60).padStart(2,'0')+'min';
+  }
+
+  window.atualizarIndicadoresPersistidosV118=function(){
+    try{
+      // Primeiro deixa as rotinas antigas preencherem campos não relacionados.
+      if(typeof window.renderizarDashboardV37==='function' &&
+         window.renderizarDashboardV37 !== window.atualizarIndicadoresPersistidosV118){
+        window.renderizarDashboardV37();
+      }
+    }catch(_){}
+
+    const h=document.getElementById('dashHorasV36');
+    if(h) h.textContent=formatarMinV118(horasPersistidasV118());
+
+    const rq=resumoQuestoesV118();
+    const q=document.getElementById('dashQuestoesV36');
+    if(q) q.textContent=rq.total ? rq.taxa+'% de acertos' : '—';
+
+    // Mantém a aba Progresso coerente mesmo logo após login.
+    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+    set('progTotal',rq.total);
+    set('progAcertos',rq.acertos);
+    set('progErros',rq.erros);
+    set('progTaxa',rq.taxa+'%');
+
+    try{ if(typeof window.renderizarHorasProgressoV23==='function') window.renderizarHorasProgressoV23(); }catch(_){}
+    try{ if(typeof window.renderizarProgressoV11==='function') window.renderizarProgressoV11(); }catch(_){}
+  };
+
+  function refrescarV118(){
+    setTimeout(()=>{ try{ window.atualizarIndicadoresPersistidosV118(); }catch(_){} },30);
+    setTimeout(()=>{ try{ window.atualizarIndicadoresPersistidosV118(); }catch(_){} },180);
+  }
+
+  // Após o carregamento completo do perfil (inclusive depois de sair/entrar).
+  const uiOriginalV118=window.atualizarUIAposCarregar;
+  if(typeof uiOriginalV118==='function'){
+    window.atualizarUIAposCarregar=function(){
+      const r=uiOriginalV118.apply(this,arguments);
+      try{ if(typeof window.renderizarProgressoV11==='function') window.renderizarProgressoV11(); }catch(_){}
+      try{ if(typeof window.renderizarHorasProgressoV23==='function') window.renderizarHorasProgressoV23(); }catch(_){}
+      refrescarV118();
+      return r;
+    };
+  }
+
+  // Timer comum/manual: registrarHoraEstudo também é usado pelo Timer das revisões V42.
+  const horaOriginalV118=window.registrarHoraEstudo;
+  if(typeof horaOriginalV118==='function'){
+    window.registrarHoraEstudo=function(){
+      const r=horaOriginalV118.apply(this,arguments);
+      refrescarV118();
+      return r;
+    };
+  }
+
+  // Novo Registro: Teoria, Revisão e Questões.
+  const novoOriginalV118=window.salvarNovoRegistroV47;
+  if(typeof novoOriginalV118==='function'){
+    window.salvarNovoRegistroV47=function(){
+      const r=novoOriginalV118.apply(this,arguments);
+      try{ if(typeof window.atualizarVisualizacaoQuestoes==='function') window.atualizarVisualizacaoQuestoes(); }catch(_){}
+      try{ if(typeof window.renderizarProgressoV11==='function') window.renderizarProgressoV11(); }catch(_){}
+      refrescarV118();
+      return r;
+    };
+  }
+
+  // Registro feito diretamente na aba Questões.
+  const questOriginalV118=window.salvarRegistroQuestao;
+  if(typeof questOriginalV118==='function'){
+    window.salvarRegistroQuestao=function(){
+      const r=questOriginalV118.apply(this,arguments);
+      refrescarV118();
+      return r;
+    };
+  }
+
+  // Revisões espaçadas: reforça atualização ao concluir 1D/7D/15D/30D.
+  const revOriginalV118=window.concluirRevisaoTimerV42;
+  if(typeof revOriginalV118==='function'){
+    window.concluirRevisaoTimerV42=function(){
+      const r=revOriginalV118.apply(this,arguments);
+      refrescarV118();
+      return r;
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded',refrescarV118);
+  window.addEventListener('load',refrescarV118);
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('.tab-btn');
+    if(b && (b.getAttribute('onclick')||'').includes('aba-inicio')) refrescarV118();
+  });
+})();
+</script>
+
 </body>
 </html>
 

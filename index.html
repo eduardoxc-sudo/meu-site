@@ -4861,7 +4861,7 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
           const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === slot.topicoId);
           if (topico) {
             topico.t = !!valor;
-            if (valor) registrarRevisoesAutomaticasPlanV41(slot);
+            if (valor) registrarRevisoesAutomaticasPlanV41(slot, diaNome, chaveSemanaAtiva);
             else {
               estado.agendaRevisoes=(estado.agendaRevisoes||[]).filter(r=>!(r.automaticaV42&&r.topicoId===slot.topicoId));
               try{sincronizarTodasSemanasComRevisoes()}catch(_){}
@@ -7479,7 +7479,7 @@ function aplicarPlanejamentoV40(){
 
 // Ao marcar um tópico concluído, registra as revisões futuras separadamente do edital.
 // A fila não cria tópicos; serve como agenda de revisão para integração com o Ciclo.
-function registrarRevisoesAutomaticasPlanV41(slot){
+function registrarRevisoesAutomaticasPlanV41(slot,diaNome,chaveSemanaOrigem){
  const r=estado.revisoesAutomaticas;if(!r||r.automatico===false||!slot||slot.revisaoId||!slot.topicoId)return;
  estado.agendaRevisoes=estado.agendaRevisoes||[];
  const topico=(estado.editalVerticalizado?.[slot.materia]||[]).find(t=>t.id===slot.topicoId);
@@ -7487,8 +7487,18 @@ function registrarRevisoesAutomaticasPlanV41(slot){
  const mapa=[['1D',1,r.d1,r.minD1||15],['7D',7,r.d7,r.minD7||20],['15D',15,r.d15,r.minD15||25],['30D',30,r.d30,r.minD30||30]];
  // Recria somente as revisões automáticas deste tópico; nunca cria tópico novo.
  estado.agendaRevisoes=estado.agendaRevisoes.filter(x=>!(x.automaticaV42&&x.topicoId===slot.topicoId));
+ // A base é a data planejada do cartão original, não a data do clique.
+ let dataBase=new Date(); dataBase.setHours(0,0,0,0);
+ try{
+   const p=String(chaveSemanaOrigem||'').replace('semana_','').split('-').map(Number);
+   const idx=DIAS.indexOf(diaNome);
+   if(p.length===3 && p.every(Number.isFinite) && idx>=0){
+     dataBase=new Date(p[0],p[1]-1,p[2]); dataBase.setHours(0,0,0,0);
+     dataBase.setDate(dataBase.getDate()+idx);
+   }
+ }catch(_){}
  mapa.forEach(([tipo,dias,on,minutos])=>{
-   if(!on)return;const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+dias);
+   if(!on)return;const d=new Date(dataBase);d.setDate(d.getDate()+dias);
    estado.agendaRevisoes.push({id:'rev_'+Math.random().toString(36).substr(2,7),materia:slot.materia,topicoId:slot.topicoId,topicoTitulo:titulo,tipo,dataPrevista:formatarDataChave(d),concluida:false,minutos:Number(minutos),automaticaV42:true});
  });
  normalizarAgendaRevisoes();sincronizarTodasSemanasComRevisoes();salvarEstado();
@@ -8898,378 +8908,6 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
   window.renderAtualV60=renderAtualV60;
 })();
 </script>
-
-
-
-<!-- ===== V80 SEM IA: FLASHCARDS MANUAIS + CSV + ESTUDO + REVISÃO ESPAÇADA ===== -->
-<style id="v80-noai-css">
-#v80fc-modal{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.58);display:none;align-items:center;justify-content:center;padding:16px}
-#v80fc-modal.show{display:flex}
-.v80fc-panel{width:min(1120px,97vw);height:min(850px,94vh);overflow:auto;background:var(--card,#fff);color:var(--text,#172033);border-radius:18px;padding:18px;box-sizing:border-box}
-body.dark .v80fc-panel{background:#102036;color:#e7eef9}
-.v80fc-head,.v80fc-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.v80fc-head{justify-content:space-between;margin-bottom:14px}
-.v80fc-grid{display:grid;grid-template-columns:280px 1fr;gap:14px}
-.v80fc-box{border:1px solid var(--border,#d7dfeb);border-radius:13px;padding:13px}
-body.dark .v80fc-box{border-color:#2b405c}
-.v80fc-btn{border:1px solid var(--border,#cbd5e1);background:transparent;color:inherit;border-radius:9px;padding:8px 11px;cursor:pointer;font-weight:700}
-.v80fc-primary{background:#2563eb!important;border-color:#2563eb!important;color:#fff!important}
-.v80fc-danger{color:#ef4444!important;border-color:#ef4444!important}
-.v80fc-input,.v80fc-text{width:100%;box-sizing:border-box;border:1px solid var(--border,#cbd5e1);border-radius:9px;padding:9px;background:transparent;color:inherit;margin:5px 0}
-.v80fc-text{min-height:76px;resize:vertical}
-.v80fc-folder,.v80fc-card{border:1px solid var(--border,#d7dfeb);border-radius:10px;padding:10px;margin-top:8px}
-.v80fc-folder{cursor:pointer}.v80fc-folder.sel{outline:2px solid #2563eb}
-.v80fc-muted{opacity:.72;font-size:.9rem}
-.v80fc-study{max-width:760px;margin:30px auto;text-align:center}
-.v80fc-question{font-size:1.35rem;font-weight:800;padding:35px 15px}
-.v80fc-answer{font-size:1.1rem;padding:20px;border-top:1px solid var(--border,#d7dfeb)}
-.v80fc-stat{padding:7px 10px;border-radius:999px;background:rgba(37,99,235,.12);font-weight:700;font-size:.85rem}
-@media(max-width:760px){.v80fc-grid{grid-template-columns:1fr}}
-</style>
-
-<div id="v80fc-modal"><div class="v80fc-panel">
-  <div class="v80fc-head"><h2 style="margin:0">🧠 Flashcards</h2><button class="v80fc-btn" onclick="V80FC.close()">✕ Fechar</button></div>
-  <div id="v80fc-body"></div>
-</div></div>
-
-<script id="v80-noai-js">
-window.V80FC=(function(){
-  let folderId=null, studyList=[], studyPos=0;
-  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-  function userKey(){
-    try{
-      const u=estado?.usuarioAtual||estado?.usuario||estado?.user||window.usuarioAtual||window.currentUser||{};
-      return String(u.id??u.uid??u.email??u.usuario??u.username??u.nome??'local').toLowerCase().replace(/[^a-z0-9@._-]/g,'_');
-    }catch(e){return 'local'}
-  }
-  const key=()=>`EI_V80_FLASH_${userKey()}`;
-  function data(){try{return JSON.parse(localStorage.getItem(key()))||{folders:[]}}catch(e){return {folders:[]}}}
-  function save(d){localStorage.setItem(key(),JSON.stringify(d))}
-  function today(){return new Date().toISOString().slice(0,10)}
-  function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)}
-  function open(){document.getElementById('v80fc-modal').classList.add('show');render()}
-  function close(){document.getElementById('v80fc-modal').classList.remove('show')}
-  function render(){
-    const d=data(), f=d.folders.find(x=>x.id===folderId);
-    const total=d.folders.reduce((n,x)=>n+x.cards.length,0);
-    const due=d.folders.reduce((n,x)=>n+x.cards.filter(c=>!c.due||c.due<=today()).length,0);
-    let right=`<div class="v80fc-box"><h3>Seus Flashcards</h3><p class="v80fc-muted">Crie uma pasta por matéria. Depois você pode adicionar cartões manualmente ou importar vários de uma vez.</p></div>`;
-    if(f) right=folderView(f);
-    document.getElementById('v80fc-body').innerHTML=`
-      <div class="v80fc-row" style="margin-bottom:12px"><span class="v80fc-stat">📚 ${total} cartões</span><span class="v80fc-stat">🔄 ${due} para revisar</span></div>
-      <div class="v80fc-grid">
-       <div class="v80fc-box"><div class="v80fc-row"><b>📁 Matérias</b><button class="v80fc-btn v80fc-primary" onclick="V80FC.addFolder()">+ Pasta</button></div>
-       ${d.folders.map(f=>`<div class="v80fc-folder ${f.id===folderId?'sel':''}" onclick="V80FC.pick('${f.id}')"><b>${esc(f.name)}</b><div class="v80fc-muted">${f.cards.length} cartão(ões)</div><div class="v80fc-row" style="margin-top:6px"><button class="v80fc-btn" onclick="event.stopPropagation();V80FC.renameFolder('${f.id}')">Renomear</button><button class="v80fc-btn v80fc-danger" onclick="event.stopPropagation();V80FC.delFolder('${f.id}')">Excluir</button></div></div>`).join('')||'<p class="v80fc-muted">Nenhuma pasta.</p>'}
-       </div>${right}</div>`;
-  }
-  function folderView(f){
-    return `<div class="v80fc-box"><div class="v80fc-row"><h3 style="margin-right:auto">${esc(f.name)}</h3>
-      <button class="v80fc-btn v80fc-primary" onclick="V80FC.study(false)">▶ Estudar</button>
-      <button class="v80fc-btn" onclick="V80FC.study(true)">🔄 Revisar agora</button></div>
-      <div class="v80fc-card"><b>➕ Novo flashcard</b><input id="v80fc-q" class="v80fc-input" placeholder="Pergunta"><textarea id="v80fc-a" class="v80fc-text" placeholder="Resposta"></textarea><button class="v80fc-btn v80fc-primary" onclick="V80FC.addCard()">Salvar</button></div>
-      <div class="v80fc-card"><b>📥 Importar / Exportar</b><p class="v80fc-muted">CSV/TXT no formato: pergunta;resposta — uma linha por cartão.</p><div class="v80fc-row"><label class="v80fc-btn">Importar CSV/TXT<input hidden type="file" accept=".csv,.txt,text/plain,text/csv" onchange="V80FC.importFile(event)"></label><button class="v80fc-btn" onclick="V80FC.exportCSV()">Exportar Anki CSV</button></div></div>
-      ${f.cards.map(c=>`<div class="v80fc-card"><b>${esc(c.q)}</b><div>${esc(c.a)}</div><div class="v80fc-muted">Próxima revisão: ${esc(c.due||'agora')} · revisões: ${c.reviews||0}</div><div class="v80fc-row" style="margin-top:7px"><button class="v80fc-btn" onclick="V80FC.editCard('${c.id}')">Editar</button><button class="v80fc-btn v80fc-danger" onclick="V80FC.delCard('${c.id}')">Excluir</button></div></div>`).join('')||'<p class="v80fc-muted">Nenhum cartão nesta matéria.</p>'}</div>`;
-  }
-  function addFolder(){const n=prompt('Nome da matéria/pasta:');if(!n)return;const d=data();const f={id:uid(),name:n.trim(),cards:[]};d.folders.push(f);save(d);folderId=f.id;render()}
-  function pick(id){folderId=id;render()}
-  function renameFolder(id){const d=data(),f=d.folders.find(x=>x.id===id);const n=prompt('Novo nome:',f.name);if(!n)return;f.name=n.trim();save(d);render()}
-  function delFolder(id){if(!confirm('Excluir esta pasta e todos os flashcards?'))return;const d=data();d.folders=d.folders.filter(x=>x.id!==id);save(d);if(folderId===id)folderId=null;render()}
-  function addCard(){const q=document.getElementById('v80fc-q').value.trim(),a=document.getElementById('v80fc-a').value.trim();if(!q||!a)return alert('Preencha pergunta e resposta.');const d=data(),f=d.folders.find(x=>x.id===folderId);f.cards.push({id:uid(),q,a,due:today(),reviews:0,interval:0});save(d);render()}
-  function delCard(id){if(!confirm('Excluir este flashcard?'))return;const d=data(),f=d.folders.find(x=>x.id===folderId);f.cards=f.cards.filter(x=>x.id!==id);save(d);render()}
-  function editCard(id){const d=data(),f=d.folders.find(x=>x.id===folderId),c=f.cards.find(x=>x.id===id);const q=prompt('Pergunta:',c.q);if(q===null)return;const a=prompt('Resposta:',c.a);if(a===null)return;c.q=q.trim();c.a=a.trim();save(d);render()}
-  function importFile(e){const file=e.target.files?.[0];if(!file)return;const r=new FileReader();r.onload=()=>{const lines=String(r.result||'').split(/\r?\n/).filter(Boolean);const d=data(),f=d.folders.find(x=>x.id===folderId);let n=0;lines.forEach(line=>{const p=line.indexOf(';');if(p>0){const q=line.slice(0,p).trim(),a=line.slice(p+1).trim();if(q&&a){f.cards.push({id:uid(),q,a,due:today(),reviews:0,interval:0});n++}}});save(d);alert(`${n} flashcard(s) importado(s).`);render()};r.readAsText(file,'UTF-8')}
-  function exportCSV(){const d=data(),f=d.folders.find(x=>x.id===folderId);const csv=f.cards.map(c=>`${c.q.replaceAll(';',',')};${c.a.replaceAll(';',',')}`).join('\n');const b=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=f.name+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
-  function study(onlyDue){const d=data(),f=d.folders.find(x=>x.id===folderId);studyList=f.cards.filter(c=>!onlyDue||!c.due||c.due<=today()).map(c=>c.id);studyPos=0;if(!studyList.length)return alert(onlyDue?'Nenhum flashcard para revisar hoje.':'Esta pasta não possui flashcards.');showStudy()}
-  function showStudy(){const d=data(),f=d.folders.find(x=>x.id===folderId),c=f.cards.find(x=>x.id===studyList[studyPos]);if(!c){render();return}document.getElementById('v80fc-body').innerHTML=`<div class="v80fc-study v80fc-box"><div class="v80fc-muted">Cartão ${studyPos+1} de ${studyList.length} · ${esc(f.name)}</div><div class="v80fc-question">${esc(c.q)}</div><div id="v80fc-answer" class="v80fc-answer" style="display:none">${esc(c.a)}</div><div id="v80fc-show"><button class="v80fc-btn v80fc-primary" onclick="V80FC.reveal()">👁 Ver resposta</button></div><div id="v80fc-grade" class="v80fc-row" style="display:none;justify-content:center;margin-top:15px"><button class="v80fc-btn v80fc-danger" onclick="V80FC.grade('errei')">Errei</button><button class="v80fc-btn" onclick="V80FC.grade('dificil')">Difícil</button><button class="v80fc-btn v80fc-primary" onclick="V80FC.grade('bom')">Bom</button><button class="v80fc-btn" onclick="V80FC.grade('facil')">Fácil</button></div><div style="margin-top:18px"><button class="v80fc-btn" onclick="V80FC.render()">← Sair do estudo</button></div></div>`}
-  function reveal(){document.getElementById('v80fc-answer').style.display='block';document.getElementById('v80fc-show').style.display='none';document.getElementById('v80fc-grade').style.display='flex'}
-  function grade(g){const d=data(),f=d.folders.find(x=>x.id===folderId),c=f.cards.find(x=>x.id===studyList[studyPos]);const map={errei:1,dificil:3,bom:7,facil:15};let days=map[g];if((c.reviews||0)>0&&g!=='errei')days=Math.min(90,Math.round(days*(1+(c.reviews||0)*.35)));c.reviews=(c.reviews||0)+1;c.interval=days;c.due=addDays(days);save(d);studyPos++;if(studyPos>=studyList.length){alert('Sessão concluída!');render()}else showStudy()}
-  return {open,close,render,addFolder,pick,renameFolder,delFolder,addCard,delCard,editCard,importFile,exportCSV,study,reveal,grade};
-})();
-
-/* Integra ao menu lateral sem tocar nas outras abas. */
-(function(){
- function install(){
-   if(document.getElementById('v80fc-menu'))return;
-   const buttons=[...document.querySelectorAll('.tab-btn,aside button')];
-   const q=buttons.find(b=>/questões|questoes/i.test(b.textContent||''));
-   if(!q||!q.parentNode)return;
-   const b=document.createElement('button');
-   b.id='v80fc-menu'; b.type='button'; b.className=q.className||'tab-btn';
-   b.innerHTML='🧠 <span>Flashcards</span>';
-   b.onclick=e=>{e.preventDefault();V80FC.open()};
-   q.insertAdjacentElement('afterend',b);
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,100));else setTimeout(install,100);
- new MutationObserver(install).observe(document.documentElement,{subtree:true,childList:true});
-})();
-</script>
-
-
-
-<!-- ===== V81: LIMPEZA DEFINITIVA DA ÁREA ANTIGA DE IA DOS FLASHCARDS ===== -->
-<style id="v81-flash-clean">
-#v76-import, #v77-ai { display:none !important; }
-</style>
-<script id="v81-flash-clean-js">
-(function(){
-  function limparFlashAntigo(){
-    ['v76-import','v77-ai'].forEach(function(id){
-      var el=document.getElementById(id);
-      if(el) el.remove();
-    });
-    /* Remove textos/blocos antigos caso algum trecho tenha sido recriado sem ID. */
-    document.querySelectorAll('#v74-body .v74-box, #v74-body section, #v74-body div').forEach(function(el){
-      var t=(el.textContent||'').trim();
-      if(
-        t.includes('Material para gerar flashcards') ||
-        t.includes('Gerar Flashcards com IA') ||
-        t.includes('A geração automática será ativada') ||
-        t.includes('backend de IA')
-      ){
-        if(el.id==='v74-body') return;
-        var parent=el.parentElement;
-        if(parent && parent.id==='v74-body') el.remove();
-      }
-    });
-  }
-  document.addEventListener('click',function(){setTimeout(limparFlashAntigo,30)},true);
-  new MutationObserver(function(){setTimeout(limparFlashAntigo,20)})
-    .observe(document.documentElement,{childList:true,subtree:true});
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',limparFlashAntigo);
-  else limparFlashAntigo();
-})();
-</script>
-
-
-
-<!-- ===== V82: REPETIÇÃO ESPAÇADA ESTILO ANKI NO FLASHCARD EXISTENTE ===== -->
-<style id="v82-srs-css">
-#v82-srs-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
-.v82-pill{padding:7px 10px;border-radius:999px;background:#eef4ff;color:#17335c;font-size:13px;font-weight:700}
-body.dark .v82-pill{background:#182a43;color:#dbeafe}
-#v82-study{position:fixed;inset:0;z-index:99999;background:rgba(5,12,24,.72);display:none;align-items:center;justify-content:center;padding:18px}
-#v82-study.show{display:flex}
-.v82-study-card{width:min(760px,96vw);max-height:92vh;overflow:auto;background:#fff;color:#111827;border-radius:18px;padding:24px;box-sizing:border-box;box-shadow:0 25px 80px rgba(0,0,0,.35)}
-body.dark .v82-study-card{background:#102036;color:#f3f6fb}
-.v82-q{font-size:25px;font-weight:800;text-align:center;padding:35px 10px}
-.v82-a{font-size:19px;text-align:center;border-top:1px solid #dbe3ef;padding:26px 10px;display:none;white-space:pre-wrap}
-.v82-actions{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:18px}
-.v82-btn{border:1px solid #cbd5e1;border-radius:10px;padding:10px 15px;background:transparent;color:inherit;font-weight:800;cursor:pointer}
-.v82-primary{background:#2563eb!important;color:white!important;border-color:#2563eb!important}
-.v82-again{border-color:#ef4444!important;color:#ef4444!important}
-.v82-hard{border-color:#f59e0b!important;color:#b45309!important}
-.v82-good{border-color:#22c55e!important;color:#15803d!important}
-.v82-easy{border-color:#3b82f6!important;color:#2563eb!important}
-</style>
-
-<div id="v82-study"><div class="v82-study-card">
- <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
-   <b id="v82-title">Revisão</b><button class="v82-btn" onclick="V82SRS.close()">✕ Fechar</button>
- </div>
- <div id="v82-progress" style="opacity:.7;margin-top:8px"></div>
- <div class="v82-q" id="v82-q"></div>
- <div class="v82-a" id="v82-a"></div>
- <div class="v82-actions" id="v82-show"><button class="v82-btn v82-primary" onclick="V82SRS.reveal()">👁 Mostrar resposta</button></div>
- <div class="v82-actions" id="v82-grade" style="display:none">
-   <button class="v82-btn v82-again" onclick="V82SRS.grade('again')">🔴 Errei<br><small>hoje</small></button>
-   <button class="v82-btn v82-hard" onclick="V82SRS.grade('hard')">🟠 Difícil<br><small id="v82-hard-i"></small></button>
-   <button class="v82-btn v82-good" onclick="V82SRS.grade('good')">🟢 Bom<br><small id="v82-good-i"></small></button>
-   <button class="v82-btn v82-easy" onclick="V82SRS.grade('easy')">🔵 Fácil<br><small id="v82-easy-i"></small></button>
- </div>
-</div></div>
-
-<script id="v82-srs-js">
-window.V82SRS=(function(){
-  let ctx=null, queue=[], pos=0, current=null;
-
-  function dayISO(offset=0){
-    const d=new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()+offset);
-    return d.toISOString().slice(0,10);
-  }
-  function dueISOFromMinutes(mins){ return new Date(Date.now()+mins*60000).toISOString(); }
-  function dueISOFromDays(days){ return new Date(Date.now()+days*86400000).toISOString(); }
-  function load(){
-    try{return JSON.parse(localStorage.getItem('EI_V74_FLASH'))||{folders:[]}}catch(e){return {folders:[]}}
-  }
-  function save(d){localStorage.setItem('EI_V74_FLASH',JSON.stringify(d))}
-  function ensure(c){
-    if(!c.srs)c.srs={due:new Date(0).toISOString(),interval:0,reps:0,lapses:0,ease:2.5,last:null};
-    return c.srs;
-  }
-  function due(c){
-    const s=ensure(c); if(!s.due)return true;
-    if(/^\d{4}-\d{2}-\d{2}$/.test(s.due)) return s.due<=dayISO(0);
-    return new Date(s.due).getTime()<=Date.now();
-  }
-  function intervals(c){
-    return {hardMin:10, goodMin:30, easyDays:3};
-  }
-  function findFolderFromUI(){
-    const d=load();
-    const title=document.querySelector('#v74-body h2,#v74-body h3');
-    const name=(title?.textContent||'').trim();
-    let f=d.folders.find(x=>String(x.name||'').trim()===name);
-    if(!f){
-      const selected=[...document.querySelectorAll('#v74-body .v74-item')].find(x=>x.classList.contains('sel'));
-      const n=(selected?.querySelector('b')?.textContent||'').trim();
-      f=d.folders.find(x=>String(x.name||'').trim()===n);
-    }
-    return f||null;
-  }
-  function stats(f){
-    const total=f?.items?.length||0, dueN=(f?.items||[]).filter(due).length;
-    return {total,dueN,future:Math.max(0,total-dueN)};
-  }
-  function inject(){
-    const body=document.querySelector('#v74-body'); if(!body)return;
-    const f=findFolderFromUI(); if(!f)return;
-    if(body.querySelector('#v82-srs-bar'))return;
-    const s=stats(f);
-    const bar=document.createElement('div'); bar.id='v82-srs-bar';
-    bar.innerHTML=`<span class="v82-pill">📚 ${s.total} cartões</span>
-      <span class="v82-pill">🔄 ${s.dueN} para hoje</span>
-      <span class="v82-pill">✅ ${s.future} futuros</span>
-      <button class="v82-btn v82-primary" type="button" onclick="V82SRS.startDue()">▶ Revisar agora (${s.dueN})</button>
-      <button class="v82-btn" type="button" onclick="V82SRS.startAll()">📖 Estudar todos</button>`;
-    const firstBox=body.querySelector('.v74-box');
-    (firstBox||body).insertAdjacentElement(firstBox?'beforebegin':'afterbegin',bar);
-  }
-  function start(onlyDue){
-    const d=load(), f=findFolderFromUI();
-    if(!f)return alert('Selecione uma pasta de Flashcards.');
-    (f.items||[]).forEach(ensure); save(d);
-    queue=(f.items||[]).filter(c=>!onlyDue||due(c)).map(c=>c.id);
-    if(!queue.length)return alert(onlyDue?'Nenhum flashcard para revisar hoje.':'Esta pasta não possui flashcards.');
-    ctx={folderId:f.id}; pos=0; document.getElementById('v82-study').classList.add('show'); show();
-  }
-  function getCurrent(){
-    const d=load(), f=d.folders.find(x=>x.id===ctx.folderId);
-    return {d,f,c:f?.items?.find(x=>x.id===queue[pos])};
-  }
-  function show(){
-    const {f,c}=getCurrent(); current=c;
-    if(!c){close();return}
-    const ints=intervals(c);
-    document.getElementById('v82-title').textContent='🧠 '+(f.name||'Flashcards');
-    document.getElementById('v82-progress').textContent=`Cartão ${pos+1} de ${queue.length}`;
-    document.getElementById('v82-q').textContent=c.q||'';
-    document.getElementById('v82-a').textContent=c.a||'';
-    document.getElementById('v82-a').style.display='none';
-    document.getElementById('v82-show').style.display='flex';
-    document.getElementById('v82-grade').style.display='none';
-    document.getElementById('v82-hard-i').textContent='+10 min';
-    document.getElementById('v82-good-i').textContent='+30 min';
-    document.getElementById('v82-easy-i').textContent='+3 dias';
-  }
-  function reveal(){
-    document.getElementById('v82-a').style.display='block';
-    document.getElementById('v82-show').style.display='none';
-    document.getElementById('v82-grade').style.display='flex';
-  }
-  function grade(g){
-    const {d,c}=getCurrent(); if(!c)return;
-    const s=ensure(c), ints=intervals(c);
-    s.reps=(s.reps||0)+1; s.last=dayISO(0);
-    if(g==='again'){
-      s.lapses=(s.lapses||0)+1; s.interval=0; s.ease=Math.max(1.3,(s.ease||2.5)-0.20);
-      s.due=dueISOFromMinutes(1);
-      if(!queue.slice(pos+1).includes(c.id)) queue.push(c.id);
-    } else if(g==='hard'){
-      s.interval=10; s.intervalUnit='minute'; s.due=dueISOFromMinutes(10);
-    } else if(g==='good'){
-      s.interval=30; s.intervalUnit='minute'; s.due=dueISOFromMinutes(30);
-    } else {
-      s.interval=3; s.intervalUnit='day'; s.due=dueISOFromDays(3);
-    }
-    save(d); pos++;
-    if(pos>=queue.length){alert('✅ Revisão concluída!');close();setTimeout(refresh,60)} else show();
-  }
-  function close(){document.getElementById('v82-study').classList.remove('show')}
-  function refresh(){
-    const b=document.querySelector('#v82-srs-bar'); if(b)b.remove();
-    inject();
-  }
-  function startDue(){start(true)}
-  function startAll(){start(false)}
-  return {inject,startDue,startAll,reveal,grade,close,refresh};
-})();
-
-(function(){
-  function run(){setTimeout(()=>V82SRS.inject(),40)}
-  document.addEventListener('click',run,true);
-  new MutationObserver(run).observe(document.documentElement,{subtree:true,childList:true});
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
-})();
-</script>
-
-
-
-
-
-<!-- ===== V84: IMPORTADOR SIMPLES DE FLASHCARDS ===== -->
-<script id="v84-import-flash">
-function V84ImportFlash(ev){
-  const file=ev.target.files && ev.target.files[0];
-  if(!file)return;
-  const r=new FileReader();
-  r.onload=function(){
-    try{
-      const d=JSON.parse(localStorage.getItem('EI_V74_FLASH'))||{folders:[]};
-      const selected=document.querySelector('#v74-body .v74-item.sel b');
-      const name=(selected?.textContent||'').trim();
-      const f=d.folders.find(x=>String(x.name||'').trim()===name);
-      if(!f)return alert('Selecione uma pasta de Flashcards.');
-      const lines=String(r.result||'').replace(/\r/g,'').split('\n').filter(x=>x.trim());
-      let n=0;
-      lines.forEach(line=>{
-        const p=line.indexOf(';');
-        if(p<1)return;
-        const q=line.slice(0,p).trim(), a=line.slice(p+1).trim();
-        if(!q||!a)return;
-        f.items.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),q:q,a:a});
-        n++;
-      });
-      localStorage.setItem('EI_V74_FLASH',JSON.stringify(d));
-      alert(n+' flashcard(s) adicionado(s).');
-      if(window.V74&&V74.render)V74.render();
-    }catch(e){alert('Não foi possível importar o arquivo. Use pergunta;resposta em cada linha.');}
-    ev.target.value='';
-  };
-  r.readAsText(file,'UTF-8');
-}
-</script>
-
-
-
-<!-- ===== V86: FLASHCARD MANUAL COMPACTO ===== -->
-<script id="v86-manual-flash">
-window.V86ManualFlash={
- toggle:function(force){
-   const el=document.getElementById('v86-manual-form'); if(!el)return;
-   const show=typeof force==='boolean'?force:el.style.display==='none';
-   el.style.display=show?'block':'none';
-   if(show)setTimeout(()=>document.getElementById('v86-q')?.focus(),20);
- },
- save:function(){
-   const q=document.getElementById('v86-q')?.value.trim();
-   const a=document.getElementById('v86-a')?.value.trim();
-   if(!q||!a)return alert('Preencha a pergunta e a resposta.');
-   const d=JSON.parse(localStorage.getItem('EI_V74_FLASH')||'{"folders":[]}');
-   const selected=document.querySelector('#v74-body .v74-item.sel b');
-   const name=(selected?.textContent||'').trim();
-   const f=d.folders.find(x=>String(x.name||'').trim()===name);
-   if(!f)return alert('Selecione uma pasta.');
-   f.items.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),q:q,a:a});
-   localStorage.setItem('EI_V74_FLASH',JSON.stringify(d));
-   V74.render();
- }
-};
-</script>
-
-
-
-
 <!-- ===== V88 EXTENSÃO ISOLADA: RESPONSIVIDADE MOBILE =====
      NÃO ALTERA O NÚCLEO V86. Somente CSS responsivo adicional. -->
 <style id="ei-v88-mobile">
@@ -9479,6 +9117,29 @@ window.V86ManualFlash={
   /* A limpeza é tardia para não tocar na tela nem nos eventos do login. */
   window.addEventListener('load',()=>setTimeout(limparFlashcardsSomenteNoApp,700));
   document.addEventListener('click',()=>setTimeout(limparFlashcardsSomenteNoApp,120));
+})();
+</script>
+
+
+
+<!-- ===== V92: SEM FLASHCARDS + REVISÕES PELA DATA PLANEJADA ===== -->
+<style id="v92-final-clean">
+#v74-tab-flash,
+#v80fc-menu,
+#v82-srs-bar,
+#v82-study,
+button[onclick*="V74.open('flash')"],
+button[onclick*='V74.open("flash")'],
+.v74-fab[onclick*="flash"] {display:none!important}
+</style>
+<script id="v92-clean-once">
+(function(){
+ function limpar(){
+   document.getElementById('v80fc-menu')?.remove();
+   document.getElementById('v74-tab-flash')?.style.setProperty('display','none','important');
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(limpar,300));
+ else setTimeout(limpar,300);
 })();
 </script>
 

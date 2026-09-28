@@ -11197,3 +11197,161 @@ body.v71-timer #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!importan
 })();
 </script>
 
+
+
+<!-- =========================================================
+ V127 — PERSISTÊNCIA LOCAL SEGURA
+ Base: V126
+ Objetivo: F5, fechar/abrir e redimensionar NÃO podem zerar dados.
+ Não altera Timer, cronograma, edital, prioridades ou revisões.
+========================================================== -->
+<script id="v127-persistencia-segura">
+(function(){
+  const KEY='studyflow_backup_v127';
+  const META='studyflow_backup_v127_meta';
+  let restaurando=false, pronto=false;
+
+  function E(){
+    try{return estado||window.estado||null}catch(_){return window.estado||null}
+  }
+
+  function valido(e){
+    if(!e || typeof e!=='object') return false;
+    const edital=e.editalVerticalizado && typeof e.editalVerticalizado==='object'
+      ? Object.values(e.editalVerticalizado).reduce((s,a)=>s+(Array.isArray(a)?a.length:0),0) : 0;
+    const horas=Array.isArray(e.historicoHoras)?e.historicoHoras.length:0;
+    const quest=Array.isArray(e.historicoQuestoes)?e.historicoQuestoes.length:0;
+    const agenda=Array.isArray(e.agendaRevisoes)?e.agendaRevisoes.length:0;
+    const semanas=Array.isArray(e.semanas)?e.semanas.length:0;
+    return (edital+horas+quest+agenda+semanas)>0;
+  }
+
+  function riqueza(e){
+    if(!e)return 0;
+    let n=0;
+    try{
+      n += Object.values(e.editalVerticalizado||{}).reduce((s,a)=>s+(Array.isArray(a)?a.length:0),0)*10;
+      n += (e.historicoHoras||[]).length*5;
+      n += (e.historicoQuestoes||[]).length*5;
+      n += (e.agendaRevisoes||[]).length*3;
+      n += (e.semanas||[]).length*2;
+    }catch(_){}
+    return n;
+  }
+
+  function lerBackup(){
+    try{
+      const raw=localStorage.getItem(KEY);
+      return raw?JSON.parse(raw):null;
+    }catch(_){return null}
+  }
+
+  function gravarBackup(forcar){
+    if(restaurando)return false;
+    const e=E();
+    if(!valido(e)) return false;
+
+    const antigo=lerBackup();
+    /* Proteção contra sobrescrever um backup rico com estado vazio/parcial
+       durante inicialização, resize ou recarga. */
+    if(!forcar && antigo && riqueza(e)<riqueza(antigo)*0.45) return false;
+
+    try{
+      localStorage.setItem(KEY,JSON.stringify(e));
+      localStorage.setItem(META,JSON.stringify({
+        salvoEm:new Date().toISOString(),
+        riqueza:riqueza(e)
+      }));
+      return true;
+    }catch(_){return false}
+  }
+
+  function copiarNoEstado(src){
+    if(!src || typeof src!=='object')return false;
+    let e=E();
+    if(!e)return false;
+    Object.keys(e).forEach(k=>{ try{delete e[k]}catch(_){} });
+    Object.keys(src).forEach(k=>{ e[k]=src[k] });
+    return true;
+  }
+
+  function restaurarSeNecessario(){
+    const atual=E(), backup=lerBackup();
+    if(!backup || !valido(backup))return false;
+
+    /* Restaura apenas se o estado carregado estiver claramente vazio/parcial. */
+    if(!valido(atual) || riqueza(atual)<riqueza(backup)*0.45){
+      restaurando=true;
+      copiarNoEstado(backup);
+      try{
+        if(typeof salvarEstado==='function') salvarEstado();
+      }catch(_){}
+      restaurando=false;
+
+      try{if(typeof renderizarGrade==='function')renderizarGrade()}catch(_){}
+      try{if(typeof renderizarAbaRevisoes==='function')renderizarAbaRevisoes()}catch(_){}
+      try{if(typeof atualizarVisualizacaoHoras==='function')atualizarVisualizacaoHoras()}catch(_){}
+      try{if(typeof atualizarVisualizacaoQuestoes==='function')atualizarVisualizacaoQuestoes()}catch(_){}
+      try{if(typeof aplicarDashboardV123==='function')aplicarDashboardV123()}catch(_){}
+      try{if(typeof renderAtencaoV126==='function')renderAtencaoV126()}catch(_){}
+      return true;
+    }
+    return false;
+  }
+
+  /* Envolve o salvamento original: primeiro ele salva normalmente,
+     depois fazemos uma cópia local de segurança. */
+  function instalar(){
+    if(typeof window.salvarEstado==='function' && !window.salvarEstado.__v127){
+      const original=window.salvarEstado;
+      const nova=function(){
+        const r=original.apply(this,arguments);
+        if(pronto) setTimeout(()=>gravarBackup(false),0);
+        return r;
+      };
+      nova.__v127=true;
+      window.salvarEstado=nova;
+    }
+
+    /* Primeiro tenta restaurar. Só depois permite atualizar o backup. */
+    restaurarSeNecessario();
+    pronto=true;
+    gravarBackup(false);
+  }
+
+  /* NÃO existe listener de resize. Mudar tamanho da janela não salva,
+     não restaura e não inicializa estado algum. */
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    setTimeout(instalar,900);
+    setTimeout(()=>{restaurarSeNecessario();gravarBackup(false)},1800);
+  });
+
+  window.addEventListener('pageshow',()=>{
+    setTimeout(()=>{restaurarSeNecessario();gravarBackup(false)},500);
+  });
+
+  window.addEventListener('estado-carregado',()=>{
+    setTimeout(()=>{restaurarSeNecessario();gravarBackup(false)},120);
+  });
+
+  /* Backup final antes de F5/fechar. */
+  window.addEventListener('pagehide',()=>{gravarBackup(false)});
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='hidden') gravarBackup(false);
+  });
+
+  /* Backup manual de emergência disponível no console, sem botão novo. */
+  window.backupLocalV127=function(){return gravarBackup(true)};
+  window.restaurarBackupLocalV127=function(){
+    const b=lerBackup();
+    if(!b)return false;
+    restaurando=true;
+    const ok=copiarNoEstado(b);
+    try{if(ok&&typeof salvarEstado==='function')salvarEstado()}catch(_){}
+    restaurando=false;
+    return ok;
+  };
+})();
+</script>
+

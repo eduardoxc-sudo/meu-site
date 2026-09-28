@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 ===============================================================================
- V104 — MOBILE MEU PLANO CORRIGIDO — FIREBASE V102 PRESERVADO
+ V105 — MOBILE MESMOS PLANOS DO DESKTOP — FIREBASE PRESERVADO
  Não editar diretamente esta versão publicada.
  Fluxo recomendado:
  1. conservar este arquivo como versão estável;
@@ -9366,58 +9366,100 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
 }
 </style>
 
-<script id="v104-meu-plano-mobile-js">
-(function(){
-  function ajustarMeuPlanoV104(){
-    if(!window.matchMedia('(max-width:768px)').matches) return;
 
-    /* Localiza a grade real pelos títulos dos dias, sem alterar os cartões. */
-    const nomes=['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado','Domingo'];
-    const todos=[...document.querySelectorAll('body *')];
-    const cabecalhos=todos.filter(el=>{
-      const t=(el.textContent||'').trim();
-      return nomes.includes(t) && el.children.length <= 3;
-    });
 
-    cabecalhos.forEach(h=>{
-      let card=h;
-      for(let i=0;i<5 && card?.parentElement;i++,card=card.parentElement){
-        const p=card.parentElement;
-        const txt=(p.textContent||'');
-        const qtd=nomes.filter(n=>txt.includes(n)).length;
-        if(qtd>=2){
-          p.style.setProperty('display','grid','important');
-          p.style.setProperty('grid-template-columns','minmax(0,1fr)','important');
-          p.style.setProperty('width','100%','important');
-          p.style.setProperty('max-width','100%','important');
-          p.style.setProperty('min-width','0','important');
-          p.style.setProperty('gap','12px','important');
-          p.style.setProperty('overflow','visible','important');
-          [...p.children].forEach(c=>{
-            c.style.setProperty('width','100%','important');
-            c.style.setProperty('max-width','100%','important');
-            c.style.setProperty('min-width','0','important');
-            c.style.setProperty('margin-left','0','important');
-            c.style.setProperty('margin-right','0','important');
-          });
-          break;
-        }
-      }
-    });
+
+<!-- =========================================================
+ V105 — MOBILE: MESMOS DADOS/RENDERIZAÇÃO DO DESKTOP
+ Somente apresentação. Não recria agenda e não altera Firebase.
+========================================================== -->
+<style id="v105-plan-mobile-presentation-only">
+@media (max-width:768px){
+  /* Não cria uma segunda agenda: apenas reorganiza a grade já renderizada
+     pela aplicação, preservando os cartões/dados do desktop. */
+  .week-container,
+  .week-grid,
+  .weekly-grid,
+  .semana-grid,
+  .days-container,
+  .days-grid,
+  .calendar-week,
+  .calendar-grid{
+    grid-template-columns:1fr !important;
+    flex-direction:column !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    overflow:visible !important;
   }
 
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(ajustarMeuPlanoV104,350));
-  window.addEventListener('resize',()=>setTimeout(ajustarMeuPlanoV104,100));
-  document.addEventListener('click',()=>setTimeout(ajustarMeuPlanoV104,250));
+  .day-column,
+  .day-card,
+  .dia-card,
+  .calendar-day,
+  .day-container{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    flex:0 0 auto !important;
+    box-sizing:border-box !important;
+  }
 
-  /* Observa quando Meu Plano é redesenhado. */
-  const obs=new MutationObserver(()=> {
-    clearTimeout(window.__v104PlanoTimer);
-    window.__v104PlanoTimer=setTimeout(ajustarMeuPlanoV104,120);
-  });
-  document.addEventListener('DOMContentLoaded',()=>{
-    obs.observe(document.body,{childList:true,subtree:true});
-  });
+  /* Se a grade desktop usa largura mínima para 7 colunas, neutraliza só no mobile. */
+  [class*="week"],
+  [class*="semana"]{
+    min-width:0 !important;
+    max-width:100% !important;
+  }
+}
+</style>
+
+<script id="v105-plan-mobile-safe">
+(function(){
+  /* V105 não toca nos dados. Depois que a aplicação renderiza a semana,
+     apenas procura o contêiner que já contém vários dias e o empilha. */
+  function empilharGradeExistente(){
+    if(!matchMedia('(max-width:768px)').matches) return;
+
+    const nomes = ['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado','Domingo'];
+    const els = Array.from(document.querySelectorAll('main div, .main-content div, #app-container div'));
+
+    let melhor = null, melhorQtd = 0;
+    for(const el of els){
+      const filhos = Array.from(el.children || []);
+      if(filhos.length < 2 || filhos.length > 10) continue;
+      let qtd = 0;
+      for(const f of filhos){
+        const txt = (f.innerText || '').slice(0,180);
+        if(nomes.some(n => txt.includes(n))) qtd++;
+      }
+      if(qtd > melhorQtd){
+        melhor = el;
+        melhorQtd = qtd;
+      }
+    }
+
+    /* Só age se a própria aplicação já tiver renderizado pelo menos 2 dias.
+       Isso impede transformar um placeholder "Sem atividades" em fonte de dados. */
+    if(melhor && melhorQtd >= 2){
+      melhor.style.setProperty('display','grid','important');
+      melhor.style.setProperty('grid-template-columns','minmax(0,1fr)','important');
+      melhor.style.setProperty('gap','12px','important');
+      melhor.style.setProperty('width','100%','important');
+      melhor.style.setProperty('max-width','100%','important');
+      melhor.style.setProperty('min-width','0','important');
+      melhor.style.setProperty('overflow','visible','important');
+      Array.from(melhor.children).forEach(f=>{
+        f.style.setProperty('width','100%','important');
+        f.style.setProperty('max-width','100%','important');
+        f.style.setProperty('min-width','0','important');
+      });
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(empilharGradeExistente,500));
+  window.addEventListener('resize',()=>setTimeout(empilharGradeExistente,150));
+  document.addEventListener('click',()=>setTimeout(empilharGradeExistente,350));
 })();
 </script>
 

@@ -23,6 +23,25 @@
 ========================================================== -->
 <html lang="pt-BR">
 <head>
+
+<!-- =========================================================
+ V137 — CORREÇÃO DIRETA (base V134 estável)
+ 1) evita o "flash" visual do login/app simultâneos
+ 2) memoriza a última aba real escolhida
+ 3) bloqueia apenas o redirecionamento automático para aba-inicio
+    durante a restauração após F5
+ Não altera o objeto de dados/persistência da V134.
+========================================================== -->
+<style id="v137-style">
+html.v137-carregando body { visibility:hidden !important; }
+</style>
+<script id="v137-early">
+(function(){
+  try { document.documentElement.classList.add('v137-carregando'); } catch(e) {}
+})();
+</script>
+
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Plano & Ciclo de Estudos</title>
@@ -9931,86 +9950,116 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
 </script>
 
 
-<!-- =========================================================
- V136 — DIAGNÓSTICO: LOGIN VISUAL + ÚLTIMA ABA
- Base: V134 estável (F5 não zera dados)
- NÃO corrige o comportamento.
- Apenas registra:
- - aba clicada
- - onclick/id do botão
- - aba visível antes/depois do F5
- - tela login/app display
- - eventos DOMContentLoaded/load/pageshow
- Log em sessionStorage: sobrevive ao F5.
-========================================================== -->
-<style id="v136-css">
-#v136Diag{
- position:fixed;right:8px;bottom:8px;z-index:2147483647;
- width:min(650px,calc(100vw - 16px));max-height:58vh;overflow:auto;
- background:#070d18;color:#f8fafc;border:1px solid #64748b;border-radius:12px;
- padding:10px;font:11px/1.35 monospace;box-shadow:0 8px 30px rgba(0,0,0,.45)
-}
-#v136Diag pre{white-space:pre-wrap;word-break:break-word;background:#111827;padding:6px;border-radius:6px}
-#v136Diag button{padding:6px 8px;margin:5px 5px 0 0;cursor:pointer}
-</style>
-<script id="v136-js">
+<script id="v137-main">
 (function(){
- const KEY='v136_diag_log';
- function getLog(){try{return JSON.parse(sessionStorage.getItem(KEY)||'[]')}catch(_){return []}}
- function put(a){try{sessionStorage.setItem(KEY,JSON.stringify(a.slice(-50)))}catch(_){}}
- function visible(el){
-   if(!el)return false;
-   const s=getComputedStyle(el),r=el.getBoundingClientRect();
-   return s.display!=='none'&&s.visibility!=='hidden'&&r.width>0&&r.height>0;
- }
- function abaVisivel(){
-   const candidatos=[...document.querySelectorAll('[id^="aba-"]')].filter(visible);
-   return candidatos.map(x=>x.id).join(', ')||'(nenhuma detectada)';
- }
- function estadoTela(){
-   const login=document.getElementById('tela-login')||document.querySelector('.login-container,.login-card,#login');
-   const app=document.getElementById('app-container')||document.querySelector('.app-container,#app');
-   return 'login='+(login?(visible(login)?'VISÍVEL':'oculto'):'não achou')+
-          ' | app='+(app?(visible(app)?'VISÍVEL':'oculto'):'não achou')+
-          ' | aba='+abaVisivel();
- }
- function add(tipo,det){
-   const a=getLog();
-   a.push({t:new Date().toISOString(),tipo:tipo,det:det||'',tela:estadoTela()});
-   put(a);setTimeout(render,0);
- }
- function render(){
-   let box=document.getElementById('v136Diag');
-   if(!box){box=document.createElement('div');box.id='v136Diag';document.body.appendChild(box)}
-   const a=getLog(), ult=a.slice(-12).reverse();
-   box.innerHTML='<b>V136 — Diagnóstico Login/Aba</b><br>'+
-     'Estado agora: '+estadoTela()+'<br>'+
-     'Eventos: '+a.length+
-     '<br><button id="v136Snap">Registrar agora</button>'+
-     '<button id="v136Clear">Limpar só LOG</button>'+
-     ult.map((x,i)=>'<pre>#'+(a.length-i)+' '+x.t+'\n'+x.tipo+
-       (x.det?'\n'+x.det:'')+'\n'+x.tela+'</pre>').join('');
-   document.getElementById('v136Snap').onclick=()=>add('MANUAL','');
-   document.getElementById('v136Clear').onclick=()=>{sessionStorage.removeItem(KEY);render()};
- }
- document.addEventListener('click',function(e){
-   const b=e.target.closest('.tab-btn');
-   if(!b)return;
-   add('CLIQUE ABA',
-     'text='+((b.innerText||'').trim().replace(/\s+/g,' '))+
-     ' | id='+(b.id||'(sem id)')+
-     ' | onclick='+(b.getAttribute('onclick')||'(sem onclick)'));
- },true);
+  const KEY='studyflow_v137_ultima_aba';
+  let restaurando = true;
+  let originalTrocar = null;
 
- document.addEventListener('DOMContentLoaded',function(){
-   add('DOMContentLoaded','readyState='+document.readyState);
-   setTimeout(()=>add('DOM +120ms',''),120);
-   setTimeout(()=>add('DOM +500ms',''),500);
-   setTimeout(()=>add('DOM +1200ms',''),1200);
- });
- window.addEventListener('load',()=>add('LOAD',''));
- window.addEventListener('pageshow',e=>add('PAGESHOW','persisted='+e.persisted));
- setTimeout(render,900);
+  function normaliza(id){
+    return (typeof id==='string' && /^aba-[\w-]+$/.test(id)) ? id : '';
+  }
+
+  function salvarAba(id){
+    id=normaliza(id);
+    if(!id) return;
+    try { sessionStorage.setItem(KEY,id); } catch(e) {}
+  }
+
+  function lerAba(){
+    try { return normaliza(sessionStorage.getItem(KEY)||''); }
+    catch(e){ return ''; }
+  }
+
+  // Captura escolha HUMANA pelo menu antes de qualquer rotina automática.
+  document.addEventListener('click', function(e){
+    const b=e.target.closest('[onclick*="trocarAba("]');
+    if(!b) return;
+    const oc=b.getAttribute('onclick')||'';
+    const m=oc.match(/trocarAba\s*\(\s*['"]([^'"]+)['"]/);
+    if(m){
+      salvarAba(m[1]);
+      restaurando=false; // clique humano sempre vence
+    }
+  }, true);
+
+  function instalarInterceptador(){
+    if(typeof window.trocarAba!=='function') return false;
+    if(window.trocarAba.__v137) return true;
+
+    originalTrocar=window.trocarAba;
+    function wrapper(id, btn){
+      const desejada=lerAba();
+
+      // No boot/F5, se já existe uma última aba diferente de dashboard,
+      // não deixa inicializadores tardios forçarem aba-inicio.
+      if(restaurando && id==='aba-inicio' && desejada && desejada!=='aba-inicio'){
+        return;
+      }
+      return originalTrocar.apply(this, arguments);
+    }
+    wrapper.__v137=true;
+    window.trocarAba=wrapper;
+    return true;
+  }
+
+  function botaoDaAba(id){
+    return [...document.querySelectorAll('[onclick*="trocarAba("]')].find(function(b){
+      const oc=b.getAttribute('onclick')||'';
+      return oc.includes("'"+id+"'") || oc.includes('"'+id+'"');
+    });
+  }
+
+  function restaurar(){
+    instalarInterceptador();
+    const id=lerAba();
+    if(!id){
+      restaurando=false;
+      return;
+    }
+    const b=botaoDaAba(id);
+    if(b && typeof window.trocarAba==='function'){
+      try { window.trocarAba(id,b); } catch(e) { try{b.click()}catch(_){} }
+    }
+    // mantém pequena janela para impedir inicializador tardio de sobrescrever.
+    setTimeout(function(){ restaurando=false; }, 900);
+  }
+
+  function revelar(){
+    // Revela só quando o fluxo original já decidiu login ou app.
+    document.documentElement.classList.remove('v137-carregando');
+  }
+
+  function iniciar(){
+    let tentativas=0;
+    const t=setInterval(function(){
+      tentativas++;
+      const ok=instalarInterceptador();
+      const login=document.getElementById('tela-login') || document.querySelector('.login-container,.login-card,#login');
+      const app=document.getElementById('app-container') || document.querySelector('.app-container,#app');
+
+      if(ok && tentativas>=2){
+        clearInterval(t);
+        restaurar();
+        setTimeout(revelar,120);
+      } else if(tentativas>=30){
+        clearInterval(t);
+        restaurar();
+        revelar();
+      }
+    },50);
+
+    // trava de segurança para nunca deixar página invisível.
+    setTimeout(revelar,2200);
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',iniciar,{once:true});
+  } else iniciar();
+
+  window.addEventListener('pageshow',function(){
+    setTimeout(restaurar,80);
+  });
 })();
 </script>
 

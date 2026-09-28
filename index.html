@@ -15,11 +15,12 @@
 
 <!-- V113 — CORREÇÃO DO STATUS DE SINCRONIZAÇÃO NO PC: aguarda Firebase Auth antes do RTDB; cronograma preservado. -->
 <!-- V114 — FIREBASE: remove valores undefined do payload antes de enviar; planejamento/prova e demais dados válidos preservados. -->
-<!-- V115 — STATUS INICIAL: Conectando → Sincronizado usando .info/connected do Firebase. -->
-<!-- V116 — EDITAL + SYNC AUTOMÁTICO:
-todos os envios do estado completo ao Firebase são sanitizados antes do RTDB,
-removendo somente propriedades undefined do payload. Dados válidos preservados.
--->
+<!-- =========================================================
+ V117 — PC PRINCIPAL / SINCRONIZAÇÃO MANUAL
+ Base V114 preservada.
+ Auto-upload ao entrar removido.
+ Enviar para Nuvem e Puxar da Nuvem continuam disponíveis.
+========================================================== -->
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -4098,26 +4099,13 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
           atualizarUIAposCarregar();
           aplicarPermissoesEditaisV26();
         } else if (salvos && localMs > nuvemMs) {
-          // V106: o computador pode possuir o plano mais recente apenas no cache local.
-          // Nesse caso publica EXATAMENTE esse estado na nuvem para que celular/outros
-          // dispositivos recebam o mesmo cronograma. Não recria nem regenera semanas.
-          atualizarStatusNuvem("☁️ Sincronizando plano...", "syncing");
-          const estadoLocalV106 = estado;
-          const isoLocalV106 = localStorage.getItem(chave + '_atualizadoEm') || new Date().toISOString();
-
-          dbRefAtivo.set({
-            estado: estadoLocalV106,
-            atualizadoEm: isoLocalV106
-          }).then(() => {
-            atualizarStatusNuvem("☁️ Sincronizado", "online");
-          }).catch(err => {
-            console.error("V106: falha ao publicar plano local na nuvem:", err);
-            atualizarStatusNuvem("⚠️ Falha na sincronização", "offline");
-          });
+          // V117: o PC é a fonte principal e não publica automaticamente ao entrar.
+          // Use "Enviar para Nuvem" quando quiser publicar as alterações.
+          atualizarStatusNuvem("☁️ Sincronização manual", "online");
           return;
         }
 
-        atualizarStatusNuvem("☁️ Sincronizado", "online");
+        atualizarStatusNuvem("☁️ Sincronização manual", "online");
       }).catch(err => {
         console.error("Falha ao carregar perfil da nuvem:", err);
         atualizarStatusNuvem("⚠️ Offline", "offline");
@@ -9808,71 +9796,6 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
   });
   document.addEventListener('DOMContentLoaded',()=>{
     obsV108.observe(document.body,{childList:true,subtree:true});
-  });
-})();
-</script>
-
-
-<!-- =========================================================
- V115 — STATUS INICIAL REAL DA SINCRONIZAÇÃO
- Base V114 preservada.
- Não altera cronograma, revisões, Edital ou payload da nuvem.
-========================================================== -->
-<script id="v115-firebase-connection-status">
-(function(){
-  let refConexaoV115 = null;
-  let iniciouV115 = false;
-
-  function statusV115(texto, tipo){
-    try {
-      if (typeof atualizarStatusNuvem === 'function') {
-        atualizarStatusNuvem(texto, tipo);
-      }
-    } catch (_) {}
-  }
-
-  function iniciarStatusConexaoV115(){
-    if (iniciouV115) return;
-    if (typeof rtdb === 'undefined' || !rtdb) return;
-
-    iniciouV115 = true;
-    statusV115('☁️ Conectando...', 'syncing');
-
-    try {
-      refConexaoV115 = rtdb.ref('.info/connected');
-      refConexaoV115.on('value', snap => {
-        if (snap.val() === true) {
-          statusV115('☁️ Sincronizado', 'online');
-        } else {
-          statusV115('⚠️ Offline', 'offline');
-        }
-      }, err => {
-        console.warn('V115: não foi possível observar .info/connected:', err);
-        statusV115('⚠️ Offline', 'offline');
-      });
-    } catch (err) {
-      console.warn('V115: erro ao iniciar indicador de conexão:', err);
-    }
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    statusV115('☁️ Conectando...', 'syncing');
-
-    let tentativas = 0;
-    const timer = setInterval(() => {
-      tentativas++;
-      try { iniciarStatusConexaoV115(); } catch (_) {}
-      if (iniciouV115 || tentativas >= 20) clearInterval(timer);
-    }, 250);
-  });
-
-  window.addEventListener('online', () => {
-    statusV115('☁️ Conectando...', 'syncing');
-    try { iniciarStatusConexaoV115(); } catch (_) {}
-  });
-
-  window.addEventListener('offline', () => {
-    statusV115('⚠️ Offline', 'offline');
   });
 })();
 </script>

@@ -10976,3 +10976,47 @@ body.v71-timer #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!importan
 })();
 </script>
 
+
+
+<!-- V120 — atualização automática do Dashboard após login/dados carregados -->
+<script id="v120-dashboard-apos-login">
+(function(){
+  function atualizarV120(){
+    try{
+      if(typeof window.aplicarDashboardV119 === 'function'){
+        window.aplicarDashboardV119();
+      }
+    }catch(_){}
+  }
+
+  function sequenciaV120(){
+    [50,150,350,700,1200,2000].forEach(ms=>setTimeout(atualizarV120,ms));
+  }
+
+  /* A V117 dispara este evento quando o estado/perfil termina de carregar. */
+  window.addEventListener('estado-carregado', sequenciaV120);
+
+  /* Reforço para retorno de sessão/login e restauração da página. */
+  window.addEventListener('pageshow', sequenciaV120);
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden) sequenciaV120();
+  });
+
+  /* Se a tela de login desaparecer e o app entrar, atualiza sem trocar de aba. */
+  const obs = new MutationObserver(function(){
+    const login = document.getElementById('tela-login');
+    if(!login || login.style.display === 'none' || login.hidden){
+      sequenciaV120();
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function(){
+    if(document.body) obs.observe(document.body,{
+      attributes:true, childList:true, subtree:true,
+      attributeFilter:['style','class','hidden']
+    });
+    sequenciaV120();
+  });
+})();
+</script>
+

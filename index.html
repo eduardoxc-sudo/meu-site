@@ -3202,7 +3202,99 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
     }
 
     function imprimirCronograma() {
-      window.print();
+      /*
+        V141 — impressão isolada.
+        A impressão acontece numa janela temporária com uma cópia do plano.
+        Assim o navegador não altera a aba ativa do StudyFlow e não volta
+        para o Dashboard ao abrir/fechar a impressão.
+      */
+      try {
+        const estilos = Array.from(document.querySelectorAll('style'))
+          .map(s => s.textContent || '')
+          .join('\n');
+
+        const grade = document.getElementById('gradeSemana');
+        const lista = document.getElementById('listaCicloV47');
+        const mes = document.getElementById('mesCicloV47');
+        const titulo = document.getElementById('tituloCronograma');
+
+        let alvo = grade;
+        if (mes && getComputedStyle(mes).display !== 'none') alvo = mes;
+        else if (lista && getComputedStyle(lista).display !== 'none') alvo = lista;
+
+        if (!alvo) {
+          window.print();
+          return;
+        }
+
+        const janela = window.open('', '_blank', 'width=1200,height=850');
+        if (!janela) {
+          alert('O navegador bloqueou a janela de impressão. Permita pop-ups para este site e tente novamente.');
+          return;
+        }
+
+        const tituloTexto = titulo ? titulo.textContent.trim() : 'Meu Plano de Estudos';
+        const conteudo = alvo.outerHTML;
+
+        janela.document.open();
+        janela.document.write(`<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>${tituloTexto.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</title>
+<style>
+${estilos}
+@page { size: A4 landscape; margin: 8mm; }
+html, body {
+  background: #fff !important;
+  color: #111827 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+body { padding: 4mm !important; }
+.v141-print-title {
+  font: 700 18px Arial, sans-serif;
+  color: #111827 !important;
+  margin: 0 0 6mm 0;
+}
+#gradeSemana, #mesCicloV47, #listaCicloV47 {
+  display: grid !important;
+  width: 100% !important;
+  max-width: none !important;
+  overflow: visible !important;
+}
+#gradeSemana, #mesCicloV47 {
+  grid-template-columns: repeat(7, minmax(0,1fr)) !important;
+}
+button, .btn, .btn-play-mini, .btn-mini-acao { display:none !important; }
+* {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+</style>
+</head>
+<body>
+<h1 class="v141-print-title">${tituloTexto.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</h1>
+${conteudo}
+<script>
+window.addEventListener('load', function () {
+  setTimeout(function () {
+    window.focus();
+    window.print();
+  }, 350);
+});
+window.addEventListener('afterprint', function () {
+  setTimeout(function(){ window.close(); }, 150);
+});
+<\/script>
+</body>
+</html>`);
+        janela.document.close();
+      } catch (e) {
+        console.error('V141 impressão:', e);
+        alert('Não foi possível preparar a impressão. Tente novamente.');
+      }
     }
 
     function atualizarStatusNuvem(texto, statusClass) {

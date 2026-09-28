@@ -3294,63 +3294,57 @@ body, body * {
 
 <style>
 
-/* =========================================================
-   V144 — IMPRESSÃO SEMANA ISOLADA
-   Base: V142 estável
-   Não altera Lista, Mês ou a tela normal.
-   ========================================================= */
+/* V145 — Semana: preservar TODOS os dias na cópia de impressão */
 @media print {
-  /* Quando a impressão contém a grade semanal, mantém todos os dias
-     e organiza os blocos em duas colunas largas. */
+  #gradeSemana,
+  #gradeSemana * {
+    visibility: visible !important;
+  }
+
   #gradeSemana {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     grid-auto-flow: row !important;
-    gap: 8mm !important;
+    gap: 10px !important;
     width: 100% !important;
-    max-width: none !important;
     height: auto !important;
+    max-height: none !important;
     overflow: visible !important;
-    align-items: start !important;
   }
 
   #gradeSemana > * {
     display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
     position: relative !important;
-    float: none !important;
+    inset: auto !important;
+    transform: none !important;
     width: auto !important;
     min-width: 0 !important;
     max-width: none !important;
     height: auto !important;
-    min-height: 0 !important;
+    max-height: none !important;
     overflow: visible !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
+  }
+
+  #gradeSemana [hidden] {
+    display: block !important;
   }
 
   #gradeSemana .slot-card,
   #gradeSemana .study-card,
   #gradeSemana [class*="card"] {
     width: 100% !important;
-    min-width: 0 !important;
     max-width: none !important;
     height: auto !important;
     overflow: visible !important;
     white-space: normal !important;
     word-break: normal !important;
     overflow-wrap: break-word !important;
-    writing-mode: horizontal-tb !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
-  }
-
-  #gradeSemana .slot-card *,
-  #gradeSemana .study-card *,
-  #gradeSemana [class*="card"] * {
-    white-space: normal !important;
-    word-break: normal !important;
-    overflow-wrap: break-word !important;
-    writing-mode: horizontal-tb !important;
   }
 }
 

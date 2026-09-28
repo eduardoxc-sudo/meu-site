@@ -10439,3 +10439,133 @@ body.dark .v76-chip{background:#183250;color:#72b7ff}
 }
 </style>
 
+
+<!-- ===== V79: PERMISSÕES DO BANCO + FLASHCARDS POR USUÁRIO ===== -->
+<script id="v79-permissoes-js">
+(function(){
+  /* Remove a permissão persistente insegura criada na V76. */
+  localStorage.removeItem('EI_V74_ADMIN');
+
+  function currentUserV79(){
+    try{
+      const cand=[
+        estado?.usuarioAtual, estado?.usuario, estado?.user,
+        window.usuarioAtual, window.currentUser
+      ].filter(Boolean);
+      return cand[0]||null;
+    }catch(e){return null}
+  }
+
+  function userKeyV79(){
+    const u=currentUserV79();
+    if(!u)return 'anonimo';
+    return String(u.id ?? u.uid ?? u.email ?? u.usuario ?? u.username ?? u.nome ?? 'usuario')
+      .toLowerCase().replace(/[^a-z0-9@._-]/g,'_');
+  }
+
+  function isAdminV79(){
+    const u=currentUserV79();
+    if(!u)return false;
+    const role=String(u.role ?? u.perfil ?? u.tipo ?? u.nivel ?? '').toLowerCase();
+    return u.admin===true || u.isAdmin===true || u.administrador===true ||
+           role==='admin' || role==='administrador';
+  }
+
+  /* Migra os flashcards antigos para o usuário atual uma única vez.
+     Depois, cada usuário passa a usar sua própria chave. */
+  function migrateFlashV79(){
+    const key='EI_V79_FLASH_'+userKeyV79();
+    if(localStorage.getItem(key)===null){
+      const antigo=localStorage.getItem('EI_V74_FLASH');
+      localStorage.setItem(key, antigo || JSON.stringify({folders:[]}));
+    }
+    return key;
+  }
+
+  function swapFlashStorageV79(){
+    const key=migrateFlashV79();
+    const atual=localStorage.getItem(key)||JSON.stringify({folders:[]});
+    localStorage.setItem('EI_V74_FLASH',atual);
+  }
+
+  function saveBackFlashV79(){
+    const key=migrateFlashV79();
+    const atual=localStorage.getItem('EI_V74_FLASH');
+    if(atual!==null)localStorage.setItem(key,atual);
+  }
+
+  /* Antes de abrir Flashcards carrega os dados pessoais do usuário. */
+  const oldOpen=V74.open;
+  V74.open=function(m){
+    if(m==='flash')swapFlashStorageV79();
+    const r=oldOpen.apply(this,arguments);
+    setTimeout(aplicarPermissoesV79,20);
+    return r;
+  };
+
+  const oldShow=V74.show;
+  V74.show=function(m){
+    if(m==='flash')swapFlashStorageV79();
+    const r=oldShow.apply(this,arguments);
+    setTimeout(aplicarPermissoesV79,20);
+    return r;
+  };
+
+  /* Sincroniza alterações de flashcards para a chave pessoal. */
+  const observerStorage=new MutationObserver(()=>{
+    const title=document.getElementById('v74-title');
+    if(title && /flashcards/i.test(title.textContent||'')) saveBackFlashV79();
+  });
+
+  function aplicarPermissoesV79(){
+    const title=document.getElementById('v74-title');
+    const body=document.getElementById('v74-body');
+    if(!title||!body)return;
+
+    if(/banco de questões/i.test(title.textContent||'')){
+      const adm=isAdminV79();
+
+      /* Usuário comum: remove todos os controles administrativos,
+         mas preserva o botão Abrir dos simulados. */
+      if(!adm){
+        body.querySelectorAll('label.v74-btn').forEach(x=>{
+          if(/importar html/i.test(x.textContent||''))x.remove();
+        });
+        body.querySelectorAll('button').forEach(b=>{
+          const s=(b.textContent||'').toLowerCase();
+          if(/^\s*\+\s*pasta/.test(s) || /renomear|excluir/.test(s)) b.remove();
+        });
+
+        /* Mensagem clara de somente leitura. */
+        const first=body.querySelector('.v74-box');
+        if(first && !body.querySelector('#v79-readonly')){
+          const p=document.createElement('p');
+          p.id='v79-readonly';p.className='v74-muted';
+          p.textContent='🔒 Banco compartilhado: somente o ADM pode adicionar, renomear ou excluir.';
+          first.appendChild(p);
+        }
+      }
+    }
+  }
+
+  window.isAdminV79=isAdminV79;
+  window.userKeyV79=userKeyV79;
+
+  window.addEventListener('DOMContentLoaded',()=>{
+    const modal=document.getElementById('v74-modal');
+    if(modal){
+      observerStorage.observe(modal,{subtree:true,childList:true});
+      new MutationObserver(()=>setTimeout(aplicarPermissoesV79,10))
+        .observe(modal,{subtree:true,childList:true,attributes:true});
+    }
+  });
+
+  /* Salva flashcards pessoais também ao fechar. */
+  const oldClose=V74.close;
+  V74.close=function(){
+    saveBackFlashV79();
+    return oldClose.apply(this,arguments);
+  };
+})();
+</script>
+

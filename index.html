@@ -3065,9 +3065,9 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
       <div class="field"><label>Assunto</label><input id="registroAssuntoV47" placeholder="Assunto estudado"></div>
       <div class="registro-grid-v47">
         <div class="field"><label>Minutos</label><input id="registroMinutosV47" type="number" min="1" value="30"></div>
-        <div class="field"><label>Questões</label><input id="registroQuestoesV47" type="number" min="0" value="0"></div>
-        <div class="field"><label>Acertos</label><input id="registroAcertosV47" type="number" min="0" value="0"></div>
-        <div class="field"><label>Erros</label><input id="registroErrosV47" type="number" min="0" value="0"></div>
+        <div class="field v140-campo-questoes"><label>Questões</label><input id="registroQuestoesV47" type="number" min="0" value="0"></div>
+        <div class="field v140-campo-questoes"><label>Acertos</label><input id="registroAcertosV47" type="number" min="0" value="0"></div>
+        <div class="field v140-campo-questoes"><label>Erros</label><input id="registroErrosV47" type="number" min="0" value="0"></div>
       </div>
       <div class="registro-revisoes-v47">
         <strong>Revisões do tópico</strong>
@@ -10177,6 +10177,152 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
   } else {
     iniciar();
   }
+})();
+</script>
+
+
+
+<!-- =========================================================
+ V140 — NOVO REGISTRO: QUESTÕES SOMENTE EM "QUESTÕES"
+ Base: V139 estável.
+ Preserva F5/login/última aba/revisões/nuvem/timer.
+ - Teoria e Revisão: Disciplina + Assunto + Minutos
+ - Questões: também mostra Questões + Acertos + Erros
+ - Teoria/Revisão nunca alimentam estatísticas de questões
+========================================================== -->
+<style id="v140-novo-registro-css">
+#modalNovoRegistroV47 .v140-campo-questoes { display:none; }
+#modalNovoRegistroV47.v140-tipo-questoes .v140-campo-questoes { display:flex; }
+</style>
+<script id="v140-novo-registro-js">
+(function(){
+  function tipoAtual(){
+    var b=document.querySelector('#modalNovoRegistroV47 .tipo-registro-v47 button.active');
+    return (b && b.dataset && b.dataset.tipo) || 
+           (typeof tipoRegistroV47!=='undefined' ? tipoRegistroV47 : 'Teoria');
+  }
+
+  function aplicarCampos(){
+    var modal=document.getElementById('modalNovoRegistroV47');
+    if(!modal)return;
+    var questoes=tipoAtual()==='Questões';
+    modal.classList.toggle('v140-tipo-questoes',questoes);
+
+    if(!questoes){
+      ['registroQuestoesV47','registroAcertosV47','registroErrosV47'].forEach(function(id){
+        var el=document.getElementById(id); if(el)el.value='0';
+      });
+    }
+  }
+
+  function instalarSelecao(){
+    if(typeof window.selecionarTipoRegistroV47!=='function' ||
+       window.selecionarTipoRegistroV47.__v140) return;
+    var original=window.selecionarTipoRegistroV47;
+    var nova=function(btn){
+      var r=original.apply(this,arguments);
+      aplicarCampos();
+      return r;
+    };
+    nova.__v140=true;
+    window.selecionarTipoRegistroV47=nova;
+  }
+
+  function instalarAbrir(){
+    if(typeof window.abrirNovoRegistroV47!=='function' ||
+       window.abrirNovoRegistroV47.__v140) return;
+    var original=window.abrirNovoRegistroV47;
+    var nova=function(){
+      var r=original.apply(this,arguments);
+      aplicarCampos();
+      return r;
+    };
+    nova.__v140=true;
+    window.abrirNovoRegistroV47=nova;
+  }
+
+  function instalarSalvar(){
+    if(typeof window.salvarNovoRegistroV47!=='function' ||
+       window.salvarNovoRegistroV47.__v140) return;
+
+    var nova=function(){
+      var materia=document.getElementById('registroMateriaV47')?.value||'Estudo';
+      var assunto=document.getElementById('registroAssuntoV47')?.value?.trim()||'';
+      var min=Math.max(0,parseInt(document.getElementById('registroMinutosV47')?.value||0,10));
+      var tipo=tipoAtual();
+      var ehQuestoes=(tipo==='Questões');
+
+      var q=ehQuestoes ? Math.max(0,parseInt(document.getElementById('registroQuestoesV47')?.value||0,10)) : 0;
+      var a=ehQuestoes ? Math.max(0,parseInt(document.getElementById('registroAcertosV47')?.value||0,10)) : 0;
+      var er=ehQuestoes ? Math.max(0,parseInt(document.getElementById('registroErrosV47')?.value||0,10)) : 0;
+
+      if(!materia){alert('Selecione uma disciplina.');return;}
+      if(!assunto){alert('Informe o assunto estudado.');return;}
+      if(min<=0){alert('Informe os minutos estudados.');return;}
+
+      if(ehQuestoes){
+        if(q<=0){alert('Informe a quantidade de questões.');return;}
+        if((a+er)!==q){
+          alert('Questões deve ser igual a Acertos + Erros.');
+          return;
+        }
+      }
+
+      if(typeof registrarHoraEstudo==='function') registrarHoraEstudo(materia,min);
+
+      var e=(typeof estado!=='undefined' && estado) ? estado : window.estado;
+      if(!e)return;
+
+      // Somente o tipo Questões alimenta o histórico/estatísticas de questões.
+      if(ehQuestoes){
+        e.historicoQuestoes=Array.isArray(e.historicoQuestoes)?e.historicoQuestoes:[];
+        e.historicoQuestoes.push({
+          id:'qz_'+Math.random().toString(36).slice(2,11),
+          materia:materia,assunto:assunto,total:q,
+          acertos:a,erros:er,data:new Date().toISOString(),tipo:'Questões'
+        });
+      }
+
+      e.historicoRegistrosV47=Array.isArray(e.historicoRegistrosV47)?e.historicoRegistrosV47:[];
+      e.historicoRegistrosV47.push({
+        tipo:tipo,materia:materia,assunto:assunto,minutos:min,
+        questoes:q,acertos:a,erros:er,data:new Date().toISOString()
+      });
+
+      try{if(typeof salvarEstado==='function') salvarEstado();}catch(_){}
+      try{if(typeof fecharNovoRegistroV47==='function') fecharNovoRegistroV47();}catch(_){}
+      try{if(typeof atualizarVisualizacaoHoras==='function') atualizarVisualizacaoHoras();}catch(_){}
+      try{if(typeof atualizarVisualizacaoQuestoes==='function') atualizarVisualizacaoQuestoes();}catch(_){}
+      try{if(typeof renderizarProgressoV11==='function') renderizarProgressoV11();}catch(_){}
+      try{if(typeof renderizarProgressoV20==='function') renderizarProgressoV20();}catch(_){}
+      try{if(typeof aplicarDashboardV123==='function') aplicarDashboardV123();}catch(_){}
+
+      try{
+        if(typeof avisoV43==='function')
+          avisoV43('Registro salvo! ✓',tipo+' de '+materia+' registrado com sucesso.','✓','Fechar','fecharAvisoV43()');
+      }catch(_){}
+
+      // Próxima abertura começa limpa nos campos de questões.
+      ['registroQuestoesV47','registroAcertosV47','registroErrosV47'].forEach(function(id){
+        var el=document.getElementById(id); if(el)el.value='0';
+      });
+    };
+    nova.__v140=true;
+    window.salvarNovoRegistroV47=nova;
+  }
+
+  function instalar(){
+    instalarSelecao();
+    instalarAbrir();
+    instalarSalvar();
+    aplicarCampos();
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(instalar,900);
+    setTimeout(instalar,1700);
+  });
+  window.addEventListener('pageshow',function(){setTimeout(instalar,500);});
 })();
 </script>
 

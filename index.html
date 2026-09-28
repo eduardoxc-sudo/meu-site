@@ -9240,6 +9240,33 @@ function V84ImportFlash(ev){
 }
 </script>
 
+
+
+<!-- ===== V86: FLASHCARD MANUAL COMPACTO ===== -->
+<script id="v86-manual-flash">
+window.V86ManualFlash={
+ toggle:function(force){
+   const el=document.getElementById('v86-manual-form'); if(!el)return;
+   const show=typeof force==='boolean'?force:el.style.display==='none';
+   el.style.display=show?'block':'none';
+   if(show)setTimeout(()=>document.getElementById('v86-q')?.focus(),20);
+ },
+ save:function(){
+   const q=document.getElementById('v86-q')?.value.trim();
+   const a=document.getElementById('v86-a')?.value.trim();
+   if(!q||!a)return alert('Preencha a pergunta e a resposta.');
+   const d=JSON.parse(localStorage.getItem('EI_V74_FLASH')||'{"folders":[]}');
+   const selected=document.querySelector('#v74-body .v74-item.sel b');
+   const name=(selected?.textContent||'').trim();
+   const f=d.folders.find(x=>String(x.name||'').trim()===name);
+   if(!f)return alert('Selecione uma pasta.');
+   f.items.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),q:q,a:a});
+   localStorage.setItem('EI_V74_FLASH',JSON.stringify(d));
+   V74.render();
+ }
+};
+</script>
+
 </body>
 </html>
 
@@ -10371,13 +10398,12 @@ window.V74=(function(){
  const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
  const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
- function admin(){ try{
-   const u=estado?.usuario||{};
-   const nome=String(u.nome||u.usuario||u.username||localStorage.getItem('usuarioAtual')||localStorage.getItem('perfil')||'').trim().toLowerCase();
-   return u.admin===true || u.perfil==='admin' || nome==='eduardo' || localStorage.getItem('EI_V74_ADMIN')==='1';
- }catch(e){
-   return /perfil:\s*eduardo/i.test(document.body?.innerText||'') || localStorage.getItem('EI_V74_ADMIN')==='1';
- } }
+ function admin(){
+   try{
+     if(typeof ehAdministradorEduardoV26==='function') return ehAdministradorEduardoV26();
+     return String(window.usuarioAtivo||'').trim().toLowerCase()==='eduardo';
+   }catch(e){ return false; }
+ }
  function open(m){document.getElementById('v74-modal').classList.add('show');show(m)}
  function close(){document.getElementById('v74-modal').classList.remove('show')}
  function show(m){mode=m;folder=null;document.getElementById('v74-tab-flash').classList.toggle('active',m==='flash');document.getElementById('v74-tab-quest').classList.toggle('active',m==='quest');render()}
@@ -10400,9 +10426,15 @@ window.V74=(function(){
    let right=`<div class="v74-box"><h3>Flashcards</h3><p class="v74-muted">Crie uma pasta de matéria e selecione-a para adicionar cartões.</p></div>`;
    if(f) right=`<div class="v74-box"><h3>${esc(f.name)}</h3>
      <div class="v74-card"><div class="v74-row">
-       <label class="v74-btn v74-primary">📥 Adicionar Flashcards<input type="file" accept=".txt,.csv,text/plain,text/csv" hidden onchange="V84ImportFlash(event)"></label>
+       <button class="v74-btn" onclick="V86ManualFlash.toggle()">➕ Adicionar manualmente</button>
+       <label class="v74-btn v74-primary">📥 Importar TXT/CSV<input type="file" accept=".txt,.csv,text/plain,text/csv" hidden onchange="V84ImportFlash(event)"></label>
        <button class="v74-btn" onclick="V74.exportCSV()">📤 Exportar Anki CSV</button>
-     </div><span class="v74-muted">Importe TXT/CSV no formato pergunta;resposta.</span></div>
+     </div><span class="v74-muted">Importe TXT/CSV no formato pergunta;resposta.</span>
+     <div id="v86-manual-form" style="display:none;margin-top:10px">
+       <input id="v86-q" class="v74-input" placeholder="Pergunta">
+       <textarea id="v86-a" class="v74-textarea" placeholder="Resposta"></textarea>
+       <div class="v74-row"><button class="v74-btn v74-primary" onclick="V86ManualFlash.save()">💾 Salvar flashcard</button><button class="v74-btn" onclick="V86ManualFlash.toggle(false)">Cancelar</button></div>
+     </div></div>
      ${f.items.length?f.items.map(c=>`<div class="v74-card"><b>${esc(c.q)}</b><div>${esc(c.a)}</div><div class="v74-row" style="margin-top:8px"><button class="v74-btn" onclick="V74.editCard('${c.id}')">Editar</button><button class="v74-btn v74-danger" onclick="V74.delCard('${c.id}')">Excluir</button></div></div>`).join(''):'<p class="v74-muted">Ainda não há flashcards nesta pasta.</p>'}
 </div>`;
    document.getElementById('v74-body').innerHTML=`<div class="v74-grid">${folderPane(KF,true)}${right}</div>`;

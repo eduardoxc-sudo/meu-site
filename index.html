@@ -3203,10 +3203,11 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
 
     function imprimirCronograma() {
       /*
-        V141 — impressão isolada.
-        A impressão acontece numa janela temporária com uma cópia do plano.
-        Assim o navegador não altera a aba ativa do StudyFlow e não volta
-        para o Dashboard ao abrir/fechar a impressão.
+        V146 — impressão estável.
+        Base V142.
+        Semana: copia explicitamente TODOS os filhos de #gradeSemana.
+        Lista/Mês: mantém o comportamento estável da V142.
+        Nada é alterado no DOM principal do StudyFlow.
       */
       try {
         const estilos = Array.from(document.querySelectorAll('style'))
@@ -3218,13 +3219,54 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
         const mes = document.getElementById('mesCicloV47');
         const titulo = document.getElementById('tituloCronograma');
 
-        let alvo = grade;
-        if (mes && getComputedStyle(mes).display !== 'none') alvo = mes;
-        else if (lista && getComputedStyle(lista).display !== 'none') alvo = lista;
+        const mesVisivel = mes && getComputedStyle(mes).display !== 'none';
+        const listaVisivel = lista && getComputedStyle(lista).display !== 'none';
+        const modoSemana = !mesVisivel && !listaVisivel;
 
-        if (!alvo) {
-          window.print();
-          return;
+        let conteudo = '';
+        let classeBody = '';
+
+        if (modoSemana && grade) {
+          classeBody = 'v146-print-semana';
+
+          // Copia explicitamente cada dia, em vez de depender do outerHTML
+          // do contêiner inteiro. Isso evita perder Terça–Domingo.
+          const dias = Array.from(grade.children);
+          conteudo = '<div id="v146SemanaPrint">';
+          dias.forEach((dia) => {
+            const clone = dia.cloneNode(true);
+
+            // Remove controles interativos apenas da cópia.
+            clone.querySelectorAll('button, .btn, .btn-play-mini, .btn-mini-acao')
+              .forEach(el => el.remove());
+
+            // Remove estilos inline que possam esconder/deslocar um dia.
+            clone.style.display = 'block';
+            clone.style.visibility = 'visible';
+            clone.style.opacity = '1';
+            clone.style.position = 'relative';
+            clone.style.transform = 'none';
+            clone.style.left = 'auto';
+            clone.style.right = 'auto';
+            clone.style.top = 'auto';
+            clone.style.bottom = 'auto';
+            clone.style.width = 'auto';
+            clone.style.maxWidth = 'none';
+            clone.style.height = 'auto';
+            clone.style.maxHeight = 'none';
+            clone.style.overflow = 'visible';
+
+            conteudo += clone.outerHTML;
+          });
+          conteudo += '</div>';
+        } else {
+          const alvo = mesVisivel ? mes : (listaVisivel ? lista : grade);
+          if (!alvo) {
+            window.print();
+            return;
+          }
+          conteudo = alvo.outerHTML;
+          classeBody = mesVisivel ? 'v146-print-mes' : 'v146-print-lista';
         }
 
         const janela = window.open('', '_blank', 'width=1200,height=850');
@@ -3234,17 +3276,19 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
         }
 
         const tituloTexto = titulo ? titulo.textContent.trim() : 'Meu Plano de Estudos';
-        const conteudo = alvo.outerHTML;
+        const tituloSeguro = tituloTexto.replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
         janela.document.open();
         janela.document.write(`<!doctype html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>${tituloTexto.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</title>
+<title>${tituloSeguro}</title>
 <style>
 ${estilos}
+
 @page { size: A4 landscape; margin: 8mm; }
+
 html, body {
   background: #fff !important;
   color: #111827 !important;
@@ -3252,113 +3296,120 @@ html, body {
   padding: 0 !important;
   overflow: visible !important;
 }
+
 body { padding: 4mm !important; }
-.v141-print-title {
+
+.v146-print-title {
   font: 700 18px Arial, sans-serif;
   color: #111827 !important;
   margin: 0 0 6mm 0;
 }
-#gradeSemana, #mesCicloV47, #listaCicloV47 {
+
+/* Semana: documento independente, 2 colunas, todos os dias */
+#v146SemanaPrint {
   display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-auto-flow: row !important;
+  gap: 7mm !important;
+  width: 100% !important;
+  align-items: start !important;
+}
+
+#v146SemanaPrint > * {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  transform: none !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  background: #fff !important;
+  color: #111827 !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: none !important;
+}
+
+#v146SemanaPrint .slot-card,
+#v146SemanaPrint .study-card,
+#v146SemanaPrint [class*="card"] {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  writing-mode: horizontal-tb !important;
+  background: #fff !important;
+  color: #111827 !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: none !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}
+
+#v146SemanaPrint * {
+  color: #111827 !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  writing-mode: horizontal-tb !important;
+}
+
+/* Lista e Mês: preserva o visual que funcionou na V142 */
+body.v146-print-lista #listaCicloV47,
+body.v146-print-mes #mesCicloV47 {
   width: 100% !important;
   max-width: none !important;
   overflow: visible !important;
 }
-#gradeSemana, #mesCicloV47 {
+
+body.v146-print-mes #mesCicloV47 {
+  display: grid !important;
   grid-template-columns: repeat(7, minmax(0,1fr)) !important;
 }
-button, .btn, .btn-play-mini, .btn-mini-acao { display:none !important; }
-/* V142 — PDF econômico: fundo branco, texto escuro e bordas leves */
+
+button, .btn, .btn-play-mini, .btn-mini-acao {
+  display: none !important;
+}
+
 body, body * {
   color: #111827 !important;
 }
-#gradeSemana, #mesCicloV47, #listaCicloV47,
+
 .day-column, .mes-dia-v47, .lista-dia-v47,
 .slot-card, .study-card, .card, [class*="card"] {
-  background: #ffffff !important;
+  background: #fff !important;
   background-image: none !important;
   box-shadow: none !important;
 }
-.day-column, .mes-dia-v47, .lista-dia-v47,
-.slot-card, .study-card {
-  border-color: #cbd5e1 !important;
-}
-.slot-card, .study-card {
-  break-inside: avoid !important;
-}
+
 * {
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
 </style>
-
-<style>
-
-/* V145 — Semana: preservar TODOS os dias na cópia de impressão */
-@media print {
-  #gradeSemana,
-  #gradeSemana * {
-    visibility: visible !important;
-  }
-
-  #gradeSemana {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    grid-auto-flow: row !important;
-    gap: 10px !important;
-    width: 100% !important;
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-  }
-
-  #gradeSemana > * {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    position: relative !important;
-    inset: auto !important;
-    transform: none !important;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
-
-  #gradeSemana [hidden] {
-    display: block !important;
-  }
-
-  #gradeSemana .slot-card,
-  #gradeSemana .study-card,
-  #gradeSemana [class*="card"] {
-    width: 100% !important;
-    max-width: none !important;
-    height: auto !important;
-    overflow: visible !important;
-    white-space: normal !important;
-    word-break: normal !important;
-    overflow-wrap: break-word !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
-}
-
-</style>
 </head>
-<body>
-<h1 class="v141-print-title">${tituloTexto.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</h1>
+<body class="${classeBody}">
+<h1 class="v146-print-title">${tituloSeguro}</h1>
 ${conteudo}
 <script>
 window.addEventListener('load', function () {
   setTimeout(function () {
     window.focus();
     window.print();
-  }, 350);
+  }, 400);
 });
 window.addEventListener('afterprint', function () {
   setTimeout(function(){ window.close(); }, 150);
@@ -3368,7 +3419,7 @@ window.addEventListener('afterprint', function () {
 </html>`);
         janela.document.close();
       } catch (e) {
-        console.error('V141 impressão:', e);
+        console.error('V146 impressão:', e);
         alert('Não foi possível preparar a impressão. Tente novamente.');
       }
     }

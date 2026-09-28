@@ -9202,6 +9202,95 @@ window.V82SRS=(function(){
 })();
 </script>
 
+
+
+<!-- ===== V83: FLASHCARD LIMPO + CONTROLES ADM NO BANCO ===== -->
+<style id="v83-css">
+/* O formulário manual antigo deixa de ocupar a tela; cartões já salvos permanecem. */
+#v74-body .v74-box:has(#v74-q),
+#v74-body .v74-box:has(#v74-a),
+#v74-body .v74-box:has(#v74-save){display:none!important}
+.v83-admin-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+.v83-admin-btn{border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px;background:transparent;color:inherit;font-weight:700;cursor:pointer}
+.v83-admin-danger{border-color:#ef4444!important;color:#ef4444!important}
+</style>
+<script id="v83-js">
+(function(){
+ const ADM='eduardo';
+ function norm(s){return String(s||'').trim().toLowerCase()}
+ function isAdm(){
+   try{
+     const vals=[
+       window.usuarioAtual?.nome,window.usuarioAtual?.usuario,window.usuarioAtual?.username,
+       window.currentUser?.nome,window.currentUser?.usuario,window.currentUser?.username,
+       window.estado?.usuarioAtual?.nome,window.estado?.usuarioAtual?.usuario,
+       window.estado?.usuario?.nome,window.estado?.usuario?.usuario
+     ].filter(Boolean).map(norm);
+     /* também usa o perfil visível, sem alterar permissões de outros nomes */
+     document.querySelectorAll('body *').forEach(()=>{});
+     const perfil=[...document.querySelectorAll('aside,nav')].map(x=>x.textContent||'').join(' ');
+     return vals.includes(ADM)||/perfil:\s*eduardo/i.test(perfil);
+   }catch(e){return false}
+ }
+ function cleanFlash(){
+   const body=document.querySelector('#v74-body'); if(!body)return;
+   [...body.querySelectorAll('.v74-box,div')].forEach(el=>{
+     const t=(el.textContent||'').trim();
+     if(el.parentElement===body && /Novo flashcard/i.test(t) && /Salvar flashcard/i.test(t)) el.remove();
+   });
+ }
+ function bankData(){
+   try{return JSON.parse(localStorage.getItem('EI_V74_BANK'))||{folders:[]}}catch(e){return {folders:[]}}
+ }
+ function saveBank(d){localStorage.setItem('EI_V74_BANK',JSON.stringify(d))}
+ function bankAdmin(){
+   const body=document.querySelector('#v74-body'); if(!body||!isAdm())return;
+   const heading=(body.textContent||'');
+   if(!/Banco de Questões/i.test(heading))return;
+   const d=bankData();
+   const items=[...body.querySelectorAll('.v74-item')];
+   items.forEach((el,i)=>{
+     if(el.querySelector('.v83-admin-actions'))return;
+     const name=(el.querySelector('b')?.textContent||'').trim();
+     if(!name)return;
+     const f=d.folders.find(x=>norm(x.name)===norm(name))||d.folders[i];
+     if(!f)return;
+     const a=document.createElement('div');a.className='v83-admin-actions';
+     a.innerHTML=`<button class="v83-admin-btn" type="button">✏️ Renomear</button>
+       <label class="v83-admin-btn">📥 Adicionar HTML<input hidden type="file" accept=".html,.htm,text/html"></label>
+       <button class="v83-admin-btn v83-admin-danger" type="button">🗑️ Excluir</button>`;
+     const [rename,label,del]=a.children;
+     rename.onclick=e=>{
+       e.stopPropagation(); const n=prompt('Novo nome da pasta:',f.name||name); if(!n)return;
+       f.name=n.trim();saveBank(d); if(window.V74?.render)V74.render();
+     };
+     label.onclick=e=>e.stopPropagation();
+     label.querySelector('input').onchange=e=>{
+       const file=e.target.files?.[0];if(!file)return;
+       const r=new FileReader();
+       r.onload=()=>{
+         f.items ||= [];
+         f.items.push({id:Date.now().toString(36),name:file.name,html:String(r.result||''),createdAt:new Date().toISOString()});
+         saveBank(d);alert('HTML adicionado à pasta '+(f.name||name)+'.');
+         if(window.V74?.render)V74.render();
+       };
+       r.readAsText(file,'UTF-8');
+     };
+     del.onclick=e=>{
+       e.stopPropagation();
+       if(!confirm('Excluir a pasta "'+(f.name||name)+'" e todo o conteúdo?'))return;
+       d.folders=d.folders.filter(x=>x.id!==f.id);saveBank(d);if(window.V74?.render)V74.render();
+     };
+     el.appendChild(a);
+   });
+ }
+ function run(){setTimeout(()=>{cleanFlash();bankAdmin()},40)}
+ document.addEventListener('click',run,true);
+ new MutationObserver(run).observe(document.documentElement,{childList:true,subtree:true});
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+})();
+</script>
+
 </body>
 </html>
 

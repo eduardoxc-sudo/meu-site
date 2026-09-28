@@ -10899,3 +10899,158 @@ body.v71-timer #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!importan
  window.abrirPlanejamentoV121=planejamento;window.fecharModalEditalV121=fechar;
 })();
 </script>
+
+
+<!-- =========================================================
+ V122 — DASHBOARD LENDO OS DADOS SALVOS
+ Base protegida: V121
+ NÃO altera:
+ - Edital Verticalizado
+ - Prioridades
+ - ordem do cronograma
+ - revisões 1D/7D/15D/30D
+ - Timer / histórico de horas
+ - sincronização / Firebase
+ Corrige:
+ - Questões no Dashboard após recarregar
+ - Horas líquidas no Dashboard após recarregar
+ - Indicadores "Precisa de atenção"
+ - atualização imediata após registrar/excluir questões
+========================================================== -->
+<script id="v122-dashboard-dados-salvos">
+(function () {
+  function num(v) {
+    var n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function resumoQuestoesV122() {
+    var lista = (window.estado && Array.isArray(window.estado.historicoQuestoes))
+      ? window.estado.historicoQuestoes
+      : (typeof estado !== 'undefined' && Array.isArray(estado.historicoQuestoes) ? estado.historicoQuestoes : []);
+
+    var acertos = 0, erros = 0;
+    lista.forEach(function (r) {
+      acertos += num(r && r.acertos);
+      erros += num(r && r.erros);
+    });
+
+    var total = acertos + erros;
+    return {
+      total: total,
+      acertos: acertos,
+      erros: erros,
+      taxa: total > 0 ? Math.round((acertos / total) * 100) : 0
+    };
+  }
+
+  function resumoHorasV122() {
+    var lista = (window.estado && Array.isArray(window.estado.historicoHoras))
+      ? window.estado.historicoHoras
+      : (typeof estado !== 'undefined' && Array.isArray(estado.historicoHoras) ? estado.historicoHoras : []);
+
+    var minutos = lista.reduce(function (s, r) {
+      return s + num(r && r.minutos);
+    }, 0);
+
+    return {
+      minutos: minutos,
+      texto: Math.floor(minutos / 60) + 'h ' + String(Math.round(minutos % 60)).padStart(2, '0') + 'min'
+    };
+  }
+
+  function atualizarDashboardV122() {
+    var q = resumoQuestoesV122();
+    var h = resumoHorasV122();
+
+    /* Questões */
+    var qEl = document.getElementById('dashQuestoesV36');
+    if (qEl) qEl.textContent = q.total ? (q.taxa + '% de acertos') : '—';
+
+    /* Horas — usa exatamente o histórico que o Timer já salvou. */
+    var hEl = document.getElementById('dashHorasV36');
+    if (hEl && h.minutos > 0) hEl.textContent = h.texto;
+
+    /* "Precisa de atenção": corrige os números sem recriar dados. */
+    var box = document.querySelector('#dashAtencaoV36, .dash-atencao-v36');
+    if (!box) {
+      var titulos = Array.from(document.querySelectorAll('#aba-inicio h2,#aba-inicio h3,#aba-inicio strong'));
+      var titulo = titulos.find(function (x) {
+        return /precisa de aten[cç][aã]o/i.test(x.textContent || '');
+      });
+      if (titulo) box = titulo.closest('article,section,div');
+    }
+
+    if (box) {
+      var elementos = Array.from(box.querySelectorAll('*'));
+
+      elementos.forEach(function (el) {
+        if (el.children.length) return;
+        var t = (el.textContent || '').trim();
+
+        if (/^Questões\s*\d*$/i.test(t)) {
+          el.textContent = 'Questões ' + q.total;
+        } else if (/^Taxa\s*\d*%?$/i.test(t)) {
+          el.textContent = 'Taxa ' + q.taxa + '%';
+        }
+      });
+
+      /* percentuais à direita, quando existirem */
+      var percentuais = elementos.filter(function (el) {
+        return !el.children.length && /^\d+%$/.test((el.textContent || '').trim());
+      });
+      if (percentuais.length) percentuais[0].textContent = q.taxa + '%';
+      if (percentuais.length > 1) percentuais[1].textContent = q.taxa + '%';
+    }
+  }
+
+  window.atualizarDashboardV122 = atualizarDashboardV122;
+
+  /* Ao abrir Dashboard */
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.tab-btn');
+    if (!b) return;
+    var oc = b.getAttribute('onclick') || '';
+    if (oc.indexOf('aba-inicio') >= 0) {
+      setTimeout(atualizarDashboardV122, 120);
+    }
+  }, true);
+
+  /* Depois do carregamento/restauração do estado */
+  document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(atualizarDashboardV122, 700);
+    setTimeout(atualizarDashboardV122, 1600);
+  });
+
+  window.addEventListener('pageshow', function () {
+    setTimeout(atualizarDashboardV122, 500);
+  });
+
+  window.addEventListener('estado-carregado', function () {
+    setTimeout(atualizarDashboardV122, 150);
+  });
+
+  /* Mantém as funções originais e apenas atualiza o Dashboard depois delas. */
+  function envolver(nome) {
+    var original = window[nome];
+    if (typeof original !== 'function' || original.__v122) return;
+
+    var nova = function () {
+      var r = original.apply(this, arguments);
+      setTimeout(atualizarDashboardV122, 80);
+      return r;
+    };
+    nova.__v122 = true;
+    window[nome] = nova;
+  }
+
+  setTimeout(function () {
+    envolver('salvarRegistroQuestao');
+    envolver('excluirRegistroQuestao');
+    envolver('salvarNovoRegistroV47');
+    envolver('registrarHoraEstudo');
+    atualizarDashboardV122();
+  }, 900);
+})();
+</script>
+

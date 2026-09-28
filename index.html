@@ -10902,155 +10902,207 @@ body.v71-timer #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!importan
 
 
 <!-- =========================================================
- V122 — DASHBOARD LENDO OS DADOS SALVOS
- Base protegida: V121
- NÃO altera:
- - Edital Verticalizado
- - Prioridades
- - ordem do cronograma
- - revisões 1D/7D/15D/30D
- - Timer / histórico de horas
- - sincronização / Firebase
- Corrige:
- - Questões no Dashboard após recarregar
- - Horas líquidas no Dashboard após recarregar
- - Indicadores "Precisa de atenção"
- - atualização imediata após registrar/excluir questões
+ V123 — DASHBOARD + QUESTÕES: FONTE ÚNICA
+ Base: V121 estável
+ Corrige a causa do "pisca e volta":
+ algumas rotinas antigas preferiam arrays vazios (registrosQuestoes/questoes)
+ e ignoravam historicoQuestoes, onde os registros realmente estavam.
+ NÃO altera cronograma, prioridades, edital, revisões ou Timer.
 ========================================================== -->
-<script id="v122-dashboard-dados-salvos">
+<script id="v123-dashboard-questoes-fonte-unica">
 (function () {
-  function num(v) {
-    var n = Number(v);
-    return Number.isFinite(n) ? n : 0;
+  function n(v){ var x=Number(v); return Number.isFinite(x)?x:0; }
+  function st(){ try{return estado||window.estado||{};}catch(_){return window.estado||{};} }
+
+  function listaQuestoesV123(){
+    var e=st();
+    var fontes=[
+      e.historicoQuestoes,
+      e.registrosQuestoes,
+      e.questoes,
+      e.questoesRegistradas
+    ];
+    /* A fonte oficial atual é historicoQuestoes.
+       Fallback somente se ela não existir/não tiver registros. */
+    for(var i=0;i<fontes.length;i++){
+      if(Array.isArray(fontes[i]) && fontes[i].length) return fontes[i];
+    }
+    return [];
   }
 
-  function resumoQuestoesV122() {
-    var lista = (window.estado && Array.isArray(window.estado.historicoQuestoes))
-      ? window.estado.historicoQuestoes
-      : (typeof estado !== 'undefined' && Array.isArray(estado.historicoQuestoes) ? estado.historicoQuestoes : []);
-
-    var acertos = 0, erros = 0;
-    lista.forEach(function (r) {
-      acertos += num(r && r.acertos);
-      erros += num(r && r.erros);
+  function resumoQuestoesV123(){
+    var ac=0,er=0;
+    listaQuestoesV123().forEach(function(r){
+      ac += n(r && r.acertos);
+      er += n(r && r.erros);
     });
-
-    var total = acertos + erros;
-    return {
-      total: total,
-      acertos: acertos,
-      erros: erros,
-      taxa: total > 0 ? Math.round((acertos / total) * 100) : 0
-    };
+    var total=ac+er;
+    return {total:total,acertos:ac,erros:er,taxa:total?Math.round(ac*100/total):0};
   }
 
-  function resumoHorasV122() {
-    var lista = (window.estado && Array.isArray(window.estado.historicoHoras))
-      ? window.estado.historicoHoras
-      : (typeof estado !== 'undefined' && Array.isArray(estado.historicoHoras) ? estado.historicoHoras : []);
-
-    var minutos = lista.reduce(function (s, r) {
-      return s + num(r && r.minutos);
-    }, 0);
-
-    return {
-      minutos: minutos,
-      texto: Math.floor(minutos / 60) + 'h ' + String(Math.round(minutos % 60)).padStart(2, '0') + 'min'
-    };
+  function resumoHorasV123(){
+    var e=st(), min=0;
+    (Array.isArray(e.historicoHoras)?e.historicoHoras:[]).forEach(function(r){
+      min += n(r && r.minutos);
+    });
+    return {min:min,texto:Math.floor(min/60)+'h '+String(Math.round(min%60)).padStart(2,'0')+'min'};
   }
 
-  function atualizarDashboardV122() {
-    var q = resumoQuestoesV122();
-    var h = resumoHorasV122();
-
-    /* Questões */
-    var qEl = document.getElementById('dashQuestoesV36');
-    if (qEl) qEl.textContent = q.total ? (q.taxa + '% de acertos') : '—';
-
-    /* Horas — usa exatamente o histórico que o Timer já salvou. */
-    var hEl = document.getElementById('dashHorasV36');
-    if (hEl && h.minutos > 0) hEl.textContent = h.texto;
-
-    /* "Precisa de atenção": corrige os números sem recriar dados. */
-    var box = document.querySelector('#dashAtencaoV36, .dash-atencao-v36');
-    if (!box) {
-      var titulos = Array.from(document.querySelectorAll('#aba-inicio h2,#aba-inicio h3,#aba-inicio strong'));
-      var titulo = titulos.find(function (x) {
-        return /precisa de aten[cç][aã]o/i.test(x.textContent || '');
+  function resumoEditalV123(){
+    var e=st(), total=0,feito=0;
+    Object.keys(e.editalVerticalizado||{}).forEach(function(mat){
+      var arr=e.editalVerticalizado[mat];
+      if(!Array.isArray(arr)) return;
+      arr.forEach(function(t){
+        total++;
+        if(t && t.t===true) feito++;
       });
-      if (titulo) box = titulo.closest('article,section,div');
-    }
-
-    if (box) {
-      var elementos = Array.from(box.querySelectorAll('*'));
-
-      elementos.forEach(function (el) {
-        if (el.children.length) return;
-        var t = (el.textContent || '').trim();
-
-        if (/^Questões\s*\d*$/i.test(t)) {
-          el.textContent = 'Questões ' + q.total;
-        } else if (/^Taxa\s*\d*%?$/i.test(t)) {
-          el.textContent = 'Taxa ' + q.taxa + '%';
-        }
-      });
-
-      /* percentuais à direita, quando existirem */
-      var percentuais = elementos.filter(function (el) {
-        return !el.children.length && /^\d+%$/.test((el.textContent || '').trim());
-      });
-      if (percentuais.length) percentuais[0].textContent = q.taxa + '%';
-      if (percentuais.length > 1) percentuais[1].textContent = q.taxa + '%';
-    }
+    });
+    return {total:total,feito:feito};
   }
 
-  window.atualizarDashboardV122 = atualizarDashboardV122;
+  /* Corrige também as rotinas de Progresso que antes paravam no primeiro array,
+     mesmo quando esse array estava vazio. */
+  window.registrosQuestoesV11 = listaQuestoesV123;
+  window.registrosProgressoV20 = listaQuestoesV123;
 
-  /* Ao abrir Dashboard */
-  document.addEventListener('click', function (e) {
-    var b = e.target.closest('.tab-btn');
-    if (!b) return;
-    var oc = b.getAttribute('onclick') || '';
-    if (oc.indexOf('aba-inicio') >= 0) {
-      setTimeout(atualizarDashboardV122, 120);
+  function aplicarDashboardV123(){
+    var q=resumoQuestoesV123();
+    var h=resumoHorasV123();
+    var ed=resumoEditalV123();
+
+    var el=document.getElementById('dashQuestoesV36');
+    if(el) el.textContent=q.total ? q.taxa+'% de acertos' : '—';
+
+    el=document.getElementById('dashHorasV36');
+    if(el) el.textContent=h.texto;
+
+    el=document.getElementById('dashEditalV36');
+    if(el) el.textContent=ed.feito+' / '+ed.total;
+
+    var pct=ed.total?Math.round(ed.feito*100/ed.total):0;
+    el=document.getElementById('dashMetaPctV36');
+    if(el) el.textContent=pct+'%';
+    el=document.getElementById('dashMetaBarV36');
+    if(el) el.style.width=pct+'%';
+    el=document.getElementById('dashMetaTextoV36');
+    if(el) el.textContent=ed.total
+      ? ed.feito+' de '+ed.total+' tópicos concluídos no edital.'
+      : 'Carregue um edital para acompanhar sua evolução.';
+
+    /* Corrige somente os dois indicadores numéricos do bloco de atenção. */
+    var at=document.getElementById('dashAtencaoV36');
+    if(at){
+      var folhas=Array.from(at.querySelectorAll('*')).filter(function(x){return x.children.length===0;});
+      folhas.forEach(function(x){
+        var t=(x.textContent||'').trim();
+        if(/^Questões\s*\d*$/i.test(t)) x.textContent='Questões '+q.total;
+        if(/^Taxa\s*\d*%?$/i.test(t)) x.textContent='Taxa '+q.taxa+'%';
+      });
     }
-  }, true);
+  }
+  window.aplicarDashboardV123=aplicarDashboardV123;
 
-  /* Depois do carregamento/restauração do estado */
-  document.addEventListener('DOMContentLoaded', function () {
-    setTimeout(atualizarDashboardV122, 700);
-    setTimeout(atualizarDashboardV122, 1600);
-  });
-
-  window.addEventListener('pageshow', function () {
-    setTimeout(atualizarDashboardV122, 500);
-  });
-
-  window.addEventListener('estado-carregado', function () {
-    setTimeout(atualizarDashboardV122, 150);
-  });
-
-  /* Mantém as funções originais e apenas atualiza o Dashboard depois delas. */
-  function envolver(nome) {
-    var original = window[nome];
-    if (typeof original !== 'function' || original.__v122) return;
-
-    var nova = function () {
-      var r = original.apply(this, arguments);
-      setTimeout(atualizarDashboardV122, 80);
+  /* Em vez de disputar com V36/V37, envolve as renderizações antigas:
+     elas terminam primeiro e V123 aplica a fonte correta por último. */
+  function envolver(nome){
+    var original=window[nome];
+    if(typeof original!=='function' || original.__v123) return;
+    var nova=function(){
+      var r=original.apply(this,arguments);
+      aplicarDashboardV123();
       return r;
     };
-    nova.__v122 = true;
-    window[nome] = nova;
+    nova.__v123=true;
+    window[nome]=nova;
   }
 
-  setTimeout(function () {
-    envolver('salvarRegistroQuestao');
-    envolver('excluirRegistroQuestao');
-    envolver('salvarNovoRegistroV47');
-    envolver('registrarHoraEstudo');
-    atualizarDashboardV122();
-  }, 900);
+  function instalar(){
+    envolver('renderizarDashboardV36');
+    envolver('renderizarDashboardV37');
+
+    /* Atualiza Progresso/Questões usando o histórico já salvo. */
+    try{ if(typeof renderizarProgressoV11==='function') renderizarProgressoV11(); }catch(_){}
+    try{ if(typeof renderizarProgressoV20==='function') renderizarProgressoV20(); }catch(_){}
+    try{ if(typeof atualizarVisualizacaoQuestoes==='function') atualizarVisualizacaoQuestoes(); }catch(_){}
+
+    aplicarDashboardV123();
+  }
+
+  /* Novo Registro: mantém a função original, mas não força uma recarga geral da UI
+     depois de salvar, pois isso era uma das causas de sobrescrita visual. */
+  var salvarOriginal=null;
+  function corrigirNovoRegistro(){
+    if(typeof window.salvarNovoRegistroV47!=='function') return;
+    if(window.salvarNovoRegistroV47.__v123) return;
+
+    salvarOriginal=window.salvarNovoRegistroV47;
+    var nova=function(){
+      var materia=document.getElementById('registroMateriaV47')?.value||'Estudo';
+      var assunto=document.getElementById('registroAssuntoV47')?.value?.trim()||'';
+      var min=Math.max(0,parseInt(document.getElementById('registroMinutosV47')?.value||0,10));
+      var q=Math.max(0,parseInt(document.getElementById('registroQuestoesV47')?.value||0,10));
+      var a=Math.max(0,parseInt(document.getElementById('registroAcertosV47')?.value||0,10));
+      var er=Math.max(0,parseInt(document.getElementById('registroErrosV47')?.value||0,10));
+      var tipo=(typeof tipoRegistroV47!=='undefined'?tipoRegistroV47:'Teoria');
+
+      if(!materia){alert('Selecione uma disciplina.');return;}
+      if(!assunto){alert('Informe o assunto estudado.');return;}
+      if(q>0 && (a+er)!==q){
+        alert('Questões deve ser igual a Acertos + Erros.');
+        return;
+      }
+
+      if(min>0 && typeof registrarHoraEstudo==='function') registrarHoraEstudo(materia,min);
+
+      var e=st();
+      if(q>0){
+        e.historicoQuestoes=Array.isArray(e.historicoQuestoes)?e.historicoQuestoes:[];
+        e.historicoQuestoes.push({
+          id:'qz_'+Math.random().toString(36).slice(2,11),
+          materia:materia,assunto:assunto,total:q,
+          acertos:a,erros:er,data:new Date().toISOString(),tipo:tipo
+        });
+      }
+
+      e.historicoRegistrosV47=Array.isArray(e.historicoRegistrosV47)?e.historicoRegistrosV47:[];
+      e.historicoRegistrosV47.push({
+        tipo:tipo,materia:materia,assunto:assunto,minutos:min,
+        questoes:q,acertos:a,erros:er,data:new Date().toISOString()
+      });
+
+      try{if(typeof salvarEstado==='function') salvarEstado();}catch(_){}
+      try{if(typeof fecharNovoRegistroV47==='function') fecharNovoRegistroV47();}catch(_){}
+      try{if(typeof atualizarVisualizacaoHoras==='function') atualizarVisualizacaoHoras();}catch(_){}
+      try{if(typeof atualizarVisualizacaoQuestoes==='function') atualizarVisualizacaoQuestoes();}catch(_){}
+      try{if(typeof renderizarProgressoV11==='function') renderizarProgressoV11();}catch(_){}
+      try{if(typeof renderizarProgressoV20==='function') renderizarProgressoV20();}catch(_){}
+      aplicarDashboardV123();
+
+      try{
+        if(typeof avisoV43==='function')
+          avisoV43('Registro salvo! ✓',tipo+' de '+materia+' registrado com sucesso.','✓','Fechar','fecharAvisoV43()');
+      }catch(_){}
+    };
+    nova.__v123=true;
+    window.salvarNovoRegistroV47=nova;
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(function(){corrigirNovoRegistro();instalar();},700);
+    setTimeout(instalar,1500);
+  });
+  window.addEventListener('pageshow',function(){setTimeout(instalar,400);});
+  window.addEventListener('estado-carregado',function(){setTimeout(instalar,100);});
+
+  document.addEventListener('click',function(ev){
+    var b=ev.target.closest('.tab-btn');
+    if(!b)return;
+    var oc=b.getAttribute('onclick')||'';
+    if(oc.indexOf('aba-inicio')>=0 || oc.indexOf('aba-progresso')>=0 || oc.indexOf('aba-questoes')>=0){
+      setTimeout(instalar,80);
+    }
+  },true);
 })();
 </script>
 

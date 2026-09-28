@@ -9448,6 +9448,38 @@ window.V86ManualFlash={
 })();
 </script>
 
+
+
+<!-- ===== V90: REMOÇÃO DEFINITIVA DOS ACESSOS VISUAIS DE FLASHCARDS ===== -->
+<style id="v90-hide-flashcards">
+/* Esconde qualquer launcher/menu/tab legado de Flashcards sem afetar Banco de Questões */
+[data-v74-mode="flash"],
+[data-mode="flash"],
+[data-action="flashcards"],
+#v74-tab-flash,
+.v74-flash-launch,
+.flashcards-launcher {display:none!important}
+</style>
+<script id="v90-remove-flashcards-menu">
+(function(){
+  function txt(el){return (el?.textContent||'').replace(/\s+/g,' ').trim().toLowerCase()}
+  function limpar(){
+    /* Remove somente elementos clicáveis cujo rótulo seja exatamente Flashcards */
+    document.querySelectorAll('button,a,[role="button"],.menu-item,.nav-item,.sidebar-item,.v74-fab').forEach(el=>{
+      if(txt(el)==='flashcards' || txt(el)==='🧠 flashcards'){
+        el.remove();
+      }
+    });
+    document.getElementById('v74-tab-flash')?.remove();
+    document.getElementById('v82-srs-bar')?.remove();
+    document.getElementById('v82-study')?.remove();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(limpar,50));
+  else setTimeout(limpar,50);
+  new MutationObserver(limpar).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+
 </body>
 </html>
 

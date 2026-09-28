@@ -9800,156 +9800,6 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
 })();
 </script>
 
-
-<!-- =========================================================
- V118 — DASHBOARD LÊ OS DADOS REAIS DO ESTADO
- - Horas líquidas: histórico real (Timer, manual e revisões)
- - Questões: histórico real de questões
- - Revisões espaçadas concluídas entram nas horas líquidas
- - Evita o "pisca e volta para zero" causado pela leitura do DOM
- - Não altera edital, cronograma, prioridades ou geração das revisões
-========================================================== -->
-<script id="v118-dashboard-dados-reais">
-(function(){
-  const originalV36 = (typeof window.renderizarDashboardV36 === 'function')
-    ? window.renderizarDashboardV36 : null;
-  const originalV37 = (typeof window.renderizarDashboardV37 === 'function')
-    ? window.renderizarDashboardV37 : null;
-
-  function estadoAtualV118(){
-    try{
-      if(typeof estado === 'object' && estado) return estado;
-    }catch(_){}
-    return null;
-  }
-
-  function resumoHorasV118(){
-    const st = estadoAtualV118();
-    const hist = Array.isArray(st?.historicoHoras) ? st.historicoHoras : [];
-    const minutos = hist.reduce((s,h)=>{
-      const n = Number(h?.minutos || 0);
-      return s + (Number.isFinite(n) && n > 0 ? n : 0);
-    },0);
-    return {
-      minutos,
-      h: Math.floor(minutos/60),
-      m: Math.round(minutos%60)
-    };
-  }
-
-  function resumoQuestoesV118(){
-    const st = estadoAtualV118();
-    const hist = Array.isArray(st?.historicoQuestoes) ? st.historicoQuestoes : [];
-    let total=0, acertos=0, erros=0;
-
-    hist.forEach(q=>{
-      const a = Math.max(0, Number(q?.acertos || 0));
-      const e = Math.max(0, Number(q?.erros || 0));
-      let t = Number(q?.total);
-      if(!Number.isFinite(t) || t <= 0) t = a + e;
-
-      total += Math.max(0,t);
-      acertos += a;
-      erros += e;
-    });
-
-    const taxa = total > 0 ? Math.round((acertos/total)*100) : 0;
-    return {total,acertos,erros,taxa};
-  }
-
-  function resumoEditalV118(){
-    const st = estadoAtualV118();
-    const mapa = st?.editalVerticalizado || {};
-    const todos = [];
-    Object.values(mapa).forEach(lista=>{
-      if(Array.isArray(lista)) lista.forEach(t=>todos.push(t));
-    });
-    return {
-      feito: todos.filter(t=>t && t.t===true).length,
-      total: todos.length
-    };
-  }
-
-  function aplicarMetricasV118(){
-    const horas = resumoHorasV118();
-    const quest = resumoQuestoesV118();
-    const edital = resumoEditalV118();
-
-    const hEl = document.getElementById('dashHorasV36');
-    if(hEl) hEl.textContent = horas.h+'h '+String(horas.m).padStart(2,'0')+'min';
-
-    const qEl = document.getElementById('dashQuestoesV36');
-    if(qEl) qEl.textContent = quest.total ? quest.taxa+'% de acertos' : '—';
-
-    const edEl = document.getElementById('dashEditalV36');
-    if(edEl) edEl.textContent = edital.feito+' / '+edital.total;
-
-    const pct = edital.total ? Math.round((edital.feito/edital.total)*100) : 0;
-    const mp = document.getElementById('dashMetaPctV36');
-    const mb = document.getElementById('dashMetaBarV36');
-    const mt = document.getElementById('dashMetaTextoV36');
-    if(mp) mp.textContent = pct+'%';
-    if(mb) mb.style.width = Math.max(0,Math.min(100,pct))+'%';
-    if(mt) mt.textContent = edital.total
-      ? edital.feito+' de '+edital.total+' tópicos concluídos no edital.'
-      : 'Carregue um edital para acompanhar sua evolução.';
-  }
-
-  function renderV118(){
-    /* Mantém Hoje, Próximo estudo e demais elementos já existentes. */
-    try{
-      if(originalV37) originalV37();
-      else if(originalV36) originalV36();
-    }catch(_){}
-
-    /* A fonte final das métricas passa a ser o estado salvo, não texto da tela. */
-    aplicarMetricasV118();
-  }
-
-  /* Todas as versões antigas que chamarem V36/V37 passam pela correção. */
-  window.renderizarDashboardV36 = renderV118;
-  window.renderizarDashboardV37 = renderV118;
-  window.renderizarDashboardV118 = renderV118;
-
-  /* Corrige imediatamente após carregar/login e após renderizações atrasadas. */
-  document.addEventListener('DOMContentLoaded',()=>{
-    [80,250,600,1200,2200].forEach(ms=>setTimeout(renderV118,ms));
-  });
-  window.addEventListener('load',()=>{
-    [100,500,1200,2500].forEach(ms=>setTimeout(renderV118,ms));
-  });
-
-  /* Ao abrir Dashboard/Início, força a leitura do estado real. */
-  document.addEventListener('click',e=>{
-    const b=e.target.closest('button,.tab-btn,[role="button"]');
-    if(!b) return;
-    const tx=(b.textContent||'').toLowerCase();
-    const oc=b.getAttribute('onclick')||'';
-    if(tx.includes('dashboard') || oc.includes('aba-inicio')){
-      setTimeout(renderV118,30);
-      setTimeout(renderV118,180);
-    }
-  },true);
-
-  /* Depois de salvar tempo/questões/revisão, atualiza sem depender de trocar de aba. */
-  ['registrarHoraEstudo','salvarRegistroQuestao','salvarNovoRegistroV47','concluirRevisaoTimerV42']
-    .forEach(nome=>{
-      try{
-        const fn=window[nome];
-        if(typeof fn!=='function' || fn.__v118) return;
-        const wrap=function(){
-          const r=fn.apply(this,arguments);
-          setTimeout(renderV118,20);
-          setTimeout(renderV118,180);
-          return r;
-        };
-        wrap.__v118=true;
-        window[nome]=wrap;
-      }catch(_){}
-    });
-})();
-</script>
-
 </body>
 </html>
 
@@ -11034,6 +10884,95 @@ body.v71-timer #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!importan
   });
 
   window.abrirPlanejamentoV73=abrirPlanejamentoV73;
+})();
+</script>
+
+
+
+<!-- =========================================================
+ V119 — CORREÇÃO SEGURA DO DASHBOARD / LOGIN
+ Base: V117 original.
+ IMPORTANTE: não substitui renderizarDashboardV36/V37.
+ Corrige somente as métricas depois que a interface original renderiza.
+========================================================== -->
+<script id="v119-dashboard-seguro">
+(function(){
+  function getEstadoV119(){
+    try { return (typeof estado === 'object' && estado) ? estado : null; }
+    catch(_) { return null; }
+  }
+
+  function aplicarDashboardV119(){
+    const st=getEstadoV119();
+    if(!st) return;
+
+    const horas=Array.isArray(st.historicoHoras)?st.historicoHoras:[];
+    const totalMin=horas.reduce((s,x)=>{
+      const n=Number(x&&x.minutos||0);
+      return s+(Number.isFinite(n)&&n>0?n:0);
+    },0);
+
+    const questoes=Array.isArray(st.historicoQuestoes)?st.historicoQuestoes:[];
+    let qt=0, ac=0;
+    questoes.forEach(q=>{
+      const a=Math.max(0,Number(q&&q.acertos||0));
+      const e=Math.max(0,Number(q&&q.erros||0));
+      let t=Number(q&&q.total);
+      if(!Number.isFinite(t)||t<=0)t=a+e;
+      qt+=Math.max(0,t); ac+=a;
+    });
+
+    const mapa=st.editalVerticalizado||{};
+    let totalTop=0, feitos=0;
+    Object.values(mapa).forEach(lista=>{
+      if(!Array.isArray(lista))return;
+      lista.forEach(t=>{totalTop++; if(t&&t.t===true)feitos++;});
+    });
+
+    const elHoras=document.getElementById('dashHorasV36');
+    if(elHoras)elHoras.textContent=Math.floor(totalMin/60)+'h '+String(totalMin%60).padStart(2,'0')+'min';
+
+    const elQ=document.getElementById('dashQuestoesV36');
+    if(elQ)elQ.textContent=qt?Math.round(ac/qt*100)+'% de acertos':'—';
+
+    const elE=document.getElementById('dashEditalV36');
+    if(elE)elE.textContent=feitos+' / '+totalTop;
+
+    const pct=totalTop?Math.round(feitos/totalTop*100):0;
+    const p=document.getElementById('dashMetaPctV36');
+    const b=document.getElementById('dashMetaBarV36');
+    const t=document.getElementById('dashMetaTextoV36');
+    if(p)p.textContent=pct+'%';
+    if(b)b.style.width=pct+'%';
+    if(t)t.textContent=totalTop
+      ? feitos+' de '+totalTop+' tópicos concluídos no edital.'
+      : 'Carregue um edital para acompanhar sua evolução.';
+  }
+
+  function atualizarDepoisV119(){
+    setTimeout(aplicarDashboardV119,80);
+    setTimeout(aplicarDashboardV119,350);
+    setTimeout(aplicarDashboardV119,900);
+  }
+
+  document.addEventListener('DOMContentLoaded',atualizarDepoisV119);
+  window.addEventListener('load',atualizarDepoisV119);
+  window.addEventListener('pageshow',atualizarDepoisV119);
+
+  document.addEventListener('click',function(e){
+    const b=e.target.closest('button,.tab-btn,[role="button"]');
+    if(!b)return;
+    const s=((b.textContent||'')+' '+(b.getAttribute('onclick')||'')).toLowerCase();
+    if(s.includes('dashboard')||s.includes('início')||s.includes('inicio')||s.includes('progresso')){
+      atualizarDepoisV119();
+    }
+  },false);
+
+  /* Quando horas/questões/revisões mudarem, apenas agenda nova leitura.
+     Nenhuma função existente é substituída. */
+  document.addEventListener('change',function(){ setTimeout(aplicarDashboardV119,250); },false);
+
+  window.aplicarDashboardV119=aplicarDashboardV119;
 })();
 </script>
 

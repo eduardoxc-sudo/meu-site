@@ -9041,6 +9041,167 @@ window.V80FC=(function(){
 })();
 </script>
 
+
+
+<!-- ===== V82: REPETIÇÃO ESPAÇADA ESTILO ANKI NO FLASHCARD EXISTENTE ===== -->
+<style id="v82-srs-css">
+#v82-srs-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.v82-pill{padding:7px 10px;border-radius:999px;background:#eef4ff;color:#17335c;font-size:13px;font-weight:700}
+body.dark .v82-pill{background:#182a43;color:#dbeafe}
+#v82-study{position:fixed;inset:0;z-index:99999;background:rgba(5,12,24,.72);display:none;align-items:center;justify-content:center;padding:18px}
+#v82-study.show{display:flex}
+.v82-study-card{width:min(760px,96vw);max-height:92vh;overflow:auto;background:#fff;color:#111827;border-radius:18px;padding:24px;box-sizing:border-box;box-shadow:0 25px 80px rgba(0,0,0,.35)}
+body.dark .v82-study-card{background:#102036;color:#f3f6fb}
+.v82-q{font-size:25px;font-weight:800;text-align:center;padding:35px 10px}
+.v82-a{font-size:19px;text-align:center;border-top:1px solid #dbe3ef;padding:26px 10px;display:none;white-space:pre-wrap}
+.v82-actions{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.v82-btn{border:1px solid #cbd5e1;border-radius:10px;padding:10px 15px;background:transparent;color:inherit;font-weight:800;cursor:pointer}
+.v82-primary{background:#2563eb!important;color:white!important;border-color:#2563eb!important}
+.v82-again{border-color:#ef4444!important;color:#ef4444!important}
+.v82-hard{border-color:#f59e0b!important;color:#b45309!important}
+.v82-good{border-color:#22c55e!important;color:#15803d!important}
+.v82-easy{border-color:#3b82f6!important;color:#2563eb!important}
+</style>
+
+<div id="v82-study"><div class="v82-study-card">
+ <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+   <b id="v82-title">Revisão</b><button class="v82-btn" onclick="V82SRS.close()">✕ Fechar</button>
+ </div>
+ <div id="v82-progress" style="opacity:.7;margin-top:8px"></div>
+ <div class="v82-q" id="v82-q"></div>
+ <div class="v82-a" id="v82-a"></div>
+ <div class="v82-actions" id="v82-show"><button class="v82-btn v82-primary" onclick="V82SRS.reveal()">👁 Mostrar resposta</button></div>
+ <div class="v82-actions" id="v82-grade" style="display:none">
+   <button class="v82-btn v82-again" onclick="V82SRS.grade('again')">🔴 Errei<br><small>hoje</small></button>
+   <button class="v82-btn v82-hard" onclick="V82SRS.grade('hard')">🟠 Difícil<br><small id="v82-hard-i"></small></button>
+   <button class="v82-btn v82-good" onclick="V82SRS.grade('good')">🟢 Bom<br><small id="v82-good-i"></small></button>
+   <button class="v82-btn v82-easy" onclick="V82SRS.grade('easy')">🔵 Fácil<br><small id="v82-easy-i"></small></button>
+ </div>
+</div></div>
+
+<script id="v82-srs-js">
+window.V82SRS=(function(){
+  let ctx=null, queue=[], pos=0, current=null;
+
+  function dayISO(offset=0){
+    const d=new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()+offset);
+    return d.toISOString().slice(0,10);
+  }
+  function load(){
+    try{return JSON.parse(localStorage.getItem('EI_V74_FLASH'))||{folders:[]}}catch(e){return {folders:[]}}
+  }
+  function save(d){localStorage.setItem('EI_V74_FLASH',JSON.stringify(d))}
+  function ensure(c){
+    if(!c.srs)c.srs={due:dayISO(0),interval:0,reps:0,lapses:0,ease:2.5,last:null};
+    return c.srs;
+  }
+  function due(c){const s=ensure(c);return !s.due||s.due<=dayISO(0)}
+  function intervals(c){
+    const s=ensure(c), i=Math.max(0,Number(s.interval)||0), e=Math.max(1.3,Number(s.ease)||2.5);
+    return {
+      hard: Math.max(1, Math.round(i ? i*1.2 : 1)),
+      good: Math.max(3, Math.round(i ? i*e : 3)),
+      easy: Math.max(7, Math.round(i ? i*(e+0.65) : 7))
+    };
+  }
+  function findFolderFromUI(){
+    const d=load();
+    const title=document.querySelector('#v74-body h2,#v74-body h3');
+    const name=(title?.textContent||'').trim();
+    let f=d.folders.find(x=>String(x.name||'').trim()===name);
+    if(!f){
+      const selected=[...document.querySelectorAll('#v74-body .v74-item')].find(x=>x.classList.contains('sel'));
+      const n=(selected?.querySelector('b')?.textContent||'').trim();
+      f=d.folders.find(x=>String(x.name||'').trim()===n);
+    }
+    return f||null;
+  }
+  function stats(f){
+    const total=f?.items?.length||0, dueN=(f?.items||[]).filter(due).length;
+    return {total,dueN,future:Math.max(0,total-dueN)};
+  }
+  function inject(){
+    const body=document.querySelector('#v74-body'); if(!body)return;
+    const f=findFolderFromUI(); if(!f)return;
+    if(body.querySelector('#v82-srs-bar'))return;
+    const s=stats(f);
+    const bar=document.createElement('div'); bar.id='v82-srs-bar';
+    bar.innerHTML=`<span class="v82-pill">📚 ${s.total} cartões</span>
+      <span class="v82-pill">🔄 ${s.dueN} para hoje</span>
+      <span class="v82-pill">✅ ${s.future} futuros</span>
+      <button class="v82-btn v82-primary" type="button" onclick="V82SRS.startDue()">▶ Revisar agora (${s.dueN})</button>
+      <button class="v82-btn" type="button" onclick="V82SRS.startAll()">📖 Estudar todos</button>`;
+    const firstBox=body.querySelector('.v74-box');
+    (firstBox||body).insertAdjacentElement(firstBox?'beforebegin':'afterbegin',bar);
+  }
+  function start(onlyDue){
+    const d=load(), f=findFolderFromUI();
+    if(!f)return alert('Selecione uma pasta de Flashcards.');
+    (f.items||[]).forEach(ensure); save(d);
+    queue=(f.items||[]).filter(c=>!onlyDue||due(c)).map(c=>c.id);
+    if(!queue.length)return alert(onlyDue?'Nenhum flashcard para revisar hoje.':'Esta pasta não possui flashcards.');
+    ctx={folderId:f.id}; pos=0; document.getElementById('v82-study').classList.add('show'); show();
+  }
+  function getCurrent(){
+    const d=load(), f=d.folders.find(x=>x.id===ctx.folderId);
+    return {d,f,c:f?.items?.find(x=>x.id===queue[pos])};
+  }
+  function show(){
+    const {f,c}=getCurrent(); current=c;
+    if(!c){close();return}
+    const ints=intervals(c);
+    document.getElementById('v82-title').textContent='🧠 '+(f.name||'Flashcards');
+    document.getElementById('v82-progress').textContent=`Cartão ${pos+1} de ${queue.length}`;
+    document.getElementById('v82-q').textContent=c.q||'';
+    document.getElementById('v82-a').textContent=c.a||'';
+    document.getElementById('v82-a').style.display='none';
+    document.getElementById('v82-show').style.display='flex';
+    document.getElementById('v82-grade').style.display='none';
+    document.getElementById('v82-hard-i').textContent='+'+ints.hard+' dia(s)';
+    document.getElementById('v82-good-i').textContent='+'+ints.good+' dia(s)';
+    document.getElementById('v82-easy-i').textContent='+'+ints.easy+' dia(s)';
+  }
+  function reveal(){
+    document.getElementById('v82-a').style.display='block';
+    document.getElementById('v82-show').style.display='none';
+    document.getElementById('v82-grade').style.display='flex';
+  }
+  function grade(g){
+    const {d,c}=getCurrent(); if(!c)return;
+    const s=ensure(c), ints=intervals(c);
+    s.reps=(s.reps||0)+1; s.last=dayISO(0);
+    if(g==='again'){
+      s.lapses=(s.lapses||0)+1; s.interval=0; s.ease=Math.max(1.3,(s.ease||2.5)-0.20); s.due=dayISO(0);
+      /* reaparece no final da mesma sessão, uma vez */
+      if(!queue.slice(pos+1).includes(c.id)) queue.push(c.id);
+    } else if(g==='hard'){
+      s.interval=ints.hard; s.ease=Math.max(1.3,(s.ease||2.5)-0.15); s.due=dayISO(s.interval);
+    } else if(g==='good'){
+      s.interval=ints.good; s.due=dayISO(s.interval);
+    } else {
+      s.interval=ints.easy; s.ease=(s.ease||2.5)+0.15; s.due=dayISO(s.interval);
+    }
+    save(d); pos++;
+    if(pos>=queue.length){alert('✅ Revisão concluída!');close();setTimeout(refresh,60)} else show();
+  }
+  function close(){document.getElementById('v82-study').classList.remove('show')}
+  function refresh(){
+    const b=document.querySelector('#v82-srs-bar'); if(b)b.remove();
+    inject();
+  }
+  function startDue(){start(true)}
+  function startAll(){start(false)}
+  return {inject,startDue,startAll,reveal,grade,close,refresh};
+})();
+
+(function(){
+  function run(){setTimeout(()=>V82SRS.inject(),40)}
+  document.addEventListener('click',run,true);
+  new MutationObserver(run).observe(document.documentElement,{subtree:true,childList:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+})();
+</script>
+
 </body>
 </html>
 

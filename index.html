@@ -9954,6 +9954,89 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
 })();
 </script>
 
+
+<!-- =========================================================
+ V119 — DASHBOARD SEM SOBRESCRITA
+ Base: V118.
+ Corrige o efeito "pisca o valor certo e volta para 0":
+ aplica a fonte persistida depois das renderizações antigas.
+ Não altera Firebase, sincronização, Edital, cronograma ou revisões.
+========================================================== -->
+<script id="v119-dashboard-sem-sobrescrita">
+(function(){
+  function aplicarV119(){
+    try{
+      if(typeof window.atualizarIndicadoresPersistidosV118 === 'function'){
+        window.atualizarIndicadoresPersistidosV118();
+      }
+    }catch(e){ console.warn('V119 dashboard:',e); }
+  }
+
+  // Depois de abrir qualquer aba, aplica o valor persistido por último.
+  document.addEventListener('click', function(e){
+    const alvo=e.target.closest('[onclick], .tab-btn, .nav-item, button, a');
+    if(!alvo) return;
+    setTimeout(aplicarV119, 0);
+    setTimeout(aplicarV119, 80);
+    setTimeout(aplicarV119, 300);
+  }, true);
+
+  // Reaplica após carregamento/login.
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(aplicarV119, 100);
+    setTimeout(aplicarV119, 500);
+    setTimeout(aplicarV119, 1200);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(aplicarV119, 100);
+    setTimeout(aplicarV119, 700);
+  });
+
+  // Observa especificamente os dois indicadores do Dashboard.
+  // Se uma rotina antiga os sobrescrever, restaura a fonte persistida.
+  let bloqueioV119=false;
+  function observarV119(){
+    const ids=['dashHorasV36','dashQuestoesV36'];
+    ids.forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el || el.dataset.v119Observado) return;
+      el.dataset.v119Observado='1';
+      new MutationObserver(()=>{
+        if(bloqueioV119) return;
+        bloqueioV119=true;
+        setTimeout(()=>{
+          aplicarV119();
+          bloqueioV119=false;
+        },0);
+      }).observe(el,{childList:true,characterData:true,subtree:true});
+    });
+  }
+
+  const obsDomV119=new MutationObserver(()=>{
+    observarV119();
+  });
+  document.addEventListener('DOMContentLoaded',()=>{
+    observarV119();
+    if(document.body) obsDomV119.observe(document.body,{childList:true,subtree:true});
+  });
+
+  // Depois de salvar tempo/registro, deixa a V118 recalcular e V119 prevalecer.
+  ['registrarHoraEstudo','salvarNovoRegistroV47','salvarRegistroQuestao','concluirRevisaoTimerV42']
+    .forEach(nome=>{
+      const original=window[nome];
+      if(typeof original!=='function' || original.__v119) return;
+      const wrapper=function(){
+        const r=original.apply(this,arguments);
+        setTimeout(aplicarV119,20);
+        setTimeout(aplicarV119,200);
+        return r;
+      };
+      wrapper.__v119=true;
+      window[nome]=wrapper;
+    });
+})();
+</script>
+
 </body>
 </html>
 

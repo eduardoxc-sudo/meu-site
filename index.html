@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 ===============================================================================
- V106 — SINCRONIZAÇÃO DO PLANO ENTRE DISPOSITIVOS — FIREBASE AUTH PRESERVADO
+ V107 — MOBILE RECÁLCULO DA SEMANA APÓS SYNC — V106 PRESERVADA
  Não editar diretamente esta versão publicada.
  Fluxo recomendado:
  1. conservar este arquivo como versão estável;
@@ -9479,6 +9479,121 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
   document.addEventListener('DOMContentLoaded',()=>setTimeout(empilharGradeExistente,500));
   window.addEventListener('resize',()=>setTimeout(empilharGradeExistente,150));
   document.addEventListener('click',()=>setTimeout(empilharGradeExistente,350));
+})();
+</script>
+
+
+<!-- =========================================================
+ V107 — MOBILE: RECÁLCULO SEGURO DA SEMANA APÓS SINCRONIZAÇÃO
+ Base: V106. Não cria registros, não muda semana e não altera
+ Firebase/Auth. Apenas força a mesma re-renderização visual que
+ ocorre ao navegar pela semana, depois que a nuvem terminou.
+========================================================== -->
+<script id="v107-mobile-week-refresh">
+(function(){
+  let timerV107 = null;
+  let ultimoRefreshV107 = 0;
+
+  function ehMobileV107(){
+    return window.matchMedia('(max-width:768px)').matches;
+  }
+
+  function refreshVisualV107(){
+    if(!ehMobileV107()) return;
+
+    const agora = Date.now();
+    if(agora - ultimoRefreshV107 < 900) return;
+    ultimoRefreshV107 = agora;
+
+    /*
+      Não dispara as setas: isso poderia alterar a data.
+      Em vez disso, chama somente funções de renderização já existentes,
+      quando disponíveis, mantendo a semana atual.
+    */
+    const nomes = [
+      'renderizarCronograma',
+      'renderizarSemana',
+      'renderizarPlano',
+      'atualizarCronograma',
+      'atualizarSemana',
+      'renderizarCalendario'
+    ];
+
+    let executou = false;
+    for(const nome of nomes){
+      try{
+        if(typeof window[nome] === 'function'){
+          window[nome]();
+          executou = true;
+          break;
+        }
+      }catch(e){
+        console.warn('V107:', nome, e);
+      }
+    }
+
+    /*
+      Algumas versões encapsulam a renderização e não a expõem em window.
+      Nesse caso, força apenas um reflow/repaint do contêiner existente.
+      Isso não adiciona cartões e não escreve no estado.
+    */
+    if(!executou){
+      const alvo =
+        document.querySelector('#conteudo-plano') ||
+        document.querySelector('#meu-plano') ||
+        document.querySelector('#meuPlano') ||
+        document.querySelector('.week-grid') ||
+        document.querySelector('.semana-grid') ||
+        document.querySelector('.days-grid');
+
+      if(alvo){
+        const displayAnterior = alvo.style.display;
+        alvo.style.display = 'none';
+        void alvo.offsetHeight;
+        alvo.style.display = displayAnterior;
+      }
+    }
+
+    window.scrollTo({top:0, left:0, behavior:'auto'});
+  }
+
+  function agendarRefreshV107(delay){
+    clearTimeout(timerV107);
+    timerV107 = setTimeout(refreshVisualV107, delay || 450);
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    agendarRefreshV107(900);
+  });
+
+  /*
+    Observa o texto de status já usado pela V106.
+    Quando "Sincronizado" aparece após receber/publicar a nuvem,
+    faz uma única atualização visual no mobile.
+  */
+  const observerV107 = new MutationObserver(function(muts){
+    if(!ehMobileV107()) return;
+    for(const m of muts){
+      const el = m.target.nodeType === 3 ? m.target.parentElement : m.target;
+      const txt = (el && el.textContent || '').trim();
+      if(txt.includes('Sincronizado')){
+        agendarRefreshV107(500);
+        break;
+      }
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function(){
+    observerV107.observe(document.body, {
+      subtree:true,
+      childList:true,
+      characterData:true
+    });
+  });
+
+  window.addEventListener('pageshow', function(){
+    agendarRefreshV107(700);
+  });
 })();
 </script>
 

@@ -11108,118 +11108,92 @@ body.v71-timer #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!importan
 
 
 
-<!-- =========================================================
- V125 — "PRECISA DE ATENÇÃO" COM RENDERIZAÇÃO ÚNICA
- Base: V123 funcional (V124 descartada)
- Não altera Timer, Novo Registro, questões, edital, cronograma,
- prioridades ou revisões.
-========================================================== -->
-<style id="v125-atencao-css">
-#dashAtencaoV36 .v125-lista{margin-top:10px}
-#dashAtencaoV36 .v125-linha{
+<!-- V126 — Base V123. Correção simples do quadro "Precisa de atenção".
+     Sem MutationObserver, sem loop e sem interferência no login. -->
+<style id="v126-css">
+#dashAtencaoV36 .v126-row{
  display:grid;grid-template-columns:minmax(0,1fr) auto;
- gap:12px;align-items:center;padding:12px 0;
+ gap:12px;align-items:center;padding:11px 0;
  border-bottom:1px solid rgba(148,163,184,.22)
 }
-#dashAtencaoV36 .v125-linha:last-child{border-bottom:0}
-#dashAtencaoV36 .v125-nome{font-size:14px;font-weight:600;overflow-wrap:anywhere}
-#dashAtencaoV36 .v125-valor{font-size:16px;font-weight:800;white-space:nowrap}
+#dashAtencaoV36 .v126-row:last-child{border-bottom:0}
+#dashAtencaoV36 .v126-name{font-weight:600;overflow-wrap:anywhere}
+#dashAtencaoV36 .v126-value{font-weight:800;white-space:nowrap}
 </style>
-<script id="v125-atencao-js">
+<script id="v126-js">
 (function(){
- const num=v=>Number.isFinite(Number(v))?Number(v):0;
+ function N(v){v=Number(v);return Number.isFinite(v)?v:0}
  function E(){try{return estado||window.estado||{}}catch(_){return window.estado||{}}}
  function regs(){
    try{
      if(typeof window.registrosQuestoesV11==='function'){
-       const a=window.registrosQuestoesV11();
-       if(Array.isArray(a)) return a;
+       var a=window.registrosQuestoesV11();
+       if(Array.isArray(a))return a;
      }
    }catch(_){}
-   const e=E();
+   var e=E();
    return Array.isArray(e.historicoQuestoes)?e.historicoQuestoes:[];
  }
- function dados(){
-   let ac=0,er=0; const m={};
-   regs().forEach(r=>{
-     const nome=(r&&(r.materia||r.disciplina))||'Sem disciplina';
-     const a=num(r&&r.acertos), x=num(r&&r.erros);
-     ac+=a; er+=x;
-     if(!m[nome])m[nome]={a:0,e:0};
-     m[nome].a+=a;m[nome].e+=x;
-   });
-   const materias=Object.entries(m).map(([nome,x])=>{
-     const t=x.a+x.e;
-     return {nome,total:t,taxa:t?Math.round(x.a*100/t):0};
-   }).sort((a,b)=>a.taxa-b.taxa||b.total-a.total);
-   const total=ac+er;
-   return {materias,total,taxa:total?Math.round(ac*100/total):0};
- }
- function render(){
-   const box=document.getElementById('dashAtencaoV36');
+ function renderV126(){
+   var box=document.getElementById('dashAtencaoV36');
    if(!box)return;
-   const titulo=box.querySelector('h1,h2,h3,h4');
-   Array.from(box.children).forEach(el=>{if(el!==titulo)el.remove()});
-   const d=dados(), lista=document.createElement('div');
-   lista.className='v125-lista';
 
-   d.materias.forEach(m=>{
-     const row=document.createElement('div'); row.className='v125-linha';
-     const nome=document.createElement('div'); nome.className='v125-nome'; nome.textContent=m.nome;
-     const val=document.createElement('div'); val.className='v125-valor'; val.textContent=m.taxa+'%';
-     row.append(nome,val); lista.appendChild(row);
+   var por={},ac=0,er=0;
+   regs().forEach(function(r){
+     var nome=(r&&(r.materia||r.disciplina))||'Sem disciplina';
+     var a=N(r&&r.acertos),x=N(r&&r.erros);
+     ac+=a;er+=x;
+     if(!por[nome])por[nome]={a:0,e:0};
+     por[nome].a+=a;por[nome].e+=x;
    });
 
-   const q=document.createElement('div');q.className='v125-linha';
-   q.innerHTML='<div class="v125-nome">Questões</div><div class="v125-valor">'+d.total+'</div>';
-   lista.appendChild(q);
+   var materias=Object.keys(por).map(function(nome){
+     var x=por[nome],t=x.a+x.e;
+     return {nome:nome,taxa:t?Math.round(x.a*100/t):0};
+   }).sort(function(a,b){return a.taxa-b.taxa});
 
-   const tx=document.createElement('div');tx.className='v125-linha';
-   tx.innerHTML='<div class="v125-nome">Taxa geral</div><div class="v125-valor">'+d.taxa+'%</div>';
-   lista.appendChild(tx);
-   box.appendChild(lista);
- }
- window.renderAtencaoV125=render;
+   var total=ac+er,taxa=total?Math.round(ac*100/total):0;
+   var titulo=box.querySelector('h1,h2,h3,h4');
 
- /* Observa somente o quadro. Se qualquer rotina antiga tentar reescrevê-lo,
-    V125 restaura a renderização única imediatamente. */
- let ocupado=false, obs=null;
- function proteger(){
-   const box=document.getElementById('dashAtencaoV36');
-   if(!box)return;
-   if(obs)obs.disconnect();
-   obs=new MutationObserver(()=>{
-     if(ocupado)return;
-     ocupado=true;
-     queueMicrotask(()=>{
-       render();
-       ocupado=false;
-     });
+   Array.from(box.children).forEach(function(el){
+     if(el!==titulo)el.remove();
    });
-   obs.observe(box,{childList:true,subtree:true,characterData:true});
-   render();
+
+   function row(nome,valor){
+     var r=document.createElement('div');r.className='v126-row';
+     var n=document.createElement('div');n.className='v126-name';n.textContent=nome;
+     var v=document.createElement('div');v.className='v126-value';v.textContent=valor;
+     r.appendChild(n);r.appendChild(v);box.appendChild(r);
+   }
+
+   materias.forEach(function(m){row(m.nome,m.taxa+'%')});
+   row('Questões',String(total));
+   row('Taxa geral',taxa+'%');
  }
- function aplicar(){
-   try{if(typeof window.aplicarDashboardV123==='function')window.aplicarDashboardV123()}catch(_){}
-   proteger();
- }
- document.addEventListener('DOMContentLoaded',()=>setTimeout(aplicar,900));
- window.addEventListener('pageshow',()=>setTimeout(aplicar,400));
- window.addEventListener('estado-carregado',()=>setTimeout(aplicar,120));
- document.addEventListener('click',e=>{
-   const b=e.target.closest('.tab-btn'); if(!b)return;
-   const oc=b.getAttribute('onclick')||'';
-   if(oc.includes('aba-inicio')) setTimeout(aplicar,80);
+ window.renderAtencaoV126=renderV126;
+
+ /* Só executa quando o usuário abre o Dashboard.
+    Não roda na tela de login e não observa alterações do DOM. */
+ document.addEventListener('click',function(e){
+   var b=e.target.closest('.tab-btn');
+   if(!b)return;
+   var oc=b.getAttribute('onclick')||'';
+   if(oc.indexOf('aba-inicio')>=0){
+     setTimeout(function(){
+       try{
+         if(typeof window.aplicarDashboardV123==='function')
+           window.aplicarDashboardV123();
+       }catch(_){}
+       renderV126();
+     },180);
+   }
  },true);
 
- setTimeout(()=>{
-   ['salvarNovoRegistroV47','salvarRegistroQuestao','excluirRegistroQuestao'].forEach(nome=>{
-     const f=window[nome]; if(typeof f!=='function'||f.__v125)return;
-     const g=function(){const r=f.apply(this,arguments);setTimeout(render,100);return r};
-     g.__v125=true;window[nome]=g;
-   });
-   aplicar();
- },1200);
+ /* Primeira renderização somente se o Dashboard já estiver visível após login. */
+ setTimeout(function(){
+   var box=document.getElementById('dashAtencaoV36');
+   if(box && box.offsetParent!==null) renderV126();
+ },1800);
 })();
 </script>
 

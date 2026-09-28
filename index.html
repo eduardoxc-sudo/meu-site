@@ -10063,6 +10063,91 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
 })();
 </script>
 
+
+
+<!-- =========================================================
+ V138 — LEMBRAR SOMENTE A ÚLTIMA ABA
+ Base: V137
+ Preserva:
+ - correção do F5 sem zerar dados
+ - correção da piscada/mistura do login
+ Altera somente a restauração da aba após recarregar.
+========================================================== -->
+<script id="v138-ultima-aba">
+(function () {
+  const KEY = 'studyflow_v138_ultima_aba';
+  let cliqueHumano = false;
+
+  function extrairAba(el) {
+    if (!el) return '';
+    const oc = el.getAttribute('onclick') || '';
+    const m = oc.match(/trocarAba\s*\(\s*['"]([^'"]+)['"]/i);
+    return m ? m[1] : '';
+  }
+
+  // Guarda a aba escolhida pelo usuário.
+  document.addEventListener('pointerdown', function (e) {
+    const btn = e.target.closest('[onclick*="trocarAba"]');
+    if (!btn) return;
+    const aba = extrairAba(btn);
+    if (!aba) return;
+    cliqueHumano = true;
+    try { localStorage.setItem(KEY, aba); } catch (_) {}
+    setTimeout(function(){ cliqueHumano = false; }, 500);
+  }, true);
+
+  function acharBotao(aba) {
+    const botoes = document.querySelectorAll('[onclick*="trocarAba"]');
+    for (const b of botoes) {
+      if (extrairAba(b) === aba) return b;
+    }
+    return null;
+  }
+
+  function restaurarUltimaAba() {
+    let aba = '';
+    try { aba = localStorage.getItem(KEY) || ''; } catch (_) {}
+    if (!aba || aba === 'aba-inicio') return false;
+
+    const btn = acharBotao(aba);
+    if (!btn) return false;
+
+    // Chama a função original do próprio sistema.
+    try {
+      if (typeof window.trocarAba === 'function') {
+        window.trocarAba(aba, btn);
+      } else {
+        btn.click();
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // A aplicação força Dashboard durante a inicialização.
+  // Restauramos a escolha do usuário DEPOIS que o boot terminou.
+  function iniciarRestauracao() {
+    const tempos = [350, 700, 1200, 1800, 2600];
+    tempos.forEach(function(ms) {
+      setTimeout(function() {
+        if (!cliqueHumano) restaurarUltimaAba();
+      }, ms);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', iniciarRestauracao, {once:true});
+  } else {
+    iniciarRestauracao();
+  }
+
+  window.addEventListener('pageshow', function() {
+    setTimeout(restaurarUltimaAba, 500);
+  });
+})();
+</script>
+
 </body>
 </html>
 

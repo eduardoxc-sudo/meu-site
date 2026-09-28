@@ -4048,16 +4048,35 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
       const chave = chaveArmazenamento(usuarioAtivo);
       const salvos = localStorage.getItem(chave);
 
+      // V131: trava qualquer gravação enquanto o perfil ainda está sendo aberto.
+      window.__V131_INICIALIZANDO_PERFIL__ = true;
+
       if (salvos) {
-        try { estado = JSON.parse(salvos); }
-        catch (e) { estado = obterEstadoPadrao(); }
+        try {
+          const carregadoV131 = JSON.parse(salvos);
+          if (carregadoV131 && typeof carregadoV131 === 'object') {
+            estado = carregadoV131;
+          } else {
+            throw new Error('Estado local inválido');
+          }
+        } catch (e) {
+          console.error('V131: estado local inválido; não será sobrescrito automaticamente.', e);
+          window.__V131_INICIALIZANDO_PERFIL__ = false;
+          alert('Não foi possível ler os dados locais deste perfil. O arquivo salvo NÃO foi sobrescrito.');
+          return;
+        }
       } else {
         estado = obterEstadoPadrao();
       }
 
       // Primeiro renderiza somente os dados deste usuário.
+      // Durante toda esta renderização salvarEstado() permanece bloqueado.
       dataReferencia = new Date();
       atualizarUIAposCarregar();
+
+      // Só agora, depois de o estado local ter sido carregado e a interface montada,
+      // liberamos novas gravações.
+      window.__V131_INICIALIZANDO_PERFIL__ = false;
       configurarAbaEditaisProntos();
       configurarPainelAdminUsuarios();
       configurarMotivacaoV21();
@@ -4085,12 +4104,16 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
         const localMs = Date.parse(localIso) || 0;
         const nuvemMs = Date.parse(nuvemIso) || 0;
 
-        // Compatibilidade com perfis antigos:
-        // se não existe timestamp local, a nuvem continua sendo a fonte inicial.
-        const usarNuvem = !salvos || !localMs || nuvemMs > localMs;
+        // V131: se este PC já possui dados locais, a abertura do sistema
+        // JAMAIS os substitui automaticamente pela nuvem.
+        // Enviar/Puxar continuam sendo ações manuais.
+        if (salvos) {
+          atualizarStatusNuvem("☁️ Sincronização manual", "online");
+          return;
+        }
 
-        if (usarNuvem) {
-          // Outro aparelho/nuvem possui a versão mais recente.
+        // Apenas um perfil realmente novo, sem estado local, pode iniciar da nuvem.
+        if (dadosNuvem && dadosNuvem.estado) {
           isReceivingFromCloud = true;
           estado = dadosNuvem.estado;
           localStorage.setItem(chave, JSON.stringify(estado));
@@ -4098,11 +4121,6 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
           isReceivingFromCloud = false;
           atualizarUIAposCarregar();
           aplicarPermissoesEditaisV26();
-        } else if (salvos && localMs > nuvemMs) {
-          // V117: o PC é a fonte principal e não publica automaticamente ao entrar.
-          // Use "Enviar para Nuvem" quando quiser publicar as alterações.
-          atualizarStatusNuvem("☁️ Sincronização manual", "online");
-          return;
         }
 
         atualizarStatusNuvem("☁️ Sincronização manual", "online");
@@ -4112,6 +4130,8 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
       });
     }
     function salvarEstado() {
+      // V131: nunca gravar durante a passagem pela tela de login/F5.
+      if (window.__V131_INICIALIZANDO_PERFIL__) return;
       if (!usuarioAtivo || isReceivingFromCloud) return;
 
       const chave = chaveArmazenamento(usuarioAtivo);
@@ -11198,84 +11218,11 @@ body.v71-timer #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!importan
 </script>
 
 
-
-<!-- =========================================================
- V130 — DIAGNÓSTICO DE 3 FONTES
- Base: V126
- SOMENTE LEITURA: não salva, não restaura e não altera dados.
- Compara:
- 1) cronograma_perfil_<usuario>
- 2) estado_estudo_<usuario>
- 3) studyflow_backup_v127
-========================================================== -->
-<style id="v130-css">
-#v130Diag{position:fixed;right:10px;bottom:10px;z-index:2147483647;
-width:min(560px,calc(100vw - 20px));max-height:58vh;overflow:auto;
-background:#0b1220;color:#f8fafc;border:1px solid #475569;border-radius:12px;
-padding:10px;font:12px/1.35 monospace;box-shadow:0 8px 30px rgba(0,0,0,.4)}
-#v130Diag table{width:100%;border-collapse:collapse;margin-top:8px}
-#v130Diag th,#v130Diag td{border-bottom:1px solid #334155;padding:5px;text-align:left}
-#v130Diag .yes{color:#86efac}.no{color:#fca5a5}
-#v130Diag button{margin-top:8px;padding:7px 10px;cursor:pointer}
-</style>
-<script id="v130-js">
-(function(){
- function safe(fn,d){try{return fn()}catch(_){return d}}
- function user(){
-   return safe(()=>usuarioAtivo,'') ||
-          safe(()=>localStorage.getItem('usuarioAtivo'),'') || 'eduardo';
- }
- function inspect(key){
-   var raw=safe(()=>localStorage.getItem(key),null);
-   var o=raw?safe(()=>JSON.parse(raw),null):null;
-   var root=o && o.estado && typeof o.estado==='object' ? o.estado : o;
-   var edital=0, concl=0;
-   if(root){
-     safe(()=>{
-       Object.values(root.editalVerticalizado||{}).forEach(a=>{
-         if(Array.isArray(a)){edital+=a.length; a.forEach(x=>{if(x&&x.feito)concl++})}
-       })
-     },0);
-   }
-   function len(names){
-     if(!root)return 0;
-     for(var i=0;i<names.length;i++){
-       var a=root[names[i]];
-       if(Array.isArray(a))return a.length;
-     }
-     return 0;
-   }
-   return {
-     key:key, exists:!!raw, bytes:raw?raw.length:0, json:!!o,
-     edital:edital, concl:concl,
-     horas:len(['historicoHoras','sessoes','historicoSessoes']),
-     quest:len(['historicoQuestoes','registrosQuestoes','questoes']),
-     rev:len(['agendaRevisoes','revisoes','historicoRevisoes']),
-     keys:root&&typeof root==='object'?Object.keys(root).slice(0,18).join(', '):''
-   };
- }
- function render(){
-   var u=String(user()).toLowerCase().trim();
-   var arr=[
-     inspect('cronograma_perfil_'+u),
-     inspect('estado_estudo_'+u),
-     inspect('studyflow_backup_v127')
-   ];
-   var box=document.getElementById('v130Diag');
-   if(!box){box=document.createElement('div');box.id='v130Diag';document.body.appendChild(box)}
-   box.innerHTML='<b>V130 — Comparação 3 fontes (somente leitura)</b><br>'+
-   'Usuário detectado: <b>'+u+'</b>'+
-   '<table><tr><th>Fonte</th><th>Bytes</th><th>Edital</th><th>Feitos</th><th>Horas</th><th>Quest.</th><th>Rev.</th></tr>'+
-   arr.map(x=>'<tr><td class="'+(x.exists?'yes':'no')+'">'+x.key+'</td><td>'+x.bytes+
-   '</td><td>'+x.edital+'</td><td>'+x.concl+'</td><td>'+x.horas+
-   '</td><td>'+x.quest+'</td><td>'+x.rev+'</td></tr>').join('')+
-   '</table><br><b>Campos encontrados:</b><br>'+
-   arr.map(x=>'<div style="margin:6px 0"><b>'+x.key+':</b> '+(x.keys||'(nenhum)')+'</div>').join('')+
-   '<button type="button" id="v130Refresh">Atualizar diagnóstico</button>';
-   document.getElementById('v130Refresh').onclick=render;
- }
- window.diagnosticoV130=render;
- document.addEventListener('DOMContentLoaded',()=>setTimeout(render,900));
- window.addEventListener('pageshow',()=>setTimeout(render,500));
-})();
-</script>
+<!-- V131
+Correção dirigida ao F5:
+- bloqueia salvarEstado durante a inicialização do perfil;
+- carrega cronograma_perfil_<usuario> antes de liberar qualquer gravação;
+- se JSON local estiver inválido, NÃO sobrescreve o arquivo;
+- dados locais existentes nunca são trocados automaticamente pela nuvem;
+- sem listeners de resize e sem MutationObserver.
+-->

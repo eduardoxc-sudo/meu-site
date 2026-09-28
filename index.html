@@ -10406,3 +10406,36 @@ body.dark .v76-chip{background:#183250;color:#72b7ff}
 })();
 </script>
 
+
+<!-- ===== V78: SIMULADO HTML AINDA MAIOR ===== -->
+<style id="v78-sim-max-css">
+/* Mantém apenas uma barra superior compacta para voltar ao banco */
+#v74-modal.v77-sim-full .v74-panel{
+  padding:4px!important;
+}
+#v74-modal.v77-sim-full #v74-body{
+  height:calc(100vh - 8px)!important;
+}
+#v74-modal.v77-sim-full #v74-body > .v74-row{
+  min-height:34px!important;
+  margin:0 4px 4px!important;
+  gap:8px!important;
+}
+#v74-modal.v77-sim-full #v74-body > .v74-row .v74-btn{
+  padding:6px 10px!important;
+}
+#v74-modal.v77-sim-full #v74-sim-frame{
+  display:block!important;
+  width:100%!important;
+  height:calc(100vh - 46px)!important;
+  max-height:none!important;
+  border-radius:5px!important;
+  margin:0!important;
+}
+/* Em telas menores aproveita ainda mais espaço */
+@media(max-width:800px){
+  #v74-modal.v77-sim-full .v74-panel{padding:2px!important}
+  #v74-modal.v77-sim-full #v74-sim-frame{height:calc(100vh - 43px)!important}
+}
+</style>
+

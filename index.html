@@ -8899,6 +8899,112 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
 })();
 </script>
 
+
+
+<!-- ===== V80 SEM IA: FLASHCARDS MANUAIS + CSV + ESTUDO + REVISÃO ESPAÇADA ===== -->
+<style id="v80-noai-css">
+#v80fc-modal{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.58);display:none;align-items:center;justify-content:center;padding:16px}
+#v80fc-modal.show{display:flex}
+.v80fc-panel{width:min(1120px,97vw);height:min(850px,94vh);overflow:auto;background:var(--card,#fff);color:var(--text,#172033);border-radius:18px;padding:18px;box-sizing:border-box}
+body.dark .v80fc-panel{background:#102036;color:#e7eef9}
+.v80fc-head,.v80fc-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.v80fc-head{justify-content:space-between;margin-bottom:14px}
+.v80fc-grid{display:grid;grid-template-columns:280px 1fr;gap:14px}
+.v80fc-box{border:1px solid var(--border,#d7dfeb);border-radius:13px;padding:13px}
+body.dark .v80fc-box{border-color:#2b405c}
+.v80fc-btn{border:1px solid var(--border,#cbd5e1);background:transparent;color:inherit;border-radius:9px;padding:8px 11px;cursor:pointer;font-weight:700}
+.v80fc-primary{background:#2563eb!important;border-color:#2563eb!important;color:#fff!important}
+.v80fc-danger{color:#ef4444!important;border-color:#ef4444!important}
+.v80fc-input,.v80fc-text{width:100%;box-sizing:border-box;border:1px solid var(--border,#cbd5e1);border-radius:9px;padding:9px;background:transparent;color:inherit;margin:5px 0}
+.v80fc-text{min-height:76px;resize:vertical}
+.v80fc-folder,.v80fc-card{border:1px solid var(--border,#d7dfeb);border-radius:10px;padding:10px;margin-top:8px}
+.v80fc-folder{cursor:pointer}.v80fc-folder.sel{outline:2px solid #2563eb}
+.v80fc-muted{opacity:.72;font-size:.9rem}
+.v80fc-study{max-width:760px;margin:30px auto;text-align:center}
+.v80fc-question{font-size:1.35rem;font-weight:800;padding:35px 15px}
+.v80fc-answer{font-size:1.1rem;padding:20px;border-top:1px solid var(--border,#d7dfeb)}
+.v80fc-stat{padding:7px 10px;border-radius:999px;background:rgba(37,99,235,.12);font-weight:700;font-size:.85rem}
+@media(max-width:760px){.v80fc-grid{grid-template-columns:1fr}}
+</style>
+
+<div id="v80fc-modal"><div class="v80fc-panel">
+  <div class="v80fc-head"><h2 style="margin:0">🧠 Flashcards</h2><button class="v80fc-btn" onclick="V80FC.close()">✕ Fechar</button></div>
+  <div id="v80fc-body"></div>
+</div></div>
+
+<script id="v80-noai-js">
+window.V80FC=(function(){
+  let folderId=null, studyList=[], studyPos=0;
+  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+  function userKey(){
+    try{
+      const u=estado?.usuarioAtual||estado?.usuario||estado?.user||window.usuarioAtual||window.currentUser||{};
+      return String(u.id??u.uid??u.email??u.usuario??u.username??u.nome??'local').toLowerCase().replace(/[^a-z0-9@._-]/g,'_');
+    }catch(e){return 'local'}
+  }
+  const key=()=>`EI_V80_FLASH_${userKey()}`;
+  function data(){try{return JSON.parse(localStorage.getItem(key()))||{folders:[]}}catch(e){return {folders:[]}}}
+  function save(d){localStorage.setItem(key(),JSON.stringify(d))}
+  function today(){return new Date().toISOString().slice(0,10)}
+  function addDays(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)}
+  function open(){document.getElementById('v80fc-modal').classList.add('show');render()}
+  function close(){document.getElementById('v80fc-modal').classList.remove('show')}
+  function render(){
+    const d=data(), f=d.folders.find(x=>x.id===folderId);
+    const total=d.folders.reduce((n,x)=>n+x.cards.length,0);
+    const due=d.folders.reduce((n,x)=>n+x.cards.filter(c=>!c.due||c.due<=today()).length,0);
+    let right=`<div class="v80fc-box"><h3>Seus Flashcards</h3><p class="v80fc-muted">Crie uma pasta por matéria. Depois você pode adicionar cartões manualmente ou importar vários de uma vez.</p></div>`;
+    if(f) right=folderView(f);
+    document.getElementById('v80fc-body').innerHTML=`
+      <div class="v80fc-row" style="margin-bottom:12px"><span class="v80fc-stat">📚 ${total} cartões</span><span class="v80fc-stat">🔄 ${due} para revisar</span></div>
+      <div class="v80fc-grid">
+       <div class="v80fc-box"><div class="v80fc-row"><b>📁 Matérias</b><button class="v80fc-btn v80fc-primary" onclick="V80FC.addFolder()">+ Pasta</button></div>
+       ${d.folders.map(f=>`<div class="v80fc-folder ${f.id===folderId?'sel':''}" onclick="V80FC.pick('${f.id}')"><b>${esc(f.name)}</b><div class="v80fc-muted">${f.cards.length} cartão(ões)</div><div class="v80fc-row" style="margin-top:6px"><button class="v80fc-btn" onclick="event.stopPropagation();V80FC.renameFolder('${f.id}')">Renomear</button><button class="v80fc-btn v80fc-danger" onclick="event.stopPropagation();V80FC.delFolder('${f.id}')">Excluir</button></div></div>`).join('')||'<p class="v80fc-muted">Nenhuma pasta.</p>'}
+       </div>${right}</div>`;
+  }
+  function folderView(f){
+    return `<div class="v80fc-box"><div class="v80fc-row"><h3 style="margin-right:auto">${esc(f.name)}</h3>
+      <button class="v80fc-btn v80fc-primary" onclick="V80FC.study(false)">▶ Estudar</button>
+      <button class="v80fc-btn" onclick="V80FC.study(true)">🔄 Revisar agora</button></div>
+      <div class="v80fc-card"><b>➕ Novo flashcard</b><input id="v80fc-q" class="v80fc-input" placeholder="Pergunta"><textarea id="v80fc-a" class="v80fc-text" placeholder="Resposta"></textarea><button class="v80fc-btn v80fc-primary" onclick="V80FC.addCard()">Salvar</button></div>
+      <div class="v80fc-card"><b>📥 Importar / Exportar</b><p class="v80fc-muted">CSV/TXT no formato: pergunta;resposta — uma linha por cartão.</p><div class="v80fc-row"><label class="v80fc-btn">Importar CSV/TXT<input hidden type="file" accept=".csv,.txt,text/plain,text/csv" onchange="V80FC.importFile(event)"></label><button class="v80fc-btn" onclick="V80FC.exportCSV()">Exportar Anki CSV</button></div></div>
+      ${f.cards.map(c=>`<div class="v80fc-card"><b>${esc(c.q)}</b><div>${esc(c.a)}</div><div class="v80fc-muted">Próxima revisão: ${esc(c.due||'agora')} · revisões: ${c.reviews||0}</div><div class="v80fc-row" style="margin-top:7px"><button class="v80fc-btn" onclick="V80FC.editCard('${c.id}')">Editar</button><button class="v80fc-btn v80fc-danger" onclick="V80FC.delCard('${c.id}')">Excluir</button></div></div>`).join('')||'<p class="v80fc-muted">Nenhum cartão nesta matéria.</p>'}</div>`;
+  }
+  function addFolder(){const n=prompt('Nome da matéria/pasta:');if(!n)return;const d=data();const f={id:uid(),name:n.trim(),cards:[]};d.folders.push(f);save(d);folderId=f.id;render()}
+  function pick(id){folderId=id;render()}
+  function renameFolder(id){const d=data(),f=d.folders.find(x=>x.id===id);const n=prompt('Novo nome:',f.name);if(!n)return;f.name=n.trim();save(d);render()}
+  function delFolder(id){if(!confirm('Excluir esta pasta e todos os flashcards?'))return;const d=data();d.folders=d.folders.filter(x=>x.id!==id);save(d);if(folderId===id)folderId=null;render()}
+  function addCard(){const q=document.getElementById('v80fc-q').value.trim(),a=document.getElementById('v80fc-a').value.trim();if(!q||!a)return alert('Preencha pergunta e resposta.');const d=data(),f=d.folders.find(x=>x.id===folderId);f.cards.push({id:uid(),q,a,due:today(),reviews:0,interval:0});save(d);render()}
+  function delCard(id){if(!confirm('Excluir este flashcard?'))return;const d=data(),f=d.folders.find(x=>x.id===folderId);f.cards=f.cards.filter(x=>x.id!==id);save(d);render()}
+  function editCard(id){const d=data(),f=d.folders.find(x=>x.id===folderId),c=f.cards.find(x=>x.id===id);const q=prompt('Pergunta:',c.q);if(q===null)return;const a=prompt('Resposta:',c.a);if(a===null)return;c.q=q.trim();c.a=a.trim();save(d);render()}
+  function importFile(e){const file=e.target.files?.[0];if(!file)return;const r=new FileReader();r.onload=()=>{const lines=String(r.result||'').split(/\r?\n/).filter(Boolean);const d=data(),f=d.folders.find(x=>x.id===folderId);let n=0;lines.forEach(line=>{const p=line.indexOf(';');if(p>0){const q=line.slice(0,p).trim(),a=line.slice(p+1).trim();if(q&&a){f.cards.push({id:uid(),q,a,due:today(),reviews:0,interval:0});n++}}});save(d);alert(`${n} flashcard(s) importado(s).`);render()};r.readAsText(file,'UTF-8')}
+  function exportCSV(){const d=data(),f=d.folders.find(x=>x.id===folderId);const csv=f.cards.map(c=>`${c.q.replaceAll(';',',')};${c.a.replaceAll(';',',')}`).join('\n');const b=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=f.name+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+  function study(onlyDue){const d=data(),f=d.folders.find(x=>x.id===folderId);studyList=f.cards.filter(c=>!onlyDue||!c.due||c.due<=today()).map(c=>c.id);studyPos=0;if(!studyList.length)return alert(onlyDue?'Nenhum flashcard para revisar hoje.':'Esta pasta não possui flashcards.');showStudy()}
+  function showStudy(){const d=data(),f=d.folders.find(x=>x.id===folderId),c=f.cards.find(x=>x.id===studyList[studyPos]);if(!c){render();return}document.getElementById('v80fc-body').innerHTML=`<div class="v80fc-study v80fc-box"><div class="v80fc-muted">Cartão ${studyPos+1} de ${studyList.length} · ${esc(f.name)}</div><div class="v80fc-question">${esc(c.q)}</div><div id="v80fc-answer" class="v80fc-answer" style="display:none">${esc(c.a)}</div><div id="v80fc-show"><button class="v80fc-btn v80fc-primary" onclick="V80FC.reveal()">👁 Ver resposta</button></div><div id="v80fc-grade" class="v80fc-row" style="display:none;justify-content:center;margin-top:15px"><button class="v80fc-btn v80fc-danger" onclick="V80FC.grade('errei')">Errei</button><button class="v80fc-btn" onclick="V80FC.grade('dificil')">Difícil</button><button class="v80fc-btn v80fc-primary" onclick="V80FC.grade('bom')">Bom</button><button class="v80fc-btn" onclick="V80FC.grade('facil')">Fácil</button></div><div style="margin-top:18px"><button class="v80fc-btn" onclick="V80FC.render()">← Sair do estudo</button></div></div>`}
+  function reveal(){document.getElementById('v80fc-answer').style.display='block';document.getElementById('v80fc-show').style.display='none';document.getElementById('v80fc-grade').style.display='flex'}
+  function grade(g){const d=data(),f=d.folders.find(x=>x.id===folderId),c=f.cards.find(x=>x.id===studyList[studyPos]);const map={errei:1,dificil:3,bom:7,facil:15};let days=map[g];if((c.reviews||0)>0&&g!=='errei')days=Math.min(90,Math.round(days*(1+(c.reviews||0)*.35)));c.reviews=(c.reviews||0)+1;c.interval=days;c.due=addDays(days);save(d);studyPos++;if(studyPos>=studyList.length){alert('Sessão concluída!');render()}else showStudy()}
+  return {open,close,render,addFolder,pick,renameFolder,delFolder,addCard,delCard,editCard,importFile,exportCSV,study,reveal,grade};
+})();
+
+/* Integra ao menu lateral sem tocar nas outras abas. */
+(function(){
+ function install(){
+   if(document.getElementById('v80fc-menu'))return;
+   const buttons=[...document.querySelectorAll('.tab-btn,aside button')];
+   const q=buttons.find(b=>/questões|questoes/i.test(b.textContent||''));
+   if(!q||!q.parentNode)return;
+   const b=document.createElement('button');
+   b.id='v80fc-menu'; b.type='button'; b.className=q.className||'tab-btn';
+   b.innerHTML='🧠 <span>Flashcards</span>';
+   b.onclick=e=>{e.preventDefault();V80FC.open()};
+   q.insertAdjacentElement('afterend',b);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,100));else setTimeout(install,100);
+ new MutationObserver(install).observe(document.documentElement,{subtree:true,childList:true});
+})();
+</script>
+
 </body>
 </html>
 

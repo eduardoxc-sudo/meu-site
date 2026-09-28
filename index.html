@@ -11106,3 +11106,186 @@ body.v71-timer #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!importan
 })();
 </script>
 
+
+
+<!-- =========================================================
+ V124 — CORREÇÃO VISUAL "PRECISA DE ATENÇÃO"
+ Base: V123
+ NÃO altera armazenamento, Timer, questões, edital, cronograma,
+ prioridades ou revisões.
+ Apenas substitui a renderização quebrada do quadro de atenção.
+========================================================== -->
+<style id="v124-atencao-css">
+#dashAtencaoV36 .v124-atencao-lista{
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  margin-top:10px;
+}
+#dashAtencaoV36 .v124-atencao-linha{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:14px;
+  align-items:center;
+  padding:12px 0;
+  border-bottom:1px solid rgba(148,163,184,.22);
+}
+#dashAtencaoV36 .v124-atencao-linha:last-child{border-bottom:0}
+#dashAtencaoV36 .v124-atencao-nome{
+  min-width:0;
+  font-size:14px;
+  font-weight:600;
+  overflow-wrap:anywhere;
+}
+#dashAtencaoV36 .v124-atencao-valor{
+  font-size:16px;
+  font-weight:800;
+  white-space:nowrap;
+}
+</style>
+
+<script id="v124-atencao-js">
+(function(){
+  function n(v){var x=Number(v);return Number.isFinite(x)?x:0}
+
+  function estadoAtual(){
+    try{return estado||window.estado||{}}catch(_){return window.estado||{}}
+  }
+
+  function listaQuestoes(){
+    if(typeof window.registrosQuestoesV11==='function'){
+      try{
+        var x=window.registrosQuestoesV11();
+        if(Array.isArray(x)) return x;
+      }catch(_){}
+    }
+    var e=estadoAtual();
+    return Array.isArray(e.historicoQuestoes)?e.historicoQuestoes:[];
+  }
+
+  function resumo(){
+    var lista=listaQuestoes(), porMateria={}, ac=0, er=0;
+
+    lista.forEach(function(r){
+      var materia=(r && (r.materia||r.disciplina)) || 'Sem disciplina';
+      var a=n(r&&r.acertos), e=n(r&&r.erros);
+      ac+=a; er+=e;
+      if(!porMateria[materia]) porMateria[materia]={acertos:0,erros:0};
+      porMateria[materia].acertos+=a;
+      porMateria[materia].erros+=e;
+    });
+
+    var materias=Object.keys(porMateria).map(function(nome){
+      var x=porMateria[nome], total=x.acertos+x.erros;
+      return {
+        nome:nome,
+        total:total,
+        taxa:total?Math.round(x.acertos*100/total):0
+      };
+    }).sort(function(a,b){
+      if(a.taxa!==b.taxa) return a.taxa-b.taxa;
+      return b.total-a.total;
+    });
+
+    var total=ac+er;
+    return {materias:materias,total:total,taxa:total?Math.round(ac*100/total):0};
+  }
+
+  function renderAtencaoV124(){
+    var box=document.getElementById('dashAtencaoV36');
+    if(!box) return;
+
+    var titulo=box.querySelector('h1,h2,h3,h4,strong');
+    var r=resumo();
+
+    /* Remove apenas o conteúdo antigo abaixo do título. */
+    Array.from(box.children).forEach(function(el){
+      if(el!==titulo) el.remove();
+    });
+
+    var lista=document.createElement('div');
+    lista.className='v124-atencao-lista';
+
+    if(r.materias.length){
+      r.materias.forEach(function(m){
+        var linha=document.createElement('div');
+        linha.className='v124-atencao-linha';
+
+        var nome=document.createElement('div');
+        nome.className='v124-atencao-nome';
+        nome.textContent=m.nome;
+
+        var valor=document.createElement('div');
+        valor.className='v124-atencao-valor';
+        valor.textContent=m.taxa+'%';
+
+        linha.appendChild(nome);
+        linha.appendChild(valor);
+        lista.appendChild(linha);
+      });
+    }
+
+    var q=document.createElement('div');
+    q.className='v124-atencao-linha';
+    q.innerHTML='<div class="v124-atencao-nome">Questões</div><div class="v124-atencao-valor">'+r.total+'</div>';
+    lista.appendChild(q);
+
+    var taxa=document.createElement('div');
+    taxa.className='v124-atencao-linha';
+    taxa.innerHTML='<div class="v124-atencao-nome">Taxa geral</div><div class="v124-atencao-valor">'+r.taxa+'%</div>';
+    lista.appendChild(taxa);
+
+    box.appendChild(lista);
+  }
+
+  window.renderAtencaoV124=renderAtencaoV124;
+
+  function aplicar(){
+    /* deixa a V123 atualizar os números primeiro */
+    try{
+      if(typeof window.aplicarDashboardV123==='function')
+        window.aplicarDashboardV123();
+    }catch(_){}
+    renderAtencaoV124();
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(aplicar,900);
+    setTimeout(aplicar,1700);
+  });
+
+  window.addEventListener('pageshow',function(){
+    setTimeout(aplicar,500);
+  });
+
+  window.addEventListener('estado-carregado',function(){
+    setTimeout(aplicar,150);
+  });
+
+  document.addEventListener('click',function(ev){
+    var b=ev.target.closest('.tab-btn');
+    if(!b)return;
+    var oc=b.getAttribute('onclick')||'';
+    if(oc.indexOf('aba-inicio')>=0){
+      setTimeout(aplicar,100);
+    }
+  },true);
+
+  /* Depois de registrar/excluir questões, redesenha apenas o quadro. */
+  setTimeout(function(){
+    ['salvarNovoRegistroV47','salvarRegistroQuestao','excluirRegistroQuestao'].forEach(function(nome){
+      var original=window[nome];
+      if(typeof original!=='function'||original.__v124)return;
+      var nova=function(){
+        var ret=original.apply(this,arguments);
+        setTimeout(aplicar,120);
+        return ret;
+      };
+      nova.__v124=true;
+      window[nome]=nova;
+    });
+    aplicar();
+  },1100);
+})();
+</script>
+

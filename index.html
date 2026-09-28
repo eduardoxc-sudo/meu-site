@@ -9143,6 +9143,40 @@ button[onclick*='V74.open("flash")'],
 })();
 </script>
 
+
+
+<!-- ===== V93: REMOVER FLASHCARDS E BANCO DE QUESTÕES DO MENU ===== -->
+<style id="v93-hide-study-tools">
+#v74-tab-flash,
+#v74-tab-quest,
+#v80fc-menu,
+button[onclick*="V74.open('flash')"],
+button[onclick*='V74.open("flash")'],
+button[onclick*="V74.open('quest')"],
+button[onclick*='V74.open("quest")'],
+.v74-fab[onclick*="flash"],
+.v74-fab[onclick*="quest"] {display:none!important;}
+</style>
+<script id="v93-clean-study-tools">
+(function(){
+ function limpar(){
+   ['v80fc-menu','v74-tab-flash','v74-tab-quest'].forEach(id=>{
+     const el=document.getElementById(id);
+     if(el) el.style.setProperty('display','none','important');
+   });
+   document.querySelectorAll('aside a,aside button,.sidebar a,.sidebar button,nav a,nav button').forEach(el=>{
+     const t=(el.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();
+     if(t==='flashcards'||t==='🧠 flashcards'||t==='banco de questões'||t==='📦 banco de questões'){
+       el.style.setProperty('display','none','important');
+     }
+   });
+ }
+ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(limpar,400));
+ else setTimeout(limpar,400);
+ document.addEventListener('click',()=>setTimeout(limpar,80));
+})();
+</script>
+
 </body>
 </html>
 

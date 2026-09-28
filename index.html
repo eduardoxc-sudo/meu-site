@@ -10270,3 +10270,139 @@ body.dark .v76-chip{background:#183250;color:#72b7ff}
 })();
 </script>
 
+
+<!-- ===== V77: SIMULADO EM TELA CHEIA + FLASHCARDS PREPARADOS PARA IA ===== -->
+<style id="v77-css">
+/* Simulado: usa praticamente toda a tela do navegador */
+#v74-modal.v77-sim-full{
+  padding:0!important;
+  background:var(--bg,#f5f7fb)!important;
+}
+#v74-modal.v77-sim-full .v74-panel{
+  width:100vw!important;
+  max-width:none!important;
+  height:100vh!important;
+  max-height:none!important;
+  border-radius:0!important;
+  border:0!important;
+  padding:10px 14px!important;
+  box-sizing:border-box!important;
+}
+#v74-modal.v77-sim-full .v74-head,
+#v74-modal.v77-sim-full .v74-tabs{
+  display:none!important;
+}
+#v74-modal.v77-sim-full #v74-body{
+  height:calc(100vh - 20px)!important;
+}
+#v74-modal.v77-sim-full #v74-sim-frame{
+  width:100%!important;
+  height:calc(100vh - 62px)!important;
+  border-radius:10px!important;
+}
+.v77-ai-box{
+  margin-top:12px;
+  border:1px solid var(--border,#dbe3ef);
+  border-radius:12px;
+  padding:13px;
+}
+.v77-ai-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.v77-ai-controls select{padding:9px 12px;border-radius:9px;border:1px solid #cbd5e1;background:transparent;color:inherit}
+.v77-note{font-size:.9rem;opacity:.75;margin-top:8px}
+</style>
+
+<script id="v77-js">
+(function(){
+  /* Remove o modo tela cheia ao voltar/fechar/trocar de módulo. */
+  function normalizar(){
+    document.getElementById('v74-modal')?.classList.remove('v77-sim-full');
+  }
+
+  const oldClose = V74.close;
+  V74.close = function(){ normalizar(); return oldClose.apply(this,arguments); };
+
+  const oldShow = V74.show;
+  V74.show = function(){ normalizar(); return oldShow.apply(this,arguments); };
+
+  const oldRender = V74.render;
+  V74.render = function(){ normalizar(); return oldRender.apply(this,arguments); };
+
+  /* Intercepta apenas a abertura do simulado e amplia a janela existente. */
+  const oldOpenSim = V74.openSim;
+  V74.openSim = function(id){
+    const r = oldOpenSim.call(this,id);
+    setTimeout(()=>{
+      document.getElementById('v74-modal')?.classList.add('v77-sim-full');
+      const back=[...document.querySelectorAll('#v74-body button')].find(b=>/voltar ao banco/i.test(b.textContent||''));
+      if(back){
+        const old=back.onclick;
+        back.onclick=function(e){
+          normalizar();
+          if(old) return old.call(this,e);
+          V74.render();
+        };
+      }
+    },0);
+    return r;
+  };
+
+  /* Interface pronta para a futura chamada ao backend de IA. */
+  function inserirPainelIA(){
+    const modal=document.getElementById('v74-modal');
+    if(!modal?.classList.contains('show') || modal.classList.contains('v77-sim-full')) return;
+    const title=document.getElementById('v74-title');
+    if(!title || !/flashcards/i.test(title.textContent||'')) return;
+    const body=document.getElementById('v74-body');
+    if(!body || body.querySelector('#v77-ai')) return;
+
+    const importador=body.querySelector('#v76-import');
+    if(!importador) return;
+
+    /* Esconde apenas o aviso antigo "IA — próxima etapa". */
+    [...body.querySelectorAll('.v74-card')].forEach(c=>{
+      if(c !== importador && /IA\s*[—-]\s*próxima etapa/i.test(c.textContent||'')) c.style.display='none';
+    });
+
+    const box=document.createElement('div');
+    box.id='v77-ai';
+    box.className='v77-ai-box';
+    box.innerHTML=`
+      <b>✨ Gerar Flashcards com IA</b>
+      <p class="v74-muted">O material guardado nesta pasta será a fonte para os cartões.</p>
+      <div class="v77-ai-controls">
+        <label>Quantidade:
+          <select id="v77-qtd">
+            <option>5</option><option selected>10</option><option>20</option>
+            <option>30</option><option>40</option><option>50</option>
+          </select>
+        </label>
+        <button class="v74-btn v74-primary" id="v77-gerar">✨ Gerar Flashcards</button>
+      </div>
+      <div class="v77-note" id="v77-msg">
+        Interface pronta. Para gerar com IA de verdade, falta conectar o backend/API com segurança.
+      </div>`;
+
+    importador.insertAdjacentElement('afterend',box);
+
+    box.querySelector('#v77-gerar').onclick=()=>{
+      const txt=importador.querySelector('#v76-text')?.value.trim()||'';
+      if(!txt){
+        alert('Primeiro cole/carregue o material e clique em Guardar material.');
+        return;
+      }
+      const qtd=box.querySelector('#v77-qtd').value;
+      box.querySelector('#v77-msg').innerHTML=
+        `✓ Material detectado. Solicitação preparada para <b>${qtd} flashcards</b>.<br>`+
+        `A geração automática será ativada quando conectarmos o backend de IA.`;
+    };
+  }
+
+  const obs=new MutationObserver(()=>setTimeout(inserirPainelIA,20));
+  window.addEventListener('DOMContentLoaded',()=>{
+    const m=document.getElementById('v74-modal');
+    if(m) obs.observe(m,{subtree:true,childList:true,attributes:true});
+  });
+  document.addEventListener('click',()=>setTimeout(inserirPainelIA,30),true);
+})();
+</script>
+

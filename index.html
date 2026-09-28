@@ -9005,6 +9005,42 @@ window.V80FC=(function(){
 })();
 </script>
 
+
+
+<!-- ===== V81: LIMPEZA DEFINITIVA DA ÁREA ANTIGA DE IA DOS FLASHCARDS ===== -->
+<style id="v81-flash-clean">
+#v76-import, #v77-ai { display:none !important; }
+</style>
+<script id="v81-flash-clean-js">
+(function(){
+  function limparFlashAntigo(){
+    ['v76-import','v77-ai'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) el.remove();
+    });
+    /* Remove textos/blocos antigos caso algum trecho tenha sido recriado sem ID. */
+    document.querySelectorAll('#v74-body .v74-box, #v74-body section, #v74-body div').forEach(function(el){
+      var t=(el.textContent||'').trim();
+      if(
+        t.includes('Material para gerar flashcards') ||
+        t.includes('Gerar Flashcards com IA') ||
+        t.includes('A geração automática será ativada') ||
+        t.includes('backend de IA')
+      ){
+        if(el.id==='v74-body') return;
+        var parent=el.parentElement;
+        if(parent && parent.id==='v74-body') el.remove();
+      }
+    });
+  }
+  document.addEventListener('click',function(){setTimeout(limparFlashAntigo,30)},true);
+  new MutationObserver(function(){setTimeout(limparFlashAntigo,20)})
+    .observe(document.documentElement,{childList:true,subtree:true});
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',limparFlashAntigo);
+  else limparFlashAntigo();
+})();
+</script>
+
 </body>
 </html>
 

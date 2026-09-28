@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 ===============================================================================
- V97 — ÁREA PRINCIPAL PROTEGIDA PARA MANUTENÇÃO
+ V98 — ÁREA PRINCIPAL PROTEGIDA PARA MANUTENÇÃO
  Não editar diretamente esta versão publicada.
  Fluxo recomendado:
  1. conservar este arquivo como versão estável;
@@ -3506,7 +3506,7 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
           if (erro) {
             erro.style.display = 'block';
             erro.innerText = rtdb
-              ? 'Utilizador não autorizado.'
+              ? 'Utilizador não encontrado na nuvem. Peça ao administrador para cadastrar/sincronizar esta conta.'
               : 'Sem ligação à nuvem e utilizador não encontrado neste aparelho.';
           }
           return;
@@ -3600,6 +3600,26 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
 
       if (isEduardo) {
         carregarListaUsuariosAdmin();
+        sincronizarUsuariosLocaisComNuvemV98();
+      }
+    }
+
+    async function sincronizarUsuariosLocaisComNuvemV98() {
+      if (!rtdb || !ehAdministradorEduardoV26()) return;
+      const locais = obterSenhasLocais();
+      try {
+        for (const [nome, senha] of Object.entries(locais)) {
+          const chave = String(nome).trim().toLowerCase();
+          if (!chave) continue;
+          const ref = rtdb.ref("senhas/" + chave);
+          const atual = await ref.once("value");
+          if (!atual.exists()) {
+            await ref.set(String(senha));
+          }
+        }
+        console.log("V98: utilizadores locais sincronizados com a nuvem.");
+      } catch (e) {
+        console.error("V98: Firebase recusou a sincronização de utilizadores.", e);
       }
     }
 
@@ -3658,7 +3678,7 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
       });
     }
 
-    function adminCriarNovoUsuario() {
+    async function adminCriarNovoUsuario() {
       if (!ehAdministradorEduardoV26()) {
         alert("Esta função é exclusiva do administrador Eduardo.");
         return;
@@ -3666,26 +3686,43 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
 
       const nomeInput = document.getElementById('inputNovoNomeUsuario');
       const senhaInput = document.getElementById('inputNovaSenhaUsuario');
-      const nome = nomeInput.value.trim();
-      const senha = senhaInput.value.trim();
+      const nome = (nomeInput?.value || '').trim();
+      const senha = (senhaInput?.value || '').trim();
 
       if (!nome || !senha) {
         alert("Preencha o nome do utilizador e a palavra-passe.");
         return;
       }
 
-      const senhas = obterSenhasLocais();
-      senhas[nome] = senha;
-      salvarSenhasLocais(senhas);
+      const chave = nome.toLowerCase();
 
-      if (rtdb) {
-        rtdb.ref("senhas/" + nome.toLowerCase()).set(senha).catch(() => {});
+      // V98: primeiro confirma a gravação na nuvem. Só depois salva o cache local.
+      if (!rtdb) {
+        alert("A nuvem não está ligada. O utilizador NÃO foi criado. Verifique a ligação com o Firebase.");
+        return;
       }
 
-      alert(`Utilizador "${nome}" criado com sucesso!`);
-      nomeInput.value = '';
-      senhaInput.value = '';
-      carregarListaUsuariosAdmin();
+      try {
+        await rtdb.ref("senhas/" + chave).set(String(senha));
+
+        // Confirma que o Firebase realmente recebeu o utilizador.
+        const confirmar = await rtdb.ref("senhas/" + chave).once("value");
+        if (String(confirmar.val()) !== String(senha)) {
+          throw new Error("A gravação não pôde ser confirmada.");
+        }
+
+        const senhas = obterSenhasLocais();
+        senhas[nome] = String(senha);
+        salvarSenhasLocais(senhas);
+
+        alert(`Utilizador "${nome}" criado na nuvem com sucesso! Agora pode entrar em outro celular/computador.`);
+        nomeInput.value = '';
+        senhaInput.value = '';
+        await carregarListaUsuariosAdmin();
+      } catch (e) {
+        console.error("Erro ao criar utilizador na nuvem:", e);
+        alert("Não foi possível criar o utilizador na nuvem. O Firebase recusou a gravação. Verifique as regras do Realtime Database.");
+      }
     }
 
     function adminExcluirUsuario(nome) {

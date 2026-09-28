@@ -3291,6 +3291,70 @@ body, body * {
   print-color-adjust: exact !important;
 }
 </style>
+
+<style>
+
+/* =========================================================
+   V144 — IMPRESSÃO SEMANA ISOLADA
+   Base: V142 estável
+   Não altera Lista, Mês ou a tela normal.
+   ========================================================= */
+@media print {
+  /* Quando a impressão contém a grade semanal, mantém todos os dias
+     e organiza os blocos em duas colunas largas. */
+  #gradeSemana {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-flow: row !important;
+    gap: 8mm !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    align-items: start !important;
+  }
+
+  #gradeSemana > * {
+    display: block !important;
+    position: relative !important;
+    float: none !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  #gradeSemana .slot-card,
+  #gradeSemana .study-card,
+  #gradeSemana [class*="card"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    writing-mode: horizontal-tb !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  #gradeSemana .slot-card *,
+  #gradeSemana .study-card *,
+  #gradeSemana [class*="card"] * {
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    writing-mode: horizontal-tb !important;
+  }
+}
+
+</style>
 </head>
 <body>
 <h1 class="v141-print-title">${tituloTexto.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</h1>
@@ -10436,25 +10500,6 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
 })();
 </script>
 
-
-<script>
-(function(){
-  function v143PrepararSemana(){
-    try{
-      var g = document.querySelector('#gradeSemana, .week-grid, [class*="week-grid"]');
-      if(g && g.offsetParent !== null){
-        document.body.classList.add('print-semana');
-      }
-    }catch(e){}
-  }
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', v143PrepararSemana);
-  }else{
-    v143PrepararSemana();
-  }
-})();
-</script>
-
 </body>
 </html>
 
@@ -11774,52 +11819,6 @@ body.v71-timer #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!importan
 #dashAtencaoV36 .v126-row:last-child{border-bottom:0}
 #dashAtencaoV36 .v126-name{font-weight:600;overflow-wrap:anywhere}
 #dashAtencaoV36 .v126-value{font-weight:800;white-space:nowrap}
-
-/* V143 — correção EXCLUSIVA da impressão em modo Semana */
-body.print-semana #gradeSemana,
-body.print-semana .week-grid,
-body.print-semana [class*="week-grid"] {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 10px !important;
-  align-items: start !important;
-}
-
-body.print-semana .day-column,
-body.print-semana [class*="day-column"] {
-  width: auto !important;
-  min-width: 0 !important;
-  max-width: none !important;
-  height: auto !important;
-  break-inside: avoid !important;
-  page-break-inside: avoid !important;
-}
-
-body.print-semana .slot-card,
-body.print-semana .study-card,
-body.print-semana [class*="study-card"] {
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: none !important;
-  height: auto !important;
-  white-space: normal !important;
-  overflow: visible !important;
-  word-break: normal !important;
-  overflow-wrap: break-word !important;
-  writing-mode: horizontal-tb !important;
-  break-inside: avoid !important;
-  page-break-inside: avoid !important;
-}
-
-body.print-semana .slot-card *,
-body.print-semana .study-card *,
-body.print-semana [class*="study-card"] * {
-  white-space: normal !important;
-  word-break: normal !important;
-  overflow-wrap: break-word !important;
-  writing-mode: horizontal-tb !important;
-}
-
 </style>
 <script id="v126-js">
 (function(){

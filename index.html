@@ -9087,22 +9087,23 @@ window.V82SRS=(function(){
     const d=new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()+offset);
     return d.toISOString().slice(0,10);
   }
+  function dueISOFromMinutes(mins){ return new Date(Date.now()+mins*60000).toISOString(); }
+  function dueISOFromDays(days){ return new Date(Date.now()+days*86400000).toISOString(); }
   function load(){
     try{return JSON.parse(localStorage.getItem('EI_V74_FLASH'))||{folders:[]}}catch(e){return {folders:[]}}
   }
   function save(d){localStorage.setItem('EI_V74_FLASH',JSON.stringify(d))}
   function ensure(c){
-    if(!c.srs)c.srs={due:dayISO(0),interval:0,reps:0,lapses:0,ease:2.5,last:null};
+    if(!c.srs)c.srs={due:new Date(0).toISOString(),interval:0,reps:0,lapses:0,ease:2.5,last:null};
     return c.srs;
   }
-  function due(c){const s=ensure(c);return !s.due||s.due<=dayISO(0)}
+  function due(c){
+    const s=ensure(c); if(!s.due)return true;
+    if(/^\d{4}-\d{2}-\d{2}$/.test(s.due)) return s.due<=dayISO(0);
+    return new Date(s.due).getTime()<=Date.now();
+  }
   function intervals(c){
-    const s=ensure(c), i=Math.max(0,Number(s.interval)||0), e=Math.max(1.3,Number(s.ease)||2.5);
-    return {
-      hard: Math.max(1, Math.round(i ? i*1.2 : 1)),
-      good: Math.max(3, Math.round(i ? i*e : 3)),
-      easy: Math.max(7, Math.round(i ? i*(e+0.65) : 7))
-    };
+    return {hardMin:10, goodMin:30, easyDays:3};
   }
   function findFolderFromUI(){
     const d=load();
@@ -9157,9 +9158,9 @@ window.V82SRS=(function(){
     document.getElementById('v82-a').style.display='none';
     document.getElementById('v82-show').style.display='flex';
     document.getElementById('v82-grade').style.display='none';
-    document.getElementById('v82-hard-i').textContent='+'+ints.hard+' dia(s)';
-    document.getElementById('v82-good-i').textContent='+'+ints.good+' dia(s)';
-    document.getElementById('v82-easy-i').textContent='+'+ints.easy+' dia(s)';
+    document.getElementById('v82-hard-i').textContent='+10 min';
+    document.getElementById('v82-good-i').textContent='+30 min';
+    document.getElementById('v82-easy-i').textContent='+3 dias';
   }
   function reveal(){
     document.getElementById('v82-a').style.display='block';
@@ -9171,15 +9172,15 @@ window.V82SRS=(function(){
     const s=ensure(c), ints=intervals(c);
     s.reps=(s.reps||0)+1; s.last=dayISO(0);
     if(g==='again'){
-      s.lapses=(s.lapses||0)+1; s.interval=0; s.ease=Math.max(1.3,(s.ease||2.5)-0.20); s.due=dayISO(0);
-      /* reaparece no final da mesma sessão, uma vez */
+      s.lapses=(s.lapses||0)+1; s.interval=0; s.ease=Math.max(1.3,(s.ease||2.5)-0.20);
+      s.due=dueISOFromMinutes(1);
       if(!queue.slice(pos+1).includes(c.id)) queue.push(c.id);
     } else if(g==='hard'){
-      s.interval=ints.hard; s.ease=Math.max(1.3,(s.ease||2.5)-0.15); s.due=dayISO(s.interval);
+      s.interval=10; s.intervalUnit='minute'; s.due=dueISOFromMinutes(10);
     } else if(g==='good'){
-      s.interval=ints.good; s.due=dayISO(s.interval);
+      s.interval=30; s.intervalUnit='minute'; s.due=dueISOFromMinutes(30);
     } else {
-      s.interval=ints.easy; s.ease=(s.ease||2.5)+0.15; s.due=dayISO(s.interval);
+      s.interval=3; s.intervalUnit='day'; s.due=dueISOFromDays(3);
     }
     save(d); pos++;
     if(pos>=queue.length){alert('✅ Revisão concluída!');close();setTimeout(refresh,60)} else show();

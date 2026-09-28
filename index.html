@@ -9813,6 +9813,123 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
 })();
 </script>
 
+
+<!-- =========================================================
+ V134 — REMOVE A PISCADA DO LOGIN NO F5
+ Base: V133
+ Alteração somente visual:
+ - cobre a página imediatamente durante a inicialização;
+ - libera a interface após a restauração automática da sessão;
+ - se não houver sessão válida, mostra normalmente o login;
+ - NÃO altera salvarEstado(), edital, timer, questões ou revisões.
+========================================================== -->
+<style id="v134-anti-flash-style">
+  html.v134-iniciando body { visibility: hidden !important; }
+  #v134Splash {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483646;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0b1424;
+    color: #60a5fa;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+  }
+</style>
+
+<script id="v134-anti-flash">
+(function () {
+  const root = document.documentElement;
+  root.classList.add('v134-iniciando');
+
+  function criarSplash() {
+    if (!document.body || document.getElementById('v134Splash')) return;
+    const splash = document.createElement('div');
+    splash.id = 'v134Splash';
+    splash.innerHTML = '<div><b>Plano de Estudos</b><br><span style="font-size:13px;color:#94a3b8">Carregando seu perfil...</span></div>';
+    document.body.appendChild(splash);
+  }
+
+  function liberarTela() {
+    const splash = document.getElementById('v134Splash');
+    if (splash) splash.remove();
+    root.classList.remove('v134-iniciando');
+    if (document.body) document.body.style.visibility = '';
+  }
+
+  function sessaoJaExiste() {
+    try {
+      const chaves = [
+        'usuarioAtivo',
+        'usuario_ativo',
+        'usuarioLogado',
+        'usuario_logado',
+        'studyflow_usuario',
+        'estudo_usuario'
+      ];
+      for (const k of chaves) {
+        const v = localStorage.getItem(k) || sessionStorage.getItem(k);
+        if (v && String(v).trim()) return true;
+      }
+
+      // No sistema atual também existem chaves de perfil por usuário.
+      // Elas indicam que há dados locais a restaurar, sem modificar nada.
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i) || '';
+        if (/^cronograma_perfil_/i.test(k) && (localStorage.getItem(k) || '').length > 500) {
+          return true;
+        }
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  function aguardarInterface() {
+    criarSplash();
+    const inicio = Date.now();
+
+    const timer = setInterval(function () {
+      const app =
+        document.querySelector('#app, #dashboard, .dashboard, [data-page="dashboard"], .app-container');
+      const login =
+        document.querySelector('#login, .login-container, .login-card, [data-page="login"]');
+
+      // Se a aplicação já foi montada, mostramos imediatamente.
+      if (app && getComputedStyle(app).display !== 'none') {
+        clearInterval(timer);
+        liberarTela();
+        return;
+      }
+
+      // Sem sessão/dados restauráveis, não escondemos o login real.
+      if (!sessaoJaExiste() && login && Date.now() - inicio > 250) {
+        clearInterval(timer);
+        liberarTela();
+        return;
+      }
+
+      // Segurança: nunca deixa a página escondida indefinidamente.
+      if (Date.now() - inicio > 1800) {
+        clearInterval(timer);
+        liberarTela();
+      }
+    }, 50);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', aguardarInterface, { once: true });
+  } else {
+    aguardarInterface();
+  }
+
+  window.addEventListener('load', function () {
+    setTimeout(liberarTela, 1200);
+  }, { once: true });
+})();
+</script>
+
 </body>
 </html>
 

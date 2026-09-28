@@ -14,6 +14,7 @@
 -->
 
 <!-- V113 — CORREÇÃO DO STATUS DE SINCRONIZAÇÃO NO PC: aguarda Firebase Auth antes do RTDB; cronograma preservado. -->
+<!-- V114 — FIREBASE: remove valores undefined do payload antes de enviar; planejamento/prova e demais dados válidos preservados. -->
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -5837,7 +5838,7 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
 
       try {
         await Promise.race([
-          dbRefAtivo.set({ estado: estado, atualizadoEm: agora }),
+          dbRefAtivo.set(JSON.parse(JSON.stringify({ estado: estado, atualizadoEm: agora }))),
           limiteV113
         ]);
         clearTimeout(timeoutV113);

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 ===============================================================================
- V107 — MOBILE RECÁLCULO DA SEMANA APÓS SYNC — V106 PRESERVADA
+ V108 — MOBILE MODO CONSULTA — DESKTOP V107 PRESERVADO
  Não editar diretamente esta versão publicada.
  Fluxo recomendado:
  1. conservar este arquivo como versão estável;
@@ -9593,6 +9593,172 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
 
   window.addEventListener('pageshow', function(){
     agendarRefreshV107(700);
+  });
+})();
+</script>
+
+
+<!-- =========================================================
+ V108 — MOBILE MODO CONSULTA
+ Base V107 preservada.
+ Desktop: funcionamento normal.
+ Celular: somente Dashboard, Meu Plano e Revisões.
+ A camada abaixo NÃO altera Firebase/Auth/cronograma/revisões.
+========================================================== -->
+<style id="v108-mobile-readonly-style">
+@media (max-width:768px){
+  .v108-mobile-badge{
+    display:inline-flex !important;
+    align-items:center !important;
+    gap:6px !important;
+    padding:7px 11px !important;
+    border-radius:999px !important;
+    font-size:12px !important;
+    font-weight:800 !important;
+    line-height:1 !important;
+    background:rgba(255,255,255,.10) !important;
+    border:1px solid rgba(255,255,255,.18) !important;
+    margin:8px 10px !important;
+  }
+
+  /* Itens explicitamente classificados como edição ficam ocultos no mobile. */
+  .v108-mobile-hidden{
+    display:none !important;
+  }
+
+  /* Controles de escrita detectados dentro das 3 telas de consulta. */
+  .v108-readonly-control{
+    display:none !important;
+  }
+}
+</style>
+
+<script id="v108-mobile-readonly">
+(function(){
+  const mqV108 = window.matchMedia('(max-width:768px)');
+
+  function mobileV108(){ return mqV108.matches; }
+
+  const permitidosV108 = [
+    'dashboard',
+    'meu plano',
+    'meu-plano',
+    'meuplano',
+    'cronograma',
+    'revisões',
+    'revisoes',
+    'revisão',
+    'revisao'
+  ];
+
+  const escritaV108 = [
+    'novo registro','adicionar','editar','excluir','apagar','remover',
+    'regenerar','gerar semana','resetar','restaurar','importar',
+    'salvar','concluir','marcar como','desmarcar','alterar senha',
+    'criar usuário','criar usuario','backup','configurações','configuracoes',
+    'gestão','gestao','admin'
+  ];
+
+  function textoV108(el){
+    return ((el && (el.innerText || el.textContent || el.getAttribute?.('aria-label') || el.title)) || '')
+      .trim().toLowerCase();
+  }
+
+  function ehPermitidoV108(txt){
+    return permitidosV108.some(x => txt === x || txt.includes(x));
+  }
+
+  function ehEscritaV108(txt){
+    return escritaV108.some(x => txt.includes(x));
+  }
+
+  function aplicarMenuV108(){
+    if(!mobileV108()) return;
+
+    const sidebar =
+      document.querySelector('aside') ||
+      document.querySelector('.sidebar') ||
+      document.querySelector('#sidebar') ||
+      document.querySelector('.side-menu') ||
+      document.querySelector('.app-sidebar');
+
+    if(!sidebar) return;
+
+    if(!sidebar.querySelector('.v108-mobile-badge')){
+      const badge=document.createElement('div');
+      badge.className='v108-mobile-badge';
+      badge.textContent='📱 Modo Consulta';
+      const primeiro=sidebar.firstElementChild;
+      if(primeiro) primeiro.insertAdjacentElement('afterend',badge);
+      else sidebar.prepend(badge);
+    }
+
+    sidebar.querySelectorAll('button, a, .tab-btn, [onclick]').forEach(el=>{
+      const txt=textoV108(el);
+      if(!txt) return;
+
+      // Mantém sair e controles da gaveta.
+      if(txt.includes('sair') || txt === '×' || txt.includes('fechar')) return;
+
+      // Apenas as três áreas de consulta ficam no menu do celular.
+      if(ehPermitidoV108(txt)){
+        el.classList.remove('v108-mobile-hidden');
+      }else{
+        el.classList.add('v108-mobile-hidden');
+      }
+    });
+  }
+
+  function bloquearControlesEscritaV108(){
+    if(!mobileV108()) return;
+
+    document.querySelectorAll('main button, main a, .main-content button, .main-content a, #app-container main [onclick]').forEach(el=>{
+      const txt=textoV108(el);
+      if(ehEscritaV108(txt)){
+        el.classList.add('v108-readonly-control');
+      }
+    });
+
+    // Formulários de edição não devem ser utilizáveis no celular.
+    document.querySelectorAll('main input, main textarea, main select, .main-content input, .main-content textarea, .main-content select').forEach(el=>{
+      // Não interfere no login, pois ele fica fora do app principal.
+      if(el.closest('#tela-login')) return;
+      el.setAttribute('disabled','disabled');
+      el.setAttribute('aria-disabled','true');
+    });
+  }
+
+  function aplicarV108(){
+    if(!mobileV108()) return;
+    document.body.classList.add('v108-mobile-readonly');
+    aplicarMenuV108();
+    bloquearControlesEscritaV108();
+  }
+
+  // Proteção adicional contra ações de escrita disparadas por botões no celular.
+  document.addEventListener('click', function(e){
+    if(!mobileV108()) return;
+    const alvo=e.target.closest('button,a,[onclick]');
+    if(!alvo || alvo.closest('#tela-login')) return;
+    const txt=textoV108(alvo);
+    if(ehEscritaV108(txt)){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      alert('📱 Modo Consulta: faça alterações pelo computador.');
+    }
+  }, true);
+
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(aplicarV108,500));
+  document.addEventListener('click',()=>setTimeout(aplicarV108,180));
+  window.addEventListener('pageshow',()=>setTimeout(aplicarV108,500));
+  mqV108.addEventListener?.('change',()=>location.reload());
+
+  const obsV108=new MutationObserver(()=>{
+    clearTimeout(window.__v108Timer);
+    window.__v108Timer=setTimeout(aplicarV108,120);
+  });
+  document.addEventListener('DOMContentLoaded',()=>{
+    obsV108.observe(document.body,{childList:true,subtree:true});
   });
 })();
 </script>

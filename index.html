@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
 ===============================================================================
- V101 — MIGRAÇÃO EDUARDO CORRIGIDA — NÃO APAGA CONTAS V98
+ V102 — DIAGNÓSTICO SEGURO DA MIGRAÇÃO EDUARDO — NÃO APAGA CONTAS V98
  Não editar diretamente esta versão publicada.
  Fluxo recomendado:
  1. conservar este arquivo como versão estável;
@@ -3544,10 +3544,22 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
                 const cred=await auth.signInWithEmailAndPassword(email,sInput);
                 uid=cred.user.uid;
               } catch(eEntrar) {
-                console.warn('V100: conta Auth existe, mas a migração não foi concluída.',eEntrar);
+                console.warn('V102: conta Auth existe, mas a migração não foi concluída.', eEntrar);
+                if (ehEduardoV101) {
+                  const codigo = eEntrar?.code || 'erro-desconhecido';
+                  setTimeout(() => {
+                    alert('A conta Eduardo já existe no Firebase Authentication, mas o login nela falhou. Código: ' + codigo + '. O acesso legado foi mantido.');
+                  }, 250);
+                }
               }
             } else {
-              console.warn('V100: não foi possível criar a conta Auth; mantendo login V98.',eCriar);
+              console.warn('V102: não foi possível criar a conta Auth; mantendo login legado.', eCriar);
+              if (ehEduardoV101) {
+                const codigo = eCriar?.code || 'erro-desconhecido';
+                setTimeout(() => {
+                  alert('Eduardo entrou pelo modo compatível, mas a migração para Firebase Authentication não foi concluída. Código: ' + codigo + '. Nenhuma conta ou senha antiga foi apagada.');
+                }, 250);
+              }
             }
           }
         }

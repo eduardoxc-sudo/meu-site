@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V5 DEV • EXECUÇÃO DO CICLO</title>
+<title>Plano & Ciclo de Estudos — V6 DEV • PLANEJAMENTO V1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -71,6 +71,21 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .ciclo-fila span.atual{border-color:var(--primary);color:var(--primary);font-weight:800}
 @media(max-width:850px){.ciclo-exec-grid{grid-template-columns:1fr}}
 
+
+/* ===== V6 DEV — PLANEJAMENTO V1 ===== */
+.plan-grid{display:grid;grid-template-columns:minmax(300px,.8fr) minmax(0,1.2fr);gap:16px}
+.plan-box{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px}
+.plan-dias{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+.plan-dia{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:9px;padding:9px;background:var(--surface)}
+.plan-revisoes{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+.plan-rev{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:9px;padding:10px;background:var(--surface)}
+.plan-resumo{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+.plan-resumo div{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px}
+.plan-resumo span{display:block;color:var(--muted);font-size:.67rem;font-weight:800}
+.plan-resumo strong{display:block;margin-top:5px;color:var(--primary);font-size:1rem}
+.plan-aviso{margin-top:12px;border:1px solid var(--border);background:var(--bg);border-radius:10px;padding:12px;color:var(--muted);font-size:.78rem;line-height:1.5}
+@media(max-width:900px){.plan-grid{grid-template-columns:1fr}.plan-dias,.plan-revisoes{grid-template-columns:1fr}.plan-resumo{grid-template-columns:1fr}}
+
 </style>
 
 </head>
@@ -102,7 +117,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V5 • CICLO EXEC DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V6 • PLANEJAMENTO DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -215,7 +230,59 @@ textarea:focus,select:focus{border-color:var(--primary)}
     </div>
   </section>
   <section id="page-progresso" class="page"><div class="placeholder"><b>Progresso</b><br>Estrutura reservada. Ainda não implementado nesta etapa.</div></section>
-  <section id="page-planejamento" class="page"><div class="placeholder"><b>Planejamento</b><br>D1, D7, D15 e D30 serão reconstruídos depois, preservando a regra de não criar novas matérias.</div></section>
+  <section id="page-planejamento" class="page">
+  <div class="plan-grid">
+    <div class="panel">
+      <h3>↔ Configurar planejamento</h3>
+      <p class="panel-sub">Nesta etapa configuramos somente as regras. Ainda não será gerado calendário.</p>
+
+      <div class="plan-box">
+        <b>Dias de estudo</b>
+        <div class="plan-dias" id="planDias">
+          <label class="plan-dia"><input type="checkbox" data-plan-dia="1"> Segunda</label>
+          <label class="plan-dia"><input type="checkbox" data-plan-dia="2"> Terça</label>
+          <label class="plan-dia"><input type="checkbox" data-plan-dia="3"> Quarta</label>
+          <label class="plan-dia"><input type="checkbox" data-plan-dia="4"> Quinta</label>
+          <label class="plan-dia"><input type="checkbox" data-plan-dia="5"> Sexta</label>
+          <label class="plan-dia"><input type="checkbox" data-plan-dia="6"> Sábado</label>
+          <label class="plan-dia"><input type="checkbox" data-plan-dia="0"> Domingo</label>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:12px">
+        <label>MINUTOS DE ESTUDO POR DIA</label>
+        <input id="planMinutosDia" type="number" min="10" max="1440" step="10" value="120">
+      </div>
+
+      <button class="btn btn-primary" id="btnSalvarPlanejamento" style="margin-top:12px">Salvar planejamento</button>
+      <div id="statusPlanejamento" class="status-line"></div>
+    </div>
+
+    <div class="panel">
+      <h3>↻ Revisões espaçadas</h3>
+      <p class="panel-sub">Escolha quais revisões serão usadas. Elas serão ligadas aos tópicos estudados somente na próxima etapa.</p>
+
+      <div class="plan-revisoes">
+        <label class="plan-rev"><input type="checkbox" data-plan-rev="1"> <b>D1</b> — 1 dia depois</label>
+        <label class="plan-rev"><input type="checkbox" data-plan-rev="7"> <b>D7</b> — 7 dias depois</label>
+        <label class="plan-rev"><input type="checkbox" data-plan-rev="15"> <b>D15</b> — 15 dias depois</label>
+        <label class="plan-rev"><input type="checkbox" data-plan-rev="30"> <b>D30</b> — 30 dias depois</label>
+      </div>
+
+      <div class="plan-resumo">
+        <div><span>DIAS ATIVOS</span><strong id="planResumoDias">0</strong></div>
+        <div><span>META DIÁRIA</span><strong id="planResumoMin">120 min</strong></div>
+        <div><span>REVISÕES ATIVAS</span><strong id="planResumoRev">0</strong></div>
+      </div>
+
+      <div class="plan-aviso">
+        <b>Regra protegida:</b> D1, D7, D15 e D30 serão revisões do mesmo tópico estudado.
+        Elas não poderão criar disciplina nova, duplicar matéria nem transformar uma revisão em novo conteúdo.
+        Nesta V6 nenhuma janela/calendário é gerada.
+      </div>
+    </div>
+  </div>
+</section>
   <section id="page-diagnostico" class="page">
 <div class="panel">
 <h2>🛠 Diagnóstico da V3</h2>
@@ -258,6 +325,7 @@ async function abrirApp(user){
  $('dataHoje').textContent=new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}).format(new Date());
  await v2Carregar();
  await cicloCarregar();
+ await planejamentoCarregar();
  const ultima=localStorage.getItem('nova_v3_ultima_pagina_'+user.uid)||'dashboard';
  if(!abrirPaginaV3(ultima,false))abrirPaginaV3('dashboard',false);
 }
@@ -687,6 +755,90 @@ $('btnConcluirEtapaCiclo')?.addEventListener('click',cicloExecAvancar);
 $('btnVoltarEtapaCiclo')?.addEventListener('click',cicloExecVoltar);
 
 
+
+// ========================= V6 DEV — PLANEJAMENTO V1 =========================
+// Somente configuração. NÃO gera agenda, matérias, tópicos ou revisões.
+let planejamentoEstado={
+  dias:[1,2,3,4,5],
+  minutosDia:120,
+  revisoes:[1,7,15,30],
+  atualizadoEm:null
+};
+let PLANEJAMENTO_REF=null;
+
+function planejamentoNormalizar(raw){
+  const r=raw&&typeof raw==='object'?raw:{};
+  const dias=Array.isArray(r.dias)?r.dias.map(Number).filter(x=>x>=0&&x<=6):[1,2,3,4,5];
+  const revisoes=Array.isArray(r.revisoes)?r.revisoes.map(Number).filter(x=>[1,7,15,30].includes(x)):[1,7,15,30];
+  return {
+    dias:[...new Set(dias)],
+    minutosDia:Math.max(10,Math.min(1440,Number(r.minutosDia)||120)),
+    revisoes:[...new Set(revisoes)],
+    atualizadoEm:r.atualizadoEm||null
+  };
+}
+async function planejamentoCarregar(){
+  if(!auth.currentUser)return;
+  PLANEJAMENTO_REF=db.ref('nova_app_v3/users/'+auth.currentUser.uid+'/planejamento');
+  let local=null;
+  try{local=JSON.parse(localStorage.getItem('nova_v3_planejamento_'+auth.currentUser.uid)||'null')}catch(_){}
+  if(local)planejamentoEstado=planejamentoNormalizar(local);
+  try{
+    const snap=await PLANEJAMENTO_REF.once('value'),cloud=snap.val();
+    if(cloud){
+      const lm=Date.parse(planejamentoEstado.atualizadoEm||'')||0,cm=Date.parse(cloud.atualizadoEm||'')||0;
+      if(cm>=lm)planejamentoEstado=planejamentoNormalizar(cloud);
+    }
+  }catch(e){ultimoErroV3=String(e?.code||e?.message||e)}
+  renderizarPlanejamento();
+}
+function renderizarPlanejamento(){
+  document.querySelectorAll('[data-plan-dia]').forEach(el=>{
+    el.checked=planejamentoEstado.dias.includes(Number(el.dataset.planDia));
+  });
+  document.querySelectorAll('[data-plan-rev]').forEach(el=>{
+    el.checked=planejamentoEstado.revisoes.includes(Number(el.dataset.planRev));
+  });
+  if($('planMinutosDia'))$('planMinutosDia').value=planejamentoEstado.minutosDia;
+  atualizarResumoPlanejamento();
+}
+function lerPlanejamentoTela(){
+  planejamentoEstado.dias=[...document.querySelectorAll('[data-plan-dia]:checked')].map(x=>Number(x.dataset.planDia));
+  planejamentoEstado.revisoes=[...document.querySelectorAll('[data-plan-rev]:checked')].map(x=>Number(x.dataset.planRev));
+  planejamentoEstado.minutosDia=Math.max(10,Math.min(1440,Number($('planMinutosDia')?.value)||120));
+  atualizarResumoPlanejamento();
+}
+function atualizarResumoPlanejamento(){
+  if(!$('planResumoDias'))return;
+  $('planResumoDias').textContent=planejamentoEstado.dias.length;
+  $('planResumoMin').textContent=planejamentoEstado.minutosDia+' min';
+  $('planResumoRev').textContent=planejamentoEstado.revisoes.length;
+}
+async function salvarPlanejamento(){
+  if(!auth.currentUser||!PLANEJAMENTO_REF)return;
+  lerPlanejamentoTela();
+  if(!planejamentoEstado.dias.length){
+    $('statusPlanejamento').textContent='Escolha pelo menos um dia de estudo.';
+    return;
+  }
+  planejamentoEstado.atualizadoEm=new Date().toISOString();
+  localStorage.setItem('nova_v3_planejamento_'+auth.currentUser.uid,JSON.stringify(planejamentoEstado));
+  $('statusPlanejamento').textContent='Salvando...';
+  try{
+    await PLANEJAMENTO_REF.set(planejamentoEstado);
+    $('statusPlanejamento').textContent='Planejamento salvo.';
+  }catch(e){
+    ultimoErroV3=String(e?.code||e?.message||e);
+    $('statusPlanejamento').textContent='Falha ao salvar o planejamento.';
+  }
+}
+document.addEventListener('change',e=>{
+  if(e.target.matches('[data-plan-dia],[data-plan-rev],#planMinutosDia'))lerPlanejamentoTela();
+});
+$('planMinutosDia')?.addEventListener('input',lerPlanejamentoTela);
+$('btnSalvarPlanejamento')?.addEventListener('click',salvarPlanejamento);
+
+
 function itemDiag(ok,t,d){return '<div style="padding:12px;border:1px solid var(--border);border-radius:10px"><b>'+(ok?'✅ ':'❌ ')+t+'</b><div style="font-size:.82rem;color:var(--muted);margin-top:4px">'+d+'</div></div>'}
 async function executarDiagnosticoV3(){
  const L=[],u=auth.currentUser;
@@ -704,6 +856,11 @@ async function executarDiagnosticoV3(){
  const indiceExec=Number(cicloExec?.indice)||0;
  L.push([!!CICLO_EXEC_REF,'Execução do ciclo por UID',CICLO_EXEC_REF?'nova_app_v3/users/<UID>/cicloExecucao':'Referência ausente']);
  L.push([!ativasExec.length || (indiceExec>=0 && indiceExec<ativasExec.length),'Posição válida do ciclo',ativasExec.length?(indiceExec+1)+' de '+ativasExec.length:'Sem disciplinas ativas']);
+ L.push([!!PLANEJAMENTO_REF,'Planejamento por UID',PLANEJAMENTO_REF?'nova_app_v3/users/<UID>/planejamento':'Referência ausente']);
+ const revValidas=(planejamentoEstado?.revisoes||[]).every(x=>[1,7,15,30].includes(Number(x)));
+ L.push([revValidas,'Revisões válidas','Somente D1, D7, D15 e D30']);
+ L.push([!document.querySelector('[data-plan-gerar-calendario]'),'Planejamento sem gerador','V6 apenas configura regras; nenhum calendário é criado']);
+
 
  const pg=document.querySelector('.page.active')?.id?.replace('page-','')||'nenhuma',salva=u?localStorage.getItem('nova_v3_ultima_pagina_'+u.uid):null;
  L.push([pg!=='nenhuma','Página atual','Ativa: '+pg],[!!salva,'Restauração após F5',salva?'Salva: '+salva:'Ainda não registrada'],[!ultimoErroV3,'Erros capturados',ultimoErroV3?'Último erro: '+ultimoErroV3:'Nenhum erro registrado']);

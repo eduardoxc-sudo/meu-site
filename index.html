@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V1</title>
+<title>Plano & Ciclo de Estudos — V2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -18,7 +18,28 @@ button,input{font:inherit}.btn{border:0;border-radius:9px;padding:10px 14px;font
 #app{min-height:100vh;display:grid;grid-template-columns:260px 1fr}aside{background:var(--surface);border-right:1px solid var(--border);padding:18px;display:flex;flex-direction:column;gap:18px}.brand h2{color:var(--primary);font-size:1.05rem}.user{color:var(--muted);font-size:.78rem;margin-top:5px}.sync{font-size:.75rem;color:var(--success);margin-top:5px}.nav{display:flex;flex-direction:column;gap:7px}.nav button{width:100%;text-align:left;background:transparent;color:var(--muted);border:1px solid transparent;border-radius:9px;padding:10px;cursor:pointer;font-weight:700}.nav button.active{background:#172238;color:#fff;border-color:var(--border)}.aside-bottom{margin-top:auto;display:flex;flex-direction:column;gap:8px}
 main{padding:28px;min-width:0}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:24px}.top h1{font-size:1.55rem}.version{font-size:.72rem;color:var(--muted);border:1px solid var(--border);padding:5px 8px;border-radius:8px}.page{display:none}.page.active{display:block}.hero{background:linear-gradient(135deg,#111827,#172238);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:16px}.hero h2{font-size:1.25rem;margin-bottom:5px}.hero p{color:var(--muted);font-size:.86rem}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.stat{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px}.stat span{font-size:.75rem;color:var(--muted);font-weight:700}.stat strong{display:block;margin-top:7px;font-size:1.25rem}.placeholder{background:var(--card);border:1px dashed var(--border);border-radius:14px;padding:22px;color:var(--muted);line-height:1.6}.ok{color:var(--success)}
 @media(max-width:800px){#app{display:block}aside{border-right:0;border-bottom:1px solid var(--border)}.nav{display:grid;grid-template-columns:repeat(2,1fr)}main{padding:16px}.grid{grid-template-columns:repeat(2,1fr)}}
+
+.edital-layout{display:grid;grid-template-columns:minmax(300px,.8fr) minmax(0,1.2fr);gap:16px}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+.panel h3{font-size:1rem;margin-bottom:6px}.panel-sub{font-size:.78rem;color:var(--muted);line-height:1.5;margin-bottom:14px}
+textarea,select{font:inherit;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:10px 11px;outline:none;width:100%}
+textarea:focus,select:focus{border-color:var(--primary)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.btn-danger{background:#7f1d1d;color:#fff}.btn-success{background:#065f46;color:#fff}
+.edital-toolbar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.edital-summary{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;margin-bottom:12px}
+.edital-summary strong{color:var(--primary)}
+.materia-card{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px;background:#0f172a}
+.materia-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 13px;border-bottom:1px solid var(--border)}
+.materia-head h4{font-size:.92rem}.materia-count{font-size:.72rem;color:var(--muted)}
+.topico-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start;padding:10px 12px;border-bottom:1px solid #1e293b}
+.topico-row:last-child{border-bottom:0}.topico-row.done .topico-title{text-decoration:line-through;color:#64748b}
+.topico-title{font-size:.82rem;line-height:1.45}.mini{font-size:.7rem;padding:5px 7px;border-radius:7px}
+.add-row{display:grid;grid-template-columns:180px 1fr auto;gap:8px;margin-bottom:12px}
+.empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:12px}
+.status-line{font-size:.76rem;color:var(--muted);margin-top:9px;min-height:18px}
+@media(max-width:1000px){.edital-layout{grid-template-columns:1fr}.edital-toolbar{grid-template-columns:1fr}.add-row{grid-template-columns:1fr}}
 </style>
+
 </head>
 <body>
 <section id="login">
@@ -48,22 +69,73 @@ main{padding:28px;min-width:0}.top{display:flex;justify-content:space-between;al
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V1</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V2</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, Eduardo! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
       <div class="stat"><span>🔥 Sequência</span><strong>—</strong></div>
       <div class="stat"><span>⏱ Horas líquidas</span><strong>—</strong></div>
-      <div class="stat"><span>✅ Edital</span><strong>—</strong></div>
+      <div class="stat"><span>✅ Edital</span><strong id="dashEdital">0 / 0</strong></div>
       <div class="stat"><span>🎯 Questões</span><strong>—</strong></div>
     </div>
-    <div class="placeholder" style="margin-top:16px"><b class="ok">✓ V1 limpa iniciada.</b><br>Esta primeira etapa valida somente a nova estrutura, login exclusivo de Eduardo e conexão com o mesmo Firebase. Os módulos serão reconstruídos nas próximas etapas sem copiar os remendos antigos.</div>
+    <div class="placeholder" style="margin-top:16px"><b class="ok">✓ V2 — Edital reconstruído.</b><br>O Edital agora é independente, salva na nuvem em uma área nova e não altera os dados da V147. Planejamento e revisões ainda não foram ligados.</div>
   </section>
-  <section id="page-ciclo" class="page"><div class="placeholder"><b>Ciclo</b><br>Será reconstruído na próxima etapa a partir do comportamento aprovado da V147.</div></section>
-  <section id="page-timer" class="page"><div class="placeholder"><b>Timer</b><br>Estrutura reservada. Ainda não implementado na V1.</div></section>
+  <section id="page-ciclo" class="page"><div class="placeholder"><b>Ciclo</b><br>Será ligado ao Edital nas próximas versões. Nesta V2 ele continua isolado.</div></section>
+  <section id="page-timer" class="page"><div class="placeholder"><b>Timer</b><br>Estrutura reservada. Ainda não implementado nesta etapa.</div></section>
   <section id="page-questoes" class="page"><div class="placeholder"><b>Questões</b><br>Entrará somente o sistema atual de Questões. Flashcards e Banco de Questões antigos não serão trazidos.</div></section>
-  <section id="page-edital" class="page"><div class="placeholder"><b>Edital</b><br>Estrutura reservada. Ainda não implementado na V1.</div></section>
-  <section id="page-progresso" class="page"><div class="placeholder"><b>Progresso</b><br>Estrutura reservada. Ainda não implementado na V1.</div></section>
+
+  <section id="page-edital" class="page">
+    <div class="edital-layout">
+      <div class="panel">
+        <h3>▥ Carregar edital</h3>
+        <p class="panel-sub">Cole um edital verticalizado. Use uma linha com o nome da disciplina e, abaixo, os tópicos. Exemplo: <b>Língua Portuguesa</b> e depois <b>1. Interpretação de textos</b>.</p>
+        <div class="field">
+          <label>TEXTO DO EDITAL</label>
+          <textarea id="textoEditalV2" rows="14" placeholder="Língua Portuguesa&#10;1. Compreensão e interpretação de textos&#10;2. Ortografia&#10;&#10;Raciocínio Lógico&#10;1. Estruturas lógicas&#10;2. Proposições"></textarea>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="btnCarregarEditalV2">✨ Carregar edital</button>
+          <button class="btn btn-danger" id="btnLimparEditalV2">🗑 Limpar edital</button>
+        </div>
+        <div id="statusEditalV2" class="status-line"></div>
+      </div>
+
+      <div class="panel">
+        <h3>📋 Edital verticalizado</h3>
+        <p class="panel-sub">Nesta V2 você já pode pesquisar, filtrar, adicionar conteúdo e marcar tópicos como concluídos.</p>
+
+        <div class="edital-toolbar">
+          <div class="field" style="margin:0">
+            <label>FILTRAR DISCIPLINA</label>
+            <select id="filtroMateriaEditalV2"><option value="TODAS">Todas as disciplinas</option></select>
+          </div>
+          <div class="field" style="margin:0">
+            <label>LOCALIZAR ASSUNTO</label>
+            <input id="buscaEditalV2" type="search" placeholder="Ex.: concordância, informática...">
+          </div>
+        </div>
+
+        <div class="edital-summary">
+          <span id="resumoEditalV2">Nenhum edital carregado.</span>
+          <strong id="percentualEditalV2">0%</strong>
+        </div>
+
+        <div class="add-row">
+          <input id="novaMateriaV2" placeholder="Nova disciplina">
+          <button class="btn btn-outline" id="btnAdicionarMateriaV2">+ Disciplina</button>
+          <span></span>
+        </div>
+        <div class="add-row">
+          <select id="materiaNovoTopicoV2"><option value="">Selecione a disciplina</option></select>
+          <input id="novoTopicoV2" placeholder="Novo tópico">
+          <button class="btn btn-outline" id="btnAdicionarTopicoV2">+ Tópico</button>
+        </div>
+
+        <div id="listaEditalV2"></div>
+      </div>
+    </div>
+  </section>
+  <section id="page-progresso" class="page"><div class="placeholder"><b>Progresso</b><br>Estrutura reservada. Ainda não implementado nesta etapa.</div></section>
   <section id="page-planejamento" class="page"><div class="placeholder"><b>Planejamento</b><br>D1, D7, D15 e D30 serão reconstruídos depois, preservando a regra de não criar novas matérias.</div></section>
   <section id="page-seguranca" class="page"><div class="placeholder"><b>Segurança</b><br>V1 usa Firebase Authentication para a conta Eduardo. Gestão de Utilizadores e Motivação foram deixadas de fora.</div></section>
 </main>
@@ -80,6 +152,224 @@ $('btnEntrar').addEventListener('click',entrar);$('loginSenha').addEventListener
 $('btnSair').addEventListener('click',async()=>{try{await auth.signOut()}catch(e){}sessionStorage.removeItem('v1_eduardo');location.reload()});
 document.querySelectorAll('.nav button').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));const p=btn.dataset.page;$('page-'+p).classList.add('active');$('pageTitle').textContent=btn.textContent.trim().replace(/^[^A-Za-zÀ-ÿ]+/,'').trim()}));
 if(auth){auth.onAuthStateChanged(user=>{if(user&&sessionStorage.getItem('v1_eduardo')==='1'&&String(user.email||'').toLowerCase()===EMAIL_EDUARDO){abrirApp()}})}
+
+// ========================= NOVA V2 — EDITAL LIMPO =========================
+// IMPORTANTE: usa um caminho próprio no Firebase para não alterar a V147.
+const V2_REF = db ? db.ref('nova_app_v2/eduardo') : null;
+let estadoV2 = { editalVerticalizado:{}, disciplinas:[], atualizadoEm:null };
+let v2RecebendoNuvem = false;
+let v2SaveTimer = null;
+
+function v2Id(){
+  return 'top_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7);
+}
+function v2Norm(s){
+  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+}
+function v2Escape(s){
+  return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+}
+function v2EstadoValido(raw){
+  const e = raw && typeof raw==='object' ? raw : {};
+  if(!e.editalVerticalizado || typeof e.editalVerticalizado!=='object') e.editalVerticalizado={};
+  if(!Array.isArray(e.disciplinas)) e.disciplinas=Object.keys(e.editalVerticalizado).map(nome=>({nome}));
+  return e;
+}
+function v2Salvar(){
+  estadoV2.atualizadoEm = new Date().toISOString();
+  localStorage.setItem('nova_v2_eduardo', JSON.stringify(estadoV2));
+  atualizarEditalV2();
+  if(!V2_REF || v2RecebendoNuvem) return;
+  clearTimeout(v2SaveTimer);
+  v2SaveTimer=setTimeout(()=>{
+    $('syncStatus').textContent='☁️ Salvando...';
+    V2_REF.set(estadoV2).then(()=>$('syncStatus').textContent='☁️ Firebase conectado')
+      .catch(()=> $('syncStatus').textContent='⚠️ Falha ao sincronizar');
+  },250);
+}
+async function v2Carregar(){
+  let local=null;
+  try{local=JSON.parse(localStorage.getItem('nova_v2_eduardo')||'null')}catch(_){}
+  if(local) estadoV2=v2EstadoValido(local);
+  atualizarEditalV2();
+  if(!V2_REF) return;
+  try{
+    const snap=await V2_REF.once('value');
+    const cloud=snap.val();
+    if(cloud){
+      const lm=Date.parse(estadoV2.atualizadoEm||'')||0;
+      const cm=Date.parse(cloud.atualizadoEm||'')||0;
+      if(cm>=lm){
+        v2RecebendoNuvem=true;
+        estadoV2=v2EstadoValido(cloud);
+        localStorage.setItem('nova_v2_eduardo',JSON.stringify(estadoV2));
+        atualizarEditalV2();
+        v2RecebendoNuvem=false;
+      }
+    }
+  }catch(e){console.error('V2 cloud load',e)}
+}
+function v2SanitizarTopico(s){
+  return String(s||'').replace(/[\|_]{2,}/g,'').replace(/\s+/g,' ').trim();
+}
+function v2PareceTopico(linha){
+  return /^(?:\d+(?:\.\d+)*[\.\)\-:]?|[a-zA-Z][\)\.]|[-•–—])\s+/.test(linha);
+}
+function v2Extrair(texto){
+  const linhas=String(texto||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const grupos=[];
+  let atual=null;
+  for(const linhaOriginal of linhas){
+    const linha=v2SanitizarTopico(linhaOriginal);
+    if(!linha) continue;
+    const ehTopico=v2PareceTopico(linha);
+    if(!ehTopico){
+      atual={nome:linha,topicos:[]};
+      grupos.push(atual);
+    }else{
+      if(!atual){
+        atual={nome:'Conteúdo Geral',topicos:[]};
+        grupos.push(atual);
+      }
+      atual.topicos.push(linha);
+    }
+  }
+  return grupos.filter(g=>g.nome && g.topicos.length);
+}
+function carregarEditalTextoV2(){
+  const texto=$('textoEditalV2').value.trim();
+  const status=$('statusEditalV2');
+  if(!texto){status.textContent='Cole o texto do edital primeiro.';return}
+  const grupos=v2Extrair(texto);
+  if(!grupos.length){
+    status.textContent='Não consegui separar disciplinas e tópicos. Use o nome da disciplina em uma linha e tópicos numerados abaixo.';
+    return;
+  }
+  const novo={};
+  grupos.forEach(g=>{
+    novo[g.nome]=g.topicos.map(t=>({id:v2Id(),titulo:t,t:false}));
+  });
+  estadoV2.editalVerticalizado=novo;
+  estadoV2.disciplinas=grupos.map(g=>({nome:g.nome}));
+  status.textContent=`${grupos.length} disciplina(s) carregada(s) com sucesso.`;
+  $('textoEditalV2').value='';
+  v2Salvar();
+}
+function limparEditalV2(){
+  if(!confirm('Limpar todo o edital da NOVA V2? Isso não altera a V147.')) return;
+  estadoV2={editalVerticalizado:{},disciplinas:[],atualizadoEm:null};
+  $('statusEditalV2').textContent='Edital da V2 limpo.';
+  v2Salvar();
+}
+function adicionarMateriaV2(){
+  const input=$('novaMateriaV2');
+  const nome=input.value.trim();
+  if(!nome) return;
+  const existe=Object.keys(estadoV2.editalVerticalizado).some(x=>v2Norm(x)===v2Norm(nome));
+  if(existe){$('statusEditalV2').textContent='Essa disciplina já existe.';return}
+  estadoV2.editalVerticalizado[nome]=[];
+  estadoV2.disciplinas.push({nome});
+  input.value='';
+  v2Salvar();
+}
+function excluirMateriaV2(nome){
+  if(!confirm(`Remover "${nome}" e todos os tópicos dela?`)) return;
+  delete estadoV2.editalVerticalizado[nome];
+  estadoV2.disciplinas=estadoV2.disciplinas.filter(d=>d.nome!==nome);
+  v2Salvar();
+}
+function adicionarTopicoV2(){
+  const materia=$('materiaNovoTopicoV2').value;
+  const input=$('novoTopicoV2');
+  const titulo=input.value.trim();
+  if(!materia || !titulo) return;
+  if(!estadoV2.editalVerticalizado[materia]) return;
+  estadoV2.editalVerticalizado[materia].push({id:v2Id(),titulo:v2SanitizarTopico(titulo),t:false});
+  input.value='';
+  v2Salvar();
+}
+function alternarTopicoV2(materia,id,feito){
+  const t=(estadoV2.editalVerticalizado[materia]||[]).find(x=>x.id===id);
+  if(!t) return;
+  t.t=!!feito;
+  v2Salvar();
+}
+function excluirTopicoV2(materia,id){
+  estadoV2.editalVerticalizado[materia]=(estadoV2.editalVerticalizado[materia]||[]).filter(x=>x.id!==id);
+  v2Salvar();
+}
+function atualizarEditalV2(){
+  const materias=Object.keys(estadoV2.editalVerticalizado||{});
+  const filtroAtual=$('filtroMateriaEditalV2')?.value||'TODAS';
+  const opts='<option value="TODAS">Todas as disciplinas</option>'+materias.map(m=>`<option value="${v2Escape(m)}">${v2Escape(m)}</option>`).join('');
+  if($('filtroMateriaEditalV2')){
+    $('filtroMateriaEditalV2').innerHTML=opts;
+    $('filtroMateriaEditalV2').value=materias.includes(filtroAtual)?filtroAtual:'TODAS';
+  }
+  if($('materiaNovoTopicoV2')){
+    const atual=$('materiaNovoTopicoV2').value;
+    $('materiaNovoTopicoV2').innerHTML='<option value="">Selecione a disciplina</option>'+materias.map(m=>`<option value="${v2Escape(m)}">${v2Escape(m)}</option>`).join('');
+    if(materias.includes(atual)) $('materiaNovoTopicoV2').value=atual;
+  }
+
+  let total=0,feitos=0;
+  materias.forEach(m=>(estadoV2.editalVerticalizado[m]||[]).forEach(t=>{total++;if(t.t)feitos++}));
+  if($('dashEdital')) $('dashEdital').textContent=`${feitos} / ${total}`;
+  if($('resumoEditalV2')) $('resumoEditalV2').textContent=total?`${feitos} de ${total} tópicos concluídos em ${materias.length} disciplina(s).`:'Nenhum edital carregado.';
+  if($('percentualEditalV2')) $('percentualEditalV2').textContent=total?`${Math.round(feitos*100/total)}%`:'0%';
+  renderizarListaEditalV2();
+}
+function renderizarListaEditalV2(){
+  const box=$('listaEditalV2'); if(!box)return;
+  const filtro=$('filtroMateriaEditalV2')?.value||'TODAS';
+  const busca=v2Norm($('buscaEditalV2')?.value||'');
+  let materias=Object.keys(estadoV2.editalVerticalizado||{});
+  if(filtro!=='TODAS') materias=materias.filter(m=>m===filtro);
+  let html='';
+  materias.forEach(m=>{
+    let tops=(estadoV2.editalVerticalizado[m]||[]);
+    if(busca) tops=tops.filter(t=>v2Norm(t.titulo).includes(busca)||v2Norm(m).includes(busca));
+    if(busca && !tops.length) return;
+    const feitos=tops.filter(t=>t.t).length;
+    html+=`<div class="materia-card">
+      <div class="materia-head">
+        <div><h4>${v2Escape(m)}</h4><div class="materia-count">${feitos}/${tops.length} visível(is) concluído(s)</div></div>
+        <button class="btn btn-outline mini" data-del-materia="${v2Escape(m)}">Excluir matéria</button>
+      </div>
+      ${tops.length?tops.map(t=>`<div class="topico-row ${t.t?'done':''}">
+        <input type="checkbox" ${t.t?'checked':''} data-check-materia="${v2Escape(m)}" data-check-id="${v2Escape(t.id)}">
+        <div class="topico-title">${v2Escape(t.titulo)}</div>
+        <button class="btn btn-outline mini" data-del-topico-materia="${v2Escape(m)}" data-del-topico-id="${v2Escape(t.id)}">×</button>
+      </div>`).join(''):'<div class="empty">Nenhum tópico nesta disciplina.</div>'}
+    </div>`;
+  });
+  box.innerHTML=html||'<div class="empty">Nenhum conteúdo para mostrar.</div>';
+}
+document.addEventListener('change',e=>{
+  const c=e.target.closest('[data-check-id]');
+  if(c) alternarTopicoV2(c.dataset.checkMateria,c.dataset.checkId,c.checked);
+});
+document.addEventListener('click',e=>{
+  const dm=e.target.closest('[data-del-materia]');
+  if(dm){excluirMateriaV2(dm.dataset.delMateria);return}
+  const dt=e.target.closest('[data-del-topico-id]');
+  if(dt){excluirTopicoV2(dt.dataset.delTopicoMateria,dt.dataset.delTopicoId);return}
+});
+$('btnCarregarEditalV2')?.addEventListener('click',carregarEditalTextoV2);
+$('btnLimparEditalV2')?.addEventListener('click',limparEditalV2);
+$('btnAdicionarMateriaV2')?.addEventListener('click',adicionarMateriaV2);
+$('btnAdicionarTopicoV2')?.addEventListener('click',adicionarTopicoV2);
+$('filtroMateriaEditalV2')?.addEventListener('change',renderizarListaEditalV2);
+$('buscaEditalV2')?.addEventListener('input',renderizarListaEditalV2);
+$('novoTopicoV2')?.addEventListener('keydown',e=>{if(e.key==='Enter')adicionarTopicoV2()});
+$('novaMateriaV2')?.addEventListener('keydown',e=>{if(e.key==='Enter')adicionarMateriaV2()});
+
+const abrirAppV1=abrirApp;
+abrirApp=function(){
+  abrirAppV1();
+  v2Carregar();
+};
+
 </script>
 </body>
 </html>

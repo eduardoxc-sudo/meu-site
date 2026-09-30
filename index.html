@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V8.5 DEV • REVISÕES AGENDADAS</title>
+<title>Plano & Ciclo de Estudos — V8.5.1 DEV • REVISÕES CORRIGIDAS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -135,7 +135,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V8.5 • REVISÕES AGENDADAS DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V8.5.1 • REVISÕES CORRIGIDAS DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -896,30 +896,38 @@ $('btnSalvarPlanejamento')?.addEventListener('click',salvarPlanejamento);
 
 
 
-// ========================= V8.5 DEV — REVISÕES AGENDADAS (SOMENTE LEITURA) =========================
-function v85Esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function v85Origens(){const r=revisoesMotor||{};return (Array.isArray(r)?r:Object.values(r)).filter(v=>v&&typeof v==='object')}
-function v85Pick(o,ks){for(const k of ks)if(o?.[k]!==undefined&&o?.[k]!==null&&o?.[k]!=='')return o[k];return ''}
-function v85ISO(v){if(!v)return '';if(typeof v==='string')return v.slice(0,10);if(typeof v==='number'){const d=new Date(v);return isNaN(d)?'':d.toISOString().slice(0,10)}return ''}
-function v85Mais(base,n){const s=v85ISO(base);if(!s)return '';const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)}
+// ========================= V8.5.1 DEV — REVISÕES AGENDADAS (MESMA FONTE DO DIAGNÓSTICO) =========================
+function v851Esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function renderizarRevisoesAgendadasV85(){
  const box=$('listaRevisoesAgendadas'),res=$('resumoRevisoesAgendadas');if(!box||!res)return;
- const itens=v85Origens();
- res.innerHTML='<div class="cycle-stat"><span>ORIGENS</span><b>'+itens.length+'</b></div><div class="cycle-stat"><span>REVISÕES</span><b>'+(itens.length*4)+'</b></div><div class="cycle-stat"><span>INTERVALOS</span><b>D1 · D7 · D15 · D30</b></div>';
- if(!itens.length){box.innerHTML='<div class="empty">Nenhuma revisão registrada no motor deste usuário.</div>';return}
- const rows=itens.map(o=>{
-   const disc=v85Pick(o,['disciplina','materia','nomeDisciplina'])||'Disciplina';
-   const top=v85Pick(o,['topico','assunto','nomeTopico','titulo'])||'Tópico';
-   const est=v85Pick(o,['estudadoEm','dataEstudo','dataConclusao','criadoEm','concluidoEm']);
-   const rr=v85Pick(o,['revisoes','datas','intervalos'])||{};
-   return {disc,top,est:v85ISO(est),
-    d1:v85ISO(v85Pick(rr,['D1','d1'])||v85Pick(o,['D1','d1'])||v85Mais(est,1)),
-    d7:v85ISO(v85Pick(rr,['D7','d7'])||v85Pick(o,['D7','d7'])||v85Mais(est,7)),
-    d15:v85ISO(v85Pick(rr,['D15','d15'])||v85Pick(o,['D15','d15'])||v85Mais(est,15)),
-    d30:v85ISO(v85Pick(rr,['D30','d30'])||v85Pick(o,['D30','d30'])||v85Mais(est,30))};
- }).sort((a,b)=>(a.est||'').localeCompare(b.est||'')||a.disc.localeCompare(b.disc));
- box.innerHTML=rows.map(x=>'<div class="plan-aviso" style="margin-top:10px"><b>'+v85Esc(x.disc)+'</b><br>'+v85Esc(x.top)+'<br><span class="small">Estudado: '+v85Esc(x.est||'—')+'</span><div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:8px"><span class="badge">D1 · '+v85Esc(x.d1||'—')+'</span><span class="badge">D7 · '+v85Esc(x.d7||'—')+'</span><span class="badge">D15 · '+v85Esc(x.d15||'—')+'</span><span class="badge">D30 · '+v85Esc(x.d30||'—')+'</span></div></div>').join('');
+ // IMPORTANTE: usa exatamente revisoesMotor.origens, a mesma coleção validada pelo Diagnóstico.
+ const todas=Object.values(revisoesMotor?.origens||{});
+ const itens=todas.filter(o=>o && revOrigemExisteNoEdital(o));
+ const totalRevisoes=itens.reduce((n,o)=>n+Object.keys(o.revisoes||{}).length,0);
+
+ res.innerHTML=
+  '<div class="cycle-stat"><span>ORIGENS VÁLIDAS</span><b>'+itens.length+'</b></div>'+
+  '<div class="cycle-stat"><span>REVISÕES AGENDADAS</span><b>'+totalRevisoes+'</b></div>'+
+  '<div class="cycle-stat"><span>INTERVALOS</span><b>D1 · D7 · D15 · D30</b></div>';
+
+ if(!itens.length){
+   box.innerHTML='<div class="empty">Nenhuma revisão válida registrada para o Edital atual.</div>';
+   return;
+ }
+ itens.sort((a,b)=>String(a.dataEstudo||'').localeCompare(String(b.dataEstudo||''))||String(a.topico||'').localeCompare(String(b.topico||'')));
+ box.innerHTML=itens.map(o=>{
+   const chips=['D1','D7','D15','D30'].map(k=>{
+     const r=o.revisoes?.[k];
+     return r?'<span class="revdev-chip">'+k+' • '+v851Esc(r.data||'—')+'</span>':'';
+   }).join('');
+   return '<div class="revdev-item" style="margin-top:10px">'+
+     '<b>'+v851Esc(o.disciplina)+'</b>'+
+     '<small>'+v851Esc(o.topico)+' • estudo: '+v851Esc(o.dataEstudo||'—')+'</small>'+
+     '<div class="revdev-chips">'+chips+'</div>'+
+   '</div>';
+ }).join('');
 }
+
 
 // ========================= V8.4.1 DEV — RESET ISOLADO =========================
 async function resetTesteV841(){
@@ -1083,7 +1091,7 @@ async function revisoesMotorCarregar(){
  let local=null;try{local=JSON.parse(localStorage.getItem('nova_v3_revisoes_motor_'+auth.currentUser.uid)||'null')}catch(_){}
  if(local)revisoesMotor=revisoesMotorNormalizar(local);
  try{const s=await REVISOES_MOTOR_REF.once('value'),cloud=s.val();if(cloud){const lm=Date.parse(revisoesMotor.atualizadoEm||'')||0,cm=Date.parse(cloud.atualizadoEm||'')||0;if(cm>=lm)revisoesMotor=revisoesMotorNormalizar(cloud)}}catch(e){ultimoErroV3=String(e?.code||e?.message||e)}
- revDevPreencherDisciplinas();renderizarRevisoesMotor();
+ revDevPreencherDisciplinas();renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();
 }
 function revDevPreencherDisciplinas(){
  const s=$('revDevDisciplina');if(!s)return;const ds=Object.keys(estadoV2?.editalVerticalizado||{});
@@ -1103,7 +1111,7 @@ async function revisoesMotorRegistrarConclusao(disciplina,topico,dataBase){
  revisoesMotor.origens[chave]={disciplina,topico,dataEstudo:base,revisoes,criadoEm:new Date().toISOString()};
  revisoesMotor.atualizadoEm=new Date().toISOString();
  localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));
- await REVISOES_MOTOR_REF.set(revisoesMotor);renderizarRevisoesMotor();
+ await REVISOES_MOTOR_REF.set(revisoesMotor);renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();
  return {msg:'Revisões vinculadas ao tópico original.'};
 }
 function renderizarRevisoesMotor(){
@@ -1152,6 +1160,9 @@ async function executarDiagnosticoV3(){
  L.push([!!$('btnResetTesteV841'),'Reset isolado disponível','Reset não substitui o listener do Estudo real']);
  L.push([typeof concluirEstudoReal==='function','Clique do Estudo real preservado','Função de conclusão continua carregada']);
  L.push([!!$('listaRevisoesAgendadas'),'Painel de revisões agendadas','Somente leitura no Planejamento']);
+ const painelOrigens=Object.values(revisoesMotor?.origens||{}).filter(o=>o&&revOrigemExisteNoEdital(o));
+ const painelRevisoes=painelOrigens.reduce((n,o)=>n+Object.keys(o.revisoes||{}).length,0);
+ L.push([painelOrigens.length===origensRev.length,'Painel usa a mesma fonte do Diagnóstico',painelOrigens.length+' origem(ns) • '+painelRevisoes+' revisão(ões)']);
  L.push([estudoRealAtual() || ($('btnConcluirEstudoReal')?.disabled===true && $('btnConcluirEstudoReal')?.textContent.includes('Ciclo concluído')),'Fim do ciclo bloqueado','Sem tópico pendente = nenhuma nova volta']);
 
 

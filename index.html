@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V9.0 DEV • HISTÓRICO DE REVISÕES</title>
+<title>Plano & Ciclo de Estudos — V9.0.1 DEV • AJUSTE VISUAL HISTÓRICO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -142,10 +142,42 @@ textarea:focus,select:focus{border-color:var(--primary)}
 </style>
 
 <style id="v90-historico-css">
-#resumoHistoricoV90{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#resumoHistoricoV90{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(135px,1fr));
+  gap:10px;
+  margin:12px 0;
+}
+#resumoHistoricoV90 .cycle-stat{
+  min-width:0;
+  padding:14px 12px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--bg);
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+#resumoHistoricoV90 .cycle-stat span{
+  display:block;
+  font-size:13px;
+  line-height:1.25;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+#resumoHistoricoV90 .cycle-stat b{
+  display:block;
+  font-size:20px;
+  line-height:1;
+}
 .hist-v90{padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);margin-top:10px}
 .hist-v90 small{display:block;margin-top:5px}
-@media(max-width:760px){#resumoHistoricoV90{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){
+  #resumoHistoricoV90{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:430px){
+  #resumoHistoricoV90{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
@@ -176,7 +208,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.0 • HISTÓRICO DE REVISÕES DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.0.1 • AJUSTE VISUAL HISTÓRICO DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -1006,7 +1038,7 @@ function renderizarHistoricoV90(){
  const box=$('historicoRevisoesV90'),res=$('resumoHistoricoV90');if(!box||!res)return;
  const itens=v90HistoricoReal();
  const qtd=t=>itens.filter(x=>x.tipo===t).length;
- res.innerHTML=['D1','D7','D15','D30'].map(t=>'<div class="cycle-stat"><span>'+t+' CONCLUÍDAS</span><b>'+qtd(t)+'</b></div>').join('');
+ res.innerHTML=['D1','D7','D15','D30'].map(t=>'<div class="cycle-stat"><span><strong>'+t+'</strong><br>CONCLUÍDAS</span><b>'+qtd(t)+'</b></div>').join('');
  if(!itens.length){box.innerHTML='<div class="empty">Nenhuma revisão concluída ainda.</div>';return}
  box.innerHTML=itens.map(x=>'<div class="hist-v90">'+
    '<b>✅ '+v851Esc(x.tipo)+' — '+v851Esc(x.disciplina)+'</b>'+

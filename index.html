@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V3</title>
+<title>Plano & Ciclo de Estudos — V3 DIAGNÓSTICO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -73,12 +73,13 @@ textarea:focus,select:focus{border-color:var(--primary)}
     <button data-page="edital">▥ Edital</button>
     <button data-page="progresso">↗ Progresso</button>
     <button data-page="planejamento">↔ Planejamento</button>
-    <button data-page="seguranca">◇ Segurança</button>
+    <button data-page="diagnostico">🛠 Diagnóstico</button>
+      <button data-page="seguranca">◇ Segurança</button>
   </nav>
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V3</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V3 • DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -87,7 +88,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
       <div class="stat"><span>✅ Edital</span><strong id="dashEdital">0 / 0</strong></div>
       <div class="stat"><span>🎯 Questões</span><strong>—</strong></div>
     </div>
-    <div class="placeholder" style="margin-top:16px"><b class="ok">✓ V3 — Autenticação e perfis por UID.</b><br>Cada conta autorizada possui um UID próprio no Firebase. O edital fica isolado no perfil autenticado e não altera os dados da V147.</div>
+    <div class="placeholder" style="margin-top:16px"><b class="ok">✓ V3 — Autenticação, UID e diagnóstico.</b><br>Cada conta autorizada possui UID próprio. Esta versão DEV inclui diagnóstico e restauração da última aba após F5.</div>
   </section>
   <section id="page-ciclo" class="page"><div class="placeholder"><b>Ciclo</b><br>Será ligado ao Edital nas próximas versões. Nesta V2 ele continua isolado.</div></section>
   <section id="page-timer" class="page"><div class="placeholder"><b>Timer</b><br>Estrutura reservada. Ainda não implementado nesta etapa.</div></section>
@@ -155,12 +156,14 @@ let auth=null,db=null;
 try{firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.database();}catch(e){console.error(e)}
 let usuarioAtualV3=null;
 let V2_REF=null;
+let ultimoErroV3='';
 
 const $=id=>document.getElementById(id);
 
 function mensagemV3(txt){ $('loginStatus').textContent=txt||''; }
 
 function erroAuthV3(e){
+  ultimoErroV3=String(e?.code||e?.message||'Erro desconhecido');
   const c=String(e?.code||'');
   if(/invalid-credential|wrong-password|user-not-found/.test(c)) return 'E-mail ou palavra-passe incorretos.';
   if(c.includes('invalid-email')) return 'Digite um e-mail válido.';
@@ -185,6 +188,19 @@ async function entrar(){
   }
 }
 
+function abrirPaginaV3(pg, salvar=true){
+  const btn=document.querySelector('.nav button[data-page="'+pg+'"]');
+  const page=$('page-'+pg);
+  if(!btn || !page) return false;
+  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  page.classList.add('active');
+  $('pageTitle').textContent=btn.textContent.trim().replace(/^[^A-Za-zÀ-ÿ]+/,'').trim();
+  if(salvar && auth.currentUser) localStorage.setItem('nova_v3_ultima_pagina_'+auth.currentUser.uid,pg);
+  return true;
+}
+
 async function abrirApp(user){
   usuarioAtualV3=user;
   V2_REF=db.ref('nova_app_v3/users/'+user.uid+'/app');
@@ -193,7 +209,9 @@ async function abrirApp(user){
   try{
     const s=await db.ref('nova_app_v3/users/'+user.uid+'/profile').once('value');
     nome=nome||(s.val()||{}).nome||'';
-  }catch(_){}
+  }catch(e){
+    ultimoErroV3=String(e?.code||e?.message||e);
+  }
   nome=nome||String(user.email||'Utilizador').split('@')[0];
 
   $('nomeUsuarioV3').textContent=nome;
@@ -205,6 +223,9 @@ async function abrirApp(user){
   }).format(new Date());
 
   await v2Carregar();
+
+  const ultima=localStorage.getItem('nova_v3_ultima_pagina_'+user.uid)||'dashboard';
+  if(!abrirPaginaV3(ultima,false)) abrirPaginaV3('dashboard',false);
 }
 
 $('btnEntrar').addEventListener('click',entrar);
@@ -215,12 +236,7 @@ $('btnSair').addEventListener('click',async()=>{
 });
 
 document.querySelectorAll('.nav button').forEach(btn=>btn.addEventListener('click',()=>{
-  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
-  const pg=btn.dataset.page;
-  $('page-'+pg).classList.add('active');
-  $('pageTitle').textContent=btn.textContent.trim().replace(/^[^A-Za-zÀ-ÿ]+/,'').trim();
+  abrirPaginaV3(btn.dataset.page,true);
 }));
 // ========================= NOVA V2 — EDITAL LIMPO =========================
 // IMPORTANTE: usa um caminho próprio no Firebase para não alterar a V147.
@@ -434,6 +450,54 @@ $('novaMateriaV2')?.addEventListener('keydown',e=>{if(e.key==='Enter')adicionarM
 
 
 
+
+function itemDiag(ok,titulo,detalhe){
+  return '<div style="padding:12px;border:1px solid var(--border);border-radius:10px">'+
+    '<b>'+(ok?'✅ ':'❌ ')+titulo+'</b>'+
+    '<div style="font-size:.82rem;color:var(--muted);margin-top:4px">'+detalhe+'</div></div>';
+}
+
+async function executarDiagnosticoV3(){
+  const lista=[];
+  const user=auth.currentUser;
+  lista.push([!!auth,'Firebase Authentication','SDK inicializado']);
+  lista.push([!!db,'Realtime Database','SDK inicializado']);
+  lista.push([!!user,'Sessão autenticada',user?'Usuário autenticado':'Nenhum usuário autenticado']);
+  lista.push([!!user?.uid,'UID do perfil',user?.uid ? 'UID presente (oculto parcialmente): '+user.uid.slice(0,6)+'…' : 'UID ausente']);
+  lista.push([!!V2_REF,'Caminho individual',V2_REF?'nova_app_v3/users/<UID>/app':'Referência do perfil ausente']);
+
+  let nuvemOK=false;
+  if(user && V2_REF){
+    try{
+      await V2_REF.once('value');
+      nuvemOK=true;
+      lista.push([true,'Leitura da nuvem','Perfil pode ser lido no Realtime Database']);
+    }catch(e){
+      ultimoErroV3=String(e?.code||e?.message||e);
+      lista.push([false,'Leitura da nuvem','Falha ao ler o perfil']);
+    }
+  }else{
+    lista.push([false,'Leitura da nuvem','Teste não executado sem sessão/referência']);
+  }
+
+  const disciplinas=Array.isArray(estadoV2?.disciplinas)?estadoV2.disciplinas.length:0;
+  const topicos=Array.isArray(estadoV2?.disciplinas)
+    ? estadoV2.disciplinas.reduce((n,d)=>n+(Array.isArray(d.topicos)?d.topicos.length:0),0):0;
+  lista.push([true,'Edital em memória',disciplinas+' disciplina(s) • '+topicos+' tópico(s)']);
+
+  const pg=document.querySelector('.page.active')?.id?.replace('page-','')||'nenhuma';
+  const salva=user?localStorage.getItem('nova_v3_ultima_pagina_'+user.uid):null;
+  lista.push([pg!=='nenhuma','Página atual','Página ativa: '+pg]);
+  lista.push([!!salva,'Restauração após F5',salva?'Última página salva: '+salva:'Nenhuma página salva ainda']);
+
+  lista.push([!ultimoErroV3,'Erros capturados',ultimoErroV3?'Último erro: '+ultimoErroV3:'Nenhum erro registrado nesta sessão']);
+
+  const passou=lista.filter(x=>x[0]).length;
+  $('diagResumo').textContent=passou+' de '+lista.length+' verificações passaram';
+  $('diagLista').innerHTML=lista.map(x=>itemDiag(x[0],x[1],x[2])).join('');
+}
+
+$('btnExecutarDiagnostico')?.addEventListener('click',executarDiagnosticoV3);
 
 auth.onAuthStateChanged(user=>{
   if(user){

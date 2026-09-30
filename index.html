@@ -45,13 +45,20 @@ textarea:focus,select:focus{border-color:var(--primary)}
 <section id="login">
   <div class="login-card">
     <h1>📚 Plano & Ciclo de Estudos</h1>
-    <p>V3 — contas individuais com Firebase Authentication</p>
-    <div class="field" id="campoNomeV3" style="display:none"><label>NOME</label><input id="cadastroNomeV3" placeholder="Seu nome"></div>
-    <div class="field"><label>E-MAIL</label><input id="loginEmailV3" type="email" autocomplete="email" placeholder="seuemail@exemplo.com"></div>
-    <div class="field"><label>PALAVRA-PASSE</label><input id="loginSenha" type="password" autocomplete="current-password" placeholder="Mínimo de 6 caracteres"></div>
+    <p>V3 — acesso individual</p>
+    <div class="field">
+      <label>E-MAIL</label>
+      <input id="loginEmailV3" type="email" autocomplete="email" placeholder="seuemail@exemplo.com">
+    </div>
+    <div class="field">
+      <label>PALAVRA-PASSE</label>
+      <input id="loginSenha" type="password" autocomplete="current-password" placeholder="Digite sua senha">
+    </div>
     <button class="btn btn-primary" style="width:100%" id="btnEntrar">Entrar</button>
-    <button class="btn btn-outline" style="width:100%;margin-top:8px" id="btnModoCadastroV3">Criar nova conta</button>
     <div id="loginStatus"></div>
+    <p style="margin-top:14px;font-size:.75rem;color:var(--muted);text-align:center">
+      Acesso somente para contas autorizadas.
+    </p>
   </div>
 </section>
 
@@ -80,7 +87,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
       <div class="stat"><span>✅ Edital</span><strong id="dashEdital">0 / 0</strong></div>
       <div class="stat"><span>🎯 Questões</span><strong>—</strong></div>
     </div>
-    <div class="placeholder" style="margin-top:16px"><b class="ok">✓ V3 — Autenticação e perfis por UID.</b><br>Cada conta possui um UID próprio no Firebase. O edital fica dentro do perfil autenticado e não altera os dados da V147.</div>
+    <div class="placeholder" style="margin-top:16px"><b class="ok">✓ V3 — Autenticação e perfis por UID.</b><br>Cada conta autorizada possui um UID próprio no Firebase. O edital fica isolado no perfil autenticado e não altera os dados da V147.</div>
   </section>
   <section id="page-ciclo" class="page"><div class="placeholder"><b>Ciclo</b><br>Será ligado ao Edital nas próximas versões. Nesta V2 ele continua isolado.</div></section>
   <section id="page-timer" class="page"><div class="placeholder"><b>Timer</b><br>Estrutura reservada. Ainda não implementado nesta etapa.</div></section>
@@ -139,14 +146,13 @@ textarea:focus,select:focus{border-color:var(--primary)}
   </section>
   <section id="page-progresso" class="page"><div class="placeholder"><b>Progresso</b><br>Estrutura reservada. Ainda não implementado nesta etapa.</div></section>
   <section id="page-planejamento" class="page"><div class="placeholder"><b>Planejamento</b><br>D1, D7, D15 e D30 serão reconstruídos depois, preservando a regra de não criar novas matérias.</div></section>
-  <section id="page-seguranca" class="page"><div class="placeholder"><b>Segurança</b><br>Cada conta usa Firebase Authentication e UID. Gestão de Utilizadores e Motivação continuam fora da nova arquitetura.</div></section>
+  <section id="page-seguranca" class="page"><div class="placeholder"><b>Segurança</b><br>V1 usa Firebase Authentication para a conta Eduardo. Gestão de Utilizadores e Motivação foram deixadas de fora.</div></section>
 </main>
 </section>
 <script>
 const firebaseConfig={apiKey:"AIzaSyB8vR5ccnYQxc-QiASnxFeYvHpwFWPHXP8",authDomain:"estudo-inteligente-f2186.firebaseapp.com",databaseURL:"https://estudo-inteligente-f2186-default-rtdb.firebaseio.com",projectId:"estudo-inteligente-f2186",storageBucket:"estudo-inteligente-f2186.firebasestorage.app",messagingSenderId:"959251021540",appId:"1:959251021540:web:8efd2385e8d10a4664f6f1",measurementId:"G-8JSMGLKMVJ"};
 let auth=null,db=null;
 try{firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.database();}catch(e){console.error(e)}
-let modoCadastroV3=false;
 let usuarioAtualV3=null;
 let V2_REF=null;
 
@@ -154,72 +160,66 @@ const $=id=>document.getElementById(id);
 
 function mensagemV3(txt){ $('loginStatus').textContent=txt||''; }
 
-function alternarCadastroV3(){
-  modoCadastroV3=!modoCadastroV3;
-  $('campoNomeV3').style.display=modoCadastroV3?'block':'none';
-  $('btnEntrar').textContent=modoCadastroV3?'Criar conta':'Entrar';
-  $('btnModoCadastroV3').textContent=modoCadastroV3?'Já tenho uma conta':'Criar nova conta';
-  mensagemV3('');
-}
-
 function erroAuthV3(e){
   const c=String(e?.code||'');
   if(/invalid-credential|wrong-password|user-not-found/.test(c)) return 'E-mail ou palavra-passe incorretos.';
-  if(c.includes('email-already-in-use')) return 'Este e-mail já possui uma conta.';
-  if(c.includes('weak-password')) return 'A palavra-passe precisa ter pelo menos 6 caracteres.';
   if(c.includes('invalid-email')) return 'Digite um e-mail válido.';
-  if(c.includes('operation-not-allowed')) return 'Ative Email/Password no Firebase Authentication.';
   if(c.includes('too-many-requests')) return 'Muitas tentativas. Aguarde e tente novamente.';
-  return 'Não foi possível concluir o acesso.';
+  if(c.includes('operation-not-allowed')) return 'O acesso por e-mail/senha não está ativado no Firebase.';
+  return 'Não foi possível entrar.';
 }
 
 async function entrar(){
   const email=$('loginEmailV3').value.trim();
   const senha=$('loginSenha').value;
-  if(!email||!senha){mensagemV3('Preencha e-mail e palavra-passe.');return}
+  if(!email||!senha){ mensagemV3('Preencha e-mail e palavra-passe.'); return; }
   $('btnEntrar').disabled=true;
+  mensagemV3('Entrando...');
   try{
-    if(modoCadastroV3){
-      const nome=$('cadastroNomeV3').value.trim();
-      if(!nome){mensagemV3('Digite seu nome.');return}
-      const cred=await auth.createUserWithEmailAndPassword(email,senha);
-      await cred.user.updateProfile({displayName:nome});
-      await db.ref('nova_app_v3/users/'+cred.user.uid+'/profile').set({
-        nome,email,criadoEm:new Date().toISOString()
-      });
-    }else{
-      await auth.signInWithEmailAndPassword(email,senha);
-    }
+    await auth.signInWithEmailAndPassword(email,senha);
   }catch(e){
-    console.error(e); mensagemV3(erroAuthV3(e));
-  }finally{$('btnEntrar').disabled=false}
+    console.error(e);
+    mensagemV3(erroAuthV3(e));
+  }finally{
+    $('btnEntrar').disabled=false;
+  }
 }
 
 async function abrirApp(user){
   usuarioAtualV3=user;
   V2_REF=db.ref('nova_app_v3/users/'+user.uid+'/app');
+
   let nome=user.displayName||'';
   try{
     const s=await db.ref('nova_app_v3/users/'+user.uid+'/profile').once('value');
     nome=nome||(s.val()||{}).nome||'';
   }catch(_){}
   nome=nome||String(user.email||'Utilizador').split('@')[0];
+
   $('nomeUsuarioV3').textContent=nome;
   $('saudacaoNomeV3').textContent=nome;
   $('login').classList.add('hidden');
   $('app').classList.remove('hidden');
-  $('dataHoje').textContent=new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}).format(new Date());
+  $('dataHoje').textContent=new Intl.DateTimeFormat('pt-BR',{
+    weekday:'long',day:'2-digit',month:'long',year:'numeric'
+  }).format(new Date());
+
   await v2Carregar();
 }
 
 $('btnEntrar').addEventListener('click',entrar);
-$('btnModoCadastroV3').addEventListener('click',alternarCadastroV3);
-$('loginSenha').addEventListener('keydown',e=>{if(e.key==='Enter')entrar()});
-$('btnSair').addEventListener('click',async()=>{try{await auth.signOut()}catch(e){} location.reload()});
+$('loginSenha').addEventListener('keydown',e=>{ if(e.key==='Enter') entrar(); });
+$('btnSair').addEventListener('click',async()=>{
+  try{ await auth.signOut(); }catch(e){}
+  location.reload();
+});
+
 document.querySelectorAll('.nav button').forEach(btn=>btn.addEventListener('click',()=>{
-  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');
+  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
-  const pg=btn.dataset.page;$('page-'+pg).classList.add('active');
+  const pg=btn.dataset.page;
+  $('page-'+pg).classList.add('active');
   $('pageTitle').textContent=btn.textContent.trim().replace(/^[^A-Za-zÀ-ÿ]+/,'').trim();
 }));
 // ========================= NOVA V2 — EDITAL LIMPO =========================
@@ -245,7 +245,7 @@ function v2EstadoValido(raw){
 }
 function v2Salvar(){
   estadoV2.atualizadoEm = new Date().toISOString();
-  if(auth.currentUser)localStorage.setItem('nova_v3_'+auth.currentUser.uid,JSON.stringify(estadoV2));
+  if(auth.currentUser) localStorage.setItem('nova_v3_'+auth.currentUser.uid, JSON.stringify(estadoV2));
   atualizarEditalV2();
   if(!V2_REF || v2RecebendoNuvem) return;
   clearTimeout(v2SaveTimer);
@@ -270,7 +270,7 @@ async function v2Carregar(){
       if(cm>=lm){
         v2RecebendoNuvem=true;
         estadoV2=v2EstadoValido(cloud);
-        if(auth.currentUser)localStorage.setItem('nova_v3_'+auth.currentUser.uid,JSON.stringify(estadoV2));
+        if(auth.currentUser) localStorage.setItem('nova_v3_'+auth.currentUser.uid,JSON.stringify(estadoV2));
         atualizarEditalV2();
         v2RecebendoNuvem=false;
       }
@@ -436,9 +436,11 @@ $('novaMateriaV2')?.addEventListener('keydown',e=>{if(e.key==='Enter')adicionarM
 
 
 auth.onAuthStateChanged(user=>{
-  if(user){ abrirApp(user); }
-  else{
-    usuarioAtualV3=null; V2_REF=null;
+  if(user){
+    abrirApp(user);
+  }else{
+    usuarioAtualV3=null;
+    V2_REF=null;
     $('app').classList.add('hidden');
     $('login').classList.remove('hidden');
   }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V8.7.1 DEV • AJUSTE VISUAL</title>
+<title>Plano & Ciclo de Estudos — V8.8 DEV • TESTE DE DATA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -170,7 +170,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V8.7.1 • AJUSTE VISUAL DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V8.8 • TESTE DE DATA DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -362,6 +362,15 @@ textarea:focus,select:focus{border-color:var(--primary)}
       <p class="panel-sub">Mostra as revisões devidas hoje e as atrasadas. Concluir uma revisão não cria novas D1/D7/D15/D30.</p>
       <div id="resumoRevisoesHojeV87" class="cycle-stats" style="margin:12px 0"></div>
       <div id="revisoesHojeV87"><div class="empty">Nenhuma revisão para hoje.</div></div>
+
+      <div class="plan-aviso" style="margin-top:14px">
+        <b>🧪 Simular data das revisões de hoje</b><br>
+        Escolha uma data para visualizar o que estaria vencendo naquele dia. O modo de teste não muda a data do computador e não altera as datas D1/D7/D15/D30.<br><br>
+        <input id="dataTesteHojeV88" type="date" style="max-width:220px">
+        <button class="btn btn-primary" id="btnAtivarTesteHojeV88" type="button">Simular data</button>
+        <button class="btn" id="btnSairTesteHojeV88" type="button" style="display:none">Voltar para hoje real</button>
+        <div id="statusTesteHojeV88" class="status-line"></div>
+      </div>
     </div>
 
     <div class="panel" style="margin-top:16px">
@@ -956,10 +965,31 @@ $('btnSalvarPlanejamento')?.addEventListener('click',salvarPlanejamento);
 
 
 
+
+// ========================= V8.8 DEV — MODO DE TESTE DE DATA =========================
+let dataSimuladaV88='';
+function v88DataReferencia(){return dataSimuladaV88||v87HojeISO()}
+function v88Ativar(){
+ const inp=$('dataTesteHojeV88'),st=$('statusTesteHojeV88'),sair=$('btnSairTesteHojeV88');
+ if(!inp?.value){if(st)st.textContent='Escolha uma data para simular.';return}
+ dataSimuladaV88=inp.value;
+ if(st)st.textContent='🧪 Modo de teste ativo: '+v86BR(dataSimuladaV88)+'. As datas reais não foram alteradas.';
+ if(sair)sair.style.display='';
+ renderizarRevisoesHojeV87();
+}
+function v88Sair(){
+ dataSimuladaV88='';
+ const st=$('statusTesteHojeV88'),sair=$('btnSairTesteHojeV88');
+ if(st)st.textContent='✓ Voltou para a data real do computador.';
+ if(sair)sair.style.display='none';
+ renderizarRevisoesHojeV87();
+}
+
+
 // ========================= V8.7 DEV — REVISÕES DE HOJE + CONCLUSÃO =========================
 function v87HojeISO(){const d=new Date();return v86ISODate(new Date(d.getFullYear(),d.getMonth(),d.getDate(),12))}
 function v87ItensPendentes(){
- const hoje=v87HojeISO(), itens=[];
+ const hoje=v88DataReferencia(), itens=[];
  Object.entries(revisoesMotor?.origens||{}).forEach(([chave,o])=>{
    if(!o||!revOrigemExisteNoEdital(o))return;
    Object.entries(o.revisoes||{}).forEach(([tipo,r])=>{
@@ -972,7 +1002,7 @@ function v87ItensPendentes(){
 }
 function renderizarRevisoesHojeV87(){
  const box=$('revisoesHojeV87'),res=$('resumoRevisoesHojeV87');if(!box||!res)return;
- const itens=v87ItensPendentes(), hoje=v87HojeISO(), atrasadas=itens.filter(x=>x.atrasada).length, deHoje=itens.length-atrasadas;
+ const itens=v87ItensPendentes(), hoje=v88DataReferencia(), atrasadas=itens.filter(x=>x.atrasada).length, deHoje=itens.length-atrasadas;
  res.innerHTML='<div class="cycle-stat"><span>HOJE</span><b>'+deHoje+'</b></div>'+
  '<div class="cycle-stat"><span>ATRASADAS</span><b>'+atrasadas+'</b></div>'+
  '<div class="cycle-stat"><span>PENDENTES</span><b>'+itens.length+'</b></div>';
@@ -985,6 +1015,10 @@ function renderizarRevisoesHojeV87(){
  box.querySelectorAll('[data-revconcluir]').forEach(btn=>btn.addEventListener('click',()=>v87ConcluirRevisao(decodeURIComponent(btn.dataset.revconcluir),btn.dataset.revtipo)));
 }
 async function v87ConcluirRevisao(chave,tipo){
+ if(dataSimuladaV88){
+   alert('Modo de teste: a revisão foi identificada corretamente, mas não será gravada como concluída. Volte para hoje real para concluir uma revisão de verdade.');
+   return;
+ }
  if(!auth.currentUser||!REVISOES_MOTOR_REF)return;
  const origem=revisoesMotor?.origens?.[chave], rev=origem?.revisoes?.[tipo];
  if(!rev||rev.concluida)return;
@@ -1247,6 +1281,8 @@ async function concluirEstudoReal(){
 $('btnConcluirEstudoReal')?.addEventListener('click',concluirEstudoReal);
 $('nav-planejamento')?.addEventListener('click',()=>setTimeout(()=>{renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87()},0));
 $('btnTesteDataNaoAtivaV861')?.addEventListener('click',testarDataNaoAtivaV861);
+$('btnAtivarTesteHojeV88')?.addEventListener('click',v88Ativar);
+$('btnSairTesteHojeV88')?.addEventListener('click',v88Sair);
 $('btnResetTesteV841')?.addEventListener('click',resetTesteV841);
 
 // ========================= V7 DEV — MOTOR DE REVISÕES =========================
@@ -1339,6 +1375,8 @@ async function executarDiagnosticoV3(){
  L.push([!!$('revisoesHojeV87'),'Revisões de hoje disponíveis','Inclui vencidas hoje e atrasadas']);
  L.push([true,'Contadores separados visualmente','HOJE, ATRASADAS e PENDENTES em cartões distintos']);
  L.push([typeof v87ConcluirRevisao==='function','Conclusão de revisão disponível','Marca somente a revisão; não gera nova sequência']);
+ L.push([!!$('btnAtivarTesteHojeV88'),'Simulação de data disponível','Visualiza vencidas/atrasadas sem mudar relógio nem datas do motor']);
+ L.push([true,'Conclusão protegida no modo simulado','Clique de teste não grava conclusão real']);
  L.push([!!$('btnTesteDataNaoAtivaV861'),'Simulador de dia não ativo','Teste não grava no Firebase nem altera o motor']);
  const painelOrigens=Object.values(revisoesMotor?.origens||{}).filter(o=>o&&revOrigemExisteNoEdital(o));
  const painelRevisoes=painelOrigens.reduce((n,o)=>n+Object.keys(o.revisoes||{}).length,0);

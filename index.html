@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V8.9 DEV • TESTE DE CONCLUSÃO</title>
+<title>Plano & Ciclo de Estudos — V9.0 DEV • HISTÓRICO DE REVISÕES</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -141,6 +141,12 @@ textarea:focus,select:focus{border-color:var(--primary)}
 }
 </style>
 
+<style id="v90-historico-css">
+#resumoHistoricoV90{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.hist-v90{padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);margin-top:10px}
+.hist-v90 small{display:block;margin-top:5px}
+@media(max-width:760px){#resumoHistoricoV90{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
 </head>
 <body>
 <section id="login">
@@ -170,7 +176,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V8.9 • TESTE DE CONCLUSÃO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.0 • HISTÓRICO DE REVISÕES DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -371,6 +377,13 @@ textarea:focus,select:focus{border-color:var(--primary)}
         <button class="btn" id="btnSairTesteHojeV88" type="button" style="display:none">Voltar para hoje real</button>
         <div id="statusTesteHojeV88" class="status-line"></div>
       </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h2>📚 Histórico de revisões</h2>
+      <p class="panel-sub">Registra somente revisões concluídas de verdade. Mostra disciplina, tópico, intervalo, data prevista e data da conclusão.</p>
+      <div id="resumoHistoricoV90" class="cycle-stats" style="margin:12px 0"></div>
+      <div id="historicoRevisoesV90"><div class="empty">Nenhuma revisão concluída ainda.</div></div>
     </div>
 
     <div class="panel" style="margin-top:16px">
@@ -966,6 +979,43 @@ $('btnSalvarPlanejamento')?.addEventListener('click',salvarPlanejamento);
 
 
 
+
+// ========================= V9.0 DEV — HISTÓRICO DE REVISÕES =========================
+function v90DataHoraBR(iso){
+ if(!iso)return '—';
+ const d=new Date(iso); if(isNaN(d))return v851Esc(String(iso));
+ return d.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
+}
+function v90HistoricoReal(){
+ const itens=[];
+ Object.values(revisoesMotor?.origens||{}).forEach(o=>{
+   if(!o)return;
+   Object.entries(o.revisoes||{}).forEach(([tipo,r])=>{
+     if(!r?.concluida || !r.concluidaEm || String(r.concluidaEm).startsWith('SIMULACAO_'))return;
+     const prevista=String(r.data||'').slice(0,10);
+     const exibicao=prevista?v86ProximoDiaAtivo(prevista):prevista;
+     itens.push({
+       disciplina:o.disciplina||'—',topico:o.topico||'—',tipo,
+       prevista,exibicao,concluidaEm:r.concluidaEm
+     });
+   });
+ });
+ return itens.sort((a,b)=>String(b.concluidaEm).localeCompare(String(a.concluidaEm)));
+}
+function renderizarHistoricoV90(){
+ const box=$('historicoRevisoesV90'),res=$('resumoHistoricoV90');if(!box||!res)return;
+ const itens=v90HistoricoReal();
+ const qtd=t=>itens.filter(x=>x.tipo===t).length;
+ res.innerHTML=['D1','D7','D15','D30'].map(t=>'<div class="cycle-stat"><span>'+t+' CONCLUÍDAS</span><b>'+qtd(t)+'</b></div>').join('');
+ if(!itens.length){box.innerHTML='<div class="empty">Nenhuma revisão concluída ainda.</div>';return}
+ box.innerHTML=itens.map(x=>'<div class="hist-v90">'+
+   '<b>✅ '+v851Esc(x.tipo)+' — '+v851Esc(x.disciplina)+'</b>'+
+   '<small>'+v851Esc(x.topico)+'</small>'+
+   '<small>Prevista: '+v86BR(x.exibicao)+(x.prevista!==x.exibicao?' (original '+v86BR(x.prevista)+')':'')+
+   ' • Concluída: '+v90DataHoraBR(x.concluidaEm)+'</small></div>').join('');
+}
+
+
 // ========================= V8.8 DEV — MODO DE TESTE DE DATA =========================
 let dataSimuladaV88='';
 let revisoesMotorTesteV89=null;
@@ -1045,7 +1095,7 @@ async function v87ConcluirRevisao(chave,tipo){
  localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));
  try{
    await REVISOES_MOTOR_REF.set(revisoesMotor);
-   renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarRevisoesHojeV87();
+   renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();renderizarRevisoesHojeV87();
  }catch(e){
    rev.concluida=false;delete rev.concluidaEm;
    ultimoErroV3=String(e?.code||e?.message||e);
@@ -1296,7 +1346,7 @@ async function concluirEstudoReal(){
   }
 }
 $('btnConcluirEstudoReal')?.addEventListener('click',concluirEstudoReal);
-$('nav-planejamento')?.addEventListener('click',()=>setTimeout(()=>{renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87()},0));
+$('nav-planejamento')?.addEventListener('click',()=>setTimeout(()=>{renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90()},0));
 $('btnTesteDataNaoAtivaV861')?.addEventListener('click',testarDataNaoAtivaV861);
 $('btnAtivarTesteHojeV88')?.addEventListener('click',v88Ativar);
 $('btnSairTesteHojeV88')?.addEventListener('click',v88Sair);
@@ -1319,7 +1369,7 @@ async function revisoesMotorCarregar(){
  let local=null;try{local=JSON.parse(localStorage.getItem('nova_v3_revisoes_motor_'+auth.currentUser.uid)||'null')}catch(_){}
  if(local)revisoesMotor=revisoesMotorNormalizar(local);
  try{const s=await REVISOES_MOTOR_REF.once('value'),cloud=s.val();if(cloud){const lm=Date.parse(revisoesMotor.atualizadoEm||'')||0,cm=Date.parse(cloud.atualizadoEm||'')||0;if(cm>=lm)revisoesMotor=revisoesMotorNormalizar(cloud)}}catch(e){ultimoErroV3=String(e?.code||e?.message||e)}
- revDevPreencherDisciplinas();renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();
+ revDevPreencherDisciplinas();renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();
 }
 function revDevPreencherDisciplinas(){
  const s=$('revDevDisciplina');if(!s)return;const ds=Object.keys(estadoV2?.editalVerticalizado||{});
@@ -1339,7 +1389,7 @@ async function revisoesMotorRegistrarConclusao(disciplina,topico,dataBase){
  revisoesMotor.origens[chave]={disciplina,topico,dataEstudo:base,revisoes,criadoEm:new Date().toISOString()};
  revisoesMotor.atualizadoEm=new Date().toISOString();
  localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));
- await REVISOES_MOTOR_REF.set(revisoesMotor);renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();
+ await REVISOES_MOTOR_REF.set(revisoesMotor);renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();
  return {msg:'Revisões vinculadas ao tópico original.'};
 }
 function renderizarRevisoesMotor(){
@@ -1394,6 +1444,8 @@ async function executarDiagnosticoV3(){
  L.push([typeof v87ConcluirRevisao==='function','Conclusão de revisão disponível','Marca somente a revisão; não gera nova sequência']);
  L.push([!!$('btnAtivarTesteHojeV88'),'Simulação de data disponível','Visualiza vencidas/atrasadas sem mudar relógio nem datas do motor']);
  L.push([true,'Conclusão isolada no modo simulado','Usa cópia temporária; reduz pendentes sem Firebase/localStorage']);
+ L.push([!!$('historicoRevisoesV90'),'Histórico de revisões disponível','Lê conclusões reais D1/D7/D15/D30 do motor por UID']);
+ L.push([typeof v90HistoricoReal==='function','Simulações fora do histórico','Entradas SIMULACAO_ são ignoradas']);
  L.push([!!$('btnTesteDataNaoAtivaV861'),'Simulador de dia não ativo','Teste não grava no Firebase nem altera o motor']);
  const painelOrigens=Object.values(revisoesMotor?.origens||{}).filter(o=>o&&revOrigemExisteNoEdital(o));
  const painelRevisoes=painelOrigens.reduce((n,o)=>n+Object.keys(o.revisoes||{}).length,0);

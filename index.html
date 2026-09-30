@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- V147 — correção da sequência de dias + revogação efetiva de utilizador excluído. Base V146 preservada. -->
 <!--
 ===============================================================================
  V111 — EDITAL: 1D/7D/15D/30D APENAS MARCADORES — REVISÃO AUTOMÁTICA PRESERVADA
@@ -3718,30 +3717,6 @@ window.addEventListener('afterprint', function () {
       const email=emailTecnicoV100(nomeCanonicoV101);
 
       try {
-        // ===== V147 — ACESSO AUTORITATIVO =====
-        // Para utilizadores comuns, /senhas no Firebase é a fonte de autorização.
-        // Assim, uma conta eliminada deixa de entrar mesmo que ainda exista no Firebase Auth
-        // ou tenha credenciais antigas guardadas neste navegador.
-        if (rtdb && !ehEduardoV101) {
-          try {
-            const acessoSnap = await rtdb.ref('senhas/' + chave).once('value');
-            if (!acessoSnap.exists()) {
-              try { if (auth && auth.currentUser) await auth.signOut(); } catch(_) {}
-              sessionStorage.removeItem('usuario_ativo');
-              sessionStorage.removeItem('firebase_uid');
-              if (erro) { erro.style.display='block'; erro.innerText='Utilizador não autorizado.'; }
-              return;
-            }
-            const senhaAutorizada = String(acessoSnap.val());
-            if (senhaAutorizada !== sInput) {
-              if (erro) { erro.style.display='block'; erro.innerText='Palavra-passe incorreta!'; }
-              return;
-            }
-          } catch (eAcesso) {
-            console.warn('V147: não foi possível confirmar a autorização na nuvem; usando compatibilidade local.', eAcesso);
-          }
-        }
-
         // ETAPA A — se a conta já foi migrada, tenta Authentication.
         if (auth) {
           try {
@@ -4052,7 +4027,7 @@ window.addEventListener('afterprint', function () {
       }
     }
 
-    async function adminExcluirUsuario(nome) {
+    function adminExcluirUsuario(nome) {
       if (!ehAdministradorEduardoV26()) {
         alert("Esta função é exclusiva do administrador Eduardo.");
         return;
@@ -4063,32 +4038,18 @@ window.addEventListener('afterprint', function () {
         return;
       }
 
-      if (!confirm(`Tem certeza de que deseja eliminar o acesso de "${nome}"?`)) return;
-
-      const chave = nome.toLowerCase();
-      try {
-        // V147: primeiro revoga o acesso compartilhado na nuvem e aguarda concluir.
-        if (!rtdb) throw new Error('Firebase indisponível.');
-        await Promise.all([
-          rtdb.ref('senhas/' + chave).remove(),
-          rtdb.ref('perfis/' + chave).remove()
-        ]);
-
-        const confirmar = await rtdb.ref('senhas/' + chave).once('value');
-        if (confirmar.exists()) throw new Error('A exclusão não pôde ser confirmada na nuvem.');
-
-        // Só depois limpa o cache local do administrador.
+      if (confirm(`Tem certeza de que deseja eliminar o acesso de "${nome}"?`)) {
         const senhas = obterSenhasLocais();
-        Object.keys(senhas).forEach(k => {
-          if (k.toLowerCase() === chave) delete senhas[k];
-        });
+        delete senhas[nome];
         salvarSenhasLocais(senhas);
 
-        alert(`Utilizador "${nome}" eliminado. O acesso foi revogado na nuvem.`);
-        await carregarListaUsuariosAdmin();
-      } catch (e) {
-        console.error('V147: erro ao excluir utilizador:', e);
-        alert('Não foi possível confirmar a exclusão na nuvem. O utilizador não foi removido do cache local.');
+        if (rtdb) {
+          rtdb.ref("senhas/" + nome.toLowerCase()).remove().catch(() => {});
+          rtdb.ref("perfis/" + nome.toLowerCase()).remove().catch(() => {});
+        }
+
+        alert(`Utilizador "${nome}" eliminado com sucesso!`);
+        carregarListaUsuariosAdmin();
       }
     }
 
@@ -7647,39 +7608,6 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
       return resultados.slice(0,3);
     }
 
-    // ===== V147 — sequência real de dias concluídos =====
-    function calcularSequenciaEstudosV147(){
-      try {
-        const concluidos = new Set();
-        const semanas = estado?.semanas || {};
-        Object.entries(semanas).forEach(([chaveSemana, semana]) => {
-          const m = String(chaveSemana).match(/^semana_(\d{4})-(\d{2})-(\d{2})$/);
-          if (!m || !semana) return;
-          const segunda = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
-          (typeof DIAS !== 'undefined' ? DIAS : Object.keys(semana)).forEach((nomeDia, idx) => {
-            const slots = Array.isArray(semana[nomeDia]) ? semana[nomeDia] : [];
-            if (!slots.length || !slots.every(slot => slot && slot.feito === true)) return;
-            const d = new Date(segunda); d.setDate(segunda.getDate() + idx); d.setHours(0,0,0,0);
-            concluidos.add(formatarDataChave(d));
-          });
-        });
-
-        const hoje = new Date(); hoje.setHours(0,0,0,0);
-        let cursor = new Date(hoje);
-        // Se hoje ainda não foi concluído, mantém a sequência válida até ontem.
-        if (!concluidos.has(formatarDataChave(cursor))) cursor.setDate(cursor.getDate()-1);
-        let sequencia = 0;
-        while (concluidos.has(formatarDataChave(cursor))) {
-          sequencia++;
-          cursor.setDate(cursor.getDate()-1);
-        }
-        return sequencia;
-      } catch(e) {
-        console.warn('V147: falha ao calcular sequência.', e);
-        return 0;
-      }
-    }
-
     function renderizarDashboardV37(){
       // deixa V36 preencher Hoje e Próximo Estudo primeiro
       try{ renderizarDashboardV36(); }catch(_){}
@@ -7699,12 +7627,6 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
       const horas=extrairHorasV37();
       const hEl=document.getElementById('dashHorasV36');
       if(hEl) hEl.textContent=horas.h+'h '+String(horas.m).padStart(2,'0')+'min';
-
-      const seqEl=document.getElementById('dashSequenciaV36');
-      if(seqEl){
-        const seq=calcularSequenciaEstudosV147();
-        seqEl.textContent=seq+' dia'+(seq===1?'':'s');
-      }
 
       const pct=ed.total?Math.round(ed.feito/ed.total*100):0;
       const mp=document.getElementById('dashMetaPctV36');

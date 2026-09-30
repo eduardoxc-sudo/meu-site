@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V8.3 DEV • BLOQUEIO FINAL</title>
+<title>Plano & Ciclo de Estudos — V8.4 DEV • RESET DE TESTE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -135,7 +135,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V8.3 • BLOQUEIO FINAL DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V8.4 • RESET TESTE DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -321,6 +321,13 @@ textarea:focus,select:focus{border-color:var(--primary)}
 <div class="panel">
 <h2>🛠 Diagnóstico da V3</h2>
 <p class="panel-sub">Ferramenta temporária de desenvolvimento. Não mostra senha nem tokens.</p>
+<div class="plan-aviso" style="margin:14px 0">
+<b>🧹 Reset de teste — usuário atual</b><br>
+Zera somente a posição/voltas da execução e o histórico do motor de revisões deste UID.
+Não apaga Edital, tópicos concluídos, configuração do Ciclo nem Planejamento.<br><br>
+<button class="btn btn-danger" id="btnResetTesteV84">🧹 Zerar histórico de teste</button>
+<div id="statusResetTesteV84" class="status-line"></div>
+</div>
 <button class="btn btn-primary" id="btnExecutarDiagnostico">Executar diagnóstico</button>
 <div id="diagResumo" style="margin-top:16px;font-weight:700"></div>
 <div id="diagLista" style="margin-top:12px;display:grid;gap:8px"></div>
@@ -881,6 +888,37 @@ $('btnSalvarPlanejamento')?.addEventListener('click',salvarPlanejamento);
 
 
 
+
+// ========================= V8.4 DEV — RESET SEGURO DE TESTE =========================
+async function resetTesteV84(){
+ const u=auth.currentUser, status=$('statusResetTesteV84');
+ if(!u){status.textContent='Faça login antes de usar o reset.';return}
+ if(!confirm('Zerar SOMENTE a execução/voltas e as revisões de teste deste usuário?\n\nEdital, Ciclo configurado e Planejamento serão preservados.')){status.textContent='Reset cancelado.';return}
+ if(prompt('Digite exatamente ZERAR TESTE para confirmar:')!=='ZERAR TESTE'){status.textContent='Confirmação incorreta. Nada foi apagado.';return}
+ const uid=u.uid;
+ const execPath='nova_app_v3/users/'+uid+'/cicloExecucao';
+ const revPath='nova_app_v3/users/'+uid+'/revisoesMotor';
+ const backup={criadoEm:new Date().toISOString(),uid,cicloExecucao:cicloExec,revisoesMotor};
+ localStorage.setItem('nova_v84_backup_reset_'+uid,JSON.stringify(backup));
+ status.textContent='Zerando histórico de teste...';
+ try{
+   const updates={}; updates[execPath]=null; updates[revPath]=null;
+   await db.ref().update(updates);
+   localStorage.removeItem('nova_v3_ciclo_exec_'+uid);
+   localStorage.removeItem('nova_v3_revisoes_motor_'+uid);
+   cicloExec={indice:0,voltas:0,atualizadoEm:new Date().toISOString()};
+   revisoesMotor={};
+   renderizarExecucaoCiclo(); renderizarEstudoReal();
+   status.textContent='✓ Histórico zerado. Edital, Ciclo e Planejamento preservados.';
+   $('btnExecutarDiagnostico')?.click();
+ }catch(e){
+   ultimoErroV3=String(e?.code||e?.message||e);
+   status.textContent='Falha no reset. Backup local preservado.';
+ }
+}
+$('btnResetTesteV84')?.addEventListener('click',resetTesteV84);
+
+
 // ========================= V8.1 DEV — ESTUDO REAL =========================
 // Corrige disciplina concluída: botão bloqueado, status limpo e busca a próxima
 // disciplina ativa que ainda tenha tópico pendente. Não altera Edital/revisões existentes.
@@ -1064,6 +1102,8 @@ async function executarDiagnosticoV3(){
  L.push([$('btnConcluirEtapaCiclo')?.disabled===true,'Avanço legado bloqueado','Botão antigo não pode somar voltas']);
  L.push([!!$('btnConcluirEstudoReal'),'Conclusão única ativa','Somente o tópico real pode avançar o ciclo']);
  L.push([estudoRealAtual() || ($('btnConcluirEstudoReal')?.disabled===true && $('btnConcluirEstudoReal')?.textContent.includes('Ciclo concluído')),'Fim do ciclo bloqueado','Sem tópico pendente = nenhuma nova volta']);
+ L.push([!!$('btnResetTesteV84'),'Reset de teste disponível','Apaga somente execução e revisões do UID atual']);
+ L.push([true,'Reset preserva dados-base','Edital, Ciclo configurado e Planejamento ficam intactos']);
 
 
  const pg=document.querySelector('.page.active')?.id?.replace('page-','')||'nenhuma',salva=u?localStorage.getItem('nova_v3_ultima_pagina_'+u.uid):null;

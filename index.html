@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V8.6.1 DEV • TESTE DIA NÃO ATIVO</title>
+<title>Plano & Ciclo de Estudos — V8.7 DEV • REVISÕES DE HOJE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -135,7 +135,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V8.6.1 • TESTE DIA NÃO ATIVO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V8.7 • REVISÕES DE HOJE DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -320,6 +320,13 @@ textarea:focus,select:focus{border-color:var(--primary)}
       <p class="panel-sub">Visualização do motor aprovado. Esta área não cria, altera nem exclui revisões.</p>
       <div id="resumoRevisoesAgendadas" class="cycle-stats" style="margin:12px 0"></div>
       <div id="listaRevisoesAgendadas"><div class="empty">Nenhuma revisão registrada.</div></div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h2>✅ Revisões de hoje</h2>
+      <p class="panel-sub">Mostra as revisões devidas hoje e as atrasadas. Concluir uma revisão não cria novas D1/D7/D15/D30.</p>
+      <div id="resumoRevisoesHojeV87" class="cycle-stats" style="margin:12px 0"></div>
+      <div id="revisoesHojeV87"><div class="empty">Nenhuma revisão para hoje.</div></div>
     </div>
 
     <div class="panel" style="margin-top:16px">
@@ -913,6 +920,54 @@ $('btnSalvarPlanejamento')?.addEventListener('click',salvarPlanejamento);
 
 
 
+
+// ========================= V8.7 DEV — REVISÕES DE HOJE + CONCLUSÃO =========================
+function v87HojeISO(){const d=new Date();return v86ISODate(new Date(d.getFullYear(),d.getMonth(),d.getDate(),12))}
+function v87ItensPendentes(){
+ const hoje=v87HojeISO(), itens=[];
+ Object.entries(revisoesMotor?.origens||{}).forEach(([chave,o])=>{
+   if(!o||!revOrigemExisteNoEdital(o))return;
+   Object.entries(o.revisoes||{}).forEach(([tipo,r])=>{
+     if(!r?.data||r.concluida)return;
+     const original=String(r.data).slice(0,10), exibicao=v86ProximoDiaAtivo(original);
+     if(exibicao<=hoje) itens.push({chave,tipo,disciplina:o.disciplina,topico:o.topico,original,exibicao,atrasada:exibicao<hoje});
+   });
+ });
+ return itens.sort((a,b)=>a.exibicao.localeCompare(b.exibicao)||a.tipo.localeCompare(b.tipo)||a.disciplina.localeCompare(b.disciplina));
+}
+function renderizarRevisoesHojeV87(){
+ const box=$('revisoesHojeV87'),res=$('resumoRevisoesHojeV87');if(!box||!res)return;
+ const itens=v87ItensPendentes(), hoje=v87HojeISO(), atrasadas=itens.filter(x=>x.atrasada).length, deHoje=itens.length-atrasadas;
+ res.innerHTML='<div class="cycle-stat"><span>HOJE</span><b>'+deHoje+'</b></div>'+
+ '<div class="cycle-stat"><span>ATRASADAS</span><b>'+atrasadas+'</b></div>'+
+ '<div class="cycle-stat"><span>PENDENTES</span><b>'+itens.length+'</b></div>';
+ if(!itens.length){box.innerHTML='<div class="empty">✓ Nenhuma revisão pendente para hoje.</div>';return}
+ box.innerHTML=itens.map(x=>'<div class="revdev-item" style="margin-top:10px">'+
+   '<b>'+(x.atrasada?'⚠️ ATRASADA • ':'')+v851Esc(x.tipo)+' — '+v851Esc(x.disciplina)+'</b>'+
+   '<small>'+v851Esc(x.topico)+' • prevista: '+v86BR(x.exibicao)+(x.original!==x.exibicao?' • original: '+v86BR(x.original):'')+'</small>'+
+   '<button class="btn btn-primary" type="button" data-revconcluir="'+encodeURIComponent(x.chave)+'" data-revtipo="'+v851Esc(x.tipo)+'" style="margin-top:8px">✓ Concluir revisão</button>'+
+ '</div>').join('');
+ box.querySelectorAll('[data-revconcluir]').forEach(btn=>btn.addEventListener('click',()=>v87ConcluirRevisao(decodeURIComponent(btn.dataset.revconcluir),btn.dataset.revtipo)));
+}
+async function v87ConcluirRevisao(chave,tipo){
+ if(!auth.currentUser||!REVISOES_MOTOR_REF)return;
+ const origem=revisoesMotor?.origens?.[chave], rev=origem?.revisoes?.[tipo];
+ if(!rev||rev.concluida)return;
+ rev.concluida=true;
+ rev.concluidaEm=new Date().toISOString();
+ revisoesMotor.atualizadoEm=new Date().toISOString();
+ localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));
+ try{
+   await REVISOES_MOTOR_REF.set(revisoesMotor);
+   renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarRevisoesHojeV87();
+ }catch(e){
+   rev.concluida=false;delete rev.concluidaEm;
+   ultimoErroV3=String(e?.code||e?.message||e);
+   alert('Não foi possível salvar a conclusão da revisão.');
+ }
+}
+
+
 // ========================= V8.6.1 DEV — TESTE SEGURO DE DIA NÃO ATIVO =========================
 function v861NomeDia(iso){
  const d=v86DataLocal(iso);if(!d)return '';
@@ -971,8 +1026,8 @@ function renderizarAgendaRevisoesV86(){
    return '<div class="plan-aviso" style="margin-top:12px">'+
     '<b>📅 '+v86BR(data)+' — '+itens.length+' revisão(ões)</b>'+
     itens.map(x=>'<div style="margin-top:9px;padding-top:9px;border-top:1px solid var(--border)">'+
-      '<b>'+v851Esc(x.tipo)+' — '+v851Esc(x.disciplina)+'</b><br>'+
-      v851Esc(x.topico)+
+      '<b>'+(x.concluida?'✅ ':'')+v851Esc(x.tipo)+' — '+v851Esc(x.disciplina)+'</b><br>'+
+      v851Esc(x.topico)+(x.concluida?' <span class="small">• concluída</span>':'')+
       (x.original!==x.exibicao?'<br><span class="small">↪ Original: '+v86BR(x.original)+' • movida para o próximo dia ativo</span>':'')+
     '</div>').join('')+
    '</div>';
@@ -1002,7 +1057,7 @@ function renderizarRevisoesAgendadasV85(){
  box.innerHTML=itens.map(o=>{
    const chips=['D1','D7','D15','D30'].map(k=>{
      const r=o.revisoes?.[k];
-     return r?'<span class="revdev-chip">'+k+' • '+v851Esc(r.data||'—')+'</span>':'';
+     return r?'<span class="revdev-chip">'+(r.concluida?'✓ ':'')+k+' • '+v851Esc(r.data||'—')+'</span>':'';
    }).join('');
    return '<div class="revdev-item" style="margin-top:10px">'+
      '<b>'+v851Esc(o.disciplina)+'</b>'+
@@ -1155,7 +1210,7 @@ async function concluirEstudoReal(){
   }
 }
 $('btnConcluirEstudoReal')?.addEventListener('click',concluirEstudoReal);
-$('nav-planejamento')?.addEventListener('click',()=>setTimeout(()=>{renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86()},0));
+$('nav-planejamento')?.addEventListener('click',()=>setTimeout(()=>{renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87()},0));
 $('btnTesteDataNaoAtivaV861')?.addEventListener('click',testarDataNaoAtivaV861);
 $('btnResetTesteV841')?.addEventListener('click',resetTesteV841);
 
@@ -1176,7 +1231,7 @@ async function revisoesMotorCarregar(){
  let local=null;try{local=JSON.parse(localStorage.getItem('nova_v3_revisoes_motor_'+auth.currentUser.uid)||'null')}catch(_){}
  if(local)revisoesMotor=revisoesMotorNormalizar(local);
  try{const s=await REVISOES_MOTOR_REF.once('value'),cloud=s.val();if(cloud){const lm=Date.parse(revisoesMotor.atualizadoEm||'')||0,cm=Date.parse(cloud.atualizadoEm||'')||0;if(cm>=lm)revisoesMotor=revisoesMotorNormalizar(cloud)}}catch(e){ultimoErroV3=String(e?.code||e?.message||e)}
- revDevPreencherDisciplinas();renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();
+ revDevPreencherDisciplinas();renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();
 }
 function revDevPreencherDisciplinas(){
  const s=$('revDevDisciplina');if(!s)return;const ds=Object.keys(estadoV2?.editalVerticalizado||{});
@@ -1196,7 +1251,7 @@ async function revisoesMotorRegistrarConclusao(disciplina,topico,dataBase){
  revisoesMotor.origens[chave]={disciplina,topico,dataEstudo:base,revisoes,criadoEm:new Date().toISOString()};
  revisoesMotor.atualizadoEm=new Date().toISOString();
  localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));
- await REVISOES_MOTOR_REF.set(revisoesMotor);renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();
+ await REVISOES_MOTOR_REF.set(revisoesMotor);renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();
  return {msg:'Revisões vinculadas ao tópico original.'};
 }
 function renderizarRevisoesMotor(){
@@ -1246,6 +1301,8 @@ async function executarDiagnosticoV3(){
  L.push([typeof concluirEstudoReal==='function','Clique do Estudo real preservado','Função de conclusão continua carregada']);
  L.push([!!$('listaRevisoesAgendadas'),'Painel de revisões agendadas','Somente leitura no Planejamento']);
  L.push([!!$('agendaRevisoesV86'),'Agenda por dia disponível','Revisões iguais permanecem juntas; dias não ativos são deslocados apenas na exibição']);
+ L.push([!!$('revisoesHojeV87'),'Revisões de hoje disponíveis','Inclui vencidas hoje e atrasadas']);
+ L.push([typeof v87ConcluirRevisao==='function','Conclusão de revisão disponível','Marca somente a revisão; não gera nova sequência']);
  L.push([!!$('btnTesteDataNaoAtivaV861'),'Simulador de dia não ativo','Teste não grava no Firebase nem altera o motor']);
  const painelOrigens=Object.values(revisoesMotor?.origens||{}).filter(o=>o&&revOrigemExisteNoEdital(o));
  const painelRevisoes=painelOrigens.reduce((n,o)=>n+Object.keys(o.revisoes||{}).length,0);

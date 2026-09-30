@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V9.0.3 DEV • HISTÓRICO 2X2 FIXO</title>
+<title>Plano & Ciclo de Estudos — V9.1 DEV • DASHBOARD DE REVISÕES</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -209,6 +209,15 @@ textarea:focus,select:focus{border-color:var(--primary)}
 }
 </style>
 
+<style id="v91-dashboard-revisoes-css">
+.dash-rev-v91{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.dash-rev-v91 .stat{min-width:0}
+.dash-rev-info-v91{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+.dash-rev-info-v91>div{padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg)}
+.dash-rev-info-v91 span{display:block;font-size:12px;margin-bottom:5px}
+@media(max-width:900px){.dash-rev-v91{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.dash-rev-info-v91{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 <section id="login">
@@ -238,7 +247,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.0.3 • HISTÓRICO 2X2 FIXO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.1 • DASHBOARD DE REVISÕES DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -247,7 +256,21 @@ textarea:focus,select:focus{border-color:var(--primary)}
       <div class="stat"><span>✅ Edital</span><strong id="dashEdital">0 / 0</strong></div>
       <div class="stat"><span>🎯 Questões</span><strong>—</strong></div>
     </div>
-    <div class="placeholder" style="margin-top:16px"><b class="ok">✓ V2 — Edital reconstruído.</b><br>O Edital agora é independente, salva na nuvem em uma área nova e não altera os dados da V147. Planejamento e revisões ainda não foram ligados.</div>
+    <div class="panel" style="margin-top:16px">
+      <h2>🔁 Revisões</h2>
+      <p class="panel-sub">Resumo automático do seu sistema D1, D7, D15 e D30.</p>
+      <div id="dashRevisoesV91" class="dash-rev-v91">
+        <div class="stat"><span>📅 Hoje</span><strong id="dashRevHojeV91">0</strong></div>
+        <div class="stat"><span>⚠️ Atrasadas</span><strong id="dashRevAtrasadasV91">0</strong></div>
+        <div class="stat"><span>⏳ Pendentes</span><strong id="dashRevPendentesV91">0</strong></div>
+        <div class="stat"><span>✅ Concluídas</span><strong id="dashRevConcluidasV91">0</strong></div>
+      </div>
+      <div class="dash-rev-info-v91">
+        <div><span>PRÓXIMA REVISÃO</span><b id="dashRevProximaV91">—</b></div>
+        <div><span>TOTAL AGENDADO</span><b id="dashRevTotalV91">0</b></div>
+      </div>
+      <div id="dashRevStatusV91" class="status-line"></div>
+    </div>
   </section>
   <section id="page-ciclo" class="page">
   <div class="ciclo-grid">
@@ -1042,6 +1065,38 @@ $('btnSalvarPlanejamento')?.addEventListener('click',salvarPlanejamento);
 
 
 
+
+// ========================= V9.1 DEV — DASHBOARD DE REVISÕES =========================
+function v91ResumoDashboard(){
+ const hoje=v87HojeISO(), itens=[], concluidas=[];
+ Object.values(revisoesMotor?.origens||{}).forEach(o=>{
+   if(!o||!revOrigemExisteNoEdital(o))return;
+   Object.entries(o.revisoes||{}).forEach(([tipo,r])=>{
+     if(!r?.data)return;
+     const original=String(r.data).slice(0,10), exibicao=v86ProximoDiaAtivo(original);
+     const x={tipo,original,exibicao,disciplina:o.disciplina,topico:o.topico};
+     if(r.concluida)concluidas.push(x); else itens.push(x);
+   });
+ });
+ const hojeQtd=itens.filter(x=>x.exibicao===hoje).length;
+ const atrasadas=itens.filter(x=>x.exibicao<hoje).length;
+ const pendentes=itens.length;
+ const futuras=itens.filter(x=>x.exibicao>=hoje).sort((a,b)=>a.exibicao.localeCompare(b.exibicao));
+ return {hojeQtd,atrasadas,pendentes,concluidas:concluidas.length,total:itens.length+concluidas.length,proxima:futuras[0]||null};
+}
+function renderizarDashboardRevisoesV91(){
+ if(!$('dashRevisoesV91'))return;
+ const r=v91ResumoDashboard();
+ $('dashRevHojeV91').textContent=r.hojeQtd;
+ $('dashRevAtrasadasV91').textContent=r.atrasadas;
+ $('dashRevPendentesV91').textContent=r.pendentes;
+ $('dashRevConcluidasV91').textContent=r.concluidas;
+ $('dashRevTotalV91').textContent=r.total;
+ $('dashRevProximaV91').textContent=r.proxima ? v86BR(r.proxima.exibicao)+' • '+r.proxima.tipo : 'Nenhuma pendente';
+ $('dashRevStatusV91').textContent=r.atrasadas ? '⚠️ Você tem '+r.atrasadas+' revisão(ões) atrasada(s).' : (r.hojeQtd ? '📚 Há '+r.hojeQtd+' revisão(ões) para hoje.' : '✓ Nenhuma revisão vencida hoje.');
+}
+
+
 // ========================= V9.0 DEV — HISTÓRICO DE REVISÕES =========================
 function v90DataHoraBR(iso){
  if(!iso)return '—';
@@ -1157,7 +1212,7 @@ async function v87ConcluirRevisao(chave,tipo){
  localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));
  try{
    await REVISOES_MOTOR_REF.set(revisoesMotor);
-   renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();renderizarRevisoesHojeV87();
+   renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();renderizarDashboardRevisoesV91();renderizarRevisoesHojeV87();
  }catch(e){
    rev.concluida=false;delete rev.concluidaEm;
    ultimoErroV3=String(e?.code||e?.message||e);
@@ -1431,7 +1486,7 @@ async function revisoesMotorCarregar(){
  let local=null;try{local=JSON.parse(localStorage.getItem('nova_v3_revisoes_motor_'+auth.currentUser.uid)||'null')}catch(_){}
  if(local)revisoesMotor=revisoesMotorNormalizar(local);
  try{const s=await REVISOES_MOTOR_REF.once('value'),cloud=s.val();if(cloud){const lm=Date.parse(revisoesMotor.atualizadoEm||'')||0,cm=Date.parse(cloud.atualizadoEm||'')||0;if(cm>=lm)revisoesMotor=revisoesMotorNormalizar(cloud)}}catch(e){ultimoErroV3=String(e?.code||e?.message||e)}
- revDevPreencherDisciplinas();renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();
+ revDevPreencherDisciplinas();renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();renderizarDashboardRevisoesV91();
 }
 function revDevPreencherDisciplinas(){
  const s=$('revDevDisciplina');if(!s)return;const ds=Object.keys(estadoV2?.editalVerticalizado||{});
@@ -1451,7 +1506,7 @@ async function revisoesMotorRegistrarConclusao(disciplina,topico,dataBase){
  revisoesMotor.origens[chave]={disciplina,topico,dataEstudo:base,revisoes,criadoEm:new Date().toISOString()};
  revisoesMotor.atualizadoEm=new Date().toISOString();
  localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));
- await REVISOES_MOTOR_REF.set(revisoesMotor);renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();
+ await REVISOES_MOTOR_REF.set(revisoesMotor);renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();renderizarDashboardRevisoesV91();
  return {msg:'Revisões vinculadas ao tópico original.'};
 }
 function renderizarRevisoesMotor(){
@@ -1524,6 +1579,8 @@ document.querySelectorAll('.nav button[data-page]').forEach(b=>b.addEventListene
 $('btnExecutarDiagnostico').addEventListener('click',executarDiagnosticoV3);
 auth.onAuthStateChanged(u=>{if(u)abrirApp(u);else{$('app').classList.add('hidden');$('login').classList.remove('hidden')}});
 
+
+setTimeout(renderizarDashboardRevisoesV91,500);
 </script>
 </body>
 </html>

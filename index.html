@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V8.1 DEV • ESTUDO REAL + REVISÕES</title>
+<title>Plano & Ciclo de Estudos — V8.2 DEV • FLUXO ÚNICO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -134,7 +134,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V8.1 • ESTUDO REAL DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V8.2 • FLUXO ÚNICO DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -170,7 +170,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
             <h3 id="cicloProximaNome">—</h3>
             <p id="cicloProximaTempo">Configure e salve o ciclo.</p>
             <div class="ciclo-exec-actions">
-              <button class="btn btn-primary" id="btnConcluirEtapaCiclo">✓ Concluir e avançar</button>
+              <button class="btn btn-primary" id="btnConcluirEtapaCiclo" style="display:none" aria-hidden="true" tabindex="-1" disabled>✓ Concluir e avançar</button>
               <button class="btn btn-outline" id="btnVoltarEtapaCiclo">← Voltar uma etapa</button>
             </div>
           </div>
@@ -185,7 +185,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
 
         <div class="estudo-real">
           <h3>📖 Estudo real</h3>
-          <p class="panel-sub">O próximo tópico pendente vem diretamente do Edital da disciplina atual.</p>
+          <p class="panel-sub">O próximo tópico pendente vem diretamente do Edital. Concluir o tópico é a única ação que avança o ciclo.</p>
           <div class="estudo-real-box">
             <div class="rotulo">TÓPICO ATUAL</div>
             <h4 id="estudoRealTopico">—</h4>
@@ -768,7 +768,7 @@ function renderizarExecucaoCiclo(){
   $('cicloPosicaoAtual').textContent=(cicloExec.indice+1)+' de '+a.length;
   $('cicloVoltas').textContent=(cicloExec.voltas||0)+' volta(s) completa(s)';
   $('cicloFila').innerHTML=a.map((x,i)=>'<span class="'+(i===cicloExec.indice?'atual':'')+'">'+v2Escape(x.nome)+'</span>').join('');
-  $('btnConcluirEtapaCiclo').disabled=false;
+  $('btnConcluirEtapaCiclo').disabled=true;
   $('btnVoltarEtapaCiclo').disabled=false;
   renderizarEstudoReal();
 }
@@ -788,7 +788,9 @@ function cicloExecVoltar(){
   renderizarExecucaoCiclo();
   cicloExecPersistir('Posição anterior restaurada.');
 }
-$('btnConcluirEtapaCiclo')?.addEventListener('click',cicloExecAvancar);
+$('btnConcluirEtapaCiclo')?.addEventListener('click',()=>{
+  $('statusExecCiclo').textContent='Avanço separado desativado. Conclua o tópico real para avançar.';
+});
 $('btnVoltarEtapaCiclo')?.addEventListener('click',cicloExecVoltar);
 
 
@@ -1048,6 +1050,9 @@ async function executarDiagnosticoV3(){
  const er=estudoRealAtual();
  L.push([!er || revOrigemExisteNoEdital({disciplina:er.disciplina,topico:er.topico.titulo}),'Tópico real vem do Edital',er?er.disciplina+' → '+er.topico.titulo:'Sem tópico pendente na posição atual']);
  L.push([!$('btnRevDevConcluir'),'Simulação retirada da interface','V8 usa somente conclusão real']);
+ L.push([$('btnConcluirEtapaCiclo')?.style.display==='none','Botão antigo removido do fluxo','Concluir e avançar não fica disponível ao usuário']);
+ L.push([$('btnConcluirEtapaCiclo')?.disabled===true,'Avanço legado bloqueado','Botão antigo não pode somar voltas']);
+ L.push([!!$('btnConcluirEstudoReal'),'Conclusão única ativa','Somente o tópico real pode avançar o ciclo']);
 
 
  const pg=document.querySelector('.page.active')?.id?.replace('page-','')||'nenhuma',salva=u?localStorage.getItem('nova_v3_ultima_pagina_'+u.uid):null;

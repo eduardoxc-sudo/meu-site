@@ -1,48 +1,6 @@
 <!DOCTYPE html>
-<!-- V147 — correção da sequência de dias + revogação efetiva de utilizador excluído. Base V146 preservada. -->
-<!--
-===============================================================================
- V111 — EDITAL: 1D/7D/15D/30D APENAS MARCADORES — REVISÃO AUTOMÁTICA PRESERVADA
- Não editar diretamente esta versão publicada.
- Fluxo recomendado:
- 1. conservar este arquivo como versão estável;
- 2. fazer alterações somente em uma cópia com novo número de versão;
- 3. testar a cópia antes de substituir o index.html no GitHub.
- Observação: HTML/JavaScript executado no navegador não pode ser tornado
- secreto ou inviolável. A proteção real de contas/dados depende das regras
- do Firebase e, idealmente, do Firebase Authentication.
-===============================================================================
--->
-
-<!-- V113 — CORREÇÃO DO STATUS DE SINCRONIZAÇÃO NO PC: aguarda Firebase Auth antes do RTDB; cronograma preservado. -->
-<!-- V114 — FIREBASE: remove valores undefined do payload antes de enviar; planejamento/prova e demais dados válidos preservados. -->
-<!-- =========================================================
- V117 — PC PRINCIPAL / SINCRONIZAÇÃO MANUAL
- Base V114 preservada.
- Auto-upload ao entrar removido.
- Enviar para Nuvem e Puxar da Nuvem continuam disponíveis.
-========================================================== -->
 <html lang="pt-BR">
 <head>
-
-<!-- =========================================================
- V137 — CORREÇÃO DIRETA (base V134 estável)
- 1) evita o "flash" visual do login/app simultâneos
- 2) memoriza a última aba real escolhida
- 3) bloqueia apenas o redirecionamento automático para aba-inicio
-    durante a restauração após F5
- Não altera o objeto de dados/persistência da V134.
-========================================================== -->
-<style id="v137-style">
-html.v137-carregando body { visibility:hidden !important; }
-</style>
-<script id="v137-early">
-(function(){
-  try { document.documentElement.classList.add('v137-carregando'); } catch(e) {}
-})();
-</script>
-
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Plano & Ciclo de Estudos</title>
@@ -53,7 +11,6 @@ html.v137-carregando body { visibility:hidden !important; }
   <!-- Firebase SDKs compatíveis com Realtime Database -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
   <style>
     :root {
@@ -2576,7 +2533,7 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
       <!-- Aba 3: Revisões Espaçadas -->
       <div id="aba-revisoes" class="tab-content">
         <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">
-          As caixas 1D, 7D, 15D e 30D do Edital funcionam apenas como marcadores de revisões realizadas. O cronograma de revisão é gerado automaticamente pelo sistema.
+          Ao marcar 1D, 7D, 15D ou 30D no Edital, a revisão é agendada para a sua data e entra com destaque roxo no cronograma semanal.
         </p>
 
         <div class="field" style="background: rgba(56, 189, 248, 0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
@@ -3066,9 +3023,9 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
       <div class="field"><label>Assunto</label><input id="registroAssuntoV47" placeholder="Assunto estudado"></div>
       <div class="registro-grid-v47">
         <div class="field"><label>Minutos</label><input id="registroMinutosV47" type="number" min="1" value="30"></div>
-        <div class="field v140-campo-questoes"><label>Questões</label><input id="registroQuestoesV47" type="number" min="0" value="0"></div>
-        <div class="field v140-campo-questoes"><label>Acertos</label><input id="registroAcertosV47" type="number" min="0" value="0"></div>
-        <div class="field v140-campo-questoes"><label>Erros</label><input id="registroErrosV47" type="number" min="0" value="0"></div>
+        <div class="field"><label>Questões</label><input id="registroQuestoesV47" type="number" min="0" value="0"></div>
+        <div class="field"><label>Acertos</label><input id="registroAcertosV47" type="number" min="0" value="0"></div>
+        <div class="field"><label>Erros</label><input id="registroErrosV47" type="number" min="0" value="0"></div>
       </div>
       <div class="registro-revisoes-v47">
         <strong>Revisões do tópico</strong>
@@ -3115,21 +3072,11 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
     };
 
     let rtdb = null;
-    let auth = null;
     try {
       firebase.initializeApp(firebaseConfig);
       rtdb = firebase.database();
-      auth = firebase.auth();
     } catch (e) {
       console.warn("Firebase local:", e);
-    }
-
-    function emailTecnicoV100(nome) {
-      const seguro = String(nome || '').trim().toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9._-]/g, '-')
-        .replace(/-+/g, '-').replace(/^-|-$/g, '');
-      return (seguro || 'usuario') + '@estudo-inteligente.app';
     }
 
     const USUARIOS_PADRAO = {
@@ -3203,226 +3150,7 @@ html[data-theme="dark"] .dash-stats-v36 span{color:#9fb0c8!important}
     }
 
     function imprimirCronograma() {
-      /*
-        V146 — impressão estável.
-        Base V142.
-        Semana: copia explicitamente TODOS os filhos de #gradeSemana.
-        Lista/Mês: mantém o comportamento estável da V142.
-        Nada é alterado no DOM principal do StudyFlow.
-      */
-      try {
-        const estilos = Array.from(document.querySelectorAll('style'))
-          .map(s => s.textContent || '')
-          .join('\n');
-
-        const grade = document.getElementById('gradeSemana');
-        const lista = document.getElementById('listaCicloV47');
-        const mes = document.getElementById('mesCicloV47');
-        const titulo = document.getElementById('tituloCronograma');
-
-        const mesVisivel = mes && getComputedStyle(mes).display !== 'none';
-        const listaVisivel = lista && getComputedStyle(lista).display !== 'none';
-        const modoSemana = !mesVisivel && !listaVisivel;
-
-        let conteudo = '';
-        let classeBody = '';
-
-        if (modoSemana && grade) {
-          classeBody = 'v146-print-semana';
-
-          // Copia explicitamente cada dia, em vez de depender do outerHTML
-          // do contêiner inteiro. Isso evita perder Terça–Domingo.
-          const dias = Array.from(grade.children);
-          conteudo = '<div id="v146SemanaPrint">';
-          dias.forEach((dia) => {
-            const clone = dia.cloneNode(true);
-
-            // Remove controles interativos apenas da cópia.
-            clone.querySelectorAll('button, .btn, .btn-play-mini, .btn-mini-acao')
-              .forEach(el => el.remove());
-
-            // Remove estilos inline que possam esconder/deslocar um dia.
-            clone.style.display = 'block';
-            clone.style.visibility = 'visible';
-            clone.style.opacity = '1';
-            clone.style.position = 'relative';
-            clone.style.transform = 'none';
-            clone.style.left = 'auto';
-            clone.style.right = 'auto';
-            clone.style.top = 'auto';
-            clone.style.bottom = 'auto';
-            clone.style.width = 'auto';
-            clone.style.maxWidth = 'none';
-            clone.style.height = 'auto';
-            clone.style.maxHeight = 'none';
-            clone.style.overflow = 'visible';
-
-            conteudo += clone.outerHTML;
-          });
-          conteudo += '</div>';
-        } else {
-          const alvo = mesVisivel ? mes : (listaVisivel ? lista : grade);
-          if (!alvo) {
-            window.print();
-            return;
-          }
-          conteudo = alvo.outerHTML;
-          classeBody = mesVisivel ? 'v146-print-mes' : 'v146-print-lista';
-        }
-
-        const janela = window.open('', '_blank', 'width=1200,height=850');
-        if (!janela) {
-          alert('O navegador bloqueou a janela de impressão. Permita pop-ups para este site e tente novamente.');
-          return;
-        }
-
-        const tituloTexto = titulo ? titulo.textContent.trim() : 'Meu Plano de Estudos';
-        const tituloSeguro = tituloTexto.replace(/</g,'&lt;').replace(/>/g,'&gt;');
-
-        janela.document.open();
-        janela.document.write(`<!doctype html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8">
-<title>${tituloSeguro}</title>
-<style>
-${estilos}
-
-@page { size: A4 landscape; margin: 8mm; }
-
-html, body {
-  background: #fff !important;
-  color: #111827 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: visible !important;
-}
-
-body { padding: 4mm !important; }
-
-.v146-print-title {
-  font: 700 18px Arial, sans-serif;
-  color: #111827 !important;
-  margin: 0 0 6mm 0;
-}
-
-/* Semana: documento independente, 2 colunas, todos os dias */
-#v146SemanaPrint {
-  display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  grid-auto-flow: row !important;
-  gap: 7mm !important;
-  width: 100% !important;
-  align-items: start !important;
-}
-
-#v146SemanaPrint > * {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  position: relative !important;
-  transform: none !important;
-  width: auto !important;
-  min-width: 0 !important;
-  max-width: none !important;
-  height: auto !important;
-  max-height: none !important;
-  overflow: visible !important;
-  break-inside: avoid !important;
-  page-break-inside: avoid !important;
-  background: #fff !important;
-  color: #111827 !important;
-  border: 1px solid #cbd5e1 !important;
-  box-shadow: none !important;
-}
-
-#v146SemanaPrint .slot-card,
-#v146SemanaPrint .study-card,
-#v146SemanaPrint [class*="card"] {
-  display: block !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: none !important;
-  height: auto !important;
-  max-height: none !important;
-  overflow: visible !important;
-  white-space: normal !important;
-  word-break: normal !important;
-  overflow-wrap: break-word !important;
-  writing-mode: horizontal-tb !important;
-  background: #fff !important;
-  color: #111827 !important;
-  border-color: #cbd5e1 !important;
-  box-shadow: none !important;
-  break-inside: avoid !important;
-  page-break-inside: avoid !important;
-}
-
-#v146SemanaPrint * {
-  color: #111827 !important;
-  white-space: normal !important;
-  word-break: normal !important;
-  overflow-wrap: break-word !important;
-  writing-mode: horizontal-tb !important;
-}
-
-/* Lista e Mês: preserva o visual que funcionou na V142 */
-body.v146-print-lista #listaCicloV47,
-body.v146-print-mes #mesCicloV47 {
-  width: 100% !important;
-  max-width: none !important;
-  overflow: visible !important;
-}
-
-body.v146-print-mes #mesCicloV47 {
-  display: grid !important;
-  grid-template-columns: repeat(7, minmax(0,1fr)) !important;
-}
-
-button, .btn, .btn-play-mini, .btn-mini-acao {
-  display: none !important;
-}
-
-body, body * {
-  color: #111827 !important;
-}
-
-.day-column, .mes-dia-v47, .lista-dia-v47,
-.slot-card, .study-card, .card, [class*="card"] {
-  background: #fff !important;
-  background-image: none !important;
-  box-shadow: none !important;
-}
-
-* {
-  -webkit-print-color-adjust: exact !important;
-  print-color-adjust: exact !important;
-}
-</style>
-</head>
-<body class="${classeBody}">
-<h1 class="v146-print-title">${tituloSeguro}</h1>
-${conteudo}
-<script>
-window.addEventListener('load', function () {
-  setTimeout(function () {
-    window.focus();
-    window.print();
-  }, 400);
-});
-window.addEventListener('afterprint', function () {
-  setTimeout(function(){ window.close(); }, 150);
-});
-<\/script>
-</body>
-</html>`);
-        janela.document.close();
-      } catch (e) {
-        console.error('V146 impressão:', e);
-        alert('Não foi possível preparar a impressão. Tente novamente.');
-      }
+      window.print();
     }
 
     function atualizarStatusNuvem(texto, statusClass) {
@@ -3688,195 +3416,36 @@ window.addEventListener('afterprint', function () {
       atualizarSemanaAtiva();
     }
 
-    // ===== V97 — LOGIN MULTIDISPOSITIVO =====
-    // A nuvem (Firebase) passa a ser consultada antes do localStorage.
-    // O localStorage continua apenas como cache/fallback do próprio aparelho.
-    async function autenticar() {
+    function autenticar() {
       obterOuDesbloquearAudioContext();
-
-      const campoUsuario = document.getElementById('usuario');
-      const campoSenha = document.getElementById('senha');
-      const botao = document.querySelector('#tela-login .btn-primary');
-      const uInput = (campoUsuario?.value || '').trim();
-      const sInput = (campoSenha?.value || '').trim();
+      const uInput = document.getElementById('usuario').value.trim();
+      const sInput = document.getElementById('senha').value.trim();
       const erro = document.getElementById('msgErro');
 
-      if (erro) erro.style.display = 'none';
-      if (!uInput || !sInput) {
-        if (erro) { erro.style.display='block'; erro.innerText='Informe o utilizador e a palavra-passe.'; }
+      const senhasLocais = obterSenhasLocais();
+      const usuarioEncontrado = Object.keys(senhasLocais).find(
+        key => key.toLowerCase() === uInput.toLowerCase()
+      );
+
+      if (!usuarioEncontrado) {
+        if (erro) {
+          erro.style.display = 'block';
+          erro.innerText = 'Utilizador não autorizado.';
+        }
         return;
       }
-      if (botao) {
-        botao.disabled=true;
-        botao.dataset.textoOriginal=botao.innerText;
-        botao.innerText='A verificar...';
-      }
 
-      const chave=uInput.toLowerCase();
-      const ehEduardoV101 = chave === 'eduardo';
-      const nomeCanonicoV101 = ehEduardoV101 ? 'Eduardo' : uInput;
-      const email=emailTecnicoV100(nomeCanonicoV101);
-
-      try {
-        // ===== V147 — ACESSO AUTORITATIVO =====
-        // Para utilizadores comuns, /senhas no Firebase é a fonte de autorização.
-        // Assim, uma conta eliminada deixa de entrar mesmo que ainda exista no Firebase Auth
-        // ou tenha credenciais antigas guardadas neste navegador.
-        if (rtdb && !ehEduardoV101) {
-          try {
-            const acessoSnap = await rtdb.ref('senhas/' + chave).once('value');
-            if (!acessoSnap.exists()) {
-              try { if (auth && auth.currentUser) await auth.signOut(); } catch(_) {}
-              sessionStorage.removeItem('usuario_ativo');
-              sessionStorage.removeItem('firebase_uid');
-              if (erro) { erro.style.display='block'; erro.innerText='Utilizador não autorizado.'; }
-              return;
-            }
-            const senhaAutorizada = String(acessoSnap.val());
-            if (senhaAutorizada !== sInput) {
-              if (erro) { erro.style.display='block'; erro.innerText='Palavra-passe incorreta!'; }
-              return;
-            }
-          } catch (eAcesso) {
-            console.warn('V147: não foi possível confirmar a autorização na nuvem; usando compatibilidade local.', eAcesso);
-          }
-        }
-
-        // ETAPA A — se a conta já foi migrada, tenta Authentication.
-        if (auth) {
-          try {
-            const cred=await auth.signInWithEmailAndPassword(email,sInput);
-            usuarioAtivo=uInput;
-            sessionStorage.setItem('usuario_ativo',usuarioAtivo);
-            sessionStorage.setItem('firebase_uid',cred.user.uid);
-            abrirApp();
-            return;
-          } catch(e) {
-            // Não interrompe: a V98 continua sendo a fonte segura durante a migração.
-            console.log('V100: conta ainda não autenticada no Firebase Auth.', e.code || e.message);
-          }
-        }
-
-        // ETAPA B — valida EXATAMENTE como a V98: primeiro nuvem antiga, depois cache local.
-        let senhaLegada=null;
-        if (rtdb) {
-          try {
-            const snap=await rtdb.ref('senhas/'+chave).once('value');
-            if (snap.exists()) senhaLegada=String(snap.val());
-          } catch(e) {
-            console.warn('V100: leitura da conta antiga na nuvem falhou.',e);
-          }
-        }
-
-        let nomePerfil=nomeCanonicoV101;
-        if (senhaLegada===null) {
-          const locais=obterSenhasLocais();
-          const encontrado=Object.keys(locais).find(k=>k.toLowerCase()===chave);
-          if (encontrado) {
-            nomePerfil = ehEduardoV101 ? 'Eduardo' : encontrado;
-            senhaLegada=String(locais[encontrado]);
-          }
-        }
-
-        // V101: compatibilidade específica do administrador.
-        // Algumas versões antigas mantêm a credencial Eduardo no objeto padrão,
-        // mesmo quando ela não está em /senhas no Firebase.
-        if (senhaLegada===null && ehEduardoV101) {
-          try {
-            const padrao = (typeof SENHAS_PADRAO !== 'undefined' && SENHAS_PADRAO)
-              ? SENHAS_PADRAO : {};
-            const kEdu = Object.keys(padrao).find(k=>k.toLowerCase()==='eduardo');
-            if (kEdu) {
-              nomePerfil='Eduardo';
-              senhaLegada=String(padrao[kEdu]);
-            }
-          } catch(_) {}
-        }
-
-        if (senhaLegada===null) {
-          if (erro) { erro.style.display='block'; erro.innerText='Utilizador não autorizado.'; }
-          return;
-        }
-        if (senhaLegada!==sInput) {
-          if (erro) { erro.style.display='block'; erro.innerText='Palavra-passe incorreta!'; }
-          return;
-        }
-
-        // ETAPA C — login V98 já foi validado. Agora tenta criar/migrar para Authentication.
-        // IMPORTANTE: a senha antiga NÃO é apagada nesta versão.
-        let uid='';
-        if (auth) {
-          try {
-            const cred=await auth.createUserWithEmailAndPassword(email,sInput);
-            uid=cred.user.uid;
-          } catch(eCriar) {
-            if (eCriar.code==='auth/email-already-in-use') {
-              try {
-                const cred=await auth.signInWithEmailAndPassword(email,sInput);
-                uid=cred.user.uid;
-              } catch(eEntrar) {
-                console.warn('V102: conta Auth existe, mas a migração não foi concluída.', eEntrar);
-                if (ehEduardoV101) {
-                  const codigo = eEntrar?.code || 'erro-desconhecido';
-                  setTimeout(() => {
-                    alert('A conta Eduardo já existe no Firebase Authentication, mas o login nela falhou. Código: ' + codigo + '. O acesso legado foi mantido.');
-                  }, 250);
-                }
-              }
-            } else {
-              console.warn('V102: não foi possível criar a conta Auth; mantendo login legado.', eCriar);
-              if (ehEduardoV101) {
-                const codigo = eCriar?.code || 'erro-desconhecido';
-                setTimeout(() => {
-                  alert('Eduardo entrou pelo modo compatível, mas a migração para Firebase Authentication não foi concluída. Código: ' + codigo + '. Nenhuma conta ou senha antiga foi apagada.');
-                }, 250);
-              }
-            }
-          }
-        }
-
-        // Registra o UID se a migração foi concluída, sem tocar na senha legada.
-        if (uid && rtdb) {
-          await rtdb.ref('usuariosAuth/'+uid).update({
-            nome:ehEduardoV101 ? 'Eduardo' : nomePerfil,
-            chave:chave,
-            administrador:ehEduardoV101,
-            migrado:true,
-            migradoEm:firebase.database.ServerValue.TIMESTAMP
-          }).catch(()=>{});
-          sessionStorage.setItem('firebase_uid',uid);
-        }
-
-        // O acesso continua funcionando mesmo se a criação no Auth falhar.
-        usuarioAtivo=nomePerfil;
-        sessionStorage.setItem('usuario_ativo',usuarioAtivo);
+      if (senhasLocais[usuarioEncontrado] === sInput) {
+        usuarioAtivo = usuarioEncontrado;
+        sessionStorage.setItem('usuario_ativo', usuarioAtivo);
         abrirApp();
-
-      } catch(e) {
-        console.error('V100 login:',e);
+      } else {
         if (erro) {
-          erro.style.display='block';
-          erro.innerText='Não foi possível entrar. Tente novamente.';
-        }
-      } finally {
-        if (botao) {
-          botao.disabled=false;
-          botao.innerText=botao.dataset.textoOriginal || 'Entrar no Painel';
+          erro.style.display = 'block';
+          erro.innerText = 'Palavra-passe incorreta!';
         }
       }
     }
-
-    // Permite entrar pressionando Enter nos campos de acesso.
-    document.addEventListener('keydown', function(e) {
-      if (e.key !== 'Enter') return;
-      const tela = document.getElementById('tela-login');
-      if (!tela || getComputedStyle(tela).display === 'none') return;
-      const alvo = e.target;
-      if (alvo && (alvo.id === 'usuario' || alvo.id === 'senha')) {
-        e.preventDefault();
-        autenticar();
-      }
-    });
 
     function alterarPalavraPasse() {
       const atual = document.getElementById('senhaAtual').value.trim();
@@ -3919,63 +3488,31 @@ window.addEventListener('afterprint', function () {
 
     function configurarPainelAdminUsuarios() {
       const btnAba = document.getElementById('btnAbaUsuariosAdmin');
+      const abaAdmin = document.getElementById('aba-usuarios-admin');
       const isEduardo = (usuarioAtivo && usuarioAtivo.toLowerCase() === 'eduardo');
 
+      // V147-PERM: a gestão de utilizadores deve existir visualmente apenas para Eduardo.
+      // setProperty(..., 'important') evita que regras CSS da navegação tornem o botão visível.
       if (btnAba) {
-        btnAba.style.display = isEduardo ? 'block' : 'none';
+        btnAba.style.setProperty('display', isEduardo ? 'flex' : 'none', 'important');
+      }
+      if (abaAdmin && !isEduardo) {
+        abaAdmin.classList.remove('active');
+        abaAdmin.style.setProperty('display', 'none', 'important');
+      } else if (abaAdmin) {
+        abaAdmin.style.removeProperty('display');
       }
 
       if (isEduardo) {
         carregarListaUsuariosAdmin();
-        sincronizarUsuariosLocaisComNuvemV98();
       }
     }
 
-    async function sincronizarUsuariosLocaisComNuvemV98() {
-      if (!rtdb || !ehAdministradorEduardoV26()) return;
-      const locais = obterSenhasLocais();
-      try {
-        for (const [nome, senha] of Object.entries(locais)) {
-          const chave = String(nome).trim().toLowerCase();
-          if (!chave) continue;
-          const ref = rtdb.ref("senhas/" + chave);
-          const atual = await ref.once("value");
-          if (!atual.exists()) {
-            await ref.set(String(senha));
-          }
-        }
-        console.log("V98: utilizadores locais sincronizados com a nuvem.");
-      } catch (e) {
-        console.error("V98: Firebase recusou a sincronização de utilizadores.", e);
-      }
-    }
-
-    async function carregarListaUsuariosAdmin() {
+    function carregarListaUsuariosAdmin() {
       const container = document.getElementById('listaUsuariosCadastradosAdmin');
       if (!container) return;
-
-      // No perfil administrador, prioriza a lista compartilhada da nuvem.
-      if (rtdb) {
-        try {
-          const snap = await rtdb.ref('senhas').once('value');
-          const nuvem = snap.val() || {};
-          if (Object.keys(nuvem).length) {
-            const locais = obterSenhasLocais();
-            Object.keys(nuvem).forEach(chave => {
-              const nomeLocal = Object.keys(locais).find(k => k.toLowerCase() === chave.toLowerCase());
-              const nome = nomeLocal || (chave.toLowerCase() === 'eduardo' ? 'Eduardo' : chave);
-              locais[nome] = String(nuvem[chave]);
-            });
-            salvarSenhasLocais(locais);
-            renderizarListaUsuariosAdminHtml(locais);
-            return;
-          }
-        } catch (e) {
-          console.warn('Falha ao carregar utilizadores da nuvem:', e);
-        }
-      }
-
-      renderizarListaUsuariosAdminHtml(obterSenhasLocais());
+      const senhasObj = obterSenhasLocais();
+      renderizarListaUsuariosAdminHtml(senhasObj);
     }
 
     function renderizarListaUsuariosAdminHtml(senhasObj) {
@@ -4005,7 +3542,7 @@ window.addEventListener('afterprint', function () {
       });
     }
 
-    async function adminCriarNovoUsuario() {
+    function adminCriarNovoUsuario() {
       if (!ehAdministradorEduardoV26()) {
         alert("Esta função é exclusiva do administrador Eduardo.");
         return;
@@ -4013,46 +3550,29 @@ window.addEventListener('afterprint', function () {
 
       const nomeInput = document.getElementById('inputNovoNomeUsuario');
       const senhaInput = document.getElementById('inputNovaSenhaUsuario');
-      const nome = (nomeInput?.value || '').trim();
-      const senha = (senhaInput?.value || '').trim();
+      const nome = nomeInput.value.trim();
+      const senha = senhaInput.value.trim();
 
       if (!nome || !senha) {
         alert("Preencha o nome do utilizador e a palavra-passe.");
         return;
       }
 
-      const chave = nome.toLowerCase();
+      const senhas = obterSenhasLocais();
+      senhas[nome] = senha;
+      salvarSenhasLocais(senhas);
 
-      // V98: primeiro confirma a gravação na nuvem. Só depois salva o cache local.
-      if (!rtdb) {
-        alert("A nuvem não está ligada. O utilizador NÃO foi criado. Verifique a ligação com o Firebase.");
-        return;
+      if (rtdb) {
+        rtdb.ref("senhas/" + nome.toLowerCase()).set(senha).catch(() => {});
       }
 
-      try {
-        await rtdb.ref("senhas/" + chave).set(String(senha));
-
-        // Confirma que o Firebase realmente recebeu o utilizador.
-        const confirmar = await rtdb.ref("senhas/" + chave).once("value");
-        if (String(confirmar.val()) !== String(senha)) {
-          throw new Error("A gravação não pôde ser confirmada.");
-        }
-
-        const senhas = obterSenhasLocais();
-        senhas[nome] = String(senha);
-        salvarSenhasLocais(senhas);
-
-        alert(`Utilizador "${nome}" criado na nuvem com sucesso! Agora pode entrar em outro celular/computador.`);
-        nomeInput.value = '';
-        senhaInput.value = '';
-        await carregarListaUsuariosAdmin();
-      } catch (e) {
-        console.error("Erro ao criar utilizador na nuvem:", e);
-        alert("Não foi possível criar o utilizador na nuvem. O Firebase recusou a gravação. Verifique as regras do Realtime Database.");
-      }
+      alert(`Utilizador "${nome}" criado com sucesso!`);
+      nomeInput.value = '';
+      senhaInput.value = '';
+      carregarListaUsuariosAdmin();
     }
 
-    async function adminExcluirUsuario(nome) {
+    function adminExcluirUsuario(nome) {
       if (!ehAdministradorEduardoV26()) {
         alert("Esta função é exclusiva do administrador Eduardo.");
         return;
@@ -4063,32 +3583,18 @@ window.addEventListener('afterprint', function () {
         return;
       }
 
-      if (!confirm(`Tem certeza de que deseja eliminar o acesso de "${nome}"?`)) return;
-
-      const chave = nome.toLowerCase();
-      try {
-        // V147: primeiro revoga o acesso compartilhado na nuvem e aguarda concluir.
-        if (!rtdb) throw new Error('Firebase indisponível.');
-        await Promise.all([
-          rtdb.ref('senhas/' + chave).remove(),
-          rtdb.ref('perfis/' + chave).remove()
-        ]);
-
-        const confirmar = await rtdb.ref('senhas/' + chave).once('value');
-        if (confirmar.exists()) throw new Error('A exclusão não pôde ser confirmada na nuvem.');
-
-        // Só depois limpa o cache local do administrador.
+      if (confirm(`Tem certeza de que deseja eliminar o acesso de "${nome}"?`)) {
         const senhas = obterSenhasLocais();
-        Object.keys(senhas).forEach(k => {
-          if (k.toLowerCase() === chave) delete senhas[k];
-        });
+        delete senhas[nome];
         salvarSenhasLocais(senhas);
 
-        alert(`Utilizador "${nome}" eliminado. O acesso foi revogado na nuvem.`);
-        await carregarListaUsuariosAdmin();
-      } catch (e) {
-        console.error('V147: erro ao excluir utilizador:', e);
-        alert('Não foi possível confirmar a exclusão na nuvem. O utilizador não foi removido do cache local.');
+        if (rtdb) {
+          rtdb.ref("senhas/" + nome.toLowerCase()).remove().catch(() => {});
+          rtdb.ref("perfis/" + nome.toLowerCase()).remove().catch(() => {});
+        }
+
+        alert(`Utilizador "${nome}" eliminado com sucesso!`);
+        carregarListaUsuariosAdmin();
       }
     }
 
@@ -4304,11 +3810,9 @@ window.addEventListener('afterprint', function () {
       }
     }
 
-    async function sair() {
+    function sair() {
       if (dbRefAtivo) dbRefAtivo.off();
       sessionStorage.removeItem('usuario_ativo');
-      sessionStorage.removeItem('firebase_uid');
-      try { if (auth) await auth.signOut(); } catch(e) {}
       location.reload();
     }
     function abrirApp() {
@@ -4367,7 +3871,6 @@ window.addEventListener('afterprint', function () {
         const usarNuvem = !salvos || !localMs || nuvemMs > localMs;
 
         if (usarNuvem) {
-          // Outro aparelho/nuvem possui a versão mais recente.
           isReceivingFromCloud = true;
           estado = dadosNuvem.estado;
           localStorage.setItem(chave, JSON.stringify(estado));
@@ -4375,23 +3878,15 @@ window.addEventListener('afterprint', function () {
           isReceivingFromCloud = false;
           atualizarUIAposCarregar();
           aplicarPermissoesEditaisV26();
-        } else if (salvos && localMs > nuvemMs) {
-          // V117: o PC é a fonte principal e não publica automaticamente ao entrar.
-          // Use "Enviar para Nuvem" quando quiser publicar as alterações.
-          atualizarStatusNuvem("☁️ Sincronização manual", "online");
-          return;
         }
 
-        atualizarStatusNuvem("☁️ Sincronização manual", "online");
+        atualizarStatusNuvem("☁️ Sincronizado", "online");
       }).catch(err => {
         console.error("Falha ao carregar perfil da nuvem:", err);
         atualizarStatusNuvem("⚠️ Offline", "offline");
       });
     }
     function salvarEstado() {
-      // V133: funções usadas apenas para reconstruir/renderizar a interface
-      // nunca podem sobrescrever o perfil persistido.
-      if (window.__V133_RENDERIZANDO__) return;
       if (!usuarioAtivo || isReceivingFromCloud) return;
 
       const chave = chaveArmazenamento(usuarioAtivo);
@@ -4612,8 +4107,6 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
 
     // ---------- Carregamento geral da UI ----------
     function atualizarUIAposCarregar() {
-      const bloqueioAnteriorV133 = window.__V133_RENDERIZANDO__;
-      window.__V133_RENDERIZANDO__ = true;
       const padrao = obterEstadoPadrao();
       Object.keys(padrao).forEach(chave => {
         if (estado[chave] === undefined) estado[chave] = padrao[chave];
@@ -4642,7 +4135,6 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
 
       dataReferencia = new Date();
       atualizarSemanaAtiva();
-      window.__V133_RENDERIZANDO__ = bloqueioAnteriorV133 || false;
     }
 
     // ---------- Seletores de disciplina ----------
@@ -5135,7 +4627,7 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
           ) {
             slotsDoDia.push({
               materia: rev.materia,
-              assunto: `🔁 Revisão ${rev.tipo}: ${rev.topicoTitulo}`,
+              assunto: `🔁 Revisão: ${rev.topicoTitulo}`,
               feito: false,
               revisaoId: rev.id,
               tipoRevisao: rev.tipo
@@ -5176,7 +4668,7 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
           ) {
             slotsDoDia.push({
               materia: rev.materia,
-              assunto: `🔁 Revisão ${rev.tipo}: ${rev.topicoTitulo}`,
+              assunto: `🔁 Revisão: ${rev.topicoTitulo}`,
               feito: false,
               revisaoId: rev.id,
               tipoRevisao: rev.tipo,
@@ -5378,7 +4870,7 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
           const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === slot.topicoId);
           if (topico) {
             topico.t = !!valor;
-            if (valor) registrarRevisoesAutomaticasPlanV41(slot, diaNome, chaveSemanaAtiva);
+            if (valor) registrarRevisoesAutomaticasPlanV41(slot);
             else {
               estado.agendaRevisoes=(estado.agendaRevisoes||[]).filter(r=>!(r.automaticaV42&&r.topicoId===slot.topicoId));
               try{sincronizarTodasSemanasComRevisoes()}catch(_){}
@@ -5633,7 +5125,7 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
             if (!idsExistentes.has(rev.id)) {
               slots.push({
                 materia: rev.materia,
-                assunto: `🔁 Revisão ${rev.tipo}: ${rev.topicoTitulo}`,
+                assunto: `🔁 Revisão: ${rev.topicoTitulo}`,
                 feito: false,
                 revisaoId: rev.id,
                 tipoRevisao: rev.tipo
@@ -5652,21 +5144,66 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
       const topico = (estado.editalVerticalizado[materia] || []).find(t => t.id === topicoId);
       if (!topico) return;
 
-      // V111:
-      // As caixas 1D/7D/15D/30D do Edital Verticalizado são SOMENTE
-      // marcadores visuais de revisão realizada.
-      //
-      // Elas NÃO criam, removem, movem ou reagendam revisões.
-      // O agendamento fica exclusivamente a cargo da revisão automática
-      // já existente no sistema quando o tópico/estudo é concluído.
       const campo = 'r' + tipo.replace('D', '');
-      topico[campo] = !!ativo;
+      topico[campo] = ativo;
+
+      const diasMap = { '1D': 1, '7D': 7, '15D': 15, '30D': 30 };
+      if (!estado.agendaRevisoes) estado.agendaRevisoes = [];
+
+      const chaveRevisao = r => r.topicoId === topicoId && r.tipo === tipo;
+
+      if (ativo) {
+        // Nunca duplica D30 (nem 1D/7D/15D).
+        estado.agendaRevisoes = estado.agendaRevisoes.filter(r => !chaveRevisao(r));
+
+        const dataRev = new Date();
+        dataRev.setHours(0, 0, 0, 0);
+        dataRev.setDate(dataRev.getDate() + diasMap[tipo]);
+
+        estado.agendaRevisoes.push({
+          id: 'rev_' + Math.random().toString(36).substr(2, 7),
+          materia,
+          topicoId,
+          topicoTitulo: topico.titulo,
+          tipo,
+          dataPrevista: formatarDataChave(dataRev),
+          concluida: false,
+          minutos: Number((estado.revisoesAutomaticas||{})['minD'+tipo.replace('D','')] || ({'1D':15,'7D':20,'15D':25,'30D':30}[tipo]) || 15)
+        });
+      } else {
+        estado.agendaRevisoes = estado.agendaRevisoes.filter(r => !chaveRevisao(r));
+      }
+
+      normalizarAgendaRevisoes();
+
+      // Garante que a semana da revisão exista, mas NÃO gera matérias por causa
+      // do clique em D1/D7/D15/D30.
+      if (ativo) {
+        const revCriada = (estado.agendaRevisoes || []).find(r =>
+          r.topicoId === topicoId && r.tipo === tipo
+        );
+
+        if (revCriada && revCriada.dataPrevista) {
+          const p = revCriada.dataPrevista.split('-');
+          const dataDaRevisao = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+          const segundaDaRevisao = obterSegundaFeira(dataDaRevisao);
+          const chaveSemanaRevisao = `semana_${formatarDataChave(segundaDaRevisao)}`;
+
+          if (!estado.semanas) estado.semanas = {};
+          if (!estado.semanas[chaveSemanaRevisao]) {
+            estado.semanas[chaveSemanaRevisao] = {};
+          }
+        }
+      }
+
+      // Apenas coloca/remove os cartões de revisão nas semanas.
+      // Nenhuma matéria normal é criada aqui.
+      sincronizarTodasSemanasComRevisoes();
 
       salvarEstado();
       renderizarEditalVerticalizado();
-
-      // Atualiza apenas indicadores visuais que dependam do estado.
-      try { calcularPrevisaoFechamentoEdital(); } catch (_) {}
+      renderizarAbaRevisoes();
+      renderizarGrade();
     }
 
     function renderizarAbaRevisoes() {
@@ -6046,12 +5583,7 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
 
       estado.planejamento.inicio = inputInicio ? inputInicio.value : estado.planejamento.inicio;
       estado.planejamento.prova = inputProva ? inputProva.value : estado.planejamento.prova;
-
-      // V133: atualizarPainelPlanejamento() também é chamada durante a
-      // reconstrução da interface (F5/login). Renderizar a tela NÃO pode
-      // persistir o estado, pois nesse instante ele pode estar incompleto.
-      // As ações reais do usuário continuam chamando salvarEstado()
-      // pelos seus próprios handlers.
+      salvarEstado();
 
       const elDias = document.getElementById('diasAteProva');
       const elSemanas = document.getElementById('semanasAteProva');
@@ -6071,70 +5603,22 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
     }
 
     // ---------- Sincronização manual com a nuvem ----------
-    async function forcarUploadNuvem() {
-      if (!rtdb || !dbRefAtivo) {
-        atualizarStatusNuvem('⚠️ Sem conexão', 'offline');
-        alert('Sem conexão com a nuvem.');
-        return;
-      }
-
-      // V113: antes do envio manual, confirma que o Firebase Auth já restaurou
-      // a sessão. Assim o RTDB não fica indefinidamente em "Enviando...".
-      if (auth && !auth.currentUser) {
-        atualizarStatusNuvem('☁️ Conectando...', 'syncing');
-        const autenticadoV113 = await new Promise(resolve => {
-          let terminou = false;
-          let cancelar = null;
-          const concluir = valor => {
-            if (terminou) return;
-            terminou = true;
-            try { if (typeof cancelar === 'function') cancelar(); } catch (_) {}
-            resolve(valor);
-          };
-          try {
-            cancelar = auth.onAuthStateChanged(user => concluir(!!user));
-          } catch (_) {
-            concluir(false);
-          }
-          setTimeout(() => concluir(!!auth.currentUser), 5000);
-        });
-
-        if (!autenticadoV113) {
-          atualizarStatusNuvem('⚠️ Sessão da nuvem indisponível', 'offline');
-          alert('A sessão do Firebase ainda não está disponível. Termine a sessão e entre novamente.');
-          return;
-        }
-      }
+    function forcarUploadNuvem() {
+      if (!rtdb || !dbRefAtivo) { alert('Sem conexão com a nuvem.'); return; }
 
       const agora = new Date().toISOString();
       atualizarStatusNuvem('☁️ Enviando...', 'syncing');
 
-      let timeoutV113 = null;
-      const limiteV113 = new Promise((_, reject) => {
-        timeoutV113 = setTimeout(
-          () => reject(new Error('Tempo limite ao comunicar com a nuvem.')),
-          12000
-        );
-      });
-
-      try {
-        await Promise.race([
-          dbRefAtivo.set(JSON.parse(JSON.stringify({ estado: estado, atualizadoEm: agora }))),
-          limiteV113
-        ]);
-        clearTimeout(timeoutV113);
-
+      dbRefAtivo.set({ estado: estado, atualizadoEm: agora }).then(() => {
         const chave = chaveArmazenamento(usuarioAtivo);
         localStorage.setItem(chave, JSON.stringify(estado));
         localStorage.setItem(chave + '_atualizadoEm', agora);
         atualizarStatusNuvem('☁️ Sincronizado', 'online');
         alert('Dados enviados para a nuvem com sucesso!');
-      } catch (err) {
-        clearTimeout(timeoutV113);
-        console.error('V113: falha no envio manual:', err);
+      }).catch(err => {
         atualizarStatusNuvem('⚠️ Falha na sincronização', 'offline');
-        alert('Erro ao enviar: ' + (err?.message || err));
-      }
+        alert('Erro ao enviar: ' + err.message);
+      });
     }
     function forcarDownloadNuvem() {
       if (!rtdb || !dbRefAtivo) { alert('Sem conexão com a nuvem.'); return; }
@@ -6174,37 +5658,10 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
 
     /* ===================================================================== */
 
-    // V113 — ao restaurar uma sessão no PC, aguarda o Firebase Authentication
-    // restaurar o usuário antes de acessar o Realtime Database.
-    // Isso evita iniciar como Offline mesmo havendo internet.
     const sessaoSalva = sessionStorage.getItem('usuario_ativo');
     if (sessaoSalva) {
       usuarioAtivo = sessaoSalva;
-
-      if (auth && typeof auth.onAuthStateChanged === 'function') {
-        let abriuV113 = false;
-        const abrirUmaVezV113 = () => {
-          if (abriuV113) return;
-          abriuV113 = true;
-          abrirApp();
-        };
-
-        const cancelarObsV113 = auth.onAuthStateChanged(user => {
-          if (user) {
-            try { sessionStorage.setItem('firebase_uid', user.uid); } catch (_) {}
-            if (typeof cancelarObsV113 === 'function') cancelarObsV113();
-            abrirUmaVezV113();
-          }
-        });
-
-        // Fallback: não deixa a tela presa caso o Auth demore/falhe.
-        setTimeout(() => {
-          if (typeof cancelarObsV113 === 'function') cancelarObsV113();
-          abrirUmaVezV113();
-        }, 5000);
-      } else {
-        abrirApp();
-      }
+      abrirApp();
     } else {
       const tLogin = document.getElementById('tela-login');
       if (tLogin) tLogin.style.display = 'flex';
@@ -6850,8 +6307,16 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
 
     function configurarMotivacaoV21() {
       const btn = document.getElementById('btnAbaMotivacaoV21');
+      const abaMotivacao = document.getElementById('aba-motivacao-v21');
       const isEduardo = String(usuarioAtivo || '').toLowerCase() === 'eduardo';
-      if (btn) btn.style.display = isEduardo ? '' : 'none';
+      // V147-PERM: Motivação é uma ferramenta administrativa exclusiva de Eduardo.
+      if (btn) btn.style.setProperty('display', isEduardo ? 'flex' : 'none', 'important');
+      if (abaMotivacao && !isEduardo) {
+        abaMotivacao.classList.remove('active');
+        abaMotivacao.style.setProperty('display', 'none', 'important');
+      } else if (abaMotivacao) {
+        abaMotivacao.style.removeProperty('display');
+      }
       if (!isEduardo) return;
 
       const sel = document.getElementById('motivacaoUsuarioV21');
@@ -7647,39 +7112,6 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
       return resultados.slice(0,3);
     }
 
-    // ===== V147 — sequência real de dias concluídos =====
-    function calcularSequenciaEstudosV147(){
-      try {
-        const concluidos = new Set();
-        const semanas = estado?.semanas || {};
-        Object.entries(semanas).forEach(([chaveSemana, semana]) => {
-          const m = String(chaveSemana).match(/^semana_(\d{4})-(\d{2})-(\d{2})$/);
-          if (!m || !semana) return;
-          const segunda = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
-          (typeof DIAS !== 'undefined' ? DIAS : Object.keys(semana)).forEach((nomeDia, idx) => {
-            const slots = Array.isArray(semana[nomeDia]) ? semana[nomeDia] : [];
-            if (!slots.length || !slots.every(slot => slot && slot.feito === true)) return;
-            const d = new Date(segunda); d.setDate(segunda.getDate() + idx); d.setHours(0,0,0,0);
-            concluidos.add(formatarDataChave(d));
-          });
-        });
-
-        const hoje = new Date(); hoje.setHours(0,0,0,0);
-        let cursor = new Date(hoje);
-        // Se hoje ainda não foi concluído, mantém a sequência válida até ontem.
-        if (!concluidos.has(formatarDataChave(cursor))) cursor.setDate(cursor.getDate()-1);
-        let sequencia = 0;
-        while (concluidos.has(formatarDataChave(cursor))) {
-          sequencia++;
-          cursor.setDate(cursor.getDate()-1);
-        }
-        return sequencia;
-      } catch(e) {
-        console.warn('V147: falha ao calcular sequência.', e);
-        return 0;
-      }
-    }
-
     function renderizarDashboardV37(){
       // deixa V36 preencher Hoje e Próximo Estudo primeiro
       try{ renderizarDashboardV36(); }catch(_){}
@@ -7699,12 +7131,6 @@ if (/^(EDITAL|CONCURSO|PÁGINA|CURSO|PROFESSOR|IMPARÁVEIS|Nº|VALOR|PONTOS|ASSU
       const horas=extrairHorasV37();
       const hEl=document.getElementById('dashHorasV36');
       if(hEl) hEl.textContent=horas.h+'h '+String(horas.m).padStart(2,'0')+'min';
-
-      const seqEl=document.getElementById('dashSequenciaV36');
-      if(seqEl){
-        const seq=calcularSequenciaEstudosV147();
-        seqEl.textContent=seq+' dia'+(seq===1?'':'s');
-      }
 
       const pct=ed.total?Math.round(ed.feito/ed.total*100):0;
       const mp=document.getElementById('dashMetaPctV36');
@@ -8070,7 +7496,7 @@ function aplicarPlanejamentoV40(){
 
 // Ao marcar um tópico concluído, registra as revisões futuras separadamente do edital.
 // A fila não cria tópicos; serve como agenda de revisão para integração com o Ciclo.
-function registrarRevisoesAutomaticasPlanV41(slot,diaNome,chaveSemanaOrigem){
+function registrarRevisoesAutomaticasPlanV41(slot){
  const r=estado.revisoesAutomaticas;if(!r||r.automatico===false||!slot||slot.revisaoId||!slot.topicoId)return;
  estado.agendaRevisoes=estado.agendaRevisoes||[];
  const topico=(estado.editalVerticalizado?.[slot.materia]||[]).find(t=>t.id===slot.topicoId);
@@ -8078,19 +7504,8 @@ function registrarRevisoesAutomaticasPlanV41(slot,diaNome,chaveSemanaOrigem){
  const mapa=[['1D',1,r.d1,r.minD1||15],['7D',7,r.d7,r.minD7||20],['15D',15,r.d15,r.minD15||25],['30D',30,r.d30,r.minD30||30]];
  // Recria somente as revisões automáticas deste tópico; nunca cria tópico novo.
  estado.agendaRevisoes=estado.agendaRevisoes.filter(x=>!(x.automaticaV42&&x.topicoId===slot.topicoId));
- // Usa a data planejada do cartão original como base da revisão.
- let dataBase=new Date(); dataBase.setHours(0,0,0,0);
- try{
-   const p=String(chaveSemanaOrigem||'').replace('semana_','').split('-').map(Number);
-   const idx=DIAS.indexOf(diaNome);
-   if(p.length===3 && p.every(Number.isFinite) && idx>=0){
-     dataBase=new Date(p[0],p[1]-1,p[2]);
-     dataBase.setHours(0,0,0,0);
-     dataBase.setDate(dataBase.getDate()+idx);
-   }
- }catch(_){}
  mapa.forEach(([tipo,dias,on,minutos])=>{
-   if(!on)return;const d=new Date(dataBase);d.setDate(d.getDate()+dias);
+   if(!on)return;const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+dias);
    estado.agendaRevisoes.push({id:'rev_'+Math.random().toString(36).substr(2,7),materia:slot.materia,topicoId:slot.topicoId,topicoTitulo:titulo,tipo,dataPrevista:formatarDataChave(d),concluida:false,minutos:Number(minutos),automaticaV42:true});
  });
  normalizarAgendaRevisoes();sincronizarTodasSemanasComRevisoes();salvarEstado();
@@ -8658,10 +8073,8 @@ html,body{overflow-x:hidden}
   }
 
   function refrescarAbaAtualV53(){
-    /* V133: atualização visual somente.
-       atualizarUIAposCarregar() já é executada no fluxo correto de abrirApp().
-       Chamava-la novamente aqui após DOMContentLoaded fazia uma segunda
-       reconstrução e, na V126, podia persistir estado parcial. */
+    /* Não esconde nem move containers. Só chama as rotinas existentes. */
+    try{if(typeof atualizarUIAposCarregar==='function') atualizarUIAposCarregar()}catch(e){}
     try{if(typeof atualizarDashboardV36==='function') atualizarDashboardV36()}catch(e){}
     try{if(typeof renderDashboardV36==='function') renderDashboardV36()}catch(e){}
   }
@@ -9500,1126 +8913,6 @@ body:not(.dark-mode) input:-webkit-autofill:focus{
   }
   setInterval(loginClaroV60,500);
   window.renderAtualV60=renderAtualV60;
-})();
-</script>
-
-
-<!-- =========================================================
- V103 MOBILE — gaveta sobreposta, sem empurrar o conteúdo
- Base: V102. Não altera Firebase, login, usuários, cronograma
- ou regras de revisão.
-========================================================== -->
-<style id="v103-mobile-drawer-fix">
-@media (max-width:768px){
-  html, body{
-    width:100% !important;
-    max-width:100% !important;
-    overflow-x:hidden !important;
-  }
-
-  /* A estrutura principal não reserva espaço para a sidebar no celular. */
-  #app-container{
-    display:block !important;
-    width:100% !important;
-    max-width:100% !important;
-    min-width:0 !important;
-    margin:0 !important;
-    padding:0 !important;
-  }
-
-  /* Sidebar = gaveta fixa por cima da página. */
-  #app-container > aside,
-  aside,
-  .sidebar,
-  #sidebar,
-  .side-menu,
-  .app-sidebar{
-    position:fixed !important;
-    top:0 !important;
-    left:0 !important;
-    bottom:0 !important;
-    width:min(86vw,320px) !important;
-    max-width:320px !important;
-    height:100dvh !important;
-    min-height:100dvh !important;
-    margin:0 !important;
-    z-index:10020 !important;
-    overflow-y:auto !important;
-    overflow-x:hidden !important;
-    transform:translate3d(-105%,0,0) !important;
-    transition:transform .22s ease !important;
-    box-shadow:12px 0 32px rgba(0,0,0,.32) !important;
-    overscroll-behavior:contain;
-  }
-
-  body.mobile-menu-open #app-container > aside,
-  body.mobile-menu-open aside,
-  body.mobile-menu-open .sidebar,
-  body.mobile-menu-open #sidebar,
-  body.mobile-menu-open .side-menu,
-  body.mobile-menu-open .app-sidebar{
-    transform:translate3d(0,0,0) !important;
-  }
-
-  /* O conteúdo fica sempre no topo e ocupa toda a largura. */
-  #app-container > main,
-  main,
-  .main,
-  #main,
-  .main-content,
-  #mainContent,
-  .page-content,
-  .content,
-  .workspace{
-    position:relative !important;
-    left:auto !important;
-    right:auto !important;
-    top:auto !important;
-    width:100% !important;
-    max-width:100% !important;
-    min-width:0 !important;
-    margin:0 !important;
-    margin-left:0 !important;
-    transform:none !important;
-    box-sizing:border-box !important;
-  }
-
-  #app-container > main{
-    padding-top:72px !important;
-  }
-
-  .mobile-menu-button{
-    display:flex !important;
-    position:fixed !important;
-    left:12px !important;
-    top:calc(12px + env(safe-area-inset-top)) !important;
-    width:42px !important;
-    height:42px !important;
-    z-index:10030 !important;
-  }
-
-  .mobile-menu-overlay{
-    position:fixed !important;
-    inset:0 !important;
-    z-index:10010 !important;
-    background:rgba(0,0,0,.55) !important;
-  }
-
-  body:not(.mobile-menu-open) .mobile-menu-overlay{
-    display:none !important;
-  }
-  body.mobile-menu-open .mobile-menu-overlay{
-    display:block !important;
-  }
-
-  body.mobile-menu-open{
-    overflow:hidden !important;
-  }
-
-  /* Evita reaparecimento de botões antigos de sidebar no celular. */
-  #btnReabrirSidebar,
-  #btnToggleSidebar{
-    display:none !important;
-  }
-}
-</style>
-
-<script id="v103-mobile-drawer-js">
-(function(){
-  function mobile(){ return window.matchMedia('(max-width:768px)').matches; }
-
-  function fecharV103(){
-    document.body.classList.remove('mobile-menu-open');
-  }
-
-  function normalizarV103(){
-    if(!mobile()){
-      document.body.classList.remove('mobile-menu-open');
-      return;
-    }
-    /* O menu sempre começa fechado no celular; não empurra o dashboard. */
-    fecharV103();
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(normalizarV103, 80);
-  });
-
-  window.addEventListener('resize', function(){
-    if(!mobile()) fecharV103();
-  });
-
-  /* Ao escolher qualquer item real do menu, fecha a gaveta e volta ao topo. */
-  document.addEventListener('click', function(e){
-    if(!mobile()) return;
-    const item = e.target.closest('aside .tab-btn, aside [onclick*="trocarAba"], aside nav button, aside nav a');
-    if(!item) return;
-    setTimeout(function(){
-      fecharV103();
-      window.scrollTo({top:0, left:0, behavior:'auto'});
-    }, 100);
-  });
-
-  /* Garante que o botão ☰ abra a gaveta mesmo com estilos antigos. */
-  const antigoAbrir = window.abrirMenuMobile;
-  window.abrirMenuMobile = function(){
-    if(mobile()) document.body.classList.add('mobile-menu-open');
-    else if(typeof antigoAbrir === 'function') antigoAbrir();
-  };
-  window.fecharMenuMobile = fecharV103;
-  window.alternarMenuMobile = function(){
-    document.body.classList.toggle('mobile-menu-open');
-  };
-})();
-</script>
-
-
-<!-- =========================================================
- V104 MOBILE — Meu Plano: dias empilhados verticalmente
- Base: V103. Não altera Firebase, login, dados ou revisões.
-========================================================== -->
-<style id="v104-meu-plano-mobile">
-@media (max-width:768px){
-  /* Contêineres semanais: uma coluna no celular. */
-  #conteudo-plano .week-grid,
-  #conteudo-plano .weekly-grid,
-  #conteudo-plano .semana-grid,
-  #conteudo-plano .days-grid,
-  #conteudo-plano .calendar-grid,
-  #conteudo-plano [class*="week"][class*="grid"],
-  #conteudo-plano [class*="semana"][class*="grid"],
-  #meu-plano .week-grid,
-  #meu-plano .weekly-grid,
-  #meu-plano .semana-grid,
-  #meu-plano .days-grid,
-  #meu-plano .calendar-grid,
-  #meuPlano .week-grid,
-  #meuPlano .weekly-grid,
-  #meuPlano .semana-grid,
-  #meuPlano .days-grid,
-  #meuPlano .calendar-grid{
-    display:grid !important;
-    grid-template-columns:minmax(0,1fr) !important;
-    width:100% !important;
-    max-width:100% !important;
-    min-width:0 !important;
-    gap:12px !important;
-    overflow:visible !important;
-  }
-
-  /* Cartões/colunas dos dias nunca ficam fora da tela. */
-  #conteudo-plano .day-column,
-  #conteudo-plano .day-card,
-  #conteudo-plano .dia-card,
-  #conteudo-plano [class*="day-column"],
-  #conteudo-plano [class*="dia-column"],
-  #meu-plano .day-column,
-  #meu-plano .day-card,
-  #meu-plano .dia-card,
-  #meuPlano .day-column,
-  #meuPlano .day-card,
-  #meuPlano .dia-card{
-    width:100% !important;
-    max-width:100% !important;
-    min-width:0 !important;
-    margin:0 !important;
-    box-sizing:border-box !important;
-  }
-
-  /* Remove largura mínima horizontal herdada do desktop. */
-  #conteudo-plano,
-  #meu-plano,
-  #meuPlano{
-    width:100% !important;
-    max-width:100% !important;
-    min-width:0 !important;
-    overflow-x:hidden !important;
-    box-sizing:border-box !important;
-  }
-}
-</style>
-
-
-
-
-<!-- =========================================================
- V105 — MOBILE: MESMOS DADOS/RENDERIZAÇÃO DO DESKTOP
- Somente apresentação. Não recria agenda e não altera Firebase.
-========================================================== -->
-<style id="v105-plan-mobile-presentation-only">
-@media (max-width:768px){
-  /* Não cria uma segunda agenda: apenas reorganiza a grade já renderizada
-     pela aplicação, preservando os cartões/dados do desktop. */
-  .week-container,
-  .week-grid,
-  .weekly-grid,
-  .semana-grid,
-  .days-container,
-  .days-grid,
-  .calendar-week,
-  .calendar-grid{
-    grid-template-columns:1fr !important;
-    flex-direction:column !important;
-    width:100% !important;
-    max-width:100% !important;
-    min-width:0 !important;
-    overflow:visible !important;
-  }
-
-  .day-column,
-  .day-card,
-  .dia-card,
-  .calendar-day,
-  .day-container{
-    width:100% !important;
-    max-width:100% !important;
-    min-width:0 !important;
-    flex:0 0 auto !important;
-    box-sizing:border-box !important;
-  }
-
-  /* Se a grade desktop usa largura mínima para 7 colunas, neutraliza só no mobile. */
-  [class*="week"],
-  [class*="semana"]{
-    min-width:0 !important;
-    max-width:100% !important;
-  }
-}
-</style>
-
-<script id="v105-plan-mobile-safe">
-(function(){
-  /* V105 não toca nos dados. Depois que a aplicação renderiza a semana,
-     apenas procura o contêiner que já contém vários dias e o empilha. */
-  function empilharGradeExistente(){
-    if(!matchMedia('(max-width:768px)').matches) return;
-
-    const nomes = ['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado','Domingo'];
-    const els = Array.from(document.querySelectorAll('main div, .main-content div, #app-container div'));
-
-    let melhor = null, melhorQtd = 0;
-    for(const el of els){
-      const filhos = Array.from(el.children || []);
-      if(filhos.length < 2 || filhos.length > 10) continue;
-      let qtd = 0;
-      for(const f of filhos){
-        const txt = (f.innerText || '').slice(0,180);
-        if(nomes.some(n => txt.includes(n))) qtd++;
-      }
-      if(qtd > melhorQtd){
-        melhor = el;
-        melhorQtd = qtd;
-      }
-    }
-
-    /* Só age se a própria aplicação já tiver renderizado pelo menos 2 dias.
-       Isso impede transformar um placeholder "Sem atividades" em fonte de dados. */
-    if(melhor && melhorQtd >= 2){
-      melhor.style.setProperty('display','grid','important');
-      melhor.style.setProperty('grid-template-columns','minmax(0,1fr)','important');
-      melhor.style.setProperty('gap','12px','important');
-      melhor.style.setProperty('width','100%','important');
-      melhor.style.setProperty('max-width','100%','important');
-      melhor.style.setProperty('min-width','0','important');
-      melhor.style.setProperty('overflow','visible','important');
-      Array.from(melhor.children).forEach(f=>{
-        f.style.setProperty('width','100%','important');
-        f.style.setProperty('max-width','100%','important');
-        f.style.setProperty('min-width','0','important');
-      });
-    }
-  }
-
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(empilharGradeExistente,500));
-  window.addEventListener('resize',()=>setTimeout(empilharGradeExistente,150));
-  document.addEventListener('click',()=>setTimeout(empilharGradeExistente,350));
-})();
-</script>
-
-
-<!-- =========================================================
- V107 — MOBILE: RECÁLCULO SEGURO DA SEMANA APÓS SINCRONIZAÇÃO
- Base: V106. Não cria registros, não muda semana e não altera
- Firebase/Auth. Apenas força a mesma re-renderização visual que
- ocorre ao navegar pela semana, depois que a nuvem terminou.
-========================================================== -->
-<script id="v107-mobile-week-refresh">
-(function(){
-  let timerV107 = null;
-  let ultimoRefreshV107 = 0;
-
-  function ehMobileV107(){
-    return window.matchMedia('(max-width:768px)').matches;
-  }
-
-  function refreshVisualV107(){
-    if(!ehMobileV107()) return;
-
-    const agora = Date.now();
-    if(agora - ultimoRefreshV107 < 900) return;
-    ultimoRefreshV107 = agora;
-
-    /*
-      Não dispara as setas: isso poderia alterar a data.
-      Em vez disso, chama somente funções de renderização já existentes,
-      quando disponíveis, mantendo a semana atual.
-    */
-    const nomes = [
-      'renderizarCronograma',
-      'renderizarSemana',
-      'renderizarPlano',
-      'atualizarCronograma',
-      'atualizarSemana',
-      'renderizarCalendario'
-    ];
-
-    let executou = false;
-    for(const nome of nomes){
-      try{
-        if(typeof window[nome] === 'function'){
-          window[nome]();
-          executou = true;
-          break;
-        }
-      }catch(e){
-        console.warn('V107:', nome, e);
-      }
-    }
-
-    /*
-      Algumas versões encapsulam a renderização e não a expõem em window.
-      Nesse caso, força apenas um reflow/repaint do contêiner existente.
-      Isso não adiciona cartões e não escreve no estado.
-    */
-    if(!executou){
-      const alvo =
-        document.querySelector('#conteudo-plano') ||
-        document.querySelector('#meu-plano') ||
-        document.querySelector('#meuPlano') ||
-        document.querySelector('.week-grid') ||
-        document.querySelector('.semana-grid') ||
-        document.querySelector('.days-grid');
-
-      if(alvo){
-        const displayAnterior = alvo.style.display;
-        alvo.style.display = 'none';
-        void alvo.offsetHeight;
-        alvo.style.display = displayAnterior;
-      }
-    }
-
-    window.scrollTo({top:0, left:0, behavior:'auto'});
-  }
-
-  function agendarRefreshV107(delay){
-    clearTimeout(timerV107);
-    timerV107 = setTimeout(refreshVisualV107, delay || 450);
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    agendarRefreshV107(900);
-  });
-
-  /*
-    Observa o texto de status já usado pela V106.
-    Quando "Sincronizado" aparece após receber/publicar a nuvem,
-    faz uma única atualização visual no mobile.
-  */
-  const observerV107 = new MutationObserver(function(muts){
-    if(!ehMobileV107()) return;
-    for(const m of muts){
-      const el = m.target.nodeType === 3 ? m.target.parentElement : m.target;
-      const txt = (el && el.textContent || '').trim();
-      if(txt.includes('Sincronizado')){
-        agendarRefreshV107(500);
-        break;
-      }
-    }
-  });
-
-  document.addEventListener('DOMContentLoaded', function(){
-    observerV107.observe(document.body, {
-      subtree:true,
-      childList:true,
-      characterData:true
-    });
-  });
-
-  window.addEventListener('pageshow', function(){
-    agendarRefreshV107(700);
-  });
-})();
-</script>
-
-
-<!-- =========================================================
- V108 — MOBILE MODO CONSULTA
- Base V107 preservada.
- Desktop: funcionamento normal.
- Celular: somente Dashboard, Meu Plano e Revisões.
- A camada abaixo NÃO altera Firebase/Auth/cronograma/revisões.
-========================================================== -->
-<style id="v108-mobile-readonly-style">
-@media (max-width:768px){
-  .v108-mobile-badge{
-    display:inline-flex !important;
-    align-items:center !important;
-    gap:6px !important;
-    padding:7px 11px !important;
-    border-radius:999px !important;
-    font-size:12px !important;
-    font-weight:800 !important;
-    line-height:1 !important;
-    background:rgba(255,255,255,.10) !important;
-    border:1px solid rgba(255,255,255,.18) !important;
-    margin:8px 10px !important;
-  }
-
-  /* Itens explicitamente classificados como edição ficam ocultos no mobile. */
-  .v108-mobile-hidden{
-    display:none !important;
-  }
-
-  /* Controles de escrita detectados dentro das 3 telas de consulta. */
-  .v108-readonly-control{
-    display:none !important;
-  }
-}
-</style>
-
-<script id="v108-mobile-readonly">
-(function(){
-  const mqV108 = window.matchMedia('(max-width:768px)');
-
-  function mobileV108(){ return mqV108.matches; }
-
-  const permitidosV108 = [
-    'dashboard',
-    'meu plano',
-    'meu-plano',
-    'meuplano',
-    'cronograma',
-    'revisões',
-    'revisoes',
-    'revisão',
-    'revisao',
-    'sincronizar',
-    'sincronização',
-    'sincronizacao',
-    'enviar para nuvem',
-    'puxar da nuvem',
-    'nuvem',
-    'sair',
-    'terminar sessão',
-    'terminar sessao',
-    'encerrar sessão',
-    'encerrar sessao',
-    'logout'
-  ];
-
-  const escritaV108 = [
-    'novo registro','adicionar','editar','excluir','apagar','remover',
-    'regenerar','gerar semana','resetar','restaurar','importar',
-    'salvar','concluir','marcar como','desmarcar','alterar senha',
-    'criar usuário','criar usuario','backup','configurações','configuracoes',
-    'gestão','gestao','admin'
-  ];
-
-  function textoV108(el){
-    return ((el && (el.innerText || el.textContent || el.getAttribute?.('aria-label') || el.title)) || '')
-      .trim().toLowerCase();
-  }
-
-  function ehPermitidoV108(txt){
-    return permitidosV108.some(x => txt === x || txt.includes(x));
-  }
-
-  function ehEscritaV108(txt){
-    return escritaV108.some(x => txt.includes(x));
-  }
-
-  function aplicarMenuV108(){
-    if(!mobileV108()) return;
-
-    const sidebar =
-      document.querySelector('aside') ||
-      document.querySelector('.sidebar') ||
-      document.querySelector('#sidebar') ||
-      document.querySelector('.side-menu') ||
-      document.querySelector('.app-sidebar');
-
-    if(!sidebar) return;
-
-    if(!sidebar.querySelector('.v108-mobile-badge')){
-      const badge=document.createElement('div');
-      badge.className='v108-mobile-badge';
-      badge.textContent='📱 Modo Consulta';
-      const primeiro=sidebar.firstElementChild;
-      if(primeiro) primeiro.insertAdjacentElement('afterend',badge);
-      else sidebar.prepend(badge);
-    }
-
-    sidebar.querySelectorAll('button, a, .tab-btn, [onclick]').forEach(el=>{
-      const txt=textoV108(el);
-      if(!txt) return;
-
-      // Mantém sair e controles da gaveta.
-      if(txt.includes('sair') || txt === '×' || txt.includes('fechar')) return;
-
-      // Apenas as três áreas de consulta ficam no menu do celular.
-      if(ehPermitidoV108(txt)){
-        el.classList.remove('v108-mobile-hidden');
-      }else{
-        el.classList.add('v108-mobile-hidden');
-      }
-    });
-  }
-
-  function bloquearControlesEscritaV108(){
-    if(!mobileV108()) return;
-
-    document.querySelectorAll('main button, main a, .main-content button, .main-content a, #app-container main [onclick]').forEach(el=>{
-      const txt=textoV108(el);
-      if(ehEscritaV108(txt)){
-        el.classList.add('v108-readonly-control');
-      }
-    });
-
-    // Formulários de edição não devem ser utilizáveis no celular.
-    document.querySelectorAll('main input, main textarea, main select, .main-content input, .main-content textarea, .main-content select').forEach(el=>{
-      // Não interfere no login, pois ele fica fora do app principal.
-      if(el.closest('#tela-login')) return;
-      el.setAttribute('disabled','disabled');
-      el.setAttribute('aria-disabled','true');
-    });
-  }
-
-  function aplicarV108(){
-    if(!mobileV108()) return;
-    document.body.classList.add('v108-mobile-readonly');
-    aplicarMenuV108();
-    bloquearControlesEscritaV108();
-  }
-
-  // Proteção adicional contra ações de escrita disparadas por botões no celular.
-  document.addEventListener('click', function(e){
-    if(!mobileV108()) return;
-    const alvo=e.target.closest('button,a,[onclick]');
-    if(!alvo || alvo.closest('#tela-login')) return;
-    const txt=textoV108(alvo);
-    if(ehEscritaV108(txt)){
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      alert('📱 Modo Consulta: faça alterações pelo computador.');
-    }
-  }, true);
-
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(aplicarV108,500));
-  document.addEventListener('click',()=>setTimeout(aplicarV108,180));
-  window.addEventListener('pageshow',()=>setTimeout(aplicarV108,500));
-  mqV108.addEventListener?.('change',()=>location.reload());
-
-  const obsV108=new MutationObserver(()=>{
-    clearTimeout(window.__v108Timer);
-    window.__v108Timer=setTimeout(aplicarV108,120);
-  });
-  document.addEventListener('DOMContentLoaded',()=>{
-    obsV108.observe(document.body,{childList:true,subtree:true});
-  });
-})();
-</script>
-
-
-<!-- =========================================================
- V134 — REMOVE A PISCADA DO LOGIN NO F5
- Base: V133
- Alteração somente visual:
- - cobre a página imediatamente durante a inicialização;
- - libera a interface após a restauração automática da sessão;
- - se não houver sessão válida, mostra normalmente o login;
- - NÃO altera salvarEstado(), edital, timer, questões ou revisões.
-========================================================== -->
-<style id="v134-anti-flash-style">
-  html.v134-iniciando body { visibility: hidden !important; }
-  #v134Splash {
-    position: fixed;
-    inset: 0;
-    z-index: 2147483646;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #0b1424;
-    color: #60a5fa;
-    font-family: Arial, sans-serif;
-    font-size: 18px;
-  }
-</style>
-
-<script id="v134-anti-flash">
-(function () {
-  const root = document.documentElement;
-  root.classList.add('v134-iniciando');
-
-  function criarSplash() {
-    if (!document.body || document.getElementById('v134Splash')) return;
-    const splash = document.createElement('div');
-    splash.id = 'v134Splash';
-    splash.innerHTML = '<div><b>Plano de Estudos</b><br><span style="font-size:13px;color:#94a3b8">Carregando seu perfil...</span></div>';
-    document.body.appendChild(splash);
-  }
-
-  function liberarTela() {
-    const splash = document.getElementById('v134Splash');
-    if (splash) splash.remove();
-    root.classList.remove('v134-iniciando');
-    if (document.body) document.body.style.visibility = '';
-  }
-
-  function sessaoJaExiste() {
-    try {
-      const chaves = [
-        'usuarioAtivo',
-        'usuario_ativo',
-        'usuarioLogado',
-        'usuario_logado',
-        'studyflow_usuario',
-        'estudo_usuario'
-      ];
-      for (const k of chaves) {
-        const v = localStorage.getItem(k) || sessionStorage.getItem(k);
-        if (v && String(v).trim()) return true;
-      }
-
-      // No sistema atual também existem chaves de perfil por usuário.
-      // Elas indicam que há dados locais a restaurar, sem modificar nada.
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i) || '';
-        if (/^cronograma_perfil_/i.test(k) && (localStorage.getItem(k) || '').length > 500) {
-          return true;
-        }
-      }
-    } catch (_) {}
-    return false;
-  }
-
-  function aguardarInterface() {
-    criarSplash();
-    const inicio = Date.now();
-
-    const timer = setInterval(function () {
-      const app =
-        document.querySelector('#app, #dashboard, .dashboard, [data-page="dashboard"], .app-container');
-      const login =
-        document.querySelector('#login, .login-container, .login-card, [data-page="login"]');
-
-      // Se a aplicação já foi montada, mostramos imediatamente.
-      if (app && getComputedStyle(app).display !== 'none') {
-        clearInterval(timer);
-        liberarTela();
-        return;
-      }
-
-      // Sem sessão/dados restauráveis, não escondemos o login real.
-      if (!sessaoJaExiste() && login && Date.now() - inicio > 250) {
-        clearInterval(timer);
-        liberarTela();
-        return;
-      }
-
-      // Segurança: nunca deixa a página escondida indefinidamente.
-      if (Date.now() - inicio > 1800) {
-        clearInterval(timer);
-        liberarTela();
-      }
-    }, 50);
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', aguardarInterface, { once: true });
-  } else {
-    aguardarInterface();
-  }
-
-  window.addEventListener('load', function () {
-    setTimeout(liberarTela, 1200);
-  }, { once: true });
-})();
-</script>
-
-
-<script id="v137-main">
-(function(){
-  const KEY='studyflow_v137_ultima_aba';
-  let restaurando = true;
-  let originalTrocar = null;
-
-  function normaliza(id){
-    return (typeof id==='string' && /^aba-[\w-]+$/.test(id)) ? id : '';
-  }
-
-  function salvarAba(id){
-    id=normaliza(id);
-    if(!id) return;
-    try { sessionStorage.setItem(KEY,id); } catch(e) {}
-  }
-
-  function lerAba(){
-    try { return normaliza(sessionStorage.getItem(KEY)||''); }
-    catch(e){ return ''; }
-  }
-
-  // Captura escolha HUMANA pelo menu antes de qualquer rotina automática.
-  document.addEventListener('click', function(e){
-    const b=e.target.closest('[onclick*="trocarAba("]');
-    if(!b) return;
-    const oc=b.getAttribute('onclick')||'';
-    const m=oc.match(/trocarAba\s*\(\s*['"]([^'"]+)['"]/);
-    if(m){
-      salvarAba(m[1]);
-      restaurando=false; // clique humano sempre vence
-    }
-  }, true);
-
-  function instalarInterceptador(){
-    if(typeof window.trocarAba!=='function') return false;
-    if(window.trocarAba.__v137) return true;
-
-    originalTrocar=window.trocarAba;
-    function wrapper(id, btn){
-      const desejada=lerAba();
-
-      // No boot/F5, se já existe uma última aba diferente de dashboard,
-      // não deixa inicializadores tardios forçarem aba-inicio.
-      if(restaurando && id==='aba-inicio' && desejada && desejada!=='aba-inicio'){
-        return;
-      }
-      return originalTrocar.apply(this, arguments);
-    }
-    wrapper.__v137=true;
-    window.trocarAba=wrapper;
-    return true;
-  }
-
-  function botaoDaAba(id){
-    return [...document.querySelectorAll('[onclick*="trocarAba("]')].find(function(b){
-      const oc=b.getAttribute('onclick')||'';
-      return oc.includes("'"+id+"'") || oc.includes('"'+id+'"');
-    });
-  }
-
-  function restaurar(){
-    instalarInterceptador();
-    const id=lerAba();
-    if(!id){
-      restaurando=false;
-      return;
-    }
-    const b=botaoDaAba(id);
-    if(b && typeof window.trocarAba==='function'){
-      try { window.trocarAba(id,b); } catch(e) { try{b.click()}catch(_){} }
-    }
-    // mantém pequena janela para impedir inicializador tardio de sobrescrever.
-    setTimeout(function(){ restaurando=false; }, 900);
-  }
-
-  function revelar(){
-    // Revela só quando o fluxo original já decidiu login ou app.
-    document.documentElement.classList.remove('v137-carregando');
-  }
-
-  function iniciar(){
-    let tentativas=0;
-    const t=setInterval(function(){
-      tentativas++;
-      const ok=instalarInterceptador();
-      const login=document.getElementById('tela-login') || document.querySelector('.login-container,.login-card,#login');
-      const app=document.getElementById('app-container') || document.querySelector('.app-container,#app');
-
-      if(ok && tentativas>=2){
-        clearInterval(t);
-        restaurar();
-        setTimeout(revelar,120);
-      } else if(tentativas>=30){
-        clearInterval(t);
-        restaurar();
-        revelar();
-      }
-    },50);
-
-    // trava de segurança para nunca deixar página invisível.
-    setTimeout(revelar,2200);
-  }
-
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',iniciar,{once:true});
-  } else iniciar();
-
-  window.addEventListener('pageshow',function(){
-    setTimeout(restaurar,80);
-  });
-})();
-</script>
-
-
-
-<!-- =========================================================
- V139 — ÚLTIMA ABA, SEM TELA BRANCA
- Base: V137 estável
- Mantém:
-   - dados após F5
-   - correção da piscada do login
- Estratégia:
-   - apenas memoriza o clique real do menu
-   - deixa TODO o boot original terminar
-   - depois executa UM clique real no botão salvo
-   - não intercepta trocarAba()
-========================================================== -->
-<script id="v139-ultima-aba">
-(function(){
-  const KEY = 'studyflow_v139_ultima_aba';
-  let restaurando = false;
-
-  function infoBotao(btn){
-    if(!btn) return null;
-    const oc = btn.getAttribute('onclick') || '';
-    const m = oc.match(/trocarAba\s*\(\s*['"]([^'"]+)['"]/i);
-    if(!m) return null;
-    return {
-      aba: m[1],
-      texto: (btn.innerText || btn.textContent || '').trim().replace(/\s+/g,' ')
-    };
-  }
-
-  // Salva SOMENTE interação física do usuário no menu.
-  document.addEventListener('pointerdown', function(e){
-    if(restaurando) return;
-    const btn = e.target.closest('[onclick*="trocarAba"]');
-    const info = infoBotao(btn);
-    if(!info) return;
-    try {
-      localStorage.setItem(KEY, JSON.stringify(info));
-    } catch(_){}
-  }, true);
-
-  function ler(){
-    try {
-      const x = JSON.parse(localStorage.getItem(KEY) || 'null');
-      if(x && x.aba) return x;
-    } catch(_){}
-    return null;
-  }
-
-  function achar(info){
-    const botoes = [...document.querySelectorAll('[onclick*="trocarAba"]')];
-
-    // Primeiro procura pelo destino exato.
-    let b = botoes.find(x => {
-      const i = infoBotao(x);
-      return i && i.aba === info.aba;
-    });
-    if(b) return b;
-
-    // Reserva: procura pelo texto do item.
-    if(info.texto){
-      b = botoes.find(x => {
-        const t=(x.innerText||x.textContent||'').trim().replace(/\s+/g,' ');
-        return t === info.texto;
-      });
-    }
-    return b || null;
-  }
-
-  function appPronto(){
-    const app = document.getElementById('app-container') ||
-                document.querySelector('.app-container,#app');
-    if(!app) return false;
-    const s=getComputedStyle(app);
-    return s.display!=='none' && s.visibility!=='hidden';
-  }
-
-  function restaurarUmaVez(){
-    const info=ler();
-    if(!info || info.aba==='aba-inicio') return;
-
-    const btn=achar(info);
-    if(!btn) return;
-
-    restaurando=true;
-
-    // IMPORTANTE: clique real no item do menu.
-    // Não chama trocarAba diretamente e não bloqueia o boot.
-    try { btn.click(); } catch(_){}
-
-    setTimeout(function(){ restaurando=false; },300);
-  }
-
-  function iniciar(){
-    // Espera o sistema original terminar de montar Dashboard e dados.
-    let n=0;
-    const timer=setInterval(function(){
-      n++;
-      if(appPronto() && typeof window.trocarAba==='function' && n>=8){
-        clearInterval(timer);
-        // margem extra para atualizarUIAposCarregar/abrirApp terminarem.
-        setTimeout(restaurarUmaVez, 900);
-      } else if(n>=50){
-        clearInterval(timer);
-        setTimeout(restaurarUmaVez, 500);
-      }
-    },100);
-  }
-
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded', iniciar, {once:true});
-  } else {
-    iniciar();
-  }
-})();
-</script>
-
-
-
-<!-- =========================================================
- V140 — NOVO REGISTRO: QUESTÕES SOMENTE EM "QUESTÕES"
- Base: V139 estável.
- Preserva F5/login/última aba/revisões/nuvem/timer.
- - Teoria e Revisão: Disciplina + Assunto + Minutos
- - Questões: também mostra Questões + Acertos + Erros
- - Teoria/Revisão nunca alimentam estatísticas de questões
-========================================================== -->
-<style id="v140-novo-registro-css">
-#modalNovoRegistroV47 .v140-campo-questoes { display:none; }
-#modalNovoRegistroV47.v140-tipo-questoes .v140-campo-questoes { display:flex; }
-</style>
-<script id="v140-novo-registro-js">
-(function(){
-  function tipoAtual(){
-    var b=document.querySelector('#modalNovoRegistroV47 .tipo-registro-v47 button.active');
-    return (b && b.dataset && b.dataset.tipo) || 
-           (typeof tipoRegistroV47!=='undefined' ? tipoRegistroV47 : 'Teoria');
-  }
-
-  function aplicarCampos(){
-    var modal=document.getElementById('modalNovoRegistroV47');
-    if(!modal)return;
-    var questoes=tipoAtual()==='Questões';
-    modal.classList.toggle('v140-tipo-questoes',questoes);
-
-    if(!questoes){
-      ['registroQuestoesV47','registroAcertosV47','registroErrosV47'].forEach(function(id){
-        var el=document.getElementById(id); if(el)el.value='0';
-      });
-    }
-  }
-
-  function instalarSelecao(){
-    if(typeof window.selecionarTipoRegistroV47!=='function' ||
-       window.selecionarTipoRegistroV47.__v140) return;
-    var original=window.selecionarTipoRegistroV47;
-    var nova=function(btn){
-      var r=original.apply(this,arguments);
-      aplicarCampos();
-      return r;
-    };
-    nova.__v140=true;
-    window.selecionarTipoRegistroV47=nova;
-  }
-
-  function instalarAbrir(){
-    if(typeof window.abrirNovoRegistroV47!=='function' ||
-       window.abrirNovoRegistroV47.__v140) return;
-    var original=window.abrirNovoRegistroV47;
-    var nova=function(){
-      var r=original.apply(this,arguments);
-      aplicarCampos();
-      return r;
-    };
-    nova.__v140=true;
-    window.abrirNovoRegistroV47=nova;
-  }
-
-  function instalarSalvar(){
-    if(typeof window.salvarNovoRegistroV47!=='function' ||
-       window.salvarNovoRegistroV47.__v140) return;
-
-    var nova=function(){
-      var materia=document.getElementById('registroMateriaV47')?.value||'Estudo';
-      var assunto=document.getElementById('registroAssuntoV47')?.value?.trim()||'';
-      var min=Math.max(0,parseInt(document.getElementById('registroMinutosV47')?.value||0,10));
-      var tipo=tipoAtual();
-      var ehQuestoes=(tipo==='Questões');
-
-      var q=ehQuestoes ? Math.max(0,parseInt(document.getElementById('registroQuestoesV47')?.value||0,10)) : 0;
-      var a=ehQuestoes ? Math.max(0,parseInt(document.getElementById('registroAcertosV47')?.value||0,10)) : 0;
-      var er=ehQuestoes ? Math.max(0,parseInt(document.getElementById('registroErrosV47')?.value||0,10)) : 0;
-
-      if(!materia){alert('Selecione uma disciplina.');return;}
-      if(!assunto){alert('Informe o assunto estudado.');return;}
-      if(min<=0){alert('Informe os minutos estudados.');return;}
-
-      if(ehQuestoes){
-        if(q<=0){alert('Informe a quantidade de questões.');return;}
-        if((a+er)!==q){
-          alert('Questões deve ser igual a Acertos + Erros.');
-          return;
-        }
-      }
-
-      if(typeof registrarHoraEstudo==='function') registrarHoraEstudo(materia,min);
-
-      var e=(typeof estado!=='undefined' && estado) ? estado : window.estado;
-      if(!e)return;
-
-      // Somente o tipo Questões alimenta o histórico/estatísticas de questões.
-      if(ehQuestoes){
-        e.historicoQuestoes=Array.isArray(e.historicoQuestoes)?e.historicoQuestoes:[];
-        e.historicoQuestoes.push({
-          id:'qz_'+Math.random().toString(36).slice(2,11),
-          materia:materia,assunto:assunto,total:q,
-          acertos:a,erros:er,data:new Date().toISOString(),tipo:'Questões'
-        });
-      }
-
-      e.historicoRegistrosV47=Array.isArray(e.historicoRegistrosV47)?e.historicoRegistrosV47:[];
-      e.historicoRegistrosV47.push({
-        tipo:tipo,materia:materia,assunto:assunto,minutos:min,
-        questoes:q,acertos:a,erros:er,data:new Date().toISOString()
-      });
-
-      try{if(typeof salvarEstado==='function') salvarEstado();}catch(_){}
-      try{if(typeof fecharNovoRegistroV47==='function') fecharNovoRegistroV47();}catch(_){}
-      try{if(typeof atualizarVisualizacaoHoras==='function') atualizarVisualizacaoHoras();}catch(_){}
-      try{if(typeof atualizarVisualizacaoQuestoes==='function') atualizarVisualizacaoQuestoes();}catch(_){}
-      try{if(typeof renderizarProgressoV11==='function') renderizarProgressoV11();}catch(_){}
-      try{if(typeof renderizarProgressoV20==='function') renderizarProgressoV20();}catch(_){}
-      try{if(typeof aplicarDashboardV123==='function') aplicarDashboardV123();}catch(_){}
-
-      try{
-        if(typeof avisoV43==='function')
-          avisoV43('Registro salvo! ✓',tipo+' de '+materia+' registrado com sucesso.','✓','Fechar','fecharAvisoV43()');
-      }catch(_){}
-
-      // Próxima abertura começa limpa nos campos de questões.
-      ['registroQuestoesV47','registroAcertosV47','registroErrosV47'].forEach(function(id){
-        var el=document.getElementById(id); if(el)el.value='0';
-      });
-    };
-    nova.__v140=true;
-    window.salvarNovoRegistroV47=nova;
-  }
-
-  function instalar(){
-    instalarSelecao();
-    instalarAbrir();
-    instalarSalvar();
-    aplicarCampos();
-  }
-
-  document.addEventListener('DOMContentLoaded',function(){
-    setTimeout(instalar,900);
-    setTimeout(instalar,1700);
-  });
-  window.addEventListener('pageshow',function(){setTimeout(instalar,500);});
 })();
 </script>
 
@@ -11711,326 +10004,585 @@ body.v71-timer #aba-timer .timer-display{font-size:clamp(44px,6vw,76px)!importan
 </script>
 
 
-<!-- V121 ESTAVEL: modal edital/cliques. Base V117. -->
-<script id="v121-estavel-edital-cliques">
-(function(){
- function modalEdital(){return Array.from(document.querySelectorAll('.modal-overlay')).find(function(m){return (m.textContent||'').toLowerCase().includes('edital carregado');})||null;}
- function fechar(modal){modal=modal||modalEdital();if(modal){modal.classList.remove('active','show','open');modal.style.display='none';modal.style.pointerEvents='none';modal.setAttribute('aria-hidden','true');}document.body.style.overflow='';document.documentElement.style.overflow='';}
- function planejamento(){fechar();try{if(typeof trocarAba==='function'){trocarAba('aba-planejamento',null);}else{document.querySelectorAll('.tab-content').forEach(function(x){x.classList.remove('active');});var a=document.getElementById('aba-planejamento');if(a)a.classList.add('active');}}catch(e){}setTimeout(function(){try{if(typeof iniciarPlanejamentoV40==='function')iniciarPlanejamentoV40();}catch(e){}try{window.scrollTo(0,0);}catch(e){}},80);}
- document.addEventListener('click',function(e){var alvo=e.target.closest('button,a,[role="button"]');if(!alvo)return;var modal=alvo.closest('.modal-overlay');if(!modal)return;var tm=(modal.textContent||'').toLowerCase();if(!tm.includes('edital carregado'))return;var tb=(alvo.textContent||'').trim().toLowerCase();if(tb.includes('continuar')&&tb.includes('planejamento')){e.preventDefault();e.stopImmediatePropagation();planejamento();return;}if(tb==='×'||tb==='x'||tb==='fechar'){e.preventDefault();e.stopImmediatePropagation();fechar(modal);}},true);
- document.addEventListener('keydown',function(e){if(e.key==='Escape'&&modalEdital())fechar();},true);
- window.abrirPlanejamentoV121=planejamento;window.fecharModalEditalV121=fechar;
+<!-- ===== V74: MÓDULOS ISOLADOS — FLASHCARDS + BANCO DE QUESTÕES ===== -->
+<style id="v74-modulos-css">
+#v74-launcher{position:fixed;right:18px;bottom:18px;z-index:700;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.v74-fab{border:0;border-radius:12px;padding:11px 14px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.18);background:#2563eb;color:#fff}
+#v74-modal{position:fixed;inset:0;z-index:750;background:rgba(0,0,0,.58);display:none;align-items:center;justify-content:center;padding:18px}
+#v74-modal.show{display:flex}
+.v74-panel{width:min(1100px,96vw);height:min(820px,92vh);overflow:auto;background:var(--card,#fff);color:var(--text,#172033);border:1px solid var(--border,#dbe3ef);border-radius:18px;padding:18px;box-shadow:0 25px 70px rgba(0,0,0,.3)}
+body.dark .v74-panel{background:#102036;color:#e6edf7;border-color:#2a405e}
+.v74-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.v74-head h2{margin:0}
+.v74-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.v74-tabs button,.v74-btn{border:1px solid var(--border,#ccd6e3);background:transparent;color:inherit;border-radius:10px;padding:9px 12px;cursor:pointer;font-weight:700}
+.v74-tabs button.active,.v74-primary{background:#2563eb!important;color:#fff!important;border-color:#2563eb!important}
+.v74-grid{display:grid;grid-template-columns:280px 1fr;gap:16px}.v74-box{border:1px solid var(--border,#dbe3ef);border-radius:14px;padding:14px}
+body.dark .v74-box{border-color:#2a405e}.v74-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.v74-list{display:grid;gap:8px;margin-top:10px}
+.v74-item{border:1px solid var(--border,#dbe3ef);border-radius:11px;padding:10px;cursor:pointer}.v74-item.sel{outline:2px solid #2563eb}
+body.dark .v74-item{border-color:#2a405e}.v74-muted{opacity:.72;font-size:.9rem}.v74-card{border:1px solid var(--border,#dbe3ef);border-radius:12px;padding:12px;margin:8px 0}
+body.dark .v74-card{border-color:#2a405e}.v74-card b{display:block;margin-bottom:5px}
+.v74-input,.v74-textarea{width:100%;box-sizing:border-box;border:1px solid var(--border,#cbd5e1);border-radius:10px;padding:10px;background:transparent;color:inherit}
+.v74-textarea{min-height:90px;resize:vertical}.v74-danger{border-color:#ef4444!important;color:#ef4444!important}
+#v74-sim-frame{width:100%;height:68vh;border:0;border-radius:12px;background:white}
+@media(max-width:760px){.v74-grid{grid-template-columns:1fr}#v74-launcher{left:10px;right:10px}.v74-fab{flex:1}}
+</style>
+
+<div id="v74-launcher">
+  <button class="v74-fab" onclick="V74.open('flash')">🧠 Flashcards</button>
+  <button class="v74-fab" onclick="V74.open('quest')">🗃️ Banco de Questões</button>
+</div>
+<div id="v74-modal"><div class="v74-panel">
+  <div class="v74-head"><h2 id="v74-title">Módulos</h2><button class="v74-btn" onclick="V74.close()">✕ Fechar</button></div>
+  <div class="v74-tabs">
+    <button id="v74-tab-flash" onclick="V74.show('flash')">🧠 Flashcards</button>
+    <button id="v74-tab-quest" onclick="V74.show('quest')">🗃️ Banco de Questões</button>
+  </div>
+  <div id="v74-body"></div>
+</div></div>
+
+<script id="v74-modulos-js">
+window.V74=(function(){
+ const KF='EI_V74_FLASH', KQ='EI_V74_QUEST';
+ let mode='flash', folder=null;
+ const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+ const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+ const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+ function admin(){ try{return estado?.usuario?.admin===true || estado?.usuario?.perfil==='admin' || localStorage.getItem('EI_V74_ADMIN')==='1'}catch(e){return false} }
+ function open(m){document.getElementById('v74-modal').classList.add('show');show(m)}
+ function close(){document.getElementById('v74-modal').classList.remove('show')}
+ function show(m){mode=m;folder=null;document.getElementById('v74-tab-flash').classList.toggle('active',m==='flash');document.getElementById('v74-tab-quest').classList.toggle('active',m==='quest');render()}
+ function render(){document.getElementById('v74-title').textContent=mode==='flash'?'🧠 Flashcards':'🗃️ Banco de Questões'; mode==='flash'?renderFlash():renderQuest()}
+
+ function folders(k){return load(k,{folders:[]})}
+ function addFolder(k){const n=prompt('Nome da pasta/matéria:');if(!n)return;const d=folders(k);d.folders.push({id:uid(),name:n,items:[]});save(k,d);render()}
+ function delFolder(k,id){if(!confirm('Excluir esta pasta e todo o conteúdo dela?'))return;const d=folders(k);d.folders=d.folders.filter(x=>x.id!==id);save(k,d);folder=null;render()}
+ function renameFolder(k,id){const d=folders(k),f=d.folders.find(x=>x.id===id);if(!f)return;const n=prompt('Novo nome:',f.name);if(!n)return;f.name=n;save(k,d);render()}
+
+ function folderPane(k,isAdmin){
+   const d=folders(k);
+   return `<div class="v74-box"><div class="v74-row"><b>📁 Pastas por matéria</b>${isAdmin||k===KF?`<button class="v74-btn v74-primary" onclick="V74.addFolder('${k}')">+ Pasta</button>`:''}</div>
+   <div class="v74-list">${d.folders.length?d.folders.map(f=>`<div class="v74-item ${folder===f.id?'sel':''}" onclick="V74.pick('${f.id}')"><b>${esc(f.name)}</b><span class="v74-muted">${f.items.length} item(ns)</span>${(isAdmin||k===KF)?`<div class="v74-row" style="margin-top:7px"><button class="v74-btn" onclick="event.stopPropagation();V74.renameFolder('${k}','${f.id}')">Renomear</button><button class="v74-btn v74-danger" onclick="event.stopPropagation();V74.delFolder('${k}','${f.id}')">Excluir</button></div>`:''}</div>`).join(''):'<span class="v74-muted">Nenhuma pasta criada.</span>'}</div></div>`;
+ }
+ function pick(id){folder=id;render()}
+
+ function renderFlash(){
+   const d=folders(KF),f=d.folders.find(x=>x.id===folder);
+   let right=`<div class="v74-box"><h3>Flashcards</h3><p class="v74-muted">Crie uma pasta de matéria e selecione-a para adicionar cartões.</p></div>`;
+   if(f) right=`<div class="v74-box"><h3>${esc(f.name)}</h3>
+     <div class="v74-card"><b>Novo flashcard</b><input id="v74-q" class="v74-input" placeholder="Pergunta"><textarea id="v74-a" class="v74-textarea" placeholder="Resposta"></textarea><div class="v74-row"><button class="v74-btn v74-primary" onclick="V74.addCard()">Salvar flashcard</button><button class="v74-btn" onclick="V74.exportCSV()">Exportar Anki CSV</button></div></div>
+     ${f.items.length?f.items.map(c=>`<div class="v74-card"><b>${esc(c.q)}</b><div>${esc(c.a)}</div><div class="v74-row" style="margin-top:8px"><button class="v74-btn" onclick="V74.editCard('${c.id}')">Editar</button><button class="v74-btn v74-danger" onclick="V74.delCard('${c.id}')">Excluir</button></div></div>`).join(''):'<p class="v74-muted">Ainda não há flashcards nesta pasta.</p>'}
+     <div class="v74-card"><b>✨ IA — próxima etapa</b><span class="v74-muted">A estrutura para pastas e cartões já está isolada. A conexão com IA para receber PDF/TXT/texto e gerar cartões será adicionada depois, sem colocar chave de API dentro do HTML.</span></div>
+   </div>`;
+   document.getElementById('v74-body').innerHTML=`<div class="v74-grid">${folderPane(KF,true)}${right}</div>`;
+ }
+ function addCard(){const q=document.getElementById('v74-q').value.trim(),a=document.getElementById('v74-a').value.trim();if(!q||!a)return alert('Preencha pergunta e resposta.');const d=folders(KF),f=d.folders.find(x=>x.id===folder);f.items.push({id:uid(),q,a});save(KF,d);render()}
+ function delCard(id){if(!confirm('Excluir este flashcard?'))return;const d=folders(KF),f=d.folders.find(x=>x.id===folder);f.items=f.items.filter(x=>x.id!==id);save(KF,d);render()}
+ function editCard(id){const d=folders(KF),f=d.folders.find(x=>x.id===folder),c=f.items.find(x=>x.id===id);const q=prompt('Pergunta:',c.q);if(q===null)return;const a=prompt('Resposta:',c.a);if(a===null)return;c.q=q;c.a=a;save(KF,d);render()}
+ function exportCSV(){const d=folders(KF),f=d.folders.find(x=>x.id===folder);const csv=f.items.map(x=>`${String(x.q).replaceAll(';',',')};${String(x.a).replaceAll(';',',')}`).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(f.name||'flashcards')+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+
+ function renderQuest(){
+   const d=folders(KQ),f=d.folders.find(x=>x.id===folder),isA=admin();
+   let right=`<div class="v74-box"><h3>Banco de Questões</h3><p class="v74-muted">Selecione uma pasta para abrir os simulados. O gerenciamento fica reservado ao perfil ADM.</p>${!isA?'<p class="v74-muted">🔒 Modo aluno: somente leitura.</p>':''}</div>`;
+   if(f) right=`<div class="v74-box"><div class="v74-row"><h3 style="margin-right:auto">${esc(f.name)}</h3>${isA?'<label class="v74-btn v74-primary">📥 Importar HTML<input type="file" accept=".html,text/html" hidden onchange="V74.importHTML(event)"></label>':''}</div>
+   ${f.items.length?f.items.map(s=>`<div class="v74-card"><b>📝 ${esc(s.name)}</b><span class="v74-muted">${esc(s.meta||'Simulado HTML')}</span><div class="v74-row" style="margin-top:8px"><button class="v74-btn v74-primary" onclick="V74.openSim('${s.id}')">▶ Abrir</button>${isA?`<button class="v74-btn" onclick="V74.renameSim('${s.id}')">Renomear</button><button class="v74-btn v74-danger" onclick="V74.delSim('${s.id}')">Excluir</button>`:''}</div></div>`).join(''):'<p class="v74-muted">Nenhum simulado arquivado nesta pasta.</p>'}
+   </div>`;
+   document.getElementById('v74-body').innerHTML=`<div class="v74-grid">${folderPane(KQ,isA)}${right}</div>`;
+ }
+ function importHTML(ev){
+   if(!admin())return alert('Somente o ADM pode importar simulados.');
+   const file=ev.target.files?.[0];if(!file||!folder)return;
+   const r=new FileReader();r.onload=()=>{const html=String(r.result);const title=(html.match(/<title>([\s\S]*?)<\/title>/i)||[])[1]||file.name;const d=folders(KQ),f=d.folders.find(x=>x.id===folder);f.items.push({id:uid(),name:title.replace(/<[^>]+>/g,''),meta:file.name,html});try{save(KQ,d);render()}catch(e){alert('Este HTML é grande demais para o armazenamento local do navegador. Para muitos simulados, precisaremos do backend/banco de dados.')}};r.readAsText(file,'UTF-8')
+ }
+ function openSim(id){const d=folders(KQ),f=d.folders.find(x=>x.id===folder),s=f.items.find(x=>x.id===id);if(!s)return;document.getElementById('v74-body').innerHTML=`<div class="v74-row" style="margin-bottom:10px"><button class="v74-btn" onclick="V74.render()">← Voltar ao banco</button><b>${esc(s.name)}</b></div><iframe id="v74-sim-frame" sandbox="allow-scripts allow-forms allow-modals allow-same-origin"></iframe>`;const fr=document.getElementById('v74-sim-frame');fr.srcdoc=s.html}
+ function delSim(id){if(!admin())return; if(!confirm('Excluir este simulado?'))return;const d=folders(KQ),f=d.folders.find(x=>x.id===folder);f.items=f.items.filter(x=>x.id!==id);save(KQ,d);render()}
+ function renameSim(id){if(!admin())return;const d=folders(KQ),f=d.folders.find(x=>x.id===folder),s=f.items.find(x=>x.id===id);const n=prompt('Novo nome:',s.name);if(!n)return;s.name=n;save(KQ,d);render()}
+
+ return {open,close,show,render,pick,addFolder,delFolder,renameFolder,addCard,delCard,editCard,exportCSV,importHTML,openSim,delSim,renameSim};
 })();
 </script>
 
 
-<!-- =========================================================
- V123 — DASHBOARD + QUESTÕES: FONTE ÚNICA
- Base: V121 estável
- Corrige a causa do "pisca e volta":
- algumas rotinas antigas preferiam arrays vazios (registrosQuestoes/questoes)
- e ignoravam historicoQuestoes, onde os registros realmente estavam.
- NÃO altera cronograma, prioridades, edital, revisões ou Timer.
-========================================================== -->
-<script id="v123-dashboard-questoes-fonte-unica">
-(function () {
-  function n(v){ var x=Number(v); return Number.isFinite(x)?x:0; }
-  function st(){ try{return estado||window.estado||{};}catch(_){return window.estado||{};} }
+<!-- ===== V75: FLASHCARDS + BANCO DE QUESTÕES NO MENU LATERAL ===== -->
+<style id="v75-menu-css">
+/* Esconde apenas os lançadores flutuantes da V74. Os módulos continuam intactos. */
+#v74-launcher{display:none!important}
+.v75-menu-btn{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border:0;
+  background:transparent;
+  color:inherit;
+  padding:11px 18px;
+  font:inherit;
+  font-weight:600;
+  text-align:left;
+  cursor:pointer;
+  border-radius:8px;
+}
+.v75-menu-btn:hover{background:rgba(255,255,255,.10)}
+</style>
 
-  function listaQuestoesV123(){
-    var e=st();
-    var fontes=[
-      e.historicoQuestoes,
-      e.registrosQuestoes,
-      e.questoes,
-      e.questoesRegistradas
-    ];
-    /* A fonte oficial atual é historicoQuestoes.
-       Fallback somente se ela não existir/não tiver registros. */
-    for(var i=0;i<fontes.length;i++){
-      if(Array.isArray(fontes[i]) && fontes[i].length) return fontes[i];
-    }
-    return [];
+<script id="v75-menu-js">
+(function(){
+ function instalarV75(){
+   if(document.getElementById('v75-flash-menu')) return;
+
+   const botoes=[...document.querySelectorAll('.tab-btn')];
+   const questoes=botoes.find(b=>{
+     const s=((b.textContent||'')+' '+(b.getAttribute('onclick')||'')).toLowerCase();
+     return s.includes('questões') || s.includes('questoes') || s.includes('aba-questoes');
+   });
+
+   if(!questoes || !questoes.parentNode) return;
+
+   const flash=document.createElement('button');
+   flash.id='v75-flash-menu';
+   flash.type='button';
+   flash.className=(questoes.className||'tab-btn')+' v75-menu-btn';
+   flash.innerHTML='<span>🧠</span><span>Flashcards</span>';
+   flash.onclick=function(e){
+     e.preventDefault();
+     if(window.V74) V74.open('flash');
+   };
+
+   const banco=document.createElement('button');
+   banco.id='v75-banco-menu';
+   banco.type='button';
+   banco.className=(questoes.className||'tab-btn')+' v75-menu-btn';
+   banco.innerHTML='<span>🗃️</span><span>Banco de Questões</span>';
+   banco.onclick=function(e){
+     e.preventDefault();
+     if(window.V74) V74.open('quest');
+   };
+
+   questoes.insertAdjacentElement('afterend', banco);
+   questoes.insertAdjacentElement('afterend', flash);
+ }
+
+ if(document.readyState==='loading'){
+   document.addEventListener('DOMContentLoaded',()=>setTimeout(instalarV75,100));
+ }else{
+   setTimeout(instalarV75,100);
+ }
+
+ /* Se o menu for reconstruído pelo sistema, recoloca os dois atalhos. */
+ const obs=new MutationObserver(()=>instalarV75());
+ document.addEventListener('DOMContentLoaded',()=>{
+   const aside=document.querySelector('aside');
+   if(aside) obs.observe(aside,{childList:true,subtree:true});
+ });
+})();
+</script>
+
+
+<!-- ===== V76: ADM DO BANCO + IMPORTAÇÃO DE MATERIAL PARA FLASHCARDS ===== -->
+<style id="v76-css">
+.v76-import-box{margin-top:12px;border:1px dashed #7c8da5;border-radius:12px;padding:13px}
+.v76-import-box textarea{width:100%;min-height:150px;box-sizing:border-box;margin-top:8px}
+.v76-chip{display:inline-block;padding:5px 9px;border-radius:999px;background:#e8f1ff;color:#1769d2;font-size:12px;font-weight:800}
+body.dark .v76-chip{background:#183250;color:#72b7ff}
+</style>
+
+<script id="v76-js">
+(function(){
+ const MAT='EI_V76_FLASH_MATERIAL';
+
+ /* Reconhece o administrador já logado pelo sistema, sem alterar login/permissões existentes. */
+ function usuarioEhAdminV76(){
+   try{
+     const candidatos=[
+       estado?.usuario, estado?.user, estado?.usuarioAtual, estado?.perfilAtual,
+       window.usuarioAtual, window.currentUser
+     ].filter(Boolean);
+     for(const u of candidatos){
+       const s=JSON.stringify(u).toLowerCase();
+       if(u.admin===true || u.isAdmin===true || u.administrador===true ||
+          String(u.perfil||u.role||u.tipo||'').toLowerCase().includes('admin') ||
+          s.includes('"admin":true') || s.includes('"isadmin":true')) return true;
+     }
+
+     /* Compatibilidade com o painel "Gestão Utilizadores":
+        se o usuário possui acesso à gestão administrativa, libera o banco. */
+     const gestao=[...document.querySelectorAll('.tab-btn,button,a')].find(x=>
+       /gest[aã]o\s+utilizadores/i.test(x.textContent||'')
+     );
+     if(gestao && getComputedStyle(gestao).display!=='none') return true;
+
+     return localStorage.getItem('EI_V74_ADMIN')==='1';
+   }catch(e){ return false; }
+ }
+
+ /* Sobrescreve somente o detector local da V74 através de uma flag compatível.
+    Não toca na autenticação principal. */
+ function sincronizarAdminV76(){
+   if(usuarioEhAdminV76()) localStorage.setItem('EI_V74_ADMIN','1');
+ }
+
+ sincronizarAdminV76();
+ document.addEventListener('click',sincronizarAdminV76,true);
+
+ /* Complementa a tela Flashcards depois que a V74 termina de renderizar. */
+ function materialData(){try{return JSON.parse(localStorage.getItem(MAT))||{}}catch(e){return {}}}
+ function saveMaterial(v){localStorage.setItem(MAT,JSON.stringify(v))}
+
+ function adicionarImportador(){
+   const modal=document.getElementById('v74-modal');
+   if(!modal?.classList.contains('show')) return;
+   const title=document.getElementById('v74-title');
+   if(!title || !/flashcards/i.test(title.textContent||'')) return;
+   const body=document.getElementById('v74-body');
+   if(!body || body.querySelector('#v76-import')) return;
+
+   const selected=body.querySelector('.v74-item.sel');
+   if(!selected) return;
+
+   const nome=(selected.querySelector('b')?.textContent||'Pasta').trim();
+   const box=document.createElement('div');
+   box.id='v76-import';
+   box.className='v74-card v76-import-box';
+   box.innerHTML=`
+     <b>📚 Material para gerar flashcards</b>
+     <p class="v74-muted">Cole um conteúdo abaixo ou carregue um arquivo TXT. PDF será conectado junto com a IA/backend na próxima etapa.</p>
+     <label class="v74-btn">📄 Carregar TXT
+       <input id="v76-file" type="file" accept=".txt,text/plain" hidden>
+     </label>
+     <textarea id="v76-text" class="v74-textarea" placeholder="Cole aqui o material de estudo..."></textarea>
+     <div class="v74-row" style="margin-top:8px">
+       <button class="v74-btn v74-primary" id="v76-save">💾 Guardar material</button>
+       <span class="v76-chip">Pasta: ${nome.replace(/[<>&]/g,'')}</span>
+     </div>
+     <p class="v74-muted" id="v76-status"></p>`;
+
+   const target=body.querySelector('.v74-grid > .v74-box:nth-child(2)') || body;
+   target.appendChild(box);
+
+   const key=nome;
+   const md=materialData();
+   if(md[key]) box.querySelector('#v76-text').value=md[key];
+
+   box.querySelector('#v76-file').addEventListener('change',e=>{
+     const f=e.target.files?.[0]; if(!f)return;
+     const r=new FileReader();
+     r.onload=()=>box.querySelector('#v76-text').value=String(r.result||'');
+     r.readAsText(f,'UTF-8');
+   });
+   box.querySelector('#v76-save').onclick=()=>{
+     const md=materialData();
+     md[key]=box.querySelector('#v76-text').value;
+     saveMaterial(md);
+     box.querySelector('#v76-status').textContent='✓ Material guardado nesta pasta. Pronto para a futura geração com IA.';
+   };
+ }
+
+ const obs=new MutationObserver(()=>setTimeout(adicionarImportador,20));
+ window.addEventListener('DOMContentLoaded',()=>{
+   const m=document.getElementById('v74-modal');
+   if(m) obs.observe(m,{subtree:true,childList:true,attributes:true});
+ });
+ document.addEventListener('click',()=>setTimeout(adicionarImportador,40));
+
+ window.usuarioEhAdminV76=usuarioEhAdminV76;
+})();
+</script>
+
+
+<!-- ===== V77: SIMULADO EM TELA CHEIA + FLASHCARDS PREPARADOS PARA IA ===== -->
+<style id="v77-css">
+/* Simulado: usa praticamente toda a tela do navegador */
+#v74-modal.v77-sim-full{
+  padding:0!important;
+  background:var(--bg,#f5f7fb)!important;
+}
+#v74-modal.v77-sim-full .v74-panel{
+  width:100vw!important;
+  max-width:none!important;
+  height:100vh!important;
+  max-height:none!important;
+  border-radius:0!important;
+  border:0!important;
+  padding:10px 14px!important;
+  box-sizing:border-box!important;
+}
+#v74-modal.v77-sim-full .v74-head,
+#v74-modal.v77-sim-full .v74-tabs{
+  display:none!important;
+}
+#v74-modal.v77-sim-full #v74-body{
+  height:calc(100vh - 20px)!important;
+}
+#v74-modal.v77-sim-full #v74-sim-frame{
+  width:100%!important;
+  height:calc(100vh - 62px)!important;
+  border-radius:10px!important;
+}
+.v77-ai-box{
+  margin-top:12px;
+  border:1px solid var(--border,#dbe3ef);
+  border-radius:12px;
+  padding:13px;
+}
+.v77-ai-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.v77-ai-controls select{padding:9px 12px;border-radius:9px;border:1px solid #cbd5e1;background:transparent;color:inherit}
+.v77-note{font-size:.9rem;opacity:.75;margin-top:8px}
+</style>
+
+<script id="v77-js">
+(function(){
+  /* Remove o modo tela cheia ao voltar/fechar/trocar de módulo. */
+  function normalizar(){
+    document.getElementById('v74-modal')?.classList.remove('v77-sim-full');
   }
 
-  function resumoQuestoesV123(){
-    var ac=0,er=0;
-    listaQuestoesV123().forEach(function(r){
-      ac += n(r && r.acertos);
-      er += n(r && r.erros);
+  const oldClose = V74.close;
+  V74.close = function(){ normalizar(); return oldClose.apply(this,arguments); };
+
+  const oldShow = V74.show;
+  V74.show = function(){ normalizar(); return oldShow.apply(this,arguments); };
+
+  const oldRender = V74.render;
+  V74.render = function(){ normalizar(); return oldRender.apply(this,arguments); };
+
+  /* Intercepta apenas a abertura do simulado e amplia a janela existente. */
+  const oldOpenSim = V74.openSim;
+  V74.openSim = function(id){
+    const r = oldOpenSim.call(this,id);
+    setTimeout(()=>{
+      document.getElementById('v74-modal')?.classList.add('v77-sim-full');
+      const back=[...document.querySelectorAll('#v74-body button')].find(b=>/voltar ao banco/i.test(b.textContent||''));
+      if(back){
+        const old=back.onclick;
+        back.onclick=function(e){
+          normalizar();
+          if(old) return old.call(this,e);
+          V74.render();
+        };
+      }
+    },0);
+    return r;
+  };
+
+  /* Interface pronta para a futura chamada ao backend de IA. */
+  function inserirPainelIA(){
+    const modal=document.getElementById('v74-modal');
+    if(!modal?.classList.contains('show') || modal.classList.contains('v77-sim-full')) return;
+    const title=document.getElementById('v74-title');
+    if(!title || !/flashcards/i.test(title.textContent||'')) return;
+    const body=document.getElementById('v74-body');
+    if(!body || body.querySelector('#v77-ai')) return;
+
+    const importador=body.querySelector('#v76-import');
+    if(!importador) return;
+
+    /* Esconde apenas o aviso antigo "IA — próxima etapa". */
+    [...body.querySelectorAll('.v74-card')].forEach(c=>{
+      if(c !== importador && /IA\s*[—-]\s*próxima etapa/i.test(c.textContent||'')) c.style.display='none';
     });
-    var total=ac+er;
-    return {total:total,acertos:ac,erros:er,taxa:total?Math.round(ac*100/total):0};
-  }
 
-  function resumoHorasV123(){
-    var e=st(), min=0;
-    (Array.isArray(e.historicoHoras)?e.historicoHoras:[]).forEach(function(r){
-      min += n(r && r.minutos);
-    });
-    return {min:min,texto:Math.floor(min/60)+'h '+String(Math.round(min%60)).padStart(2,'0')+'min'};
-  }
+    const box=document.createElement('div');
+    box.id='v77-ai';
+    box.className='v77-ai-box';
+    box.innerHTML=`
+      <b>✨ Gerar Flashcards com IA</b>
+      <p class="v74-muted">O material guardado nesta pasta será a fonte para os cartões.</p>
+      <div class="v77-ai-controls">
+        <label>Quantidade:
+          <select id="v77-qtd">
+            <option>5</option><option selected>10</option><option>20</option>
+            <option>30</option><option>40</option><option>50</option>
+          </select>
+        </label>
+        <button class="v74-btn v74-primary" id="v77-gerar">✨ Gerar Flashcards</button>
+      </div>
+      <div class="v77-note" id="v77-msg">
+        Interface pronta. Para gerar com IA de verdade, falta conectar o backend/API com segurança.
+      </div>`;
 
-  function resumoEditalV123(){
-    var e=st(), total=0,feito=0;
-    Object.keys(e.editalVerticalizado||{}).forEach(function(mat){
-      var arr=e.editalVerticalizado[mat];
-      if(!Array.isArray(arr)) return;
-      arr.forEach(function(t){
-        total++;
-        if(t && t.t===true) feito++;
-      });
-    });
-    return {total:total,feito:feito};
-  }
+    importador.insertAdjacentElement('afterend',box);
 
-  /* Corrige também as rotinas de Progresso que antes paravam no primeiro array,
-     mesmo quando esse array estava vazio. */
-  window.registrosQuestoesV11 = listaQuestoesV123;
-  window.registrosProgressoV20 = listaQuestoesV123;
-
-  function aplicarDashboardV123(){
-    var q=resumoQuestoesV123();
-    var h=resumoHorasV123();
-    var ed=resumoEditalV123();
-
-    var el=document.getElementById('dashQuestoesV36');
-    if(el) el.textContent=q.total ? q.taxa+'% de acertos' : '—';
-
-    el=document.getElementById('dashHorasV36');
-    if(el) el.textContent=h.texto;
-
-    el=document.getElementById('dashEditalV36');
-    if(el) el.textContent=ed.feito+' / '+ed.total;
-
-    var pct=ed.total?Math.round(ed.feito*100/ed.total):0;
-    el=document.getElementById('dashMetaPctV36');
-    if(el) el.textContent=pct+'%';
-    el=document.getElementById('dashMetaBarV36');
-    if(el) el.style.width=pct+'%';
-    el=document.getElementById('dashMetaTextoV36');
-    if(el) el.textContent=ed.total
-      ? ed.feito+' de '+ed.total+' tópicos concluídos no edital.'
-      : 'Carregue um edital para acompanhar sua evolução.';
-
-    /* Corrige somente os dois indicadores numéricos do bloco de atenção. */
-    var at=document.getElementById('dashAtencaoV36');
-    if(at){
-      var folhas=Array.from(at.querySelectorAll('*')).filter(function(x){return x.children.length===0;});
-      folhas.forEach(function(x){
-        var t=(x.textContent||'').trim();
-        if(/^Questões\s*\d*$/i.test(t)) x.textContent='Questões '+q.total;
-        if(/^Taxa\s*\d*%?$/i.test(t)) x.textContent='Taxa '+q.taxa+'%';
-      });
-    }
-  }
-  window.aplicarDashboardV123=aplicarDashboardV123;
-
-  /* Em vez de disputar com V36/V37, envolve as renderizações antigas:
-     elas terminam primeiro e V123 aplica a fonte correta por último. */
-  function envolver(nome){
-    var original=window[nome];
-    if(typeof original!=='function' || original.__v123) return;
-    var nova=function(){
-      var r=original.apply(this,arguments);
-      aplicarDashboardV123();
-      return r;
-    };
-    nova.__v123=true;
-    window[nome]=nova;
-  }
-
-  function instalar(){
-    envolver('renderizarDashboardV36');
-    envolver('renderizarDashboardV37');
-
-    /* Atualiza Progresso/Questões usando o histórico já salvo. */
-    try{ if(typeof renderizarProgressoV11==='function') renderizarProgressoV11(); }catch(_){}
-    try{ if(typeof renderizarProgressoV20==='function') renderizarProgressoV20(); }catch(_){}
-    try{ if(typeof atualizarVisualizacaoQuestoes==='function') atualizarVisualizacaoQuestoes(); }catch(_){}
-
-    aplicarDashboardV123();
-  }
-
-  /* Novo Registro: mantém a função original, mas não força uma recarga geral da UI
-     depois de salvar, pois isso era uma das causas de sobrescrita visual. */
-  var salvarOriginal=null;
-  function corrigirNovoRegistro(){
-    if(typeof window.salvarNovoRegistroV47!=='function') return;
-    if(window.salvarNovoRegistroV47.__v123) return;
-
-    salvarOriginal=window.salvarNovoRegistroV47;
-    var nova=function(){
-      var materia=document.getElementById('registroMateriaV47')?.value||'Estudo';
-      var assunto=document.getElementById('registroAssuntoV47')?.value?.trim()||'';
-      var min=Math.max(0,parseInt(document.getElementById('registroMinutosV47')?.value||0,10));
-      var q=Math.max(0,parseInt(document.getElementById('registroQuestoesV47')?.value||0,10));
-      var a=Math.max(0,parseInt(document.getElementById('registroAcertosV47')?.value||0,10));
-      var er=Math.max(0,parseInt(document.getElementById('registroErrosV47')?.value||0,10));
-      var tipo=(typeof tipoRegistroV47!=='undefined'?tipoRegistroV47:'Teoria');
-
-      if(!materia){alert('Selecione uma disciplina.');return;}
-      if(!assunto){alert('Informe o assunto estudado.');return;}
-      if(q>0 && (a+er)!==q){
-        alert('Questões deve ser igual a Acertos + Erros.');
+    box.querySelector('#v77-gerar').onclick=()=>{
+      const txt=importador.querySelector('#v76-text')?.value.trim()||'';
+      if(!txt){
+        alert('Primeiro cole/carregue o material e clique em Guardar material.');
         return;
       }
-
-      if(min>0 && typeof registrarHoraEstudo==='function') registrarHoraEstudo(materia,min);
-
-      var e=st();
-      if(q>0){
-        e.historicoQuestoes=Array.isArray(e.historicoQuestoes)?e.historicoQuestoes:[];
-        e.historicoQuestoes.push({
-          id:'qz_'+Math.random().toString(36).slice(2,11),
-          materia:materia,assunto:assunto,total:q,
-          acertos:a,erros:er,data:new Date().toISOString(),tipo:tipo
-        });
-      }
-
-      e.historicoRegistrosV47=Array.isArray(e.historicoRegistrosV47)?e.historicoRegistrosV47:[];
-      e.historicoRegistrosV47.push({
-        tipo:tipo,materia:materia,assunto:assunto,minutos:min,
-        questoes:q,acertos:a,erros:er,data:new Date().toISOString()
-      });
-
-      try{if(typeof salvarEstado==='function') salvarEstado();}catch(_){}
-      try{if(typeof fecharNovoRegistroV47==='function') fecharNovoRegistroV47();}catch(_){}
-      try{if(typeof atualizarVisualizacaoHoras==='function') atualizarVisualizacaoHoras();}catch(_){}
-      try{if(typeof atualizarVisualizacaoQuestoes==='function') atualizarVisualizacaoQuestoes();}catch(_){}
-      try{if(typeof renderizarProgressoV11==='function') renderizarProgressoV11();}catch(_){}
-      try{if(typeof renderizarProgressoV20==='function') renderizarProgressoV20();}catch(_){}
-      aplicarDashboardV123();
-
-      try{
-        if(typeof avisoV43==='function')
-          avisoV43('Registro salvo! ✓',tipo+' de '+materia+' registrado com sucesso.','✓','Fechar','fecharAvisoV43()');
-      }catch(_){}
+      const qtd=box.querySelector('#v77-qtd').value;
+      box.querySelector('#v77-msg').innerHTML=
+        `✓ Material detectado. Solicitação preparada para <b>${qtd} flashcards</b>.<br>`+
+        `A geração automática será ativada quando conectarmos o backend de IA.`;
     };
-    nova.__v123=true;
-    window.salvarNovoRegistroV47=nova;
   }
 
-  document.addEventListener('DOMContentLoaded',function(){
-    setTimeout(function(){corrigirNovoRegistro();instalar();},700);
-    setTimeout(instalar,1500);
+  const obs=new MutationObserver(()=>setTimeout(inserirPainelIA,20));
+  window.addEventListener('DOMContentLoaded',()=>{
+    const m=document.getElementById('v74-modal');
+    if(m) obs.observe(m,{subtree:true,childList:true,attributes:true});
   });
-  window.addEventListener('pageshow',function(){setTimeout(instalar,400);});
-  window.addEventListener('estado-carregado',function(){setTimeout(instalar,100);});
-
-  document.addEventListener('click',function(ev){
-    var b=ev.target.closest('.tab-btn');
-    if(!b)return;
-    var oc=b.getAttribute('onclick')||'';
-    if(oc.indexOf('aba-inicio')>=0 || oc.indexOf('aba-progresso')>=0 || oc.indexOf('aba-questoes')>=0){
-      setTimeout(instalar,80);
-    }
-  },true);
+  document.addEventListener('click',()=>setTimeout(inserirPainelIA,30),true);
 })();
 </script>
 
 
-
-<!-- V126 — Base V123. Correção simples do quadro "Precisa de atenção".
-     Sem MutationObserver, sem loop e sem interferência no login. -->
-<style id="v126-css">
-#dashAtencaoV36 .v126-row{
- display:grid;grid-template-columns:minmax(0,1fr) auto;
- gap:12px;align-items:center;padding:11px 0;
- border-bottom:1px solid rgba(148,163,184,.22)
+<!-- ===== V78: SIMULADO HTML AINDA MAIOR ===== -->
+<style id="v78-sim-max-css">
+/* Mantém apenas uma barra superior compacta para voltar ao banco */
+#v74-modal.v77-sim-full .v74-panel{
+  padding:4px!important;
 }
-#dashAtencaoV36 .v126-row:last-child{border-bottom:0}
-#dashAtencaoV36 .v126-name{font-weight:600;overflow-wrap:anywhere}
-#dashAtencaoV36 .v126-value{font-weight:800;white-space:nowrap}
+#v74-modal.v77-sim-full #v74-body{
+  height:calc(100vh - 8px)!important;
+}
+#v74-modal.v77-sim-full #v74-body > .v74-row{
+  min-height:34px!important;
+  margin:0 4px 4px!important;
+  gap:8px!important;
+}
+#v74-modal.v77-sim-full #v74-body > .v74-row .v74-btn{
+  padding:6px 10px!important;
+}
+#v74-modal.v77-sim-full #v74-sim-frame{
+  display:block!important;
+  width:100%!important;
+  height:calc(100vh - 46px)!important;
+  max-height:none!important;
+  border-radius:5px!important;
+  margin:0!important;
+}
+/* Em telas menores aproveita ainda mais espaço */
+@media(max-width:800px){
+  #v74-modal.v77-sim-full .v74-panel{padding:2px!important}
+  #v74-modal.v77-sim-full #v74-sim-frame{height:calc(100vh - 43px)!important}
+}
 </style>
-<script id="v126-js">
+
+
+<!-- ===== V79: PERMISSÕES DO BANCO + FLASHCARDS POR USUÁRIO ===== -->
+<script id="v79-permissoes-js">
 (function(){
- function N(v){v=Number(v);return Number.isFinite(v)?v:0}
- function E(){try{return estado||window.estado||{}}catch(_){return window.estado||{}}}
- function regs(){
-   try{
-     if(typeof window.registrosQuestoesV11==='function'){
-       var a=window.registrosQuestoesV11();
-       if(Array.isArray(a))return a;
-     }
-   }catch(_){}
-   var e=E();
-   return Array.isArray(e.historicoQuestoes)?e.historicoQuestoes:[];
- }
- function renderV126(){
-   var box=document.getElementById('dashAtencaoV36');
-   if(!box)return;
+  /* Remove a permissão persistente insegura criada na V76. */
+  localStorage.removeItem('EI_V74_ADMIN');
 
-   var por={},ac=0,er=0;
-   regs().forEach(function(r){
-     var nome=(r&&(r.materia||r.disciplina))||'Sem disciplina';
-     var a=N(r&&r.acertos),x=N(r&&r.erros);
-     ac+=a;er+=x;
-     if(!por[nome])por[nome]={a:0,e:0};
-     por[nome].a+=a;por[nome].e+=x;
-   });
+  function currentUserV79(){
+    try{
+      const cand=[
+        estado?.usuarioAtual, estado?.usuario, estado?.user,
+        window.usuarioAtual, window.currentUser
+      ].filter(Boolean);
+      return cand[0]||null;
+    }catch(e){return null}
+  }
 
-   var materias=Object.keys(por).map(function(nome){
-     var x=por[nome],t=x.a+x.e;
-     return {nome:nome,taxa:t?Math.round(x.a*100/t):0};
-   }).sort(function(a,b){return a.taxa-b.taxa});
+  function userKeyV79(){
+    const u=currentUserV79();
+    if(!u)return 'anonimo';
+    return String(u.id ?? u.uid ?? u.email ?? u.usuario ?? u.username ?? u.nome ?? 'usuario')
+      .toLowerCase().replace(/[^a-z0-9@._-]/g,'_');
+  }
 
-   var total=ac+er,taxa=total?Math.round(ac*100/total):0;
-   var titulo=box.querySelector('h1,h2,h3,h4');
+  function isAdminV79(){
+    const u=currentUserV79();
+    if(!u)return false;
+    const role=String(u.role ?? u.perfil ?? u.tipo ?? u.nivel ?? '').toLowerCase();
+    return u.admin===true || u.isAdmin===true || u.administrador===true ||
+           role==='admin' || role==='administrador';
+  }
 
-   Array.from(box.children).forEach(function(el){
-     if(el!==titulo)el.remove();
-   });
+  /* Migra os flashcards antigos para o usuário atual uma única vez.
+     Depois, cada usuário passa a usar sua própria chave. */
+  function migrateFlashV79(){
+    const key='EI_V79_FLASH_'+userKeyV79();
+    if(localStorage.getItem(key)===null){
+      const antigo=localStorage.getItem('EI_V74_FLASH');
+      localStorage.setItem(key, antigo || JSON.stringify({folders:[]}));
+    }
+    return key;
+  }
 
-   function row(nome,valor){
-     var r=document.createElement('div');r.className='v126-row';
-     var n=document.createElement('div');n.className='v126-name';n.textContent=nome;
-     var v=document.createElement('div');v.className='v126-value';v.textContent=valor;
-     r.appendChild(n);r.appendChild(v);box.appendChild(r);
-   }
+  function swapFlashStorageV79(){
+    const key=migrateFlashV79();
+    const atual=localStorage.getItem(key)||JSON.stringify({folders:[]});
+    localStorage.setItem('EI_V74_FLASH',atual);
+  }
 
-   materias.forEach(function(m){row(m.nome,m.taxa+'%')});
-   row('Questões',String(total));
-   row('Taxa geral',taxa+'%');
- }
- window.renderAtencaoV126=renderV126;
+  function saveBackFlashV79(){
+    const key=migrateFlashV79();
+    const atual=localStorage.getItem('EI_V74_FLASH');
+    if(atual!==null)localStorage.setItem(key,atual);
+  }
 
- /* Só executa quando o usuário abre o Dashboard.
-    Não roda na tela de login e não observa alterações do DOM. */
- document.addEventListener('click',function(e){
-   var b=e.target.closest('.tab-btn');
-   if(!b)return;
-   var oc=b.getAttribute('onclick')||'';
-   if(oc.indexOf('aba-inicio')>=0){
-     setTimeout(function(){
-       try{
-         if(typeof window.aplicarDashboardV123==='function')
-           window.aplicarDashboardV123();
-       }catch(_){}
-       renderV126();
-     },180);
-   }
- },true);
+  /* Antes de abrir Flashcards carrega os dados pessoais do usuário. */
+  const oldOpen=V74.open;
+  V74.open=function(m){
+    if(m==='flash')swapFlashStorageV79();
+    const r=oldOpen.apply(this,arguments);
+    setTimeout(aplicarPermissoesV79,20);
+    return r;
+  };
 
- /* Primeira renderização somente se o Dashboard já estiver visível após login. */
- setTimeout(function(){
-   var box=document.getElementById('dashAtencaoV36');
-   if(box && box.offsetParent!==null) renderV126();
- },1800);
+  const oldShow=V74.show;
+  V74.show=function(m){
+    if(m==='flash')swapFlashStorageV79();
+    const r=oldShow.apply(this,arguments);
+    setTimeout(aplicarPermissoesV79,20);
+    return r;
+  };
+
+  /* Sincroniza alterações de flashcards para a chave pessoal. */
+  const observerStorage=new MutationObserver(()=>{
+    const title=document.getElementById('v74-title');
+    if(title && /flashcards/i.test(title.textContent||'')) saveBackFlashV79();
+  });
+
+  function aplicarPermissoesV79(){
+    const title=document.getElementById('v74-title');
+    const body=document.getElementById('v74-body');
+    if(!title||!body)return;
+
+    if(/banco de questões/i.test(title.textContent||'')){
+      const adm=isAdminV79();
+
+      /* Usuário comum: remove todos os controles administrativos,
+         mas preserva o botão Abrir dos simulados. */
+      if(!adm){
+        body.querySelectorAll('label.v74-btn').forEach(x=>{
+          if(/importar html/i.test(x.textContent||''))x.remove();
+        });
+        body.querySelectorAll('button').forEach(b=>{
+          const s=(b.textContent||'').toLowerCase();
+          if(/^\s*\+\s*pasta/.test(s) || /renomear|excluir/.test(s)) b.remove();
+        });
+
+        /* Mensagem clara de somente leitura. */
+        const first=body.querySelector('.v74-box');
+        if(first && !body.querySelector('#v79-readonly')){
+          const p=document.createElement('p');
+          p.id='v79-readonly';p.className='v74-muted';
+          p.textContent='🔒 Banco compartilhado: somente o ADM pode adicionar, renomear ou excluir.';
+          first.appendChild(p);
+        }
+      }
+    }
+  }
+
+  window.isAdminV79=isAdminV79;
+  window.userKeyV79=userKeyV79;
+
+  window.addEventListener('DOMContentLoaded',()=>{
+    const modal=document.getElementById('v74-modal');
+    if(modal){
+      observerStorage.observe(modal,{subtree:true,childList:true});
+      new MutationObserver(()=>setTimeout(aplicarPermissoesV79,10))
+        .observe(modal,{subtree:true,childList:true,attributes:true});
+    }
+  });
+
+  /* Salva flashcards pessoais também ao fechar. */
+  const oldClose=V74.close;
+  V74.close=function(){
+    saveBackFlashV79();
+    return oldClose.apply(this,arguments);
+  };
 })();
 </script>
 
-
-<!-- =========================================================
- V133 — CORREÇÃO DO RESET NO F5
- Evidência V132:
- cronograma_perfil_eduardo caiu de ~13830 para 380 bytes por:
- refrescarAbaAtualV53 -> atualizarUIAposCarregar ->
- atualizarPainelPlanejamento -> salvarEstado.
-
- Correções:
- - atualizarPainelPlanejamento não salva durante renderização;
- - refrescarAbaAtualV53 não chama reconstrução completa;
- - salvarEstado bloqueado enquanto atualizarUIAposCarregar renderiza;
- - restante da V126 preservado.
-========================================================== -->

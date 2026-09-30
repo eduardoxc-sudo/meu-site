@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V8 DEV • ESTUDO REAL + REVISÕES</title>
+<title>Plano & Ciclo de Estudos — V8.1 DEV • ESTUDO REAL + REVISÕES</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -134,7 +134,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V8 • ESTUDO REAL DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V8.1 • ESTUDO REAL DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -878,37 +878,58 @@ $('btnSalvarPlanejamento')?.addEventListener('click',salvarPlanejamento);
 
 
 
-// ========================= V8 DEV — ESTUDO REAL =========================
-// Fluxo: disciplina atual do Ciclo -> primeiro tópico pendente do Edital ->
-// concluir -> marcar o MESMO tópico no Edital -> gerar revisões -> avançar Ciclo.
-function estudoRealAtual(){
+// ========================= V8.1 DEV — ESTUDO REAL =========================
+// Corrige disciplina concluída: botão bloqueado, status limpo e busca a próxima
+// disciplina ativa que ainda tenha tópico pendente. Não altera Edital/revisões existentes.
+function estudoRealLocalizarProximo(){
   const ativas=cicloAtivas();
   if(!ativas.length)return null;
   cicloExecAjustar();
-  const disciplina=ativas[cicloExec.indice]?.nome;
-  const topicos=estadoV2?.editalVerticalizado?.[disciplina]||[];
-  const topico=topicos.find(t=>!t.t);
-  return disciplina&&topico?{disciplina,topico}:null;
+  for(let passo=0;passo<ativas.length;passo++){
+    const indice=(cicloExec.indice+passo)%ativas.length;
+    const disciplina=ativas[indice]?.nome;
+    const topicos=estadoV2?.editalVerticalizado?.[disciplina]||[];
+    const topico=topicos.find(t=>!t.t);
+    if(topico)return {disciplina,topico,indice,passo};
+  }
+  return null;
 }
+function estudoRealAtual(){ return estudoRealLocalizarProximo(); }
+
 function renderizarEstudoReal(){
   const titulo=$('estudoRealTopico'); if(!titulo)return;
-  const atual=estudoRealAtual();
   const btn=$('btnConcluirEstudoReal');
+  const info=$('estudoRealInfo');
+  const status=$('statusEstudoReal');
+  const atual=estudoRealLocalizarProximo();
+
+  // Mensagem de ação anterior não pode permanecer quando o estado mudou.
+  if(status) status.textContent='';
+
   if(!atual){
     const ativas=cicloAtivas();
-    if(!ativas.length){
-      titulo.textContent='—';
-      $('estudoRealInfo').textContent='Nenhuma disciplina ativa no ciclo.';
-    }else{
-      const disciplina=ativas[cicloExec.indice]?.nome||'Disciplina atual';
-      titulo.textContent='Todos os tópicos concluídos';
-      $('estudoRealInfo').textContent=disciplina+' não possui tópico pendente no Edital.';
-    }
+    titulo.textContent=ativas.length?'Todos os tópicos do ciclo concluídos':'—';
+    info.textContent=ativas.length
+      ?'Nenhuma disciplina ativa possui tópico pendente no Edital.'
+      :'Nenhuma disciplina ativa no ciclo.';
     btn.disabled=true;
     return;
   }
+
+  // Se a disciplina atual acabou, move a posição para a próxima com conteúdo pendente.
+  if(atual.passo>0){
+    cicloExec.indice=atual.indice;
+    cicloExecAjustar();
+    // salva a correção de posição sem contabilizar volta artificial
+    if(auth.currentUser && CICLO_EXEC_REF){
+      cicloExec.atualizadoEm=new Date().toISOString();
+      localStorage.setItem('nova_v3_ciclo_exec_'+auth.currentUser.uid,JSON.stringify(cicloExec));
+      CICLO_EXEC_REF.set(cicloExec).catch(e=>ultimoErroV3=String(e?.code||e?.message||e));
+    }
+  }
+
   titulo.textContent=atual.topico.titulo;
-  $('estudoRealInfo').textContent=atual.disciplina+' • '+(Number(ativasMinutosAtual())||50)+' minutos programados no ciclo.';
+  info.textContent=atual.disciplina+' • '+(Number(ativasMinutosAtual())||50)+' minutos programados no ciclo.';
   btn.disabled=false;
 }
 function ativasMinutosAtual(){
@@ -916,34 +937,36 @@ function ativasMinutosAtual(){
   cicloExecAjustar(); return a[cicloExec.indice]?.minutos||50;
 }
 async function concluirEstudoReal(){
-  const atual=estudoRealAtual();
+  const atual=estudoRealLocalizarProximo();
   if(!atual)return;
   const btn=$('btnConcluirEstudoReal');
   btn.disabled=true;
   $('statusEstudoReal').textContent='Salvando conclusão e revisões...';
   try{
-    // 1) registra revisões usando a origem real ANTES de avançar.
+    // garante que a execução corresponde ao tópico realmente mostrado
+    cicloExec.indice=atual.indice;
     const r=await revisoesMotorRegistrarConclusao(
       atual.disciplina,
       atual.topico.titulo,
       new Date().toISOString().slice(0,10)
     );
-    // 2) marca o mesmo objeto do Edital como concluído.
     atual.topico.t=true;
     v2Salvar();
-    // 3) avança a disciplina somente após conclusão bem-sucedida.
+
+    // avança uma única vez após conclusão real
     cicloExecAvancar();
     atualizarEditalV2();
+
+    // procura automaticamente a próxima disciplina com tópico pendente
     renderizarEstudoReal();
-    $('statusEstudoReal').textContent='Tópico concluído. '+r.msg+' Ciclo avançado.';
+    $('statusEstudoReal').textContent='Tópico concluído. '+r.msg;
   }catch(e){
     ultimoErroV3=String(e?.code||e?.message||e);
     $('statusEstudoReal').textContent='Falha ao concluir. O ciclo não foi avançado.';
-    btn.disabled=false;
+    renderizarEstudoReal();
   }
 }
 $('btnConcluirEstudoReal')?.addEventListener('click',concluirEstudoReal);
-
 
 // ========================= V7 DEV — MOTOR DE REVISÕES =========================
 // Guarda referências ao Edital; não cria disciplinas/tópicos e não gera calendário.
@@ -1021,6 +1044,7 @@ async function executarDiagnosticoV3(){
  const somenteIntervalos=origensRev.every(o=>Object.values(o.revisoes||{}).every(r=>[1,7,15,30].includes(Number(r.dias))));
  L.push([somenteIntervalos,'Intervalos protegidos','Somente D1, D7, D15 e D30']);
  L.push([!!$('btnConcluirEstudoReal'),'Fluxo de estudo real','Conclusão real ligada ao Ciclo']);
+ L.push([!estudoRealAtual() ? $('btnConcluirEstudoReal')?.disabled===true : true,'Bloqueio sem tópico pendente','Botão desativado quando todo o ciclo estiver concluído']);
  const er=estudoRealAtual();
  L.push([!er || revOrigemExisteNoEdital({disciplina:er.disciplina,topico:er.topico.titulo}),'Tópico real vem do Edital',er?er.disciplina+' → '+er.topico.titulo:'Sem tópico pendente na posição atual']);
  L.push([!$('btnRevDevConcluir'),'Simulação retirada da interface','V8 usa somente conclusão real']);

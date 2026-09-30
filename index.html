@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V3 DIAGNÓSTICO</title>
+<title>Plano & Ciclo de Estudos — V3 DEV</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -43,24 +43,14 @@ textarea:focus,select:focus{border-color:var(--primary)}
 </head>
 <body>
 <section id="login">
-  <div class="login-card">
-    <h1>📚 Plano & Ciclo de Estudos</h1>
-    <p>V3 — acesso individual</p>
-    <div class="field">
-      <label>E-MAIL</label>
-      <input id="loginEmailV3" type="email" autocomplete="email" placeholder="seuemail@exemplo.com">
-    </div>
-    <div class="field">
-      <label>PALAVRA-PASSE</label>
-      <input id="loginSenha" type="password" autocomplete="current-password" placeholder="Digite sua senha">
-    </div>
-    <button class="btn btn-primary" style="width:100%" id="btnEntrar">Entrar</button>
-    <div id="loginStatus"></div>
-    <p style="margin-top:14px;font-size:.75rem;color:var(--muted);text-align:center">
-      Acesso somente para contas autorizadas.
-    </p>
-  </div>
-</section>
+<div class="login-card">
+<h1>📚 Plano & Ciclo de Estudos</h1><p>V3 — acesso individual</p>
+<div class="field"><label>E-MAIL</label><input id="loginEmailV3" type="email" autocomplete="email" placeholder="seuemail@exemplo.com"></div>
+<div class="field"><label>PALAVRA-PASSE</label><input id="loginSenha" type="password" autocomplete="current-password" placeholder="Digite sua senha"></div>
+<button class="btn btn-primary" style="width:100%" id="btnEntrar">Entrar</button>
+<div id="loginStatus"></div>
+<p style="margin-top:14px;font-size:.75rem;color:var(--muted);text-align:center">Acesso somente para contas autorizadas.</p>
+</div></section>
 
 <section id="app" class="hidden">
 <aside>
@@ -74,7 +64,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
     <button data-page="progresso">↗ Progresso</button>
     <button data-page="planejamento">↔ Planejamento</button>
     <button data-page="diagnostico">🛠 Diagnóstico</button>
-      <button data-page="seguranca">◇ Segurança</button>
+    <button data-page="seguranca">◇ Segurança</button>
   </nav>
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
@@ -88,7 +78,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
       <div class="stat"><span>✅ Edital</span><strong id="dashEdital">0 / 0</strong></div>
       <div class="stat"><span>🎯 Questões</span><strong>—</strong></div>
     </div>
-    <div class="placeholder" style="margin-top:16px"><b class="ok">✓ V3 — Autenticação, UID e diagnóstico.</b><br>Cada conta autorizada possui UID próprio. Esta versão DEV inclui diagnóstico e restauração da última aba após F5.</div>
+    <div class="placeholder" style="margin-top:16px"><b class="ok">✓ V2 — Edital reconstruído.</b><br>O Edital agora é independente, salva na nuvem em uma área nova e não altera os dados da V147. Planejamento e revisões ainda não foram ligados.</div>
   </section>
   <section id="page-ciclo" class="page"><div class="placeholder"><b>Ciclo</b><br>Será ligado ao Edital nas próximas versões. Nesta V2 ele continua isolado.</div></section>
   <section id="page-timer" class="page"><div class="placeholder"><b>Timer</b><br>Estrutura reservada. Ainda não implementado nesta etapa.</div></section>
@@ -147,97 +137,53 @@ textarea:focus,select:focus{border-color:var(--primary)}
   </section>
   <section id="page-progresso" class="page"><div class="placeholder"><b>Progresso</b><br>Estrutura reservada. Ainda não implementado nesta etapa.</div></section>
   <section id="page-planejamento" class="page"><div class="placeholder"><b>Planejamento</b><br>D1, D7, D15 e D30 serão reconstruídos depois, preservando a regra de não criar novas matérias.</div></section>
-  <section id="page-seguranca" class="page"><div class="placeholder"><b>Segurança</b><br>V1 usa Firebase Authentication para a conta Eduardo. Gestão de Utilizadores e Motivação foram deixadas de fora.</div></section>
+  <section id="page-diagnostico" class="page">
+<div class="panel">
+<h2>🛠 Diagnóstico da V3</h2>
+<p class="panel-sub">Ferramenta temporária de desenvolvimento. Não mostra senha nem tokens.</p>
+<button class="btn btn-primary" id="btnExecutarDiagnostico">Executar diagnóstico</button>
+<div id="diagResumo" style="margin-top:16px;font-weight:700"></div>
+<div id="diagLista" style="margin-top:12px;display:grid;gap:8px"></div>
+</div></section>
+<section id="page-seguranca" class="page"><div class="placeholder"><b>Segurança</b><br>V1 usa Firebase Authentication para a conta Eduardo. Gestão de Utilizadores e Motivação foram deixadas de fora.</div></section>
 </main>
 </section>
 <script>
 const firebaseConfig={apiKey:"AIzaSyB8vR5ccnYQxc-QiASnxFeYvHpwFWPHXP8",authDomain:"estudo-inteligente-f2186.firebaseapp.com",databaseURL:"https://estudo-inteligente-f2186-default-rtdb.firebaseio.com",projectId:"estudo-inteligente-f2186",storageBucket:"estudo-inteligente-f2186.firebasestorage.app",messagingSenderId:"959251021540",appId:"1:959251021540:web:8efd2385e8d10a4664f6f1",measurementId:"G-8JSMGLKMVJ"};
 let auth=null,db=null;
 try{firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.database();}catch(e){console.error(e)}
-let usuarioAtualV3=null;
-let V2_REF=null;
-let ultimoErroV3='';
-
+let usuarioAtualV3=null,V2_REF=null,ultimoErroV3='';
 const $=id=>document.getElementById(id);
-
-function mensagemV3(txt){ $('loginStatus').textContent=txt||''; }
-
-function erroAuthV3(e){
-  ultimoErroV3=String(e?.code||e?.message||'Erro desconhecido');
-  const c=String(e?.code||'');
-  if(/invalid-credential|wrong-password|user-not-found/.test(c)) return 'E-mail ou palavra-passe incorretos.';
-  if(c.includes('invalid-email')) return 'Digite um e-mail válido.';
-  if(c.includes('too-many-requests')) return 'Muitas tentativas. Aguarde e tente novamente.';
-  if(c.includes('operation-not-allowed')) return 'O acesso por e-mail/senha não está ativado no Firebase.';
-  return 'Não foi possível entrar.';
-}
-
+function msgV3(t){$('loginStatus').textContent=t||''}
 async function entrar(){
-  const email=$('loginEmailV3').value.trim();
-  const senha=$('loginSenha').value;
-  if(!email||!senha){ mensagemV3('Preencha e-mail e palavra-passe.'); return; }
-  $('btnEntrar').disabled=true;
-  mensagemV3('Entrando...');
-  try{
-    await auth.signInWithEmailAndPassword(email,senha);
-  }catch(e){
-    console.error(e);
-    mensagemV3(erroAuthV3(e));
-  }finally{
-    $('btnEntrar').disabled=false;
-  }
+ const email=$('loginEmailV3').value.trim(),senha=$('loginSenha').value;
+ if(!email||!senha){msgV3('Preencha e-mail e palavra-passe.');return}
+ try{await auth.signInWithEmailAndPassword(email,senha)}
+ catch(e){ultimoErroV3=String(e?.code||e);msgV3('E-mail ou palavra-passe incorretos.')}
 }
-
-function abrirPaginaV3(pg, salvar=true){
-  const btn=document.querySelector('.nav button[data-page="'+pg+'"]');
-  const page=$('page-'+pg);
-  if(!btn || !page) return false;
-  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
-  page.classList.add('active');
-  $('pageTitle').textContent=btn.textContent.trim().replace(/^[^A-Za-zÀ-ÿ]+/,'').trim();
-  if(salvar && auth.currentUser) localStorage.setItem('nova_v3_ultima_pagina_'+auth.currentUser.uid,pg);
-  return true;
+function abrirPaginaV3(pg,salvar=true){
+ const b=document.querySelector('.nav button[data-page="'+pg+'"]'),p=$('page-'+pg);
+ if(!b||!p){ultimoErroV3='Página não encontrada: '+pg;return false}
+ document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+ b.classList.add('active');p.classList.add('active');
+ $('pageTitle').textContent=b.textContent.trim().replace(/^[^A-Za-zÀ-ÿ]+/,'').trim();
+ if(salvar&&auth.currentUser)localStorage.setItem('nova_v3_ultima_pagina_'+auth.currentUser.uid,pg);
+ return true;
 }
-
 async function abrirApp(user){
-  usuarioAtualV3=user;
-  V2_REF=db.ref('nova_app_v3/users/'+user.uid+'/app');
-
-  let nome=user.displayName||'';
-  try{
-    const s=await db.ref('nova_app_v3/users/'+user.uid+'/profile').once('value');
-    nome=nome||(s.val()||{}).nome||'';
-  }catch(e){
-    ultimoErroV3=String(e?.code||e?.message||e);
-  }
-  nome=nome||String(user.email||'Utilizador').split('@')[0];
-
-  $('nomeUsuarioV3').textContent=nome;
-  $('saudacaoNomeV3').textContent=nome;
-  $('login').classList.add('hidden');
-  $('app').classList.remove('hidden');
-  $('dataHoje').textContent=new Intl.DateTimeFormat('pt-BR',{
-    weekday:'long',day:'2-digit',month:'long',year:'numeric'
-  }).format(new Date());
-
-  await v2Carregar();
-
-  const ultima=localStorage.getItem('nova_v3_ultima_pagina_'+user.uid)||'dashboard';
-  if(!abrirPaginaV3(ultima,false)) abrirPaginaV3('dashboard',false);
+ usuarioAtualV3=user;V2_REF=db.ref('nova_app_v3/users/'+user.uid+'/app');
+ let nome=user.displayName||String(user.email||'Utilizador').split('@')[0];
+ $('nomeUsuarioV3').textContent=nome;$('saudacaoNomeV3').textContent=nome;
+ $('login').classList.add('hidden');$('app').classList.remove('hidden');
+ $('dataHoje').textContent=new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}).format(new Date());
+ await v2Carregar();
+ const ultima=localStorage.getItem('nova_v3_ultima_pagina_'+user.uid)||'dashboard';
+ if(!abrirPaginaV3(ultima,false))abrirPaginaV3('dashboard',false);
 }
-
 $('btnEntrar').addEventListener('click',entrar);
-$('loginSenha').addEventListener('keydown',e=>{ if(e.key==='Enter') entrar(); });
-$('btnSair').addEventListener('click',async()=>{
-  try{ await auth.signOut(); }catch(e){}
-  location.reload();
-});
-
-document.querySelectorAll('.nav button').forEach(btn=>btn.addEventListener('click',()=>{
-  abrirPaginaV3(btn.dataset.page,true);
-}));
+$('loginSenha').addEventListener('keydown',e=>{if(e.key==='Enter')entrar()});
+$('btnSair').addEventListener('click',async()=>{await auth.signOut();location.reload()});
 // ========================= NOVA V2 — EDITAL LIMPO =========================
 // IMPORTANTE: usa um caminho próprio no Firebase para não alterar a V147.
 let estadoV2 = { editalVerticalizado:{}, disciplinas:[], atualizadoEm:null };
@@ -261,7 +207,7 @@ function v2EstadoValido(raw){
 }
 function v2Salvar(){
   estadoV2.atualizadoEm = new Date().toISOString();
-  if(auth.currentUser) localStorage.setItem('nova_v3_'+auth.currentUser.uid, JSON.stringify(estadoV2));
+  if(auth.currentUser)localStorage.setItem('nova_v3_'+auth.currentUser.uid,JSON.stringify(estadoV2));
   atualizarEditalV2();
   if(!V2_REF || v2RecebendoNuvem) return;
   clearTimeout(v2SaveTimer);
@@ -286,7 +232,7 @@ async function v2Carregar(){
       if(cm>=lm){
         v2RecebendoNuvem=true;
         estadoV2=v2EstadoValido(cloud);
-        if(auth.currentUser) localStorage.setItem('nova_v3_'+auth.currentUser.uid,JSON.stringify(estadoV2));
+        if(auth.currentUser)localStorage.setItem('nova_v3_'+auth.currentUser.uid,JSON.stringify(estadoV2));
         atualizarEditalV2();
         v2RecebendoNuvem=false;
       }
@@ -451,64 +397,21 @@ $('novaMateriaV2')?.addEventListener('keydown',e=>{if(e.key==='Enter')adicionarM
 
 
 
-function itemDiag(ok,titulo,detalhe){
-  return '<div style="padding:12px;border:1px solid var(--border);border-radius:10px">'+
-    '<b>'+(ok?'✅ ':'❌ ')+titulo+'</b>'+
-    '<div style="font-size:.82rem;color:var(--muted);margin-top:4px">'+detalhe+'</div></div>';
-}
-
+function itemDiag(ok,t,d){return '<div style="padding:12px;border:1px solid var(--border);border-radius:10px"><b>'+(ok?'✅ ':'❌ ')+t+'</b><div style="font-size:.82rem;color:var(--muted);margin-top:4px">'+d+'</div></div>'}
 async function executarDiagnosticoV3(){
-  const lista=[];
-  const user=auth.currentUser;
-  lista.push([!!auth,'Firebase Authentication','SDK inicializado']);
-  lista.push([!!db,'Realtime Database','SDK inicializado']);
-  lista.push([!!user,'Sessão autenticada',user?'Usuário autenticado':'Nenhum usuário autenticado']);
-  lista.push([!!user?.uid,'UID do perfil',user?.uid ? 'UID presente (oculto parcialmente): '+user.uid.slice(0,6)+'…' : 'UID ausente']);
-  lista.push([!!V2_REF,'Caminho individual',V2_REF?'nova_app_v3/users/<UID>/app':'Referência do perfil ausente']);
-
-  let nuvemOK=false;
-  if(user && V2_REF){
-    try{
-      await V2_REF.once('value');
-      nuvemOK=true;
-      lista.push([true,'Leitura da nuvem','Perfil pode ser lido no Realtime Database']);
-    }catch(e){
-      ultimoErroV3=String(e?.code||e?.message||e);
-      lista.push([false,'Leitura da nuvem','Falha ao ler o perfil']);
-    }
-  }else{
-    lista.push([false,'Leitura da nuvem','Teste não executado sem sessão/referência']);
-  }
-
-  const disciplinas=Array.isArray(estadoV2?.disciplinas)?estadoV2.disciplinas.length:0;
-  const topicos=Array.isArray(estadoV2?.disciplinas)
-    ? estadoV2.disciplinas.reduce((n,d)=>n+(Array.isArray(d.topicos)?d.topicos.length:0),0):0;
-  lista.push([true,'Edital em memória',disciplinas+' disciplina(s) • '+topicos+' tópico(s)']);
-
-  const pg=document.querySelector('.page.active')?.id?.replace('page-','')||'nenhuma';
-  const salva=user?localStorage.getItem('nova_v3_ultima_pagina_'+user.uid):null;
-  lista.push([pg!=='nenhuma','Página atual','Página ativa: '+pg]);
-  lista.push([!!salva,'Restauração após F5',salva?'Última página salva: '+salva:'Nenhuma página salva ainda']);
-
-  lista.push([!ultimoErroV3,'Erros capturados',ultimoErroV3?'Último erro: '+ultimoErroV3:'Nenhum erro registrado nesta sessão']);
-
-  const passou=lista.filter(x=>x[0]).length;
-  $('diagResumo').textContent=passou+' de '+lista.length+' verificações passaram';
-  $('diagLista').innerHTML=lista.map(x=>itemDiag(x[0],x[1],x[2])).join('');
+ const L=[],u=auth.currentUser;
+ L.push([!!auth,'Firebase Authentication','SDK inicializado'],[!!db,'Realtime Database','SDK inicializado'],[!!u,'Sessão autenticada',u?'Usuário autenticado':'Sem usuário'],[!!u?.uid,'UID do perfil',u?.uid?'UID presente':'UID ausente'],[!!V2_REF,'Caminho individual',V2_REF?'nova_app_v3/users/<UID>/app':'Referência ausente']);
+ try{if(!V2_REF)throw Error('sem referência');await V2_REF.once('value');L.push([true,'Leitura da nuvem','Realtime Database respondeu'])}catch(e){ultimoErroV3=String(e?.code||e?.message||e);L.push([false,'Leitura da nuvem','Falha na leitura'])}
+ const ds=Array.isArray(estadoV2?.disciplinas)?estadoV2.disciplinas:[],nt=ds.reduce((n,d)=>n+(Array.isArray(d.topicos)?d.topicos.length:0),0);
+ L.push([true,'Edital em memória',ds.length+' disciplina(s) • '+nt+' tópico(s)']);
+ const pg=document.querySelector('.page.active')?.id?.replace('page-','')||'nenhuma',salva=u?localStorage.getItem('nova_v3_ultima_pagina_'+u.uid):null;
+ L.push([pg!=='nenhuma','Página atual','Ativa: '+pg],[!!salva,'Restauração após F5',salva?'Salva: '+salva:'Ainda não registrada'],[!ultimoErroV3,'Erros capturados',ultimoErroV3?'Último erro: '+ultimoErroV3:'Nenhum erro registrado']);
+ $('diagResumo').textContent=L.filter(x=>x[0]).length+' de '+L.length+' verificações passaram';
+ $('diagLista').innerHTML=L.map(x=>itemDiag(...x)).join('');
 }
-
-$('btnExecutarDiagnostico')?.addEventListener('click',executarDiagnosticoV3);
-
-auth.onAuthStateChanged(user=>{
-  if(user){
-    abrirApp(user);
-  }else{
-    usuarioAtualV3=null;
-    V2_REF=null;
-    $('app').classList.add('hidden');
-    $('login').classList.remove('hidden');
-  }
-});
+document.querySelectorAll('.nav button[data-page]').forEach(b=>b.addEventListener('click',()=>abrirPaginaV3(b.dataset.page,true)));
+$('btnExecutarDiagnostico').addEventListener('click',executarDiagnosticoV3);
+auth.onAuthStateChanged(u=>{if(u)abrirApp(u);else{$('app').classList.add('hidden');$('login').classList.remove('hidden')}});
 
 </script>
 </body>

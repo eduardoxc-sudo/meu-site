@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V2</title>
+<title>Plano & Ciclo de Estudos — V3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -45,17 +45,19 @@ textarea:focus,select:focus{border-color:var(--primary)}
 <section id="login">
   <div class="login-card">
     <h1>📚 Plano & Ciclo de Estudos</h1>
-    <p>Nova base limpa — acesso exclusivo de Eduardo</p>
-    <div class="field"><label>UTILIZADOR</label><input id="loginUsuario" value="Eduardo" readonly></div>
-    <div class="field"><label>PALAVRA-PASSE</label><input id="loginSenha" type="password" autocomplete="current-password" placeholder="Digite sua senha"></div>
+    <p>V3 — contas individuais com Firebase Authentication</p>
+    <div class="field" id="campoNomeV3" style="display:none"><label>NOME</label><input id="cadastroNomeV3" placeholder="Seu nome"></div>
+    <div class="field"><label>E-MAIL</label><input id="loginEmailV3" type="email" autocomplete="email" placeholder="seuemail@exemplo.com"></div>
+    <div class="field"><label>PALAVRA-PASSE</label><input id="loginSenha" type="password" autocomplete="current-password" placeholder="Mínimo de 6 caracteres"></div>
     <button class="btn btn-primary" style="width:100%" id="btnEntrar">Entrar</button>
+    <button class="btn btn-outline" style="width:100%;margin-top:8px" id="btnModoCadastroV3">Criar nova conta</button>
     <div id="loginStatus"></div>
   </div>
 </section>
 
 <section id="app" class="hidden">
 <aside>
-  <div class="brand"><h2>📚 Plano & Ciclo</h2><div class="user">👤 Eduardo</div><div id="syncStatus" class="sync">☁️ Firebase conectado</div></div>
+  <div class="brand"><h2>📚 Plano & Ciclo</h2><div class="user">👤 <span id="nomeUsuarioV3">Utilizador</span></div><div id="syncStatus" class="sync">☁️ Firebase conectado</div></div>
   <nav class="nav">
     <button class="active" data-page="dashboard">🏠 Dashboard</button>
     <button data-page="ciclo">▦ Ciclo</button>
@@ -69,16 +71,16 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V2</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V3</span></div>
   <section id="page-dashboard" class="page active">
-    <div class="hero"><h2>Olá, Eduardo! 👋</h2><p id="dataHoje"></p></div>
+    <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
       <div class="stat"><span>🔥 Sequência</span><strong>—</strong></div>
       <div class="stat"><span>⏱ Horas líquidas</span><strong>—</strong></div>
       <div class="stat"><span>✅ Edital</span><strong id="dashEdital">0 / 0</strong></div>
       <div class="stat"><span>🎯 Questões</span><strong>—</strong></div>
     </div>
-    <div class="placeholder" style="margin-top:16px"><b class="ok">✓ V2 — Edital reconstruído.</b><br>O Edital agora é independente, salva na nuvem em uma área nova e não altera os dados da V147. Planejamento e revisões ainda não foram ligados.</div>
+    <div class="placeholder" style="margin-top:16px"><b class="ok">✓ V3 — Autenticação e perfis por UID.</b><br>Cada conta possui um UID próprio no Firebase. O edital fica dentro do perfil autenticado e não altera os dados da V147.</div>
   </section>
   <section id="page-ciclo" class="page"><div class="placeholder"><b>Ciclo</b><br>Será ligado ao Edital nas próximas versões. Nesta V2 ele continua isolado.</div></section>
   <section id="page-timer" class="page"><div class="placeholder"><b>Timer</b><br>Estrutura reservada. Ainda não implementado nesta etapa.</div></section>
@@ -137,25 +139,91 @@ textarea:focus,select:focus{border-color:var(--primary)}
   </section>
   <section id="page-progresso" class="page"><div class="placeholder"><b>Progresso</b><br>Estrutura reservada. Ainda não implementado nesta etapa.</div></section>
   <section id="page-planejamento" class="page"><div class="placeholder"><b>Planejamento</b><br>D1, D7, D15 e D30 serão reconstruídos depois, preservando a regra de não criar novas matérias.</div></section>
-  <section id="page-seguranca" class="page"><div class="placeholder"><b>Segurança</b><br>V1 usa Firebase Authentication para a conta Eduardo. Gestão de Utilizadores e Motivação foram deixadas de fora.</div></section>
+  <section id="page-seguranca" class="page"><div class="placeholder"><b>Segurança</b><br>Cada conta usa Firebase Authentication e UID. Gestão de Utilizadores e Motivação continuam fora da nova arquitetura.</div></section>
 </main>
 </section>
 <script>
 const firebaseConfig={apiKey:"AIzaSyB8vR5ccnYQxc-QiASnxFeYvHpwFWPHXP8",authDomain:"estudo-inteligente-f2186.firebaseapp.com",databaseURL:"https://estudo-inteligente-f2186-default-rtdb.firebaseio.com",projectId:"estudo-inteligente-f2186",storageBucket:"estudo-inteligente-f2186.firebasestorage.app",messagingSenderId:"959251021540",appId:"1:959251021540:web:8efd2385e8d10a4664f6f1",measurementId:"G-8JSMGLKMVJ"};
 let auth=null,db=null;
 try{firebase.initializeApp(firebaseConfig);auth=firebase.auth();db=firebase.database();}catch(e){console.error(e)}
-const EMAIL_EDUARDO='eduardo@estudo-inteligente.app';
-const $=id=>document.getElementById(id);
-function abrirApp(){ $('login').classList.add('hidden');$('app').classList.remove('hidden');$('dataHoje').textContent=new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}).format(new Date()); }
-async function entrar(){const senha=$('loginSenha').value;const status=$('loginStatus');if(!senha){status.textContent='Digite a senha.';return}status.textContent='Entrando...';try{const cred=await auth.signInWithEmailAndPassword(EMAIL_EDUARDO,senha);if(!cred.user){throw new Error('auth')}sessionStorage.setItem('v1_eduardo','1');status.textContent='';abrirApp();}catch(e){console.error(e);status.textContent='Senha incorreta ou acesso não autorizado.'}}
-$('btnEntrar').addEventListener('click',entrar);$('loginSenha').addEventListener('keydown',e=>{if(e.key==='Enter')entrar()});
-$('btnSair').addEventListener('click',async()=>{try{await auth.signOut()}catch(e){}sessionStorage.removeItem('v1_eduardo');location.reload()});
-document.querySelectorAll('.nav button').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));const p=btn.dataset.page;$('page-'+p).classList.add('active');$('pageTitle').textContent=btn.textContent.trim().replace(/^[^A-Za-zÀ-ÿ]+/,'').trim()}));
-if(auth){auth.onAuthStateChanged(user=>{if(user&&sessionStorage.getItem('v1_eduardo')==='1'&&String(user.email||'').toLowerCase()===EMAIL_EDUARDO){abrirApp()}})}
+let modoCadastroV3=false;
+let usuarioAtualV3=null;
+let V2_REF=null;
 
+const $=id=>document.getElementById(id);
+
+function mensagemV3(txt){ $('loginStatus').textContent=txt||''; }
+
+function alternarCadastroV3(){
+  modoCadastroV3=!modoCadastroV3;
+  $('campoNomeV3').style.display=modoCadastroV3?'block':'none';
+  $('btnEntrar').textContent=modoCadastroV3?'Criar conta':'Entrar';
+  $('btnModoCadastroV3').textContent=modoCadastroV3?'Já tenho uma conta':'Criar nova conta';
+  mensagemV3('');
+}
+
+function erroAuthV3(e){
+  const c=String(e?.code||'');
+  if(/invalid-credential|wrong-password|user-not-found/.test(c)) return 'E-mail ou palavra-passe incorretos.';
+  if(c.includes('email-already-in-use')) return 'Este e-mail já possui uma conta.';
+  if(c.includes('weak-password')) return 'A palavra-passe precisa ter pelo menos 6 caracteres.';
+  if(c.includes('invalid-email')) return 'Digite um e-mail válido.';
+  if(c.includes('operation-not-allowed')) return 'Ative Email/Password no Firebase Authentication.';
+  if(c.includes('too-many-requests')) return 'Muitas tentativas. Aguarde e tente novamente.';
+  return 'Não foi possível concluir o acesso.';
+}
+
+async function entrar(){
+  const email=$('loginEmailV3').value.trim();
+  const senha=$('loginSenha').value;
+  if(!email||!senha){mensagemV3('Preencha e-mail e palavra-passe.');return}
+  $('btnEntrar').disabled=true;
+  try{
+    if(modoCadastroV3){
+      const nome=$('cadastroNomeV3').value.trim();
+      if(!nome){mensagemV3('Digite seu nome.');return}
+      const cred=await auth.createUserWithEmailAndPassword(email,senha);
+      await cred.user.updateProfile({displayName:nome});
+      await db.ref('nova_app_v3/users/'+cred.user.uid+'/profile').set({
+        nome,email,criadoEm:new Date().toISOString()
+      });
+    }else{
+      await auth.signInWithEmailAndPassword(email,senha);
+    }
+  }catch(e){
+    console.error(e); mensagemV3(erroAuthV3(e));
+  }finally{$('btnEntrar').disabled=false}
+}
+
+async function abrirApp(user){
+  usuarioAtualV3=user;
+  V2_REF=db.ref('nova_app_v3/users/'+user.uid+'/app');
+  let nome=user.displayName||'';
+  try{
+    const s=await db.ref('nova_app_v3/users/'+user.uid+'/profile').once('value');
+    nome=nome||(s.val()||{}).nome||'';
+  }catch(_){}
+  nome=nome||String(user.email||'Utilizador').split('@')[0];
+  $('nomeUsuarioV3').textContent=nome;
+  $('saudacaoNomeV3').textContent=nome;
+  $('login').classList.add('hidden');
+  $('app').classList.remove('hidden');
+  $('dataHoje').textContent=new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}).format(new Date());
+  await v2Carregar();
+}
+
+$('btnEntrar').addEventListener('click',entrar);
+$('btnModoCadastroV3').addEventListener('click',alternarCadastroV3);
+$('loginSenha').addEventListener('keydown',e=>{if(e.key==='Enter')entrar()});
+$('btnSair').addEventListener('click',async()=>{try{await auth.signOut()}catch(e){} location.reload()});
+document.querySelectorAll('.nav button').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  const pg=btn.dataset.page;$('page-'+pg).classList.add('active');
+  $('pageTitle').textContent=btn.textContent.trim().replace(/^[^A-Za-zÀ-ÿ]+/,'').trim();
+}));
 // ========================= NOVA V2 — EDITAL LIMPO =========================
 // IMPORTANTE: usa um caminho próprio no Firebase para não alterar a V147.
-const V2_REF = db ? db.ref('nova_app_v2/eduardo') : null;
 let estadoV2 = { editalVerticalizado:{}, disciplinas:[], atualizadoEm:null };
 let v2RecebendoNuvem = false;
 let v2SaveTimer = null;
@@ -177,7 +245,7 @@ function v2EstadoValido(raw){
 }
 function v2Salvar(){
   estadoV2.atualizadoEm = new Date().toISOString();
-  localStorage.setItem('nova_v2_eduardo', JSON.stringify(estadoV2));
+  if(auth.currentUser)localStorage.setItem('nova_v3_'+auth.currentUser.uid,JSON.stringify(estadoV2));
   atualizarEditalV2();
   if(!V2_REF || v2RecebendoNuvem) return;
   clearTimeout(v2SaveTimer);
@@ -189,7 +257,7 @@ function v2Salvar(){
 }
 async function v2Carregar(){
   let local=null;
-  try{local=JSON.parse(localStorage.getItem('nova_v2_eduardo')||'null')}catch(_){}
+  try{local=JSON.parse(localStorage.getItem('nova_v3_'+(auth.currentUser?.uid||'sem_usuario'))||'null')}catch(_){}
   if(local) estadoV2=v2EstadoValido(local);
   atualizarEditalV2();
   if(!V2_REF) return;
@@ -202,7 +270,7 @@ async function v2Carregar(){
       if(cm>=lm){
         v2RecebendoNuvem=true;
         estadoV2=v2EstadoValido(cloud);
-        localStorage.setItem('nova_v2_eduardo',JSON.stringify(estadoV2));
+        if(auth.currentUser)localStorage.setItem('nova_v3_'+auth.currentUser.uid,JSON.stringify(estadoV2));
         atualizarEditalV2();
         v2RecebendoNuvem=false;
       }
@@ -364,11 +432,17 @@ $('buscaEditalV2')?.addEventListener('input',renderizarListaEditalV2);
 $('novoTopicoV2')?.addEventListener('keydown',e=>{if(e.key==='Enter')adicionarTopicoV2()});
 $('novaMateriaV2')?.addEventListener('keydown',e=>{if(e.key==='Enter')adicionarMateriaV2()});
 
-const abrirAppV1=abrirApp;
-abrirApp=function(){
-  abrirAppV1();
-  v2Carregar();
-};
+
+
+
+auth.onAuthStateChanged(user=>{
+  if(user){ abrirApp(user); }
+  else{
+    usuarioAtualV3=null; V2_REF=null;
+    $('app').classList.add('hidden');
+    $('login').classList.remove('hidden');
+  }
+});
 
 </script>
 </body>

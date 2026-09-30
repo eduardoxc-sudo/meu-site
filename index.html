@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V3 DEV</title>
+<title>Plano & Ciclo de Estudos — V4 DEV • CICLO V1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -38,6 +38,23 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:12px}
 .status-line{font-size:.76rem;color:var(--muted);margin-top:9px;min-height:18px}
 @media(max-width:1000px){.edital-layout{grid-template-columns:1fr}.edital-toolbar{grid-template-columns:1fr}.add-row{grid-template-columns:1fr}}
+
+/* ===== V4 DEV — CICLO V1 ===== */
+.ciclo-grid{display:grid;grid-template-columns:minmax(300px,.72fr) minmax(0,1.28fr);gap:16px}
+.ciclo-list{display:grid;gap:9px}
+.ciclo-item{display:grid;grid-template-columns:auto 1fr 110px auto;gap:10px;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:11px}
+.ciclo-item.off{opacity:.55}
+.ciclo-item strong{font-size:.84rem}
+.ciclo-item small{display:block;color:var(--muted);font-size:.69rem;margin-top:3px}
+.ciclo-item input[type="number"]{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px}
+.ciclo-ordem{display:flex;gap:5px}
+.ciclo-resumo{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
+.ciclo-resumo div{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px}
+.ciclo-resumo span{display:block;color:var(--muted);font-size:.68rem;font-weight:700}
+.ciclo-resumo strong{display:block;margin-top:5px;font-size:1rem;color:var(--primary)}
+.ciclo-vazio{padding:22px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:11px}
+@media(max-width:1000px){.ciclo-grid{grid-template-columns:1fr}.ciclo-item{grid-template-columns:auto 1fr 95px}.ciclo-ordem{grid-column:2/4}}
+
 </style>
 
 </head>
@@ -69,7 +86,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V3 • DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V4 • CICLO DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -80,7 +97,30 @@ textarea:focus,select:focus{border-color:var(--primary)}
     </div>
     <div class="placeholder" style="margin-top:16px"><b class="ok">✓ V2 — Edital reconstruído.</b><br>O Edital agora é independente, salva na nuvem em uma área nova e não altera os dados da V147. Planejamento e revisões ainda não foram ligados.</div>
   </section>
-  <section id="page-ciclo" class="page"><div class="placeholder"><b>Ciclo</b><br>Será ligado ao Edital nas próximas versões. Nesta V2 ele continua isolado.</div></section>
+  <section id="page-ciclo" class="page">
+  <div class="ciclo-grid">
+    <div class="panel">
+      <h3>▦ Configurar ciclo</h3>
+      <p class="panel-sub">As disciplinas vêm do seu Edital. Aqui você escolhe quais entram no ciclo, define o tempo de cada uma e organiza a ordem. O Ciclo não cria disciplinas novas.</p>
+      <div class="ciclo-resumo">
+        <div><span>ATIVAS</span><strong id="cicloQtdAtivas">0</strong></div>
+        <div><span>TEMPO TOTAL</span><strong id="cicloTempoTotal">0 min</strong></div>
+        <div><span>DISCIPLINAS DO EDITAL</span><strong id="cicloQtdEdital">0</strong></div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" id="btnSalvarCiclo">Salvar ciclo</button>
+        <button class="btn btn-outline" id="btnRestaurarCiclo">Restaurar do Edital</button>
+      </div>
+      <div id="statusCiclo" class="status-line"></div>
+    </div>
+
+    <div class="panel">
+      <h3>📚 Ordem do ciclo</h3>
+      <p class="panel-sub">Use ↑ e ↓ para organizar. Desmarcar uma disciplina apenas a retira do ciclo; ela continua normalmente no Edital.</p>
+      <div id="listaCiclo" class="ciclo-list"></div>
+    </div>
+  </div>
+</section>
   <section id="page-timer" class="page"><div class="placeholder"><b>Timer</b><br>Estrutura reservada. Ainda não implementado nesta etapa.</div></section>
   <section id="page-questoes" class="page"><div class="placeholder"><b>Questões</b><br>Entrará somente o sistema atual de Questões. Flashcards e Banco de Questões antigos não serão trazidos.</div></section>
 
@@ -178,6 +218,7 @@ async function abrirApp(user){
  $('login').classList.add('hidden');$('app').classList.remove('hidden');
  $('dataHoje').textContent=new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}).format(new Date());
  await v2Carregar();
+ await cicloCarregar();
  const ultima=localStorage.getItem('nova_v3_ultima_pagina_'+user.uid)||'dashboard';
  if(!abrirPaginaV3(ultima,false))abrirPaginaV3('dashboard',false);
 }
@@ -397,6 +438,124 @@ $('novaMateriaV2')?.addEventListener('keydown',e=>{if(e.key==='Enter')adicionarM
 
 
 
+
+// ========================= V4 DEV — CICLO V1 =========================
+// O Edital é a fonte das disciplinas. O Ciclo salva apenas configuração por UID.
+let cicloEstado={itens:[],atualizadoEm:null};
+let CICLO_REF=null;
+let cicloSaveTimer=null;
+
+function cicloNomesEdital(){
+  return Object.keys(estadoV2?.editalVerticalizado||{});
+}
+function cicloNormalizar(raw){
+  const r=raw&&typeof raw==='object'?raw:{};
+  if(!Array.isArray(r.itens))r.itens=[];
+  r.itens=r.itens
+    .filter(x=>x&&typeof x.nome==='string'&&x.nome.trim())
+    .map(x=>({nome:x.nome.trim(),ativo:x.ativo!==false,minutos:Math.max(5,Math.min(600,Number(x.minutos)||50))}));
+  return r;
+}
+function cicloSincronizarComEdital(render=true){
+  const nomes=cicloNomesEdital();
+  const porNome=new Map((cicloEstado.itens||[]).map(x=>[v2Norm(x.nome),x]));
+  const novos=[];
+  // preserva a ordem das disciplinas já configuradas que ainda existem
+  (cicloEstado.itens||[]).forEach(x=>{
+    const real=nomes.find(n=>v2Norm(n)===v2Norm(x.nome));
+    if(real)novos.push({...x,nome:real});
+  });
+  // adiciona ao final somente disciplinas novas vindas do Edital
+  nomes.forEach(nome=>{
+    if(!novos.some(x=>v2Norm(x.nome)===v2Norm(nome))){
+      const antigo=porNome.get(v2Norm(nome));
+      novos.push(antigo?{...antigo,nome}:{nome,ativo:true,minutos:50});
+    }
+  });
+  cicloEstado.itens=novos;
+  if(render)renderizarCiclo();
+}
+async function cicloCarregar(){
+  if(!auth.currentUser)return;
+  CICLO_REF=db.ref('nova_app_v3/users/'+auth.currentUser.uid+'/ciclo');
+  let local=null;
+  try{local=JSON.parse(localStorage.getItem('nova_v3_ciclo_'+auth.currentUser.uid)||'null')}catch(_){}
+  if(local)cicloEstado=cicloNormalizar(local);
+  try{
+    const snap=await CICLO_REF.once('value'),cloud=snap.val();
+    if(cloud){
+      const lm=Date.parse(cicloEstado.atualizadoEm||'')||0,cm=Date.parse(cloud.atualizadoEm||'')||0;
+      if(cm>=lm)cicloEstado=cicloNormalizar(cloud);
+    }
+  }catch(e){ultimoErroV3=String(e?.code||e?.message||e)}
+  cicloSincronizarComEdital(true);
+}
+function cicloPersistir(mensagem='Ciclo salvo.'){
+  if(!auth.currentUser||!CICLO_REF)return;
+  cicloEstado.atualizadoEm=new Date().toISOString();
+  localStorage.setItem('nova_v3_ciclo_'+auth.currentUser.uid,JSON.stringify(cicloEstado));
+  clearTimeout(cicloSaveTimer);
+  $('statusCiclo').textContent='Salvando...';
+  cicloSaveTimer=setTimeout(()=>{
+    CICLO_REF.set(cicloEstado)
+      .then(()=>{$('statusCiclo').textContent=mensagem})
+      .catch(e=>{ultimoErroV3=String(e?.code||e?.message||e);$('statusCiclo').textContent='Falha ao salvar o ciclo.'});
+  },200);
+}
+function renderizarCiclo(){
+  const box=$('listaCiclo');if(!box)return;
+  cicloSincronizarComEdital(false);
+  const itens=cicloEstado.itens||[];
+  const ativas=itens.filter(x=>x.ativo);
+  $('cicloQtdAtivas').textContent=ativas.length;
+  $('cicloQtdEdital').textContent=cicloNomesEdital().length;
+  $('cicloTempoTotal').textContent=ativas.reduce((n,x)=>n+(Number(x.minutos)||0),0)+' min';
+  if(!itens.length){
+    box.innerHTML='<div class="ciclo-vazio">Nenhuma disciplina no Edital.<br>Carregue primeiro seu edital para montar o ciclo.</div>';
+    return;
+  }
+  box.innerHTML=itens.map((x,i)=>`<div class="ciclo-item ${x.ativo?'':'off'}">
+    <input type="checkbox" data-ciclo-ativo="${i}" ${x.ativo?'checked':''} title="Usar no ciclo">
+    <div><strong>${v2Escape(x.nome)}</strong><small>${x.ativo?'Incluída no ciclo':'Fora do ciclo'}</small></div>
+    <input type="number" min="5" max="600" step="5" value="${Number(x.minutos)||50}" data-ciclo-min="${i}" aria-label="Minutos para ${v2Escape(x.nome)}">
+    <div class="ciclo-ordem">
+      <button class="btn btn-outline mini" data-ciclo-up="${i}" ${i===0?'disabled':''}>↑</button>
+      <button class="btn btn-outline mini" data-ciclo-down="${i}" ${i===itens.length-1?'disabled':''}>↓</button>
+    </div>
+  </div>`).join('');
+}
+function cicloMover(i,delta){
+  const j=i+delta,a=cicloEstado.itens;
+  if(i<0||j<0||i>=a.length||j>=a.length)return;
+  [a[i],a[j]]=[a[j],a[i]];
+  renderizarCiclo();
+}
+function cicloRestaurarDoEdital(){
+  cicloEstado.itens=cicloNomesEdital().map(nome=>({nome,ativo:true,minutos:50}));
+  renderizarCiclo();
+  cicloPersistir('Ciclo restaurado a partir do Edital.');
+}
+document.addEventListener('change',e=>{
+  if(e.target.matches('[data-ciclo-ativo]')){
+    const i=Number(e.target.dataset.cicloAtivo);
+    if(cicloEstado.itens[i])cicloEstado.itens[i].ativo=e.target.checked;
+    renderizarCiclo();
+  }
+  if(e.target.matches('[data-ciclo-min]')){
+    const i=Number(e.target.dataset.cicloMin),v=Math.max(5,Math.min(600,Number(e.target.value)||50));
+    if(cicloEstado.itens[i])cicloEstado.itens[i].minutos=v;
+    renderizarCiclo();
+  }
+});
+document.addEventListener('click',e=>{
+  const up=e.target.closest('[data-ciclo-up]'),down=e.target.closest('[data-ciclo-down]');
+  if(up){cicloMover(Number(up.dataset.cicloUp),-1);return}
+  if(down){cicloMover(Number(down.dataset.cicloDown),1);return}
+});
+$('btnSalvarCiclo')?.addEventListener('click',()=>cicloPersistir());
+$('btnRestaurarCiclo')?.addEventListener('click',cicloRestaurarDoEdital);
+
+
 function itemDiag(ok,t,d){return '<div style="padding:12px;border:1px solid var(--border);border-radius:10px"><b>'+(ok?'✅ ':'❌ ')+t+'</b><div style="font-size:.82rem;color:var(--muted);margin-top:4px">'+d+'</div></div>'}
 async function executarDiagnosticoV3(){
  const L=[],u=auth.currentUser;
@@ -404,6 +563,12 @@ async function executarDiagnosticoV3(){
  try{if(!V2_REF)throw Error('sem referência');await V2_REF.once('value');L.push([true,'Leitura da nuvem','Realtime Database respondeu'])}catch(e){ultimoErroV3=String(e?.code||e?.message||e);L.push([false,'Leitura da nuvem','Falha na leitura'])}
  const ds=Array.isArray(estadoV2?.disciplinas)?estadoV2.disciplinas:[],nt=ds.reduce((n,d)=>n+(Array.isArray(d.topicos)?d.topicos.length:0),0);
  L.push([true,'Edital em memória',ds.length+' disciplina(s) • '+nt+' tópico(s)']);
+ const nomesCiclo=(cicloEstado?.itens||[]).map(x=>v2Norm(x.nome));
+ const nomesEdital=cicloNomesEdital().map(v2Norm);
+ const cicloSoDoEdital=nomesCiclo.every(n=>nomesEdital.includes(n));
+ L.push([!!CICLO_REF,'Ciclo por UID',CICLO_REF?'nova_app_v3/users/<UID>/ciclo':'Referência do ciclo ausente']);
+ L.push([cicloSoDoEdital,'Ciclo ligado ao Edital',cicloSoDoEdital?'Nenhuma disciplina externa ao Edital':'Há disciplina no ciclo que não pertence ao Edital']);
+ L.push([new Set(nomesCiclo).size===nomesCiclo.length,'Ciclo sem duplicatas','Disciplinas únicas na configuração']);
  const pg=document.querySelector('.page.active')?.id?.replace('page-','')||'nenhuma',salva=u?localStorage.getItem('nova_v3_ultima_pagina_'+u.uid):null;
  L.push([pg!=='nenhuma','Página atual','Ativa: '+pg],[!!salva,'Restauração após F5',salva?'Salva: '+salva:'Ainda não registrada'],[!ultimoErroV3,'Erros capturados',ultimoErroV3?'Último erro: '+ultimoErroV3:'Nenhum erro registrado']);
  $('diagResumo').textContent=L.filter(x=>x[0]).length+' de '+L.length+' verificações passaram';

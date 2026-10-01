@@ -420,7 +420,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.23 • HORAS POR EDITAL + GERENCIAR DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.24 • HISTÓRICO DE SESSÕES POR MATÉRIA DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -1959,12 +1959,34 @@ async function v10422CarregarHistorico(){
    s.forEach(c=>arr.push({id:c.key,...(c.val()||{})}));
    arr.sort((a,b)=>(Number(b.criadoEm)||0)-(Number(a.criadoEm)||0));
    if(!arr.length){box.innerHTML='<div class="placeholder">Nenhuma sessão registrada ainda.</div>';return;}
-   box.innerHTML=arr.map(x=>'<div class="v102-topic" style="margin-bottom:10px">'+
-     '<div class="v102-num">'+String(x.numero||'—').padStart(2,'0')+'</div>'+
-     '<div class="v102-main"><strong>'+v10422Esc(x.assuntoNome||'Assunto')+'</strong>'+
-     '<small>'+v10422Esc(x.disciplina||'')+' • '+(x.tipo==='manual'?'✍️ Manual':'⏱ Timer')+' • '+v10422FmtDataHora(x.criadoEm)+'</small></div>'+
-     '<div style="font-weight:800;white-space:nowrap">'+v93Fmt(Number(x.segundos)||0)+'</div></div>'
-   ).join('');
+   const grupos={};
+   arr.forEach(x=>{
+     const materia=(x.disciplina||'Sem matéria').trim()||'Sem matéria';
+     if(!grupos[materia])grupos[materia]={materia,sessoes:[],segundos:0};
+     grupos[materia].sessoes.push(x);
+     grupos[materia].segundos+=Math.max(0,Number(x.segundos)||0);
+   });
+
+   box.innerHTML=Object.values(grupos).sort((a,b)=>a.materia.localeCompare(b.materia,'pt-BR')).map((g,gi)=>{
+     const id='timerMateriaV10424_'+gi;
+     const sessoes=g.sessoes.map(x=>
+       '<div class="v102-topic" style="margin:10px 0 0;display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:14px;align-items:center;width:100%">'+
+         '<div class="v102-num" style="min-width:0">'+String(x.numero||'—').padStart(2,'0')+'</div>'+
+         '<div class="v102-main" style="min-width:0;width:100%"><strong style="display:block;white-space:normal;overflow-wrap:anywhere">'+v10422Esc(x.assuntoNome||'Assunto')+'</strong>'+
+         '<small style="display:block;white-space:normal">'+(x.tipo==='manual'?'✍️ Manual':'⏱ Timer')+' • '+v10422FmtDataHora(x.criadoEm)+'</small></div>'+
+         '<div style="font-weight:800;white-space:nowrap;text-align:right">'+v93Fmt(Number(x.segundos)||0)+'</div>'+
+       '</div>'
+     ).join('');
+
+     return '<div style="border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden">'+
+       '<button type="button" onclick="(()=>{const e=document.getElementById(\''+id+'\');const a=this.querySelector(\'[data-arrow]\');const fechado=e.style.display===\'none\';e.style.display=fechado?\'block\':\'none\';if(a)a.textContent=fechado?\'▼\':\'▶\';})()" '+
+       'style="width:100%;border:0;background:rgba(7,13,24,.55);color:inherit;padding:16px;text-align:left;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer">'+
+         '<strong>📚 '+v10422Esc(g.materia)+'</strong>'+
+         '<span style="white-space:nowrap;color:var(--muted)">'+g.sessoes.length+' sessão(ões) • '+v93Fmt(g.segundos)+' &nbsp; <span data-arrow>▼</span></span>'+
+       '</button>'+
+       '<div id="'+id+'" style="padding:0 12px 12px">'+sessoes+'</div>'+
+     '</div>';
+   }).join('');
  }catch(e){
    console.error('V10.4.22 histórico:',e);
    box.innerHTML='<div class="placeholder">Não foi possível carregar o histórico agora.</div>';

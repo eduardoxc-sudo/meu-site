@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V9.3 DEV • HORAS LÍQUIDAS</title>
+<title>Plano & Ciclo de Estudos — V9.3.2 DEV • HORAS EM H/MIN</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -244,7 +244,8 @@ textarea:focus,select:focus{border-color:var(--primary)}
 </style>
 <style id="v93-timer-css">
 .v93-timer{margin-top:12px;padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--bg)}
-.v93-clock{font-size:2rem;font-weight:800;letter-spacing:2px;margin-bottom:12px}
+.v93-clock{font-size:2rem;font-weight:800;letter-spacing:2px;margin-bottom:4px}
+.v931-total{color:var(--muted);font-size:13px;margin-bottom:12px}
 .v93-actions{display:flex;gap:8px;flex-wrap:wrap}
 .v93-actions button{min-height:40px}
 </style>
@@ -277,7 +278,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.3 • HORAS LÍQUIDAS DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.3.2 • HORAS EM H/MIN DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -307,6 +308,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
       <p class="panel-sub">Registra tempo líquido real. Pausas não entram nas horas líquidas.</p>
       <div class="v93-timer">
         <div class="v93-clock" id="timerDisplayV93">00:00:00</div>
+        <div class="v931-total">Total acumulado: <b id="timerTotalV931">00:00:00</b></div>
         <div class="v93-actions">
           <button class="primary" id="timerStartV93" type="button">▶ Iniciar</button>
           <button id="timerPauseV93" type="button">⏸ Pausar</button>
@@ -1145,17 +1147,31 @@ $('btnSalvarPlanejamento')?.addEventListener('click',salvarPlanejamento);
 
 
 
-// ========================= V9.3 DEV — HORAS LÍQUIDAS REAIS =========================
-let timerV93={segundos:0,rodando:false,inicioMs:null,tick:null,carregado:false};
+// ========================= V9.3.1 DEV — SESSÃO ATUAL + TOTAL ACUMULADO =========================
+let timerV93={
+ sessaoSegundos:0,totalSegundos:0,rodando:false,inicioMs:null,
+ estado:'parada',tick:null,carregado:false
+};
 
 function v93Fmt(seg){
  seg=Math.max(0,Math.floor(Number(seg)||0));
- const h=Math.floor(seg/3600),m=Math.floor((seg%3600)/60),s=seg%60;
- return [h,m,s].map(x=>String(x).padStart(2,'0')).join(':');
+ const hh=Math.floor(seg/3600),mm=Math.floor((seg%3600)/60),ss=seg%60;
+ return [hh,mm,ss].map(x=>String(x).padStart(2,'0')).join(':');
 }
-function v93SegAtual(){
- if(!timerV93.rodando||!timerV93.inicioMs)return timerV93.segundos;
- return timerV93.segundos+Math.max(0,Math.floor((Date.now()-timerV93.inicioMs)/1000));
+function v932FmtDashboard(seg){
+ seg=Math.max(0,Math.floor(Number(seg)||0));
+ const hh=Math.floor(seg/3600);
+ const mm=Math.floor((seg%3600)/60);
+ return String(hh).padStart(2,'0')+'h '+String(mm).padStart(2,'0')+'min';
+}
+function v93SessaoAtual(){
+ if(!timerV93.rodando||!timerV93.inicioMs)return timerV93.sessaoSegundos;
+ return timerV93.sessaoSegundos+Math.max(0,Math.floor((Date.now()-timerV93.inicioMs)/1000));
+}
+function v93TotalAtual(){
+ const extra=timerV93.rodando&&timerV93.inicioMs
+   ?Math.max(0,Math.floor((Date.now()-timerV93.inicioMs)/1000)):0;
+ return timerV93.totalSegundos+extra;
 }
 function v93Ref(){
  const u=auth.currentUser;
@@ -1164,72 +1180,96 @@ function v93Ref(){
 async function v93Carregar(){
  const r=v93Ref(); if(!r)return;
  try{
-   const snap=await r.once('value'), d=snap.val()||{};
-   timerV93.segundos=Number(d.totalSegundos)||0;
+   const snap=await r.once('value'),d=snap.val()||{};
+   // Migração segura da V9.3: o antigo totalSegundos era o acumulado salvo.
+   timerV93.totalSegundos=Number(d.totalAcumuladoSegundos ?? d.totalSegundos)||0;
+   timerV93.sessaoSegundos=Number(d.sessaoSegundos)||0;
    timerV93.rodando=!!d.rodando;
    timerV93.inicioMs=timerV93.rodando&&d.inicioMs?Number(d.inicioMs):null;
+   timerV93.estado=timerV93.rodando?'andamento':(d.estado||'parada');
    timerV93.carregado=true;
    v93Render();
- }catch(e){console.error('V9.3 carregar horas:',e);}
+ }catch(e){console.error('V9.3.1 carregar:',e);}
 }
 async function v93Salvar(extra={}){
  const r=v93Ref(); if(!r)return;
  await r.update({
-   totalSegundos:timerV93.segundos,
+   totalAcumuladoSegundos:timerV93.totalSegundos,
+   sessaoSegundos:timerV93.sessaoSegundos,
    rodando:timerV93.rodando,
    inicioMs:timerV93.inicioMs||null,
+   estado:timerV93.estado,
    atualizadoEm:firebase.database.ServerValue.TIMESTAMP,
    ...extra
  });
 }
 function v93Render(){
- const seg=v93SegAtual();
- const el=$('timerDisplayV93'); if(el)el.textContent=v93Fmt(seg);
- const horas=$('dashHorasV92');
- if(horas)horas.textContent=(seg/3600).toFixed(1).replace('.',',')+' h';
- const st=$('timerStatusV93');
- if(st)st.textContent=timerV93.rodando?'● Sessão em andamento — somente o tempo ativo é contado.':
-   (timerV93.segundos?'Sessão pausada/finalizada. Total líquido salvo: '+v93Fmt(timerV93.segundos)+'.':'Nenhuma sessão em andamento.');
+ const sessao=v93SessaoAtual(),total=v93TotalAtual();
+ if($('timerDisplayV93'))$('timerDisplayV93').textContent=v93Fmt(sessao);
+ if($('timerTotalV931'))$('timerTotalV931').textContent=v93Fmt(total);
+ if($('dashHorasV92'))$('dashHorasV92').textContent=v932FmtDashboard(total);
+
+ const st=$('timerStatusV93'); if(!st)return;
+ if(timerV93.estado==='andamento') st.textContent='▶ Sessão em andamento • '+v93Fmt(sessao);
+ else if(timerV93.estado==='pausada') st.textContent='⏸ Sessão pausada • '+v93Fmt(sessao);
+ else if(timerV93.estado==='finalizada') st.textContent='✅ Sessão finalizada • Tempo líquido: '+v93Fmt(timerV93.sessaoSegundos);
+ else st.textContent='Nenhuma sessão em andamento.';
 }
 async function v93Iniciar(){
  if(timerV93.rodando)return;
- timerV93.rodando=true; timerV93.inicioMs=Date.now();
- await v93Salvar(); v93Render();
+ // Depois de finalizar, Iniciar cria uma nova sessão; após Pausar, continua a mesma.
+ if(timerV93.estado==='finalizada'){
+   timerV93.sessaoSegundos=0;
+ }
+ timerV93.rodando=true;
+ timerV93.inicioMs=Date.now();
+ timerV93.estado='andamento';
+ await v93Salvar();
+ v93Render();
 }
 async function v93Pausar(){
  if(!timerV93.rodando)return;
- timerV93.segundos=v93SegAtual();
- timerV93.rodando=false; timerV93.inicioMs=null;
- await v93Salvar(); v93Render();
+ const delta=Math.max(0,Math.floor((Date.now()-timerV93.inicioMs)/1000));
+ timerV93.sessaoSegundos+=delta;
+ timerV93.totalSegundos+=delta;
+ timerV93.rodando=false;
+ timerV93.inicioMs=null;
+ timerV93.estado='pausada';
+ await v93Salvar();
+ v93Render();
 }
 async function v93Finalizar(){
+ // Se estava rodando, consolida somente o trecho ainda não salvo.
  if(timerV93.rodando){
-   timerV93.segundos=v93SegAtual();
-   timerV93.rodando=false; timerV93.inicioMs=null;
+   const delta=Math.max(0,Math.floor((Date.now()-timerV93.inicioMs)/1000));
+   timerV93.sessaoSegundos+=delta;
+   timerV93.totalSegundos+=delta;
  }
+ timerV93.rodando=false;
+ timerV93.inicioMs=null;
+ timerV93.estado='finalizada';
+
  const hoje=v922IsoLocal(new Date());
  const r=v93Ref();
  if(r){
-   const snap=await r.child('dias/'+hoje+'/segundos').once('value');
-   const ja=Number(snap.val())||0;
-   // Salva uma fotografia do total diário sem criar revisões.
    await r.child('dias/'+hoje).update({
-     segundos:Math.max(ja,timerV93.segundos),
+     totalAcumuladoSegundos:timerV93.totalSegundos,
+     ultimaSessaoSegundos:timerV93.sessaoSegundos,
      ultimaConclusao:firebase.database.ServerValue.TIMESTAMP
    });
  }
- await v93Salvar(); v93Render();
+ await v93Salvar();
+ v93Render();
 }
 function v93Bind(){
  const a=$('timerStartV93'),p=$('timerPauseV93'),f=$('timerFinishV93');
- if(a&&!a.dataset.v93){a.dataset.v93='1';a.onclick=v93Iniciar;}
- if(p&&!p.dataset.v93){p.dataset.v93='1';p.onclick=v93Pausar;}
- if(f&&!f.dataset.v93){f.dataset.v93='1';f.onclick=v93Finalizar;}
+ if(a&&!a.dataset.v931){a.dataset.v931='1';a.onclick=v93Iniciar;}
+ if(p&&!p.dataset.v931){p.dataset.v931='1';p.onclick=v93Pausar;}
+ if(f&&!f.dataset.v931){f.dataset.v931='1';f.onclick=v93Finalizar;}
  if(!timerV93.tick)timerV93.tick=setInterval(v93Render,1000);
 }
 document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{v93Bind();v93Carregar();},800));
 setTimeout(()=>{v93Bind();v93Carregar();},1500);
-
 
 // ========================= V9.2.2 DEV — SEQUÊNCIA INTELIGENTE =========================
 function v922IsoLocal(d){

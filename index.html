@@ -173,6 +173,18 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .ciclo-dia-vazio-v104{color:var(--muted);font-size:.82rem;padding:8px 4px}
 @media(max-width:900px){.ciclo-semana-grid-v104{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.ciclo-semana-grid-v104{grid-template-columns:1fr}}
+
+/* V10.4.16 — Progresso restaurado */
+.prog-prior-v10416{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.prog-prior-card-v10416,.prog-mat-v10416{border:1px solid var(--border);background:rgba(6,12,24,.55);border-radius:12px;padding:12px}
+.prog-prior-card-v10416 strong{display:block;font-size:20px;margin-top:4px}
+.prog-mat-v10416{margin-top:10px}
+.prog-mat-head-v10416{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}
+.prog-mat-head-v10416 b{font-size:16px}.prog-mat-head-v10416 span{white-space:nowrap;color:var(--muted)}
+.prog-track-v10416{height:10px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
+.prog-track-v10416 i{display:block;height:100%;width:0;background:linear-gradient(90deg,#38bdf8,#6366f1);border-radius:999px}
+.prog-mat-meta-v10416{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;color:var(--muted);font-size:13px}
+@media(max-width:760px){.prog-prior-v10416{grid-template-columns:1fr}.prog-mat-head-v10416{align-items:flex-start;flex-direction:column}}
 </style>
 
 
@@ -408,7 +420,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.15 • HISTÓRICO POR MATÉRIA DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.16 • PROGRESSO RESTAURADO DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -648,7 +660,38 @@ textarea:focus,select:focus{border-color:var(--primary)}
       </div>
     </div>
   </section>
-  <section id="page-progresso" class="page"><div class="placeholder"><b>Progresso</b><br>Estrutura reservada. Ainda não implementado nesta etapa.</div></section>
+  <section id="page-progresso" class="page">
+    <div class="panel">
+      <h2>📈 Progresso do edital</h2>
+      <p class="panel-sub">Calculado pelos assuntos originais do Planejamento. Revisões D1/D7/D15/D30 não entram como novos assuntos.</p>
+      <div class="stats-v92">
+        <div class="stat"><span>📚 Total de assuntos</span><strong id="progTotalV10416">0</strong></div>
+        <div class="stat"><span>✅ Concluídos</span><strong id="progConclV10416">0</strong></div>
+        <div class="stat"><span>⏳ Pendentes</span><strong id="progPendV10416">0</strong></div>
+        <div class="stat"><span>📊 Progresso geral</span><strong id="progPctV10416">0%</strong></div>
+      </div>
+      <div class="stats-bar-v92" style="margin-top:14px">
+        <div class="stats-bar-head-v92"><span>Conclusão dos assuntos</span><b id="progTxtV10416">0 / 0</b></div>
+        <div class="stats-track-v92"><i id="progBarV10416"></i></div>
+      </div>
+      <div id="progPrioridadesV10416" class="prog-prior-v10416"></div>
+    </div>
+    <div class="panel" style="margin-top:16px">
+      <h2>📚 Progresso por matéria</h2>
+      <p class="panel-sub">Cada matéria mostra somente seus assuntos originais, preservando a numeração e a prioridade do Planejamento.</p>
+      <div id="progMateriasV10416"></div>
+    </div>
+    <div class="panel" style="margin-top:16px">
+      <h2>🎯 Questões</h2>
+      <p class="panel-sub">Resumo dos registros já salvos pelo módulo Questões. Nesta versão os dados atuais são gerais; não serão inventados dados por matéria.</p>
+      <div class="stats-v92">
+        <div class="stat"><span>🎯 Resolvidas</span><strong id="progQTotalV10416">0</strong></div>
+        <div class="stat"><span>✅ Acertos</span><strong id="progQAcV10416">0</strong></div>
+        <div class="stat"><span>❌ Erros</span><strong id="progQErV10416">0</strong></div>
+        <div class="stat"><span>📈 Aproveitamento</span><strong id="progQPctV10416">—</strong></div>
+      </div>
+    </div>
+  </section>
   <section id="page-historico" class="page">
     <div class="panel">
       <h2>📜 Histórico de revisões</h2>
@@ -2881,5 +2924,5 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
   window.renderEstatisticasV10414=renderEstatisticasV10414;
 })();
 </script>
-</body>
+\n<script id="v10416-progresso-ui">\n(function(){\n function esc(x){return String(x??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));}\n function renderProgressoV10416(){\n  try{\n   const itens=Array.isArray(window.agendaV102?.itens)?window.agendaV102.itens:[];\n   const total=itens.length, concl=itens.filter(a=>!!a.concluidoEm).length, pend=Math.max(0,total-concl);\n   const pct=total?Math.round(concl/total*100):0;\n   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};\n   set('progTotalV10416',total);set('progConclV10416',concl);set('progPendV10416',pend);set('progPctV10416',pct+'%');set('progTxtV10416',concl+' / '+total);\n   const bar=document.getElementById('progBarV10416');if(bar)bar.style.width=pct+'%';\n   const pri=document.getElementById('progPrioridadesV10416');\n   if(pri){\n    pri.innerHTML=[1,2,3].map(p=>{const a=itens.filter(x=>Number(x.prioridade)===p),c=a.filter(x=>x.concluidoEm).length;return '<div class="prog-prior-card-v10416"><span>'+({1:'🔴 P1',2:'🟡 P2',3:'🟢 P3'}[p])+'</span><strong>'+c+' / '+a.length+'</strong><small>'+ (a.length?Math.round(c/a.length*100):0) +'% concluído</small></div>';}).join('');\n   }\n   const grupos={};itens.forEach(a=>{const d=a.disciplina||'Sem matéria';(grupos[d]??=[]).push(a)});\n   const box=document.getElementById('progMateriasV10416');\n   if(box){\n    const nomes=Object.keys(grupos).sort((a,b)=>a.localeCompare(b,'pt-BR'));\n    box.innerHTML=nomes.length?nomes.map(nome=>{const a=grupos[nome],c=a.filter(x=>x.concluidoEm).length,p=a.length?Math.round(c/a.length*100):0;const p1=a.filter(x=>Number(x.prioridade)===1).length,p2=a.filter(x=>Number(x.prioridade)===2).length,p3=a.filter(x=>Number(x.prioridade)===3).length;return '<div class="prog-mat-v10416"><div class="prog-mat-head-v10416"><b>📚 '+esc(nome)+'</b><span>'+c+' / '+a.length+' • '+p+'%</span></div><div class="prog-track-v10416"><i style="width:'+p+'%"></i></div><div class="prog-mat-meta-v10416"><span>✅ '+c+' concluído(s)</span><span>⏳ '+(a.length-c)+' pendente(s)</span><span>🔴 P1: '+p1+'</span><span>🟡 P2: '+p2+'</span><span>🟢 P3: '+p3+'</span></div></div>';}).join(''):'<div class="status-line">Monte o Planejamento para calcular o progresso por matéria.</div>';\n   }\n   if(typeof window.questoesV94!=='undefined'){const q=window.questoesV94,t=Number(q.total)||0,ac=Number(q.acertos)||0,er=Number(q.erros)||0;set('progQTotalV10416',t);set('progQAcV10416',ac);set('progQErV10416',er);set('progQPctV10416',t?Math.round(ac/t*100)+'%':'—');}\n  }catch(err){console.error('V10.4.16 progresso:',err);}\n }\n document.addEventListener('click',function(e){if(!e.target.closest('.nav button[data-page="progresso"]'))return;setTimeout(renderProgressoV10416,0);});\n setTimeout(renderProgressoV10416,1100);\n window.renderProgressoV10416=renderProgressoV10416;\n})();\n</script>\n</body>
 </html>

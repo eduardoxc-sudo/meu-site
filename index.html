@@ -483,11 +483,12 @@ textarea:focus,select:focus{border-color:var(--primary)}
     <button data-page="seguranca">◇ Segurança</button>
   
       <button class="nav-btn" data-page="editalPronto">📚 Edital pronto</button>
+      <button id="navAdminEditaisV10439" class="nav-btn hidden" data-page="adminEditais">👑 Admin • Editais prontos</button>
 </nav>
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.38 • GERENCIAR EDITAL SIMPLIFICADO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.39 • ADMIN EDITAIS PRONTOS DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -994,13 +995,13 @@ textarea:focus,select:focus{border-color:var(--primary)}
 <section id="page-editalPronto" class="page" style="display:none">
   <div class="panel">
     <h2>📚 Edital pronto</h2>
-    <p class="panel-sub">Carregue seu Edital atual, ajuste a prioridade em cada assunto e envie tudo para o Planejamento.</p>
+    <p class="panel-sub">Escolha um edital pronto publicado pelo administrador, ajuste suas prioridades e envie para o Planejamento.</p>
 
     <div class="v100-edital-toolbar">
       <label>Concurso / edital
         <select id="editalProntoSelectV100">
           <option value="">Selecione um edital</option>
-          <option value="atual">Meu edital atual (30/30)</option>
+          
         </select>
       </label>
       <button class="primary" id="carregarEditalV100" type="button">📥 Carregar edital</button>
@@ -1027,6 +1028,26 @@ textarea:focus,select:focus{border-color:var(--primary)}
       </div>
       <div id="envioPlanejamentoStatusV100" class="status-line"></div>
     </div>
+  </div>
+</section>
+
+
+<section id="page-adminEditais" class="page">
+  <div class="panel" style="border-color:#6d5524;background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(99,102,241,.06))">
+    <h2>👑 Administração • Editais prontos</h2>
+    <p class="panel-sub">Área exclusiva do administrador. Crie, edite, publique ou exclua modelos que aparecerão na aba “Edital pronto” dos usuários.</p>
+    <div id="adminEditaisStatusV10439" class="status-line">Verificando permissão de administrador...</div>
+  </div>
+  <div id="adminEditaisAreaV10439" class="hidden">
+    <div class="panel" style="margin-top:16px">
+      <h2>📝 Criar / editar edital pronto</h2>
+      <div class="field"><label>NOME DO CONCURSO / EDITAL</label><input id="adminEditalTituloV10439" placeholder="Ex.: PMPE — Soldado 2026"></div>
+      <div class="field"><label>EDITAL VERTICALIZADO</label><textarea id="adminEditalTextoV10439" rows="14" placeholder="Língua Portuguesa\n1. Interpretação de textos\n2. Ortografia\n\nDireito Constitucional\n1. Direitos e garantias fundamentais"></textarea></div>
+      <label style="display:flex;gap:8px;align-items:center;margin:10px 0 14px"><input id="adminEditalPublicadoV10439" type="checkbox" checked style="width:auto"> Publicado para os usuários</label>
+      <div class="actions"><button class="btn btn-primary" id="adminSalvarEditalV10439" type="button">💾 Salvar edital pronto</button><button class="btn btn-outline" id="adminNovoEditalV10439" type="button">＋ Novo / limpar formulário</button></div>
+      <div id="adminFormStatusV10439" class="status-line"></div>
+    </div>
+    <div class="panel" style="margin-top:16px"><h2>📚 Editais cadastrados</h2><p class="panel-sub">Somente editais publicados aparecem para usuários comuns.</p><div id="adminListaEditaisV10439"></div></div>
   </div>
 </section>
 
@@ -3911,6 +3932,76 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
   });
   setTimeout(bind27,2200);
 })();
+</script>
+
+
+<script id="v10439-admin-editais-prontos">
+// V10.4.39 — Catálogo global de editais prontos + administração por perfil.
+let v10439IsAdmin=false, v10439EditandoId=null, v10439Catalogo={};
+function v10439CatalogRef(){return db.ref('catalogoEditaisProntosV10439');}
+function v10439Esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+function v10439Slug(){return 'ed_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);}
+function v10439ParseVerticalizado(texto){
+  const linhas=String(texto||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean), assuntos=[]; let disciplina='';
+  for(const linha of linhas){
+    const topico=/^(?:\d+[\.\)\-]|[-•])\s*(.+)$/.exec(linha);
+    if(topico && disciplina){assuntos.push({disciplina,nome:topico[1].trim(),prioridade:2});}
+    else {disciplina=linha.replace(/:$/,'').trim();}
+  }
+  return assuntos;
+}
+async function v10439ChecarAdmin(){
+  const u=auth.currentUser; v10439IsAdmin=false; if(!u)return false;
+  try{
+    const [a,p]=await Promise.all([db.ref('admins/'+u.uid).once('value'),db.ref('usuarios/'+u.uid).once('value')]);
+    const av=a.val(), pv=p.val()||{};
+    v10439IsAdmin=(av===true)||(av&&av.ativo===true)||String(pv.role||pv.perfil||'').toLowerCase()==='admin'||pv.admin===true;
+  }catch(e){console.warn('V10.4.39 admin check',e);}
+  const nav=$('navAdminEditaisV10439'); if(nav)nav.classList.toggle('hidden',!v10439IsAdmin);
+  const area=$('adminEditaisAreaV10439'),st=$('adminEditaisStatusV10439');
+  if(area)area.classList.toggle('hidden',!v10439IsAdmin);
+  if(st)st.textContent=v10439IsAdmin?'✅ Acesso ADM confirmado.':'⛔ Esta área é exclusiva do administrador.';
+  if(!v10439IsAdmin && document.querySelector('.page.active')?.id==='page-adminEditais') abrirPaginaV3('dashboard',false);
+  return v10439IsAdmin;
+}
+async function v10439CarregarCatalogo(){
+  try{const s=await v10439CatalogRef().once('value');v10439Catalogo=s.val()||{};}catch(e){console.error(e);v10439Catalogo={};}
+  const sel=$('editalProntoSelectV100');
+  if(sel){const atual=sel.value;sel.innerHTML='<option value="">Selecione um edital</option>'+Object.entries(v10439Catalogo).filter(([,x])=>x&&x.publicado!==false).sort((a,b)=>String(a[1].titulo).localeCompare(String(b[1].titulo),'pt-BR')).map(([id,x])=>'<option value="'+v10439Esc(id)+'">'+v10439Esc(x.titulo||'Edital sem nome')+' ('+(x.assuntos||[]).length+' assuntos)</option>').join('');if([...sel.options].some(o=>o.value===atual))sel.value=atual;}
+  v10439RenderAdmin();
+}
+function v10439RenderAdmin(){
+  const box=$('adminListaEditaisV10439'); if(!box||!v10439IsAdmin)return;
+  const arr=Object.entries(v10439Catalogo).sort((a,b)=>String(a[1]?.titulo||'').localeCompare(String(b[1]?.titulo||''),'pt-BR'));
+  if(!arr.length){box.innerHTML='<div class="empty">Nenhum edital pronto cadastrado ainda.</div>';return;}
+  box.innerHTML=arr.map(([id,x])=>'<div class="materia-card"><div class="materia-head"><div><h4>📚 '+v10439Esc(x.titulo||'Sem nome')+'</h4><div class="materia-count">'+((x.assuntos||[]).length)+' assunto(s) • '+(x.publicado!==false?'🟢 Publicado':'⚪ Rascunho')+'</div></div><div class="actions"><button class="btn btn-outline mini" data-adm-edit="'+v10439Esc(id)+'">✏️ Editar</button><button class="btn btn-danger mini" data-adm-del="'+v10439Esc(id)+'">🗑️ Excluir</button></div></div></div>').join('');
+}
+function v10439Novo(){v10439EditandoId=null;$('adminEditalTituloV10439').value='';$('adminEditalTextoV10439').value='';$('adminEditalPublicadoV10439').checked=true;$('adminFormStatusV10439').textContent='Novo edital.';}
+function v10439TextoDeAssuntos(arr){const g={};(arr||[]).forEach(a=>(g[a.disciplina]??=[]).push(a.nome));return Object.entries(g).map(([d,it])=>d+'\n'+it.map((x,i)=>(i+1)+'. '+x).join('\n')).join('\n\n');}
+async function v10439SalvarAdmin(){
+  if(!await v10439ChecarAdmin()){alert('Apenas o administrador pode alterar editais prontos.');return;}
+  const titulo=$('adminEditalTituloV10439').value.trim(), texto=$('adminEditalTextoV10439').value, assuntos=v10439ParseVerticalizado(texto), st=$('adminFormStatusV10439');
+  if(!titulo){st.textContent='⚠ Informe o nome do edital.';return;} if(!assuntos.length){st.textContent='⚠ Nenhum assunto foi reconhecido. Use disciplina em uma linha e tópicos numerados abaixo.';return;}
+  const id=v10439EditandoId||v10439Slug(), antigo=v10439Catalogo[id]||{};
+  await v10439CatalogRef().child(id).set({titulo,assuntos,publicado:$('adminEditalPublicadoV10439').checked,criadoEm:antigo.criadoEm||firebase.database.ServerValue.TIMESTAMP,atualizadoEm:firebase.database.ServerValue.TIMESTAMP,autorUid:auth.currentUser.uid});
+  st.textContent='✅ Edital salvo com '+assuntos.length+' assuntos.';v10439EditandoId=id;await v10439CarregarCatalogo();
+}
+async function v10439Editar(id){if(!await v10439ChecarAdmin())return;const x=v10439Catalogo[id];if(!x)return;v10439EditandoId=id;$('adminEditalTituloV10439').value=x.titulo||'';$('adminEditalTextoV10439').value=v10439TextoDeAssuntos(x.assuntos);$('adminEditalPublicadoV10439').checked=x.publicado!==false;$('adminFormStatusV10439').textContent='Editando: '+(x.titulo||'Edital');window.scrollTo({top:0,behavior:'smooth'});}
+async function v10439Excluir(id){if(!await v10439ChecarAdmin())return;const x=v10439Catalogo[id];if(!x)return;if(!confirm('Excluir definitivamente o edital pronto “'+(x.titulo||'')+'”?\n\nOs usuários que já enviaram esse edital ao Planejamento não terão seus dados pessoais apagados.'))return;await v10439CatalogRef().child(id).remove();if(v10439EditandoId===id)v10439Novo();await v10439CarregarCatalogo();}
+// Substitui o carregamento antigo: usuário só consome um modelo publicado do catálogo.
+v100CarregarEscolhido=async function(){
+  const sel=$('editalProntoSelectV100'),id=sel?.value,st=$('editalProntoStatusV100');
+  if(!id){editalAtualV100=null;v100Render();if(st)st.textContent='Selecione um edital antes de carregar.';return;}
+  await v10439CarregarCatalogo(); const base=v10439Catalogo[id];
+  if(!base||base.publicado===false){editalAtualV100=null;v100Render();if(st)st.textContent='⚠ Este edital não está disponível.';return;}
+  editalAtualV100={catalogoId:id,titulo:base.titulo,assuntos:(base.assuntos||[]).map(a=>({disciplina:a.disciplina,nome:a.nome,prioridade:Number(a.prioridade)||2}))};
+  try{const r=v100Ref(),snap=r?await r.once('value'):null,d=snap?snap.val():null;if(d&&d.catalogoId===id&&Array.isArray(d.assuntos)){const m=new Map(d.assuntos.map(a=>[a.disciplina+'|||'+a.nome,Number(a.prioridade)||2]));editalAtualV100.assuntos.forEach(a=>{const p=m.get(a.disciplina+'|||'+a.nome);if(p)a.prioridade=p;});}}catch(e){console.error(e);}
+  await v100Salvar();if(st)st.textContent='✅ '+editalAtualV100.assuntos.length+' assuntos carregados. Ajuste suas prioridades.';v100Render();
+};
+async function v10439Init(){await v10439ChecarAdmin();await v10439CarregarCatalogo();const c=$('carregarEditalV100');if(c)c.onclick=v100CarregarEscolhido;const s=$('adminSalvarEditalV10439');if(s)s.onclick=v10439SalvarAdmin;const n=$('adminNovoEditalV10439');if(n)n.onclick=v10439Novo;}
+document.addEventListener('click',e=>{const ed=e.target.closest('[data-adm-edit]');if(ed)v10439Editar(ed.dataset.admEdit);const del=e.target.closest('[data-adm-del]');if(del)v10439Excluir(del.dataset.admDel);const p=e.target.closest('[data-page="editalPronto"]');if(p)setTimeout(v10439CarregarCatalogo,80);const a=e.target.closest('[data-page="adminEditais"]');if(a)setTimeout(v10439ChecarAdmin,50);});
+auth.onAuthStateChanged(u=>{if(u)setTimeout(v10439Init,700);});
+setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 </script>
 
 </body>

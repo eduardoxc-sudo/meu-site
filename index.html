@@ -420,7 +420,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.18 • PROGRESSO SCRIPT CORRIGIDO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.19 • PROGRESSO CONCLUSÃO SINCRONIZADA DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -2934,7 +2934,13 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
  function renderProgressoV10416(){
   try{
    const itens=(typeof agendaV102!=='undefined' && Array.isArray(agendaV102?.itens))?agendaV102.itens:[];
-   const total=itens.length, concl=itens.filter(a=>!!a.concluidoEm).length, pend=Math.max(0,total-concl);
+   // Leitura compatível da conclusão: agenda atual (concluidoEm) + estado já sincronizado no Edital (topico.t).
+   // Não grava nem altera dados; serve apenas para o Progresso reconhecer conclusões preservadas de versões anteriores.
+   const concluidoV10419=(a)=>{
+    if(a?.concluidoEm)return true;
+    try{const e=(typeof v103TopicoEdital==='function')?v103TopicoEdital(a?.disciplina,a?.nome):null;return !!e?.topico?.t;}catch(_){return false;}
+   };
+   const total=itens.length, concl=itens.filter(concluidoV10419).length, pend=Math.max(0,total-concl);
    const pct=total?Math.round(concl/total*100):0;
    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
    set('progTotalV10416',total);set('progConclV10416',concl);set('progPendV10416',pend);set('progPctV10416',pct+'%');set('progTxtV10416',concl+' / '+total);
@@ -2942,16 +2948,16 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
    const bar=document.getElementById('progBarV10416');if(bar)bar.style.width=pct+'%';
    const pri=document.getElementById('progPrioridadesV10416');
    if(pri){
-    pri.innerHTML=[1,2,3].map(p=>{const a=itens.filter(x=>Number(x.prioridade)===p),c=a.filter(x=>x.concluidoEm).length;return '<div class="prog-prior-card-v10416"><span>'+({1:'🔴 P1',2:'🟡 P2',3:'🟢 P3'}[p])+'</span><strong>'+c+' / '+a.length+'</strong><small>'+ (a.length?Math.round(c/a.length*100):0) +'% concluído</small></div>';}).join('');
+    pri.innerHTML=[1,2,3].map(p=>{const a=itens.filter(x=>Number(x.prioridade)===p),c=a.filter(concluidoV10419).length;return '<div class="prog-prior-card-v10416"><span>'+({1:'🔴 P1',2:'🟡 P2',3:'🟢 P3'}[p])+'</span><strong>'+c+' / '+a.length+'</strong><small>'+ (a.length?Math.round(c/a.length*100):0) +'% concluído</small></div>';}).join('');
    }
    const grupos={};itens.forEach(a=>{const d=a.disciplina||'Sem matéria';(grupos[d]??=[]).push(a)});
    const box=document.getElementById('progMateriasV10416');
    if(box){
     const nomes=Object.keys(grupos).sort((a,b)=>a.localeCompare(b,'pt-BR'));
-    box.innerHTML=nomes.length?nomes.map(nome=>{const a=grupos[nome],c=a.filter(x=>x.concluidoEm).length,p=a.length?Math.round(c/a.length*100):0;const p1=a.filter(x=>Number(x.prioridade)===1).length,p2=a.filter(x=>Number(x.prioridade)===2).length,p3=a.filter(x=>Number(x.prioridade)===3).length;return '<div class="prog-mat-v10416"><div class="prog-mat-head-v10416"><b>📚 '+esc(nome)+'</b><span>'+c+' / '+a.length+' • '+p+'%</span></div><div class="prog-track-v10416"><i style="width:'+p+'%"></i></div><div class="prog-mat-meta-v10416"><span>✅ '+c+' concluído(s)</span><span>⏳ '+(a.length-c)+' pendente(s)</span><span>🔴 P1: '+p1+'</span><span>🟡 P2: '+p2+'</span><span>🟢 P3: '+p3+'</span></div></div>';}).join(''):'<div class="status-line">Monte o Planejamento para calcular o progresso por matéria.</div>';
+    box.innerHTML=nomes.length?nomes.map(nome=>{const a=grupos[nome],c=a.filter(concluidoV10419).length,p=a.length?Math.round(c/a.length*100):0;const p1=a.filter(x=>Number(x.prioridade)===1).length,p2=a.filter(x=>Number(x.prioridade)===2).length,p3=a.filter(x=>Number(x.prioridade)===3).length;return '<div class="prog-mat-v10416"><div class="prog-mat-head-v10416"><b>📚 '+esc(nome)+'</b><span>'+c+' / '+a.length+' • '+p+'%</span></div><div class="prog-track-v10416"><i style="width:'+p+'%"></i></div><div class="prog-mat-meta-v10416"><span>✅ '+c+' concluído(s)</span><span>⏳ '+(a.length-c)+' pendente(s)</span><span>🔴 P1: '+p1+'</span><span>🟡 P2: '+p2+'</span><span>🟢 P3: '+p3+'</span></div></div>';}).join(''):'<div class="status-line">Monte o Planejamento para calcular o progresso por matéria.</div>';
    }
    if(typeof questoesV94!=='undefined'){const q=questoesV94,t=Number(q.total)||0,ac=Number(q.acertos)||0,er=Number(q.erros)||0;set('progQTotalV10416',t);set('progQAcV10416',ac);set('progQErV10416',er);set('progQPctV10416',t?Math.round(ac/t*100)+'%':'—');}
-  }catch(err){console.error('V10.4.18 progresso:',err);}
+  }catch(err){console.error('V10.4.19 progresso:',err);}
  }
  document.addEventListener('click',function(e){if(!e.target.closest('.nav button[data-page="progresso"]'))return;setTimeout(renderProgressoV10416,0);});
  setTimeout(renderProgressoV10416,1100);

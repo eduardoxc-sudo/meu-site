@@ -141,6 +141,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .ciclo-assunto-acoes{display:flex;gap:5px}
 @media(max-width:700px){.ciclo-assunto-row{grid-template-columns:42px minmax(0,1fr)}.ciclo-assunto-acoes{grid-column:2}}
 
+.ciclo-hoje-sub{margin:10px 0 6px;padding:6px 2px;color:#b9d7ff}.ciclo-hoje-concl{margin-top:16px;color:#9fb0c7}
 </style>
 
 
@@ -2015,29 +2016,34 @@ function v103PlanejadosHoje(){
  const hoje=new Date().toISOString().slice(0,10);
  return (agendaV102?.itens||[]).filter(a=>a.dataPlanejada===hoje).sort((a,b)=>(a.numero||0)-(b.numero||0));
 }
+function v103ConcluidoNoPlano(a){return !!a?.concluidoEm;}
 function renderizarPlanejamentoHojeV103(){
  const box=$('cicloPlanejadoHojeListaV103'),st=$('cicloPlanejadoHojeStatusV103'); if(!box)return;
  const itens=v103PlanejadosHoje();
  if(!agendaV102?.itens?.length){box.innerHTML='<div class="ciclo-vazio">Monte o Planejamento para criar a fila diária do Ciclo.</div>';if(st)st.textContent='Nenhum planejamento por data salvo.';return;}
  if(!itens.length){box.innerHTML='<div class="ciclo-vazio">Nenhum assunto planejado para hoje.</div>';if(st)st.textContent='O Ciclo seguirá sua ordem normal.';return;}
- box.innerHTML=itens.map(a=>{const e=v103TopicoEdital(a.disciplina,a.nome),done=!!e?.topico?.t;return '<div class="ciclo-hoje-item '+(done?'done':'')+'"><div class="ciclo-hoje-num">'+String(a.numero||'').padStart(2,'0')+'</div><div><b>'+v101PlanLabel(a.prioridade)+'</b></div><div class="ciclo-hoje-main"><strong>'+v2Escape(a.nome)+'</strong><small>'+v2Escape(a.disciplina)+' • '+(done?'✓ Concluído':'Pendente')+'</small></div></div>'}).join('');
- if(st){const pend=itens.filter(a=>!v103TopicoEdital(a.disciplina,a.nome)?.topico?.t).length;st.textContent='📚 '+itens.length+' planejado(s) para hoje • '+pend+' pendente(s).';}
+ const pend=itens.filter(a=>!v103ConcluidoNoPlano(a)), concl=itens.filter(v103ConcluidoNoPlano);
+ let html='';
+ if(pend.length) html+='<div class="ciclo-hoje-sub"><b>Pendentes de hoje</b></div>'+pend.map(a=>'<div class="ciclo-hoje-item"><div class="ciclo-hoje-num">'+String(a.numero||'').padStart(2,'0')+'</div><div><b>'+v101PlanLabel(a.prioridade)+'</b></div><div class="ciclo-hoje-main"><strong>'+v2Escape(a.nome)+'</strong><small>'+v2Escape(a.disciplina)+' • Pendente</small></div></div>').join('');
+ if(concl.length) html+='<div class="ciclo-hoje-sub ciclo-hoje-concl"><b>✓ Concluídos hoje</b></div>'+concl.map(a=>'<div class="ciclo-hoje-item done"><div class="ciclo-hoje-num">'+String(a.numero||'').padStart(2,'0')+'</div><div><b>'+v101PlanLabel(a.prioridade)+'</b></div><div class="ciclo-hoje-main"><strong>'+v2Escape(a.nome)+'</strong><small>'+v2Escape(a.disciplina)+' • ✓ Concluído neste planejamento</small></div></div>').join('');
+ box.innerHTML=html;
+ if(st)st.textContent='📚 '+itens.length+' planejado(s) para hoje • '+pend.length+' pendente(s) • '+concl.length+' concluído(s).';
 }
 function estudoRealLocalizarProximo(){
  const ativas=cicloAtivas();
  if(!ativas.length)return null;
  cicloExecAjustar();
- // Primeiro: fila do Planejamento para hoje, somente disciplinas ativas.
+ // A fila diária pertence ao planejamento atual. Conclusões antigas do Edital não encerram esta fila.
  const nomesAtivos=new Set(ativas.map(x=>v2Norm(x.nome)));
  for(const a of v103PlanejadosHoje()){
-   if(!nomesAtivos.has(v2Norm(a.disciplina)))continue;
+   if(v103ConcluidoNoPlano(a)||!nomesAtivos.has(v2Norm(a.disciplina)))continue;
    const e=v103TopicoEdital(a.disciplina,a.nome);
-   if(e && !e.topico.t){
+   if(e){
      const indice=ativas.findIndex(x=>v2Norm(x.nome)===v2Norm(e.disciplina));
-     return {disciplina:e.disciplina,topico:e.topico,indice:Math.max(0,indice),passo:0,planejadoHoje:true,numero:a.numero,prioridade:a.prioridade};
+     return {disciplina:e.disciplina,topico:e.topico,indice:Math.max(0,indice),passo:0,planejadoHoje:true,numero:a.numero,prioridade:a.prioridade,agendaId:a.id};
    }
  }
- // Sem pendência planejada hoje: mantém exatamente a lógica normal do Ciclo.
+ // Só usa a ordem normal quando não há fila diária pendente.
  for(let passo=0;passo<ativas.length;passo++){
    const indice=(cicloExec.indice+passo)%ativas.length;
    const disciplina=ativas[indice]?.nome;
@@ -2112,6 +2118,11 @@ async function concluirEstudoReal(){
       atual.topico.titulo,
       new Date().toISOString().slice(0,10)
     );
+    if(atual.planejadoHoje && atual.agendaId){
+      const ai=(agendaV102?.itens||[]).find(x=>x.id===atual.agendaId);
+      if(ai){ai.concluidoEm=new Date().toISOString(); await v102SalvarAgenda();}
+    }
+    // Mantém o histórico antigo do Edital, mas a fila diária usa sua própria conclusão.
     atual.topico.t=true;
     v2Salvar();
 

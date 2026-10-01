@@ -360,7 +360,22 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .v101-plan-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.v101-plan-summary>div{border:1px solid var(--border);background:var(--bg);border-radius:10px;padding:12px}.v101-plan-summary span{display:block;color:var(--muted);font-size:12px}.v101-plan-summary b{font-size:20px}
 .v101-plan-list{display:grid;gap:12px;margin-top:12px}.v101-plan-group{border:1px solid var(--border);border-radius:12px;overflow:hidden}.v101-plan-group h3{margin:0;padding:12px;background:rgba(0,0,0,.12)}.v101-plan-item{display:grid;grid-template-columns:90px 1fr;gap:10px;padding:10px 12px;border-top:1px solid var(--border)}.v101-plan-item small{color:var(--muted)}
 @media(max-width:760px){.v101-plan-summary{grid-template-columns:1fr 1fr}.v101-plan-item{grid-template-columns:70px 1fr}}
-</style></head>
+</style>
+<style id="v10415-historico-materias-css">
+.hist-materia-v10415{border:1px solid var(--border);border-radius:12px;background:var(--bg);margin-top:12px;overflow:hidden}
+.hist-materia-v10415>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(255,255,255,.02);font-weight:800}
+.hist-materia-v10415>summary::-webkit-details-marker{display:none}
+.hist-materia-v10415>summary:after{content:'▾';font-size:18px;transition:transform .18s ease}
+.hist-materia-v10415:not([open])>summary:after{transform:rotate(-90deg)}
+.hist-materia-titulo-v10415{display:flex;align-items:center;gap:8px;min-width:0}
+.hist-materia-titulo-v10415 span{overflow-wrap:anywhere}
+.hist-materia-qtd-v10415{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;margin-left:auto}
+.hist-materia-corpo-v10415{padding:2px 12px 12px}
+.hist-materia-corpo-v10415 .hist-v90{margin-top:10px}
+.hist-tipo-v10415{display:inline-flex;align-items:center;padding:3px 8px;border:1px solid var(--border);border-radius:999px;font-size:12px;font-weight:800;margin-right:7px}
+@media(max-width:560px){.hist-materia-v10415>summary{align-items:flex-start}.hist-materia-qtd-v10415{white-space:normal;text-align:right}}
+</style>
+</head>
 <body>
 <section id="login">
 <div class="login-card">
@@ -393,7 +408,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.14 • ESTATÍSTICAS RESTAURADAS DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.15 • HISTÓRICO POR MATÉRIA DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -1882,12 +1897,20 @@ function renderizarHistoricoV90(){
  const qtd=t=>itens.filter(x=>x.tipo===t).length;
  res.innerHTML=['D1','D7','D15','D30'].map(t=>'<div class="cycle-stat"><span><strong>'+t+'</strong><br>CONCLUÍDAS</span><b>'+qtd(t)+'</b></div>').join('');
  if(!itens.length){box.innerHTML='<div class="empty">Nenhuma revisão concluída ainda.</div>';return}
- box.innerHTML=itens.map(x=>'<div class="hist-v90">'+
-   '<b>✅ '+v851Esc(x.tipo)+' — '+v851Esc(x.disciplina)+'</b>'+
-   '<small>'+v851Esc(x.topico)+'</small>'+
-   '<small>Prevista: '+v86BR(x.exibicao)+(x.prevista!==x.exibicao?' (original '+v86BR(x.prevista)+')':'')+
-   ' • Concluída: '+v90DataHoraBR(x.concluidaEm)+'</small></div>').join('');
+ const grupos={};
+ itens.forEach(x=>{const d=x.disciplina||'—';(grupos[d]||(grupos[d]=[])).push(x)});
+ const materias=Object.keys(grupos).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+ box.innerHTML=materias.map((disc,idx)=>{
+   const arr=grupos[disc];
+   const cont=['D1','D7','D15','D30'].map(t=>{const n=arr.filter(x=>x.tipo===t).length;return n?t+': '+n:''}).filter(Boolean).join(' • ');
+   const cards=arr.map(x=>'<div class="hist-v90">'+
+     '<b><span class="hist-tipo-v10415">✅ '+v851Esc(x.tipo)+'</span>'+v851Esc(x.topico)+'</b>'+
+     '<small>Prevista: '+v86BR(x.exibicao)+(x.prevista!==x.exibicao?' (original '+v86BR(x.prevista)+')':'')+
+     ' • Concluída: '+v90DataHoraBR(x.concluidaEm)+'</small></div>').join('');
+   return '<details class="hist-materia-v10415" open><summary><span class="hist-materia-titulo-v10415">📚 <span>'+v851Esc(disc)+'</span></span><span class="hist-materia-qtd-v10415">'+arr.length+' revisão(ões)'+(cont?' • '+cont:'')+'</span></summary><div class="hist-materia-corpo-v10415">'+cards+'</div></details>';
+ }).join('');
 }
+
 
 
 // ========================= V8.8 DEV — MODO DE TESTE DE DATA =========================
@@ -2844,7 +2867,7 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
         set('estatQuestoesV10414',total);set('estatAcertosV10414',ac);set('estatErrosV10414',er);
         set('estatPctV10414',total?Math.round((ac/total)*100)+'%':'—');
       }
-    }catch(err){console.error('V10.4.14 estatísticas:',err);}
+    }catch(err){console.error('V10.4.15 histórico por matéria:',err);}
   }
   document.addEventListener('click',function(e){
     if(!e.target.closest('.nav button[data-page="estatisticas"]'))return;

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V10.1.2 DEV • EDITAL SELEÇÃO + TIMER RESET</title>
+<title>Plano & Ciclo de Estudos — V10.1.3 DEV • TIMER RESET FIX</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -322,7 +322,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.1.2 • EDITAL SELEÇÃO + TIMER RESET DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.1.3 • TIMER RESET FIX DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -1328,6 +1328,8 @@ async function v93Iniciar(){
  // Depois de finalizar, Iniciar cria uma nova sessão; após Pausar, continua a mesma.
  if(timerV93.estado==='finalizada'){
    timerV93.sessaoSegundos=0;
+ const visorTimerV93=$('timerDisplayV93');
+ if(visorTimerV93)visorTimerV93.textContent='00:00:00';
  }
  timerV93.rodando=true;
  timerV93.inicioMs=Date.now();

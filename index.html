@@ -391,7 +391,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.8 • CHECKLIST COMPLETO DO CICLO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.9 • CHECKLIST + SYNC ESTUDO REAL DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -2088,6 +2088,7 @@ async function v104MoverAssunto(id,novaData){
  const itens=Array.isArray(agendaV102?.itens)?agendaV102.itens:[];
  const a=itens.find(x=>String(x.id)===String(id));
  if(!a)return;
+ if(a.concluidoEm){if(st)st.textContent='Assunto concluído fica travado e não pode ser movido.';return}
  if(!novaData||novaData<hoje){if(st)st.textContent='Não é permitido mover assunto para antes de hoje.';return}
  if(a.dataPlanejada===novaData){if(st)st.textContent='O assunto já está neste dia.';return}
  const anterior=a.dataPlanejada;
@@ -2107,7 +2108,7 @@ async function v104MoverAssunto(id,novaData){
 }
 function v104AtivarDragDrop(){
  const grid=$('cicloSemanaGridV104');if(!grid)return;
- grid.querySelectorAll('[data-agenda-id]').forEach(card=>{
+ grid.querySelectorAll('[data-agenda-id][draggable="true"]').forEach(card=>{
    card.draggable=true;
    card.addEventListener('dragstart',e=>{
      cicloDragIdV104=card.dataset.agendaId;
@@ -2144,7 +2145,7 @@ function v104RenderSemana(){
  grid.innerHTML=datas.map(data=>{
    const arr=itens.filter(a=>a.dataPlanejada===data).sort((a,b)=>(a.numero||0)-(b.numero||0));
    const rr=revs.filter(r=>r.data===data);
-   const assuntos=arr.map(a=>{const check=a.concluidoEm?'<input class="ciclo-check-v1045" type="checkbox" checked disabled aria-label="Assunto concluído">':'<input class="ciclo-check-v1045 ciclo-assunto-semana-v1048" type="checkbox" data-agenda-check="'+v104Esc(a.id)+'" aria-label="Concluir '+v104Esc(a.nome)+'">';return '<div class="ciclo-card-v104 '+(a.concluidoEm?'done':'')+'" draggable="true" data-agenda-id="'+v104Esc(a.id)+'" title="Arraste para outro dia"><div class="linha">'+check+'<b>'+String(a.numero||'').padStart(2,'0')+'</b><span>'+v101PlanLabel(a.prioridade)+'</span></div><strong>'+v104Esc(a.nome)+'</strong><small>'+v104Esc(a.disciplina)+(a.concluidoEm?' • ✓ Concluído':' • Pendente')+'</small></div>';}).join('');
+   const assuntos=arr.map(a=>{const futura=a.dataPlanejada>hoje;const check=a.concluidoEm?'<input class="ciclo-check-v1045" type="checkbox" checked disabled aria-label="Assunto concluído">':'<input class="ciclo-check-v1045 ciclo-assunto-semana-v1048" type="checkbox" '+(futura?'disabled ':'')+'data-agenda-check="'+v104Esc(a.id)+'" aria-label="Concluir '+v104Esc(a.nome)+'">';const podeArrastar=!a.concluidoEm;return '<div class="ciclo-card-v104 '+(a.concluidoEm?'done':'')+'" draggable="'+(podeArrastar?'true':'false')+'" '+(podeArrastar?'data-agenda-id="'+v104Esc(a.id)+'" title="Arraste para outro dia"':'title="Assunto concluído: data travada"')+'><div class="linha">'+check+'<b>'+String(a.numero||'').padStart(2,'0')+'</b><span>'+v101PlanLabel(a.prioridade)+'</span></div><strong>'+v104Esc(a.nome)+'</strong><small>'+v104Esc(a.disciplina)+(a.concluidoEm?' • ✓ Concluído':futura?' • Pendente • libera na data planejada':' • Pendente')+'</small></div>';}).join('');
    const revisoes=rr.map(r=>{
      const origem=(agendaV102?.itens||[]).find(a=>v2Norm(a.disciplina)===v2Norm(r.disciplina)&&v2Norm(a.nome)===v2Norm(r.topico));
      const numero=origem?.numero?String(origem.numero).padStart(2,'0'):'';
@@ -2224,8 +2225,12 @@ function renderizarPlanejamentoHojeV103(){
  box.querySelectorAll('.ciclo-rev-hoje-v1047[data-rev-chave]').forEach(ch=>ch.addEventListener('change',async()=>{if(!ch.checked)return;ch.disabled=true;try{await v87ConcluirRevisao(decodeURIComponent(ch.dataset.revChave||''),ch.dataset.revTipo);renderizarPlanejamentoHojeV103();v104RenderSemana();renderizarEstudoReal();}catch(e){ultimoErroV3=String(e?.code||e?.message||e);ch.checked=false;ch.disabled=false;}}));
  if(st)st.textContent='📚 '+itens.length+' planejado(s): '+pend.length+' pendente(s) • '+concl.length+' concluído(s) | 🔁 '+revHoje.length+' revisão(ões): '+revPend.length+' pendente(s) • '+revConcl.length+' concluída(s).';
 }
+let conclusaoAgendaEmCursoV1049=new Set();
 async function concluirAgendaV1045(id){
  const a=(agendaV102?.itens||[]).find(x=>x.id===id); if(!a||a.concluidoEm)return;
+ if(a.dataPlanejada>v102HojeISO()){const st=$('statusEstudoReal');if(st)st.textContent='Este assunto ainda é futuro. A conclusão será liberada na data planejada.';v104RenderSemana();return;}
+ if(conclusaoAgendaEmCursoV1049.has(id))return;
+ conclusaoAgendaEmCursoV1049.add(id);
  try{
    const r=await revisoesMotorRegistrarConclusao(a.disciplina,a.nome,v102HojeISO());
    a.concluidoEm=new Date().toISOString();
@@ -2236,6 +2241,7 @@ async function concluirAgendaV1045(id){
    atualizarEditalV2();renderizarPlanejamentoHojeV103();renderizarAssuntosCicloV1022();renderizarEstudoReal();v102Render();v104RenderSemana();
    const st=$('statusEstudoReal');if(st)st.textContent='Tópico concluído pelo checklist. '+r.msg;
  }catch(e){ultimoErroV3=String(e?.code||e?.message||e);renderizarPlanejamentoHojeV103();const st=$('statusEstudoReal');if(st)st.textContent='Falha ao concluir pelo checklist.';}
+ finally{conclusaoAgendaEmCursoV1049.delete(id);}
 }
 
 function estudoRealLocalizarProximo(){
@@ -2327,12 +2333,15 @@ function ativasMinutosAtual(){
   const a=cicloAtivas(); if(!a.length)return 0;
   cicloExecAjustar(); return a[cicloExec.indice]?.minutos||50;
 }
+let conclusaoEstudoRealEmCursoV1049=false;
 async function concluirEstudoReal(){
+  if(conclusaoEstudoRealEmCursoV1049)return;
   const atual=estudoRealLocalizarProximo();
   if(!atual){
     renderizarEstudoReal();
     return;
   }
+  conclusaoEstudoRealEmCursoV1049=true;
   const btn=$('btnConcluirEstudoReal');
   btn.disabled=true;
   $('statusEstudoReal').textContent='Salvando conclusão e revisões...';
@@ -2366,6 +2375,8 @@ async function concluirEstudoReal(){
     ultimoErroV3=String(e?.code||e?.message||e);
     $('statusEstudoReal').textContent='Falha ao concluir. O ciclo não foi avançado.';
     renderizarEstudoReal();
+  }finally{
+    conclusaoEstudoRealEmCursoV1049=false;
   }
 }
 $('btnConcluirEstudoReal')?.addEventListener('click',concluirEstudoReal);
@@ -2615,11 +2626,11 @@ function v102Render(){
    return;
  }
  const grupos={};agendaV102.itens.slice().sort((a,b)=>(a.dataPlanejada||'9999').localeCompare(b.dataPlanejada||'9999')||a.numero-b.numero).forEach(a=>(grupos[a.dataPlanejada]??=[]).push(a));
- lista.innerHTML=Object.entries(grupos).map(([data,arr])=>`<div class="v102-day"><div class="v102-day-head"><span>📅 ${v102FmtData(data)}</span><span>${arr.length} assunto(s)</span></div>${arr.map(a=>`<div class="v102-topic" data-id="${a.id}"><div class="v102-num">${String(a.numero).padStart(2,'0')}</div><div><b>${v101PlanLabel(a.prioridade)}</b></div><div class="v102-main"><strong>${a.nome}</strong><small>${a.disciplina}</small></div><div class="v102-actions"><button data-move="-1" title="Mover para o dia ativo anterior">← Dia</button><input type="date" value="${a.dataPlanejada}" data-date><button data-move="1" title="Mover para o próximo dia ativo">Dia →</button></div></div>`).join('')}</div>`).join('');
+ lista.innerHTML=Object.entries(grupos).map(([data,arr])=>`<div class="v102-day"><div class="v102-day-head"><span>📅 ${v102FmtData(data)}</span><span>${arr.length} assunto(s)</span></div>${arr.map(a=>`<div class="v102-topic" data-id="${a.id}"><div class="v102-num">${String(a.numero).padStart(2,'0')}</div><div><b>${v101PlanLabel(a.prioridade)}</b></div><div class="v102-main"><strong>${a.nome}</strong><small>${a.disciplina}</small></div><div class="v102-actions"><button data-move="-1" ${a.concluidoEm?'disabled':''} title="${a.concluidoEm?'Assunto concluído: data travada':'Mover para o dia ativo anterior'}">← Dia</button><input type="date" value="${a.dataPlanejada}" data-date ${a.concluidoEm?'disabled':''}><button data-move="1" ${a.concluidoEm?'disabled':''} title="${a.concluidoEm?'Assunto concluído: data travada':'Mover para o próximo dia ativo'}">Dia →</button></div></div>`).join('')}</div>`).join('');
  lista.querySelectorAll('.v102-topic').forEach(row=>{
    const id=row.dataset.id;
    row.querySelectorAll('[data-move]').forEach(btn=>btn.onclick=async()=>{
-     const a=agendaV102.itens.find(x=>x.id===id);if(!a)return;
+     const a=agendaV102.itens.find(x=>x.id===id);if(!a||a.concluidoEm)return;
      if(Number(btn.dataset.move)>0)a.dataPlanejada=v102ProximoDiaAtivo(a.dataPlanejada,1);
      else{
        let x=a.dataPlanejada,seg=0;do{x=v102ISOAdd(x,-1);seg++;}while(!v102DiaAtivo(x)&&seg<14);a.dataPlanejada=x;
@@ -2627,7 +2638,7 @@ function v102Render(){
      await v102SalvarAgenda();v102Render();
    });
    const inp=row.querySelector('[data-date]');
-   if(inp)inp.onchange=async()=>{const a=agendaV102.itens.find(x=>x.id===id);if(!a||!inp.value)return;a.dataPlanejada=inp.value;await v102SalvarAgenda();v102Render();};
+   if(inp)inp.onchange=async()=>{const a=agendaV102.itens.find(x=>x.id===id);if(!a||a.concluidoEm||!inp.value)return;a.dataPlanejada=inp.value;await v102SalvarAgenda();v102Render();};
  });
  if(st2)st2.textContent='📚 '+(agendaV102.assuntosPorDia||1)+' assunto(s) por dia na montagem automática. ↔ Você pode mover qualquer assunto para outra data sem alterar sua prioridade nem criar cópia.';
  renderizarPlanejamentoHojeV103();

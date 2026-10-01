@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V10.1 DEV • PRIORIDADES POR ASSUNTO</title>
+<title>Plano & Ciclo de Estudos — V10.1.2 DEV • EDITAL SELEÇÃO + TIMER RESET</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -322,7 +322,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.1.1 • NAVEGAÇÃO FIX + PLANEJAMENTO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.1.2 • EDITAL SELEÇÃO + TIMER RESET DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -1366,8 +1366,12 @@ async function v93Finalizar(){
      ultimaConclusao:firebase.database.ServerValue.TIMESTAMP
    });
  }
- await v93Salvar();
+ const ultimaSessaoFinalizada=timerV93.sessaoSegundos;
+ timerV93.sessaoSegundos=0;
+ await v93Salvar({ultimaSessaoFinalizadaSegundos:ultimaSessaoFinalizada});
  v93Render();
+ const st=$('timerStatusV93');
+ if(st)st.textContent='✅ Sessão finalizada • Tempo líquido: '+v93Fmt(ultimaSessaoFinalizada);
 }
 function v93Bind(){
  const a=$('timerStartV93'),p=$('timerPauseV93'),f=$('timerFinishV93');
@@ -2081,9 +2085,27 @@ function v100Render(){
 }
 async function v100Salvar(){const r=v100Ref();if(r&&editalAtualV100)await r.set({...editalAtualV100,atualizadoEm:firebase.database.ServerValue.TIMESTAMP});}
 async function v100CarregarEscolhido(){
- editalAtualV100=v101MontarDoEditalAtual();
- if(!editalAtualV100.assuntos.length){$('editalProntoStatusV100').textContent='⚠ Seu Edital ainda não possui assuntos.';return;}
- await v100Salvar();$('editalProntoStatusV100').textContent='✅ '+editalAtualV100.assuntos.length+' assuntos carregados do seu Edital. Ajuste as prioridades.';v100Render();
+ const sel=$('editalProntoSelectV100');
+ if(!sel||!sel.value){
+   editalAtualV100=null;
+   v100Render();
+   $('editalProntoStatusV100').textContent='Selecione um edital antes de carregar.';
+   return;
+ }
+ const base=v101MontarDoEditalAtual();
+ if(!base.assuntos.length){editalAtualV100=null;v100Render();$('editalProntoStatusV100').textContent='⚠ Seu Edital ainda não possui assuntos.';return;}
+ // Se houver prioridades salvas, aplica somente agora, após a seleção explícita.
+ try{
+   const r=v100Ref(),snap=r?await r.once('value'):null,d=snap?snap.val():null;
+   if(d&&Array.isArray(d.assuntos)){
+     const mapa=new Map(d.assuntos.map(a=>[a.disciplina+'|||'+a.nome,Number(a.prioridade)||2]));
+     base.assuntos.forEach(a=>{const p=mapa.get(a.disciplina+'|||'+a.nome);if(p)a.prioridade=p;});
+   }
+ }catch(e){console.error('V10.1.2 prioridades:',e);}
+ editalAtualV100=base;
+ await v100Salvar();
+ $('editalProntoStatusV100').textContent='✅ '+editalAtualV100.assuntos.length+' assuntos carregados. Ajuste as prioridades.';
+ v100Render();
 }
 async function v100Restaurar(){editalAtualV100=v101MontarDoEditalAtual();await v100Salvar();v100Render();$('envioPlanejamentoStatusV100').textContent='↩ Prioridades restauradas para P2.';}
 async function v100EnviarPlanejamento(){
@@ -2092,7 +2114,12 @@ async function v100EnviarPlanejamento(){
  await r.set(payload);v101RenderPlan(payload);$('envioPlanejamentoStatusV100').textContent='✅ Assuntos enviados ao Planejamento.';
  const btn=[...document.querySelectorAll('[data-page]')].find(x=>(x.textContent||'').toLowerCase().includes('planejamento'));if(btn)setTimeout(()=>btn.click(),350);
 }
-async function v100CarregarSalvo(){const r=v100Ref();if(!r)return;try{const s=await r.once('value'),d=s.val();if(d&&Array.isArray(d.assuntos)){editalAtualV100={titulo:d.titulo||'Meu edital atual',assuntos:d.assuntos};$('editalProntoStatusV100').textContent='✅ Prioridades carregadas da sua conta.';v100Render();}}catch(e){console.error(e);}}
+async function v100CarregarSalvo(){
+ editalAtualV100=null;
+ const sel=$('editalProntoSelectV100'); if(sel)sel.value='';
+ const box=$('editalProntoConteudoV100'); if(box)box.style.display='none';
+ const st=$('editalProntoStatusV100'); if(st)st.textContent='Nenhum edital selecionado.';
+}
 function v101PlanRef(){return v100PlanejamentoRef();}
 function v101PlanLabel(p){return p===1?'🔴 P1':p===2?'🟡 P2':'🟢 P3';}
 function v101RenderPlan(d){

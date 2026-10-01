@@ -322,7 +322,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.1.4 • TIMER FINALIZAR FIX DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.1.6 • LOGIN + TIMER STATE FIX DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -1286,42 +1286,53 @@ function v93Ref(){
  return u?db.ref('usuarios/'+u.uid+'/estatisticasV93'):null;
 }
 async function v93Carregar(){
- const r=v93Ref(); if(!r)return;
+ const r=v93Ref();
+ if(!r){v93Render();return;}
  try{
-   const snap=await r.once('value'),d=snap.val()||{};
-   // Migração segura da V9.3: o antigo totalSegundos era o acumulado salvo.
-   timerV93.totalSegundos=Number(d.totalAcumuladoSegundos ?? d.totalSegundos)||0;
-   timerV93.sessaoSegundos=Number(d.sessaoSegundos)||0;
+   const s=await r.once('value'),d=s.val()||{};
+   timerV93.totalSegundos=Math.max(0,Number(d.totalSegundos)||0);
+   timerV93.estado=d.estado||'parada';
    timerV93.rodando=!!d.rodando;
-   timerV93.inicioMs=timerV93.rodando&&d.inicioMs?Number(d.inicioMs):null;
-   timerV93.estado=timerV93.rodando?'andamento':(d.estado||'parada');
-   timerV93.carregado=true;
+   timerV93.inicioMs=d.inicioMs?Number(d.inicioMs):null;
+   timerV93.sessaoSegundos=Math.max(0,Number(d.sessaoSegundos)||0);
+
+   // Regra de estado: sessão finalizada é terminal.
+   // Nunca restaura segundos antigos após F5/troca de aba.
+   if(timerV93.estado==='finalizada'){
+     timerV93.rodando=false;
+     timerV93.inicioMs=null;
+     timerV93.sessaoSegundos=0;
+   }
    v93Render();
- }catch(e){console.error('V9.3.1 carregar:',e);}
+ }catch(e){
+   console.error('V10.1.5 carregar timer:',e);
+   v93Render();
+ }
 }
 async function v93Salvar(extra={}){
  const r=v93Ref(); if(!r)return;
- await r.update({
-   totalAcumuladoSegundos:timerV93.totalSegundos,
-   sessaoSegundos:timerV93.sessaoSegundos,
-   rodando:timerV93.rodando,
-   inicioMs:timerV93.inicioMs||null,
-   estado:timerV93.estado,
+ const finalizada=timerV93.estado==='finalizada';
+ const payload={
+   totalSegundos:Math.max(0,Number(timerV93.totalSegundos)||0),
+   sessaoSegundos:finalizada ? 0 : Math.max(0,Number(timerV93.sessaoSegundos)||0),
+   estado:timerV93.estado||'parada',
+   rodando:finalizada ? false : !!timerV93.rodando,
+   inicioMs:finalizada ? null : (timerV93.inicioMs||null),
    atualizadoEm:firebase.database.ServerValue.TIMESTAMP,
    ...extra
- });
+ };
+ // Campos canônicos sempre vencem qualquer extra conflitante.
+ payload.sessaoSegundos=finalizada ? 0 : Math.max(0,Number(timerV93.sessaoSegundos)||0);
+ payload.rodando=finalizada ? false : !!timerV93.rodando;
+ payload.inicioMs=finalizada ? null : (timerV93.inicioMs||null);
+ await r.update(payload);
 }
 function v93Render(){
- const sessao=v93SessaoAtual(),total=v93TotalAtual();
- if($('timerDisplayV93'))$('timerDisplayV93').textContent=v93Fmt(sessao);
- if($('timerTotalV931'))$('timerTotalV931').textContent=v93Fmt(total);
- if($('dashHorasV92'))$('dashHorasV92').textContent=v932FmtDashboard(total);
-
- const st=$('timerStatusV93'); if(!st)return;
- if(timerV93.estado==='andamento') st.textContent='▶ Sessão em andamento • '+v93Fmt(sessao);
- else if(timerV93.estado==='pausada') st.textContent='⏸ Sessão pausada • '+v93Fmt(sessao);
- else if(timerV93.estado==='finalizada') st.textContent='✅ Sessão finalizada • Tempo líquido: '+v93Fmt(timerV93.sessaoSegundos);
- else st.textContent='Nenhuma sessão em andamento.';
+ const finalizada=timerV93.estado==='finalizada';
+ const sessaoVisivel=finalizada ? 0 : Math.max(0,Number(timerV93.sessaoSegundos)||0);
+ if($('timerDisplayV93'))$('timerDisplayV93').textContent=v93Fmt(sessaoVisivel);
+ if($('timerTotalV931'))$('timerTotalV931').textContent=v93Fmt(Math.max(0,Number(timerV93.totalSegundos)||0));
+ if($('dashHorasV92'))$('dashHorasV92').textContent=v932FmtDashboard(Math.max(0,Number(timerV93.totalSegundos)||0));
 }
 async function v93Iniciar(){
  if(timerV93.rodando)return;
@@ -1347,51 +1358,33 @@ async function v93Pausar(){
  v93Render();
 }
 async function v93Finalizar(){
- // Consolida o trecho ainda rodando.
- if(timerV93.rodando){
+ if(timerV93.estado==='finalizada')return;
+
+ if(timerV93.rodando && timerV93.inicioMs){
    const delta=Math.max(0,Math.floor((Date.now()-timerV93.inicioMs)/1000));
    timerV93.sessaoSegundos+=delta;
    timerV93.totalSegundos+=delta;
  }
 
- // Guarda o valor da sessão ANTES de zerar.
- const ultimaSessaoFinalizada=timerV93.sessaoSegundos;
- const hoje=v922IsoLocal(new Date());
+ const ultimaSessaoFinalizada=Math.max(0,Number(timerV93.sessaoSegundos)||0);
 
- // Zera primeiro no estado local e na tela.
- // Assim, mesmo se o Firebase demorar ou falhar, o visor não fica preso no tempo antigo.
+ // Uma única transição canônica para FINALIZADA.
+ timerV93.estado='finalizada';
  timerV93.rodando=false;
  timerV93.inicioMs=null;
- timerV93.estado='finalizada';
  timerV93.sessaoSegundos=0;
 
- const visor=$('timerDisplayV93');
- if(visor)visor.textContent='00:00:00';
- if($('timerTotalV931'))$('timerTotalV931').textContent=v93Fmt(timerV93.totalSegundos);
- if($('dashHorasV92'))$('dashHorasV92').textContent=v932FmtDashboard(timerV93.totalSegundos);
+ // Render deriva exclusivamente do estado.
+ v93Render();
  const st=$('timerStatusV93');
  if(st)st.textContent='✅ Sessão finalizada • Tempo líquido: '+v93Fmt(ultimaSessaoFinalizada);
 
- // Persiste sem deixar erro de rede desfazer o reset visual.
  try{
-   const r=v93Ref();
-   if(r){
-     await r.child('dias/'+hoje).update({
-       totalAcumuladoSegundos:timerV93.totalSegundos,
-       ultimaSessaoSegundos:ultimaSessaoFinalizada,
-       ultimaConclusao:firebase.database.ServerValue.TIMESTAMP
-     });
-   }
    await v93Salvar({ultimaSessaoFinalizadaSegundos:ultimaSessaoFinalizada});
  }catch(e){
-   console.error('V10.1.4 finalizar timer:',e);
-   if(st)st.textContent='⚠ Sessão finalizada na tela, mas houve falha ao salvar. Tempo líquido: '+v93Fmt(ultimaSessaoFinalizada);
+   console.error('V10.1.5 salvar finalização:',e);
+   if(st)st.textContent='⚠ Sessão finalizada, mas houve falha ao salvar. Tempo líquido: '+v93Fmt(ultimaSessaoFinalizada);
  }
-
- // Render final mantendo sessão em zero.
- v93Render();
- if(st && !st.textContent.startsWith('⚠'))
-   st.textContent='✅ Sessão finalizada • Tempo líquido: '+v93Fmt(ultimaSessaoFinalizada);
 }
 function v93Bind(){
  const a=$('timerStartV93'),p=$('timerPauseV93'),f=$('timerFinishV93');

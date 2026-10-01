@@ -480,7 +480,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.32 • EDITAR/EXCLUIR SESSÃO DE QUESTÕES DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.33 • EXCLUIR EDITAIS ARQUIVADOS DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -1978,7 +1978,7 @@ async function v10423Carregar(){
 }
 function v10423RenderArquivos(){
  const box=$('timerArquivosV10423'); if(!box)return;
- const arr=Object.values(timerArquivosV10423||{}).sort((a,b)=>(Number(b.arquivadoEm)||0)-(Number(a.arquivadoEm)||0));
+ const arr=Object.entries(timerArquivosV10423||{}).map(([id,x])=>({...x,id})).sort((a,b)=>(Number(b.arquivadoEm)||0)-(Number(a.arquivadoEm)||0));
  if(!arr.length){box.innerHTML='<div class="status-line">Nenhum edital arquivado ainda.</div>';return;}
  box.innerHTML='<div style="font-weight:800;margin-bottom:10px">📦 Editais arquivados</div>'+
  arr.map(x=>
@@ -1987,9 +1987,28 @@ function v10423RenderArquivos(){
        '<strong style="display:block;font-size:16px;white-space:normal;overflow-wrap:anywhere">'+v10422Esc(x.titulo||'Edital arquivado')+'</strong>'+
        '<div style="margin-top:5px;color:var(--muted);font-size:13px">Arquivado em '+v10422FmtDataHora(x.arquivadoEm)+'</div>'+
      '</div>'+
-     '<div style="font-weight:900;font-size:18px;white-space:nowrap;text-align:right;flex:0 0 auto">'+v93Fmt(Number(x.segundos)||0)+'</div>'+
+     '<div style="display:flex;align-items:center;gap:12px;flex:0 0 auto">'+
+       '<div style="font-weight:900;font-size:18px;white-space:nowrap;text-align:right">'+v93Fmt(Number(x.segundos)||0)+'</div>'+
+       '<button type="button" data-excluir-edital-arquivado="'+v10422Esc(x.id)+'" style="border:1px solid #7a2638;background:#3a1720;color:#fff;border-radius:9px;padding:7px 10px;font-weight:800;cursor:pointer">🗑️ Excluir</button>'+
+     '</div>'+
    '</div>'
  ).join('');
+}
+async function v10433ExcluirEditalArquivado(id){
+ const r=v10423Ref(); if(!r||!id)return;
+ const x=(timerArquivosV10423||{})[id]; if(!x)return;
+ const nome=x.titulo||'Edital arquivado', tempo=v93Fmt(Number(x.segundos)||0);
+ const ok=confirm('Excluir este edital arquivado?\n\n'+nome+'\nHoras arquivadas: '+tempo+'\n\nSerá apagado somente este arquivo de horas. O edital atual, Timer, Questões e os outros históricos não serão alterados.');
+ if(!ok)return;
+ try{
+   await r.child('arquivados/'+id).remove();
+   await v10423Carregar();
+   const st=$('timerGerenciarStatusV10423');
+   if(st)st.textContent='✅ Arquivo excluído: '+nome+'.';
+ }catch(e){
+   console.error('V10.4.33 excluir edital arquivado:',e);
+   alert('Não foi possível excluir este edital arquivado.');
+ }
 }
 async function v10423NovoEdital(){
  const atual=Math.max(0,Number(timerV93.totalSegundos)||0);
@@ -2156,9 +2175,16 @@ function v93Bind(){
 
  const sm=$('timerManualSalvarV10422');
  if(sm&&!sm.dataset.v10422){sm.dataset.v10422='1';sm.onclick=v10422AdicionarManual;}
- const ne=$('timerNovoEditalV10423'),za=$('timerZerarAtualV10423');
+ const ne=$('timerNovoEditalV10423'),za=$('timerZerarAtualV10423'),arq=$('timerArquivosV10423');
  if(ne&&!ne.dataset.v10423){ne.dataset.v10423='1';ne.onclick=v10423NovoEdital;}
  if(za&&!za.dataset.v10423){za.dataset.v10423='1';za.onclick=v10423ZerarAtual;}
+ if(arq&&!arq.dataset.v10433){
+   arq.dataset.v10433='1';
+   arq.addEventListener('click',e=>{
+     const b=e.target.closest('[data-excluir-edital-arquivado]');
+     if(b){e.preventDefault();e.stopPropagation();v10433ExcluirEditalArquivado(b.dataset.excluirEditalArquivado);}
+   });
+ }
 
  const sa=$('timerAssuntoV10422');
  if(sa&&!sa.dataset.v10422){

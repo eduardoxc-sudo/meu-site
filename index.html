@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V9.2.2 DEV • SEQUÊNCIA INTELIGENTE</title>
+<title>Plano & Ciclo de Estudos — V9.2.3 DEV • TESTE DE SEQUÊNCIA FIX</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -271,7 +271,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.2.2 • SEQUÊNCIA INTELIGENTE DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.2.3 • TESTE DE SEQUÊNCIA FIX DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -1200,6 +1200,23 @@ function v922TestarSequencia(){
 document.addEventListener('click',e=>{
  if(e.target?.id==='seqTesteBtnV922')v922TestarSequencia();
 });
+
+
+
+// ========================= V9.2.3 DEV — FIX DO BOTÃO TESTAR SEQUÊNCIA =========================
+function v923BindTesteSequencia(){
+ const btn=document.getElementById('seqTesteBtnV922');
+ if(!btn || btn.dataset.v923Bound==='1') return;
+ btn.dataset.v923Bound='1';
+ btn.onclick=function(ev){
+   if(ev){ev.preventDefault();ev.stopPropagation();}
+   v922TestarSequencia();
+   return false;
+ };
+}
+document.addEventListener('DOMContentLoaded',()=>setTimeout(v923BindTesteSequencia,50));
+setTimeout(v923BindTesteSequencia,700);
+setTimeout(v923BindTesteSequencia,1400);
 
 
 // ========================= V9.2 DEV — ESTATÍSTICAS DE ESTUDO =========================

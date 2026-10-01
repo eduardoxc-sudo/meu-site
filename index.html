@@ -391,7 +391,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.11 • REGENERAÇÃO RESPEITA CONCLUÍDOS DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.12 • DIAS ATIVOS RESTAURADOS DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -633,7 +633,35 @@ textarea:focus,select:focus{border-color:var(--primary)}
   </section>
   <section id="page-progresso" class="page"><div class="placeholder"><b>Progresso</b><br>Estrutura reservada. Ainda não implementado nesta etapa.</div></section>
   <section id="page-planejamento" class="page">
-<h1>Planejamento</h1><div class="panel"><h2>🗓 Planejamento por prioridade</h2><p class="panel-sub">Assuntos recebidos do Edital pronto. P1 aparece primeiro, depois P2 e P3.</p>
+<h1>Planejamento</h1>
+<div class="panel" id="planConfigDiasAtivosV10412" style="margin-bottom:16px">
+  <h2>📆 Dias ativos de estudo</h2>
+  <p class="panel-sub">Escolha os dias da semana em que o Planejamento pode distribuir assuntos. Esta configuração já existia no motor do sistema e voltou a ficar visível aqui.</p>
+  <div class="plan-dias">
+    <label class="plan-dia"><input type="checkbox" data-plan-dia="1"> Segunda-feira</label>
+    <label class="plan-dia"><input type="checkbox" data-plan-dia="2"> Terça-feira</label>
+    <label class="plan-dia"><input type="checkbox" data-plan-dia="3"> Quarta-feira</label>
+    <label class="plan-dia"><input type="checkbox" data-plan-dia="4"> Quinta-feira</label>
+    <label class="plan-dia"><input type="checkbox" data-plan-dia="5"> Sexta-feira</label>
+    <label class="plan-dia"><input type="checkbox" data-plan-dia="6"> Sábado</label>
+    <label class="plan-dia"><input type="checkbox" data-plan-dia="0"> Domingo</label>
+  </div>
+  <div class="plan-resumo">
+    <div><span>DIAS ATIVOS</span><strong id="planResumoDias">0</strong></div>
+    <div><span>MINUTOS/DIA</span><strong id="planResumoMin">120 min</strong></div>
+    <div><span>REVISÕES</span><strong id="planResumoRev">4</strong></div>
+  </div>
+  <div style="display:none" aria-hidden="true">
+    <input id="planMinutosDia" type="number" min="10" max="1440" value="120">
+    <input type="checkbox" data-plan-rev="1" checked>
+    <input type="checkbox" data-plan-rev="7" checked>
+    <input type="checkbox" data-plan-rev="15" checked>
+    <input type="checkbox" data-plan-rev="30" checked>
+  </div>
+  <div class="actions" style="margin-top:12px"><button class="btn btn-primary" id="btnSalvarPlanejamento" type="button">💾 Salvar dias ativos</button></div>
+  <div id="statusPlanejamento" class="status-line"></div>
+</div>
+<div class="panel"><h2>🗓 Planejamento por prioridade</h2><p class="panel-sub">Assuntos recebidos do Edital pronto. P1 aparece primeiro, depois P2 e P3.</p>
 <div class="v101-plan-summary"><div><span>🔴 P1</span><b id="planP1V101">0</b></div><div><span>🟡 P2</span><b id="planP2V101">0</b></div><div><span>🟢 P3</span><b id="planP3V101">0</b></div><div><span>📚 Total</span><b id="planTotalV101">0</b></div></div>
 <div id="planejamentoV101Status" class="status-line">Nenhum edital enviado ao Planejamento ainda.</div>
 <div class="v102-toolbar">

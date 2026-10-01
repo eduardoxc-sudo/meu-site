@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V9.2.4 DEV • SEQUÊNCIA FIX REAL</title>
+<title>Plano & Ciclo de Estudos — V9.3 DEV • HORAS LÍQUIDAS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -242,6 +242,12 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .v922-sim-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .v922-sim-row input{min-height:38px;padding:7px 9px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--text)}
 </style>
+<style id="v93-timer-css">
+.v93-timer{margin-top:12px;padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--bg)}
+.v93-clock{font-size:2rem;font-weight:800;letter-spacing:2px;margin-bottom:12px}
+.v93-actions{display:flex;gap:8px;flex-wrap:wrap}
+.v93-actions button{min-height:40px}
+</style>
 </head>
 <body>
 <section id="login">
@@ -271,7 +277,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.2.4 • SEQUÊNCIA FIX REAL DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.3 • HORAS LÍQUIDAS DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -294,6 +300,20 @@ textarea:focus,select:focus{border-color:var(--primary)}
         <div><span>TOTAL AGENDADO</span><b id="dashRevTotalV91">0</b></div>
       </div>
       <div id="dashRevStatusV91" class="status-line"></div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h2>⏱ Cronômetro de estudo</h2>
+      <p class="panel-sub">Registra tempo líquido real. Pausas não entram nas horas líquidas.</p>
+      <div class="v93-timer">
+        <div class="v93-clock" id="timerDisplayV93">00:00:00</div>
+        <div class="v93-actions">
+          <button class="primary" id="timerStartV93" type="button">▶ Iniciar</button>
+          <button id="timerPauseV93" type="button">⏸ Pausar</button>
+          <button id="timerFinishV93" type="button">✓ Finalizar sessão</button>
+        </div>
+        <div id="timerStatusV93" class="status-line">Nenhuma sessão em andamento.</div>
+      </div>
     </div>
 
     <div class="panel" style="margin-top:16px">
@@ -1124,6 +1144,93 @@ $('btnSalvarPlanejamento')?.addEventListener('click',salvarPlanejamento);
 
 
 
+
+// ========================= V9.3 DEV — HORAS LÍQUIDAS REAIS =========================
+let timerV93={segundos:0,rodando:false,inicioMs:null,tick:null,carregado:false};
+
+function v93Fmt(seg){
+ seg=Math.max(0,Math.floor(Number(seg)||0));
+ const h=Math.floor(seg/3600),m=Math.floor((seg%3600)/60),s=seg%60;
+ return [h,m,s].map(x=>String(x).padStart(2,'0')).join(':');
+}
+function v93SegAtual(){
+ if(!timerV93.rodando||!timerV93.inicioMs)return timerV93.segundos;
+ return timerV93.segundos+Math.max(0,Math.floor((Date.now()-timerV93.inicioMs)/1000));
+}
+function v93Ref(){
+ const u=auth.currentUser;
+ return u?db.ref('usuarios/'+u.uid+'/estatisticasV93'):null;
+}
+async function v93Carregar(){
+ const r=v93Ref(); if(!r)return;
+ try{
+   const snap=await r.once('value'), d=snap.val()||{};
+   timerV93.segundos=Number(d.totalSegundos)||0;
+   timerV93.rodando=!!d.rodando;
+   timerV93.inicioMs=timerV93.rodando&&d.inicioMs?Number(d.inicioMs):null;
+   timerV93.carregado=true;
+   v93Render();
+ }catch(e){console.error('V9.3 carregar horas:',e);}
+}
+async function v93Salvar(extra={}){
+ const r=v93Ref(); if(!r)return;
+ await r.update({
+   totalSegundos:timerV93.segundos,
+   rodando:timerV93.rodando,
+   inicioMs:timerV93.inicioMs||null,
+   atualizadoEm:firebase.database.ServerValue.TIMESTAMP,
+   ...extra
+ });
+}
+function v93Render(){
+ const seg=v93SegAtual();
+ const el=$('timerDisplayV93'); if(el)el.textContent=v93Fmt(seg);
+ const horas=$('dashHorasV92');
+ if(horas)horas.textContent=(seg/3600).toFixed(1).replace('.',',')+' h';
+ const st=$('timerStatusV93');
+ if(st)st.textContent=timerV93.rodando?'● Sessão em andamento — somente o tempo ativo é contado.':
+   (timerV93.segundos?'Sessão pausada/finalizada. Total líquido salvo: '+v93Fmt(timerV93.segundos)+'.':'Nenhuma sessão em andamento.');
+}
+async function v93Iniciar(){
+ if(timerV93.rodando)return;
+ timerV93.rodando=true; timerV93.inicioMs=Date.now();
+ await v93Salvar(); v93Render();
+}
+async function v93Pausar(){
+ if(!timerV93.rodando)return;
+ timerV93.segundos=v93SegAtual();
+ timerV93.rodando=false; timerV93.inicioMs=null;
+ await v93Salvar(); v93Render();
+}
+async function v93Finalizar(){
+ if(timerV93.rodando){
+   timerV93.segundos=v93SegAtual();
+   timerV93.rodando=false; timerV93.inicioMs=null;
+ }
+ const hoje=v922IsoLocal(new Date());
+ const r=v93Ref();
+ if(r){
+   const snap=await r.child('dias/'+hoje+'/segundos').once('value');
+   const ja=Number(snap.val())||0;
+   // Salva uma fotografia do total diário sem criar revisões.
+   await r.child('dias/'+hoje).update({
+     segundos:Math.max(ja,timerV93.segundos),
+     ultimaConclusao:firebase.database.ServerValue.TIMESTAMP
+   });
+ }
+ await v93Salvar(); v93Render();
+}
+function v93Bind(){
+ const a=$('timerStartV93'),p=$('timerPauseV93'),f=$('timerFinishV93');
+ if(a&&!a.dataset.v93){a.dataset.v93='1';a.onclick=v93Iniciar;}
+ if(p&&!p.dataset.v93){p.dataset.v93='1';p.onclick=v93Pausar;}
+ if(f&&!f.dataset.v93){f.dataset.v93='1';f.onclick=v93Finalizar;}
+ if(!timerV93.tick)timerV93.tick=setInterval(v93Render,1000);
+}
+document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{v93Bind();v93Carregar();},800));
+setTimeout(()=>{v93Bind();v93Carregar();},1500);
+
+
 // ========================= V9.2.2 DEV — SEQUÊNCIA INTELIGENTE =========================
 function v922IsoLocal(d){
  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -1280,7 +1387,7 @@ function renderizarEstatisticasV92(){
    ? '✓ '+s.revisoesConcluidas+' revisão(ões) real(is) concluída(s). '+s.taxaPrazo+'% concluída(s) no prazo.'
    : 'Nenhuma revisão real concluída ainda.';
  if($('dashSeqV92'))$('dashSeqV92').textContent=s.sequencia||'—';
- if($('dashHorasV92'))$('dashHorasV92').textContent='—';
+ v93Render();
 }
 
 

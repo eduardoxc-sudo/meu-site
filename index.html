@@ -420,7 +420,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.22 • TIMER + ASSUNTO + HISTÓRICO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.23 • HORAS POR EDITAL + GERENCIAR DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -622,7 +622,8 @@ textarea:focus,select:focus{border-color:var(--primary)}
 
     <div class="v93-timer" style="margin-top:14px">
       <div class="v93-clock" id="timerPageDisplayV10421">00:00:00</div>
-      <div class="v931-total">Total acumulado: <b id="timerPageTotalV10421">00:00:00</b></div>
+      <div class="v931-total">Horas do edital atual: <b id="timerPageTotalV10421">00:00:00</b></div>
+      <div class="v931-total" style="margin-top:4px">Total geral estudado: <b id="timerTotalGeralV10423">00:00:00</b></div>
       <div class="actions" style="margin-top:14px">
         <button class="btn btn-primary" id="timerPageStartV10421" type="button">▶ Iniciar</button>
         <button class="btn" id="timerPagePauseV10421" type="button">⏸ Pausar</button>
@@ -651,6 +652,17 @@ textarea:focus,select:focus{border-color:var(--primary)}
       <button class="btn btn-primary" id="timerManualSalvarV10422" type="button">＋ Adicionar tempo</button>
     </div>
     <div id="timerManualStatusV10422" class="status-line"></div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h2>⚙️ Gerenciar horas do edital</h2>
+    <p class="panel-sub">Ao começar outro edital, você pode arquivar as horas atuais e iniciar o novo edital em 00:00:00. O histórico arquivado continua preservado.</p>
+    <div class="actions" style="margin-top:12px">
+      <button class="btn btn-primary" id="timerNovoEditalV10423" type="button">📚 Iniciar novo edital</button>
+      <button class="btn" id="timerZerarAtualV10423" type="button">🗑 Zerar horas do edital atual</button>
+    </div>
+    <div id="timerGerenciarStatusV10423" class="status-line"></div>
+    <div id="timerArquivosV10423" style="margin-top:14px"></div>
   </div>
 
   <div class="panel" style="margin-top:16px">
@@ -1611,6 +1623,9 @@ setTimeout(v941AtualizarCardDashboard,2200);
 
 
 // ========================= V9.3.1 DEV — SESSÃO ATUAL + TOTAL ACUMULADO =========================
+let timerEditalV10423={id:'atual',titulo:'Edital atual',inicioEm:null,totalBase:0,assinatura:'',carregado:false};
+let timerArquivosV10423={};
+
 let timerV93={
  sessaoSegundos:0,totalSegundos:0,rodando:false,inicioMs:null,
  estado:'parada',tick:null,carregado:false,
@@ -1712,6 +1727,8 @@ function v93Render(){
  if($('timerTotalV931'))$('timerTotalV931').textContent=v93Fmt(totalVisivel);
  if($('timerPageDisplayV10421'))$('timerPageDisplayV10421').textContent=v93Fmt(sessaoVisivel);
  if($('timerPageTotalV10421'))$('timerPageTotalV10421').textContent=v93Fmt(totalVisivel);
+ const totalArquivado=Object.values(timerArquivosV10423||{}).reduce((n,x)=>n+(Number(x?.segundos)||0),0);
+ if($('timerTotalGeralV10423'))$('timerTotalGeralV10423').textContent=v93Fmt(totalVisivel+totalArquivado);
  if($('dashHorasV92'))$('dashHorasV92').textContent=v932FmtDashboard(totalVisivel);
 
  const st=$('timerStatusV93');
@@ -1819,6 +1836,90 @@ async function v93Finalizar(){
 }
 
 
+
+function v10423Ref(){
+ const u=auth.currentUser;
+ return u?db.ref('usuarios/'+u.uid+'/estudo/horasPorEditalV10423'):null;
+}
+function v10423AssinaturaEdital(){
+ const itens=(agendaV102?.itens||[]).map(a=>[a.id,a.numero,a.disciplina,a.nome].join('|')).sort();
+ return itens.join('||');
+}
+async function v10423Carregar(){
+ const r=v10423Ref(); if(!r)return;
+ try{
+   const s=await r.once('value'),d=s.val()||{};
+   timerEditalV10423=d.atual||{id:'atual',titulo:'Edital atual',inicioEm:Date.now(),assinatura:'',carregado:true};
+   timerArquivosV10423=d.arquivados||{};
+   timerEditalV10423.carregado=true;
+   if(!timerEditalV10423.assinatura)timerEditalV10423.assinatura=v10423AssinaturaEdital();
+   await r.child('atual').update({
+     id:timerEditalV10423.id||'atual',
+     titulo:timerEditalV10423.titulo||'Edital atual',
+     inicioEm:timerEditalV10423.inicioEm||firebase.database.ServerValue.TIMESTAMP,
+     assinatura:timerEditalV10423.assinatura||''
+   });
+   v10423RenderArquivos();
+   v93Render();
+ }catch(e){console.error('V10.4.23 carregar horas por edital:',e);}
+}
+function v10423RenderArquivos(){
+ const box=$('timerArquivosV10423'); if(!box)return;
+ const arr=Object.values(timerArquivosV10423||{}).sort((a,b)=>(Number(b.arquivadoEm)||0)-(Number(a.arquivadoEm)||0));
+ if(!arr.length){box.innerHTML='<div class="status-line">Nenhum edital arquivado ainda.</div>';return;}
+ box.innerHTML='<b>📦 Editais arquivados</b>'+arr.map(x=>
+   '<div class="v102-topic" style="margin-top:10px"><div class="v102-main"><strong>'+v10422Esc(x.titulo||'Edital arquivado')+'</strong>'+
+   '<small>Arquivado em '+v10422FmtDataHora(x.arquivadoEm)+'</small></div><div style="font-weight:800">'+v93Fmt(Number(x.segundos)||0)+'</div></div>'
+ ).join('');
+}
+async function v10423NovoEdital(){
+ const atual=Math.max(0,Number(timerV93.totalSegundos)||0);
+ const ok=confirm('⚠️ AVISO IMPORTANTE\\n\\nIniciar um novo edital vai:\\n\\n• arquivar '+v93Fmt(atual)+' do edital atual;\\n• preservar o histórico antigo;\\n• iniciar as horas do novo edital em 00:00:00.\\n\\nNenhum histórico arquivado será apagado.\\n\\nDeseja continuar?');
+ if(!ok)return;
+ const nome=prompt('Nome do novo edital:','Novo edital')||'Novo edital';
+ try{
+   const r=v10423Ref(); if(!r)return;
+   if(atual>0){
+     const ar=r.child('arquivados').push();
+     await ar.set({
+       titulo:timerEditalV10423.titulo||'Edital anterior',
+       segundos:atual,
+       assinatura:timerEditalV10423.assinatura||v10423AssinaturaEdital(),
+       inicioEm:timerEditalV10423.inicioEm||null,
+       arquivadoEm:firebase.database.ServerValue.TIMESTAMP
+     });
+   }
+   timerV93.totalSegundos=0; timerV93.sessaoSegundos=0; timerV93.rodando=false; timerV93.inicioMs=null; timerV93.estado='parada';
+   timerEditalV10423={id:'atual',titulo:nome,inicioEm:Date.now(),assinatura:v10423AssinaturaEdital(),carregado:true};
+   await v93Salvar();
+   await r.child('atual').set({...timerEditalV10423,inicioEm:firebase.database.ServerValue.TIMESTAMP});
+   await v10423Carregar();
+   const st=$('timerGerenciarStatusV10423');if(st)st.textContent='✅ Novo edital iniciado em 00:00:00. O anterior foi preservado no arquivo.';
+ }catch(e){console.error('V10.4.23 novo edital:',e);}
+}
+async function v10423ZerarAtual(){
+ const atual=Math.max(0,Number(timerV93.totalSegundos)||0);
+ const ok=confirm('⚠️ AVISO GRANDE — ZERAR HORAS DO EDITAL ATUAL\\n\\nVocê está prestes a zerar '+v93Fmt(atual)+' do contador deste edital.\\n\\nOs registros do Histórico de sessões NÃO serão apagados.\\nO Progresso do Edital, Planejamento, revisões e checklist NÃO serão alterados.\\n\\nDeseja realmente zerar somente o contador de horas do edital atual?');
+ if(!ok)return;
+ const palavra=prompt('Para confirmar, digite exatamente: ZERAR','');
+ if(palavra!=='ZERAR'){const st=$('timerGerenciarStatusV10423');if(st)st.textContent='Operação cancelada. Nada foi alterado.';return;}
+ try{
+   timerV93.totalSegundos=0;timerV93.sessaoSegundos=0;timerV93.rodando=false;timerV93.inicioMs=null;timerV93.estado='parada';
+   await v93Salvar({zeradoEm:firebase.database.ServerValue.TIMESTAMP});
+   v93Render();
+   const st=$('timerGerenciarStatusV10423');if(st)st.textContent='✅ Contador do edital atual zerado. Histórico de sessões preservado.';
+ }catch(e){console.error('V10.4.23 zerar atual:',e);}
+}
+async function v10423DetectarMudancaEdital(){
+ if(!timerEditalV10423.carregado)return;
+ const sig=v10423AssinaturaEdital();
+ if(!sig||!timerEditalV10423.assinatura){return;}
+ if(sig!==timerEditalV10423.assinatura){
+   const st=$('timerGerenciarStatusV10423');
+   if(st)st.textContent='📚 O Planejamento parece pertencer a outro edital. Use “Iniciar novo edital” para arquivar as horas anteriores e começar em 00:00:00.';
+ }
+}
+
 function v10422SessoesRef(){
  const u=auth.currentUser;
  return u?db.ref('usuarios/'+u.uid+'/estudo/sessoesV10422'):null;
@@ -1911,6 +2012,9 @@ function v93Bind(){
 
  const sm=$('timerManualSalvarV10422');
  if(sm&&!sm.dataset.v10422){sm.dataset.v10422='1';sm.onclick=v10422AdicionarManual;}
+ const ne=$('timerNovoEditalV10423'),za=$('timerZerarAtualV10423');
+ if(ne&&!ne.dataset.v10423){ne.dataset.v10423='1';ne.onclick=v10423NovoEdital;}
+ if(za&&!za.dataset.v10423){za.dataset.v10423='1';za.onclick=v10423ZerarAtual;}
 
  const sa=$('timerAssuntoV10422');
  if(sa&&!sa.dataset.v10422){
@@ -1926,9 +2030,9 @@ function v93Bind(){
 
  if(!timerV93.tick)timerV93.tick=setInterval(v93Render,1000);
 }
-document.addEventListener('DOMContentLoaded',()=>setTimeout(async()=>{v93Bind();await v93Carregar();v10422AtualizarTimer();},800));
-setTimeout(async()=>{v93Bind();await v93Carregar();v10422AtualizarTimer();},1800);
-setTimeout(v10422AtualizarTimer,3000);
+document.addEventListener('DOMContentLoaded',()=>setTimeout(async()=>{v93Bind();await v93Carregar();await v10423Carregar();v10422AtualizarTimer();v10423DetectarMudancaEdital();},800));
+setTimeout(async()=>{v93Bind();await v93Carregar();await v10423Carregar();v10422AtualizarTimer();v10423DetectarMudancaEdital();},1800);
+setTimeout(()=>{v10422AtualizarTimer();v10423DetectarMudancaEdital();},3000);
 
 // ========================= V9.2.2 DEV — SEQUÊNCIA INTELIGENTE =========================
 function v922IsoLocal(d){

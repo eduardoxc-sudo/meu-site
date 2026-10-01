@@ -103,7 +103,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .estudo-real-box p{margin:0 0 10px;color:var(--muted);font-size:.76rem;line-height:1.45}
 .estudo-real-ok{color:#22c55e}
 
-/* V10.4.6 — checklist real + regeneração somente de pendentes */
+/* V10.4.5 — checklist real + regeneração somente de pendentes */
 .ciclo-check-v1045{width:22px;height:22px;accent-color:#22c55e;cursor:pointer;flex:0 0 auto}
 .ciclo-check-v1045:disabled{cursor:not-allowed;opacity:.75}
 .ciclo-hoje-item.done .ciclo-check-v1045{filter:saturate(.75)}
@@ -360,6 +360,12 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .v101-plan-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.v101-plan-summary>div{border:1px solid var(--border);background:var(--bg);border-radius:10px;padding:12px}.v101-plan-summary span{display:block;color:var(--muted);font-size:12px}.v101-plan-summary b{font-size:20px}
 .v101-plan-list{display:grid;gap:12px;margin-top:12px}.v101-plan-group{border:1px solid var(--border);border-radius:12px;overflow:hidden}.v101-plan-group h3{margin:0;padding:12px;background:rgba(0,0,0,.12)}.v101-plan-item{display:grid;grid-template-columns:90px 1fr;gap:10px;padding:10px 12px;border-top:1px solid var(--border)}.v101-plan-item small{color:var(--muted)}
 @media(max-width:760px){.v101-plan-summary{grid-template-columns:1fr 1fr}.v101-plan-item{grid-template-columns:70px 1fr}}
+
+/* V10.4.6 — checklist de revisões */
+.rev-check-label-v1046{display:flex;align-items:center;gap:8px;cursor:pointer;width:max-content;max-width:100%}
+.rev-check-label-v1046 input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex:0 0 auto}
+.revisao-check-v1046.done .rev-check-label-v1046{cursor:default}
+.revisao-check-v1046.done .rev-check-label-v1046 input{cursor:not-allowed}
 </style></head>
 <body>
 <section id="login">
@@ -1892,7 +1898,7 @@ async function v87ConcluirRevisao(chave,tipo){
  localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));
  try{
    await REVISOES_MOTOR_REF.set(revisoesMotor);
-   renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();renderizarDashboardRevisoesV91();renderizarEstatisticasV92();renderizarRevisoesHojeV87();if(typeof v104RenderSemana==='function')v104RenderSemana();
+   renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();renderizarDashboardRevisoesV91();renderizarEstatisticasV92();renderizarRevisoesHojeV87();v104RenderSemana();renderizarEstudoReal();
  }catch(e){
    rev.concluida=false;delete rev.concluidaEm;
    ultimoErroV3=String(e?.code||e?.message||e);
@@ -2057,10 +2063,10 @@ function v104Esc(s){return v2Escape(s)}
 function v104Hoje(){return v102HojeISO()}
 function v104RevisoesDatas(){
  const out=[];
- Object.values(revisoesMotor?.origens||{}).forEach(o=>{
+ Object.entries(revisoesMotor?.origens||{}).forEach(([chave,o])=>{
    if(!o||!revOrigemExisteNoEdital(o))return;
    Object.entries(o.revisoes||{}).forEach(([tipo,r])=>{
-     if(r?.data)out.push({data:r.data,tipo,disciplina:o.disciplina,topico:o.topico,concluida:!!r.concluida,chave});
+     if(r?.data)out.push({chave,data:r.data,tipo,disciplina:o.disciplina,topico:o.topico,concluida:!!r.concluida});
    });
  });
  return out;
@@ -2145,16 +2151,20 @@ function v104RenderSemana(){
    const arr=itens.filter(a=>a.dataPlanejada===data).sort((a,b)=>(a.numero||0)-(b.numero||0));
    const rr=revs.filter(r=>r.data===data);
    const assuntos=arr.map(a=>'<div class="ciclo-card-v104 '+(a.concluidoEm?'done':'')+'" draggable="true" data-agenda-id="'+v104Esc(a.id)+'" title="Arraste para outro dia"><div class="linha"><b>'+String(a.numero||'').padStart(2,'0')+'</b><span>'+v101PlanLabel(a.prioridade)+'</span></div><strong>'+v104Esc(a.nome)+'</strong><small>'+v104Esc(a.disciplina)+(a.concluidoEm?' • ✓ Concluído':' • Pendente')+'</small></div>').join('');
-   const revisoes=rr.map(r=>'<div class="ciclo-card-v104 '+(r.concluida?'done':'')+'"><div class="linha"><label style="display:flex;align-items:center;gap:8px;cursor:'+(r.concluida?'default':'pointer')+'"><input class="ciclo-check-v1045 ciclo-rev-check-v1046" type="checkbox" '+(r.concluida?'checked disabled':'data-rev-semana="'+encodeURIComponent(r.chave)+'" data-rev-tipo="'+v104Esc(r.tipo)+'"')+' aria-label="Concluir revisão '+v104Esc(r.tipo)+'"><b>🔁 '+v104Esc(r.tipo)+'</b></label></div><strong>'+v104Esc(r.topico)+'</strong><small>'+v104Esc(r.disciplina)+(r.concluida?' • ✓ Revisão concluída':' • Revisão espaçada')+'</small></div>').join('');
+   const revisoes=rr.map(r=>'<div class="ciclo-card-v104 '+(r.concluida?'done':'')+' revisao-check-v1046"><div class="linha"><label class="rev-check-label-v1046"><input type="checkbox" '+(r.concluida?'checked disabled':'data-rev-semana="'+encodeURIComponent(r.chave)+'" data-rev-tipo="'+v104Esc(r.tipo)+'"')+' aria-label="Concluir revisão '+v104Esc(r.tipo)+'"><b>🔁 '+v104Esc(r.tipo)+'</b></label></div><strong>'+v104Esc(r.topico)+'</strong><small>'+v104Esc(r.disciplina)+(r.concluida?' • ✓ Revisão concluída':' • Revisão pendente')+'</small></div>').join('');
    return '<div class="ciclo-dia-v104 '+(data===hoje?'hoje':'')+'" data-dia="'+data+'"><div class="ciclo-dia-head-v104"><b>'+v104NomeDia(data).toUpperCase()+'</b><small>'+v102FmtData(data)+(data===hoje?' • Hoje':'')+'</small></div><div class="ciclo-dia-body-v104">'+(assuntos+revisoes||'<div class="ciclo-dia-vazio-v104">Nenhum assunto.</div>')+'</div></div>';
  }).join('');
  v104AtivarDragDrop();
  grid.querySelectorAll('[data-rev-semana]').forEach(ch=>ch.addEventListener('change',async()=>{
    if(!ch.checked)return;
    ch.disabled=true;
-   await v87ConcluirRevisao(decodeURIComponent(ch.dataset.revSemana),ch.dataset.revTipo);
-   v104RenderSemana();
-   renderizarEstudoReal();
+   try{
+     await v87ConcluirRevisao(decodeURIComponent(ch.dataset.revSemana),ch.dataset.revTipo);
+     v104RenderSemana();
+     renderizarEstudoReal();
+   }catch(e){
+     ch.checked=false;ch.disabled=false;ultimoErroV3=String(e?.code||e?.message||e);
+   }
  }));
  v104AtualizarBotoes();
  if(st)st.textContent=(itens.length||revs.length)?'Arraste um assunto e solte no dia desejado. A numeração é a mesma do Planejamento. Revisões ficam fixas.':'Monte o Planejamento para preencher o ciclo.';
@@ -2182,7 +2192,7 @@ function v103TopicoEdital(disciplina,nome){
  return topico?{disciplina:d,topico}:null;
 }
 function v103PlanejadosHoje(){
- const hoje=new Date().toISOString().slice(0,10);
+ const hoje=v102HojeISO();
  return (agendaV102?.itens||[]).filter(a=>a.dataPlanejada===hoje).sort((a,b)=>(a.numero||0)-(b.numero||0));
 }
 function v103ConcluidoNoPlano(a){return !!a?.concluidoEm;}

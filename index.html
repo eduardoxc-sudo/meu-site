@@ -121,6 +121,14 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .v102-actions button{background:#16243a;color:#fff;border:1px solid #334968;border-radius:8px;padding:7px 9px}
 @media(max-width:760px){.v102-topic{grid-template-columns:45px 62px 1fr}.v102-actions{grid-column:1/-1;padding-left:0}.v102-actions input{flex:1}}
 
+/* ===== V10.3.0 — Planejamento integrado ao Ciclo ===== */
+.ciclo-hoje-lista{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.ciclo-hoje-item{display:grid;grid-template-columns:44px 72px minmax(0,1fr);gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg)}
+.ciclo-hoje-item.done{opacity:.58}
+.ciclo-hoje-num{font-weight:900;color:var(--primary);text-align:center}
+.ciclo-hoje-main strong{display:block}.ciclo-hoje-main small{display:block;color:var(--muted);margin-top:3px}
+@media(max-width:650px){.ciclo-hoje-item{grid-template-columns:38px 64px minmax(0,1fr)}}
+
 /* ===== V10.2.2 — mover assuntos no Ciclo ===== */
 .ciclo-assuntos{margin-top:16px}
 .ciclo-assuntos-grupo{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:10px;background:var(--bg)}
@@ -351,7 +359,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.2.2 • CICLO MOVER ASSUNTOS DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.3.0 • PLANEJAMENTO + CICLO DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -490,6 +498,13 @@ textarea:focus,select:focus{border-color:var(--primary)}
         </div>
         <div id="cicloFila" class="ciclo-fila"></div>
         <div id="statusExecCiclo" class="status-line"></div>
+
+        <div class="estudo-real" id="cicloPlanejadoHojeV103">
+          <h3>📅 Planejamento de hoje</h3>
+          <p class="panel-sub">Assuntos definidos no Planejamento para hoje. O Ciclo usa esta fila primeiro; se não houver assunto planejado pendente, segue a ordem normal do ciclo.</p>
+          <div id="cicloPlanejadoHojeListaV103" class="ciclo-hoje-lista"></div>
+          <div id="cicloPlanejadoHojeStatusV103" class="status-line"></div>
+        </div>
 
         <div class="estudo-real">
           <h3>📖 Estudo real</h3>
@@ -1073,6 +1088,7 @@ function moverAssuntoCicloV1022(materia,indice,delta){
   if(status)status.textContent='✓ Ordem dos assuntos atualizada e salva.';
 }
 document.addEventListener('click',e=>{
+  const nav=e.target.closest('[data-page="ciclo"]');if(nav)setTimeout(()=>renderizarPlanejamentoHojeV103(),0);
   const up=e.target.closest('[data-ciclo-assunto-up]');
   const down=e.target.closest('[data-ciclo-assunto-down]');
   const b=up||down; if(!b)return;
@@ -1988,18 +2004,48 @@ async function resetTesteV841(){
 // ========================= V8.1 DEV — ESTUDO REAL =========================
 // Corrige disciplina concluída: botão bloqueado, status limpo e busca a próxima
 // disciplina ativa que ainda tenha tópico pendente. Não altera Edital/revisões existentes.
+function v103TopicoEdital(disciplina,nome){
+ const ds=Object.keys(estadoV2?.editalVerticalizado||{});
+ const d=ds.find(x=>v2Norm(x)===v2Norm(disciplina)); if(!d)return null;
+ const topicos=estadoV2.editalVerticalizado[d]||[];
+ const topico=topicos.find(t=>v2Norm(t.titulo)===v2Norm(nome));
+ return topico?{disciplina:d,topico}:null;
+}
+function v103PlanejadosHoje(){
+ const hoje=new Date().toISOString().slice(0,10);
+ return (agendaV102?.itens||[]).filter(a=>a.dataPlanejada===hoje).sort((a,b)=>(a.numero||0)-(b.numero||0));
+}
+function renderizarPlanejamentoHojeV103(){
+ const box=$('cicloPlanejadoHojeListaV103'),st=$('cicloPlanejadoHojeStatusV103'); if(!box)return;
+ const itens=v103PlanejadosHoje();
+ if(!agendaV102?.itens?.length){box.innerHTML='<div class="ciclo-vazio">Monte o Planejamento para criar a fila diária do Ciclo.</div>';if(st)st.textContent='Nenhum planejamento por data salvo.';return;}
+ if(!itens.length){box.innerHTML='<div class="ciclo-vazio">Nenhum assunto planejado para hoje.</div>';if(st)st.textContent='O Ciclo seguirá sua ordem normal.';return;}
+ box.innerHTML=itens.map(a=>{const e=v103TopicoEdital(a.disciplina,a.nome),done=!!e?.topico?.t;return '<div class="ciclo-hoje-item '+(done?'done':'')+'"><div class="ciclo-hoje-num">'+String(a.numero||'').padStart(2,'0')+'</div><div><b>'+v101PlanLabel(a.prioridade)+'</b></div><div class="ciclo-hoje-main"><strong>'+v2Escape(a.nome)+'</strong><small>'+v2Escape(a.disciplina)+' • '+(done?'✓ Concluído':'Pendente')+'</small></div></div>'}).join('');
+ if(st){const pend=itens.filter(a=>!v103TopicoEdital(a.disciplina,a.nome)?.topico?.t).length;st.textContent='📚 '+itens.length+' planejado(s) para hoje • '+pend+' pendente(s).';}
+}
 function estudoRealLocalizarProximo(){
-  const ativas=cicloAtivas();
-  if(!ativas.length)return null;
-  cicloExecAjustar();
-  for(let passo=0;passo<ativas.length;passo++){
-    const indice=(cicloExec.indice+passo)%ativas.length;
-    const disciplina=ativas[indice]?.nome;
-    const topicos=estadoV2?.editalVerticalizado?.[disciplina]||[];
-    const topico=topicos.find(t=>!t.t);
-    if(topico)return {disciplina,topico,indice,passo};
-  }
-  return null;
+ const ativas=cicloAtivas();
+ if(!ativas.length)return null;
+ cicloExecAjustar();
+ // Primeiro: fila do Planejamento para hoje, somente disciplinas ativas.
+ const nomesAtivos=new Set(ativas.map(x=>v2Norm(x.nome)));
+ for(const a of v103PlanejadosHoje()){
+   if(!nomesAtivos.has(v2Norm(a.disciplina)))continue;
+   const e=v103TopicoEdital(a.disciplina,a.nome);
+   if(e && !e.topico.t){
+     const indice=ativas.findIndex(x=>v2Norm(x.nome)===v2Norm(e.disciplina));
+     return {disciplina:e.disciplina,topico:e.topico,indice:Math.max(0,indice),passo:0,planejadoHoje:true,numero:a.numero,prioridade:a.prioridade};
+   }
+ }
+ // Sem pendência planejada hoje: mantém exatamente a lógica normal do Ciclo.
+ for(let passo=0;passo<ativas.length;passo++){
+   const indice=(cicloExec.indice+passo)%ativas.length;
+   const disciplina=ativas[indice]?.nome;
+   const topicos=estadoV2?.editalVerticalizado?.[disciplina]||[];
+   const topico=topicos.find(t=>!t.t);
+   if(topico)return {disciplina,topico,indice,passo,planejadoHoje:false};
+ }
+ return null;
 }
 function estudoRealAtual(){ return estudoRealLocalizarProximo(); }
 
@@ -2039,7 +2085,7 @@ function renderizarEstudoReal(){
   }
 
   titulo.textContent=atual.topico.titulo;
-  info.textContent=atual.disciplina+' • '+(Number(ativasMinutosAtual())||50)+' minutos programados no ciclo.';
+  info.textContent=(atual.planejadoHoje?'📅 Planejado para hoje • ':'')+atual.disciplina+' • '+(Number(ativasMinutosAtual())||50)+' minutos programados no ciclo.';
   btn.disabled=false;
   btn.removeAttribute('disabled');
   btn.removeAttribute('aria-disabled');
@@ -2072,6 +2118,8 @@ async function concluirEstudoReal(){
     // avança uma única vez após conclusão real
     cicloExecAvancar();
     atualizarEditalV2();
+    renderizarPlanejamentoHojeV103();
+    renderizarAssuntosCicloV1022();
 
     // procura automaticamente a próxima disciplina com tópico pendente
     renderizarEstudoReal();
@@ -2344,6 +2392,7 @@ function v102Render(){
    if(inp)inp.onchange=async()=>{const a=agendaV102.itens.find(x=>x.id===id);if(!a||!inp.value)return;a.dataPlanejada=inp.value;await v102SalvarAgenda();v102Render();};
  });
  if(st2)st2.textContent='📚 '+(agendaV102.assuntosPorDia||1)+' assunto(s) por dia na montagem automática. ↔ Você pode mover qualquer assunto para outra data sem alterar sua prioridade nem criar cópia.';
+ renderizarPlanejamentoHojeV103();
 }
 async function v102Gerar(){
  if(!importacaoV102||!Array.isArray(importacaoV102.assuntos)||!importacaoV102.assuntos.length)return;

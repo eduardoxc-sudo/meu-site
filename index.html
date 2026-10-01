@@ -431,6 +431,22 @@ textarea:focus,select:focus{border-color:var(--primary)}
 @media(max-width:650px){.qh29-item{display:block}.qh29-numeros{text-align:left;margin-top:8px;white-space:normal}.qh29-resumo{display:none}}
 </style>
 
+
+<style id="v10432-editar-excluir-questoes-css">
+.qh32-actions{display:flex;gap:7px;justify-content:flex-end;margin-top:8px}
+.qh32-btn{border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:700;background:#152238;color:var(--text)}
+.qh32-btn:hover{filter:brightness(1.12)}
+.qh32-danger{background:#3a1720;border-color:#7a2638}
+.qh32-modal{position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:99999;display:flex;align-items:center;justify-content:center;padding:18px}
+.qh32-card{width:min(520px,100%);background:#111c2f;border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:0 18px 60px rgba(0,0,0,.45)}
+.qh32-card h3{margin:0 0 6px}.qh32-card p{color:var(--muted);font-size:13px}
+.qh32-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.qh32-grid label{font-size:12px;color:var(--muted);font-weight:700}
+.qh32-grid input{width:100%;margin-top:5px}
+.qh32-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+@media(max-width:600px){.qh32-grid{grid-template-columns:1fr}.qh32-actions{justify-content:flex-start}}
+</style>
+
 </head>
 <body>
 <section id="login">
@@ -464,7 +480,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.31 • EDITAIS ARQUIVADOS COMPACTO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.32 • EDITAR/EXCLUIR SESSÃO DE QUESTÕES DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -3558,6 +3574,68 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
     return 'Data não disponível';
   }
 
+
+  async function recalcularQuestoes32(){
+    const r=ref27(); if(!r)return;
+    const s=await r.child('historico').once('value'), raw=s.val()||{};
+    let total=0,acertos=0,erros=0; const porMateria={};
+    Object.values(raw).filter(Boolean).forEach(x=>{
+      const tt=Number(x.total)||0, aa=Number(x.acertos)||0, ee=Math.max(0,tt-aa);
+      total+=tt; acertos+=aa; erros+=ee;
+      const mat=x.materia||'Matéria não identificada', ass=x.assunto||'Assunto';
+      const mk=key27(mat), ak=key27(ass);
+      if(!porMateria[mk]) porMateria[mk]={nome:mat,assuntos:{}};
+      if(!porMateria[mk].assuntos[ak]) porMateria[mk].assuntos[ak]={nome:ass,total:0,acertos:0,erros:0};
+      const a=porMateria[mk].assuntos[ak]; a.total+=tt;a.acertos+=aa;a.erros+=ee;
+    });
+    await r.update({total,acertos,erros,porMateria,atualizadoEm:firebase.database.ServerValue.TIMESTAMP});
+    if(typeof questoesV94!=='undefined'){
+      questoesV94.total=total;questoesV94.acertos=acertos;questoesV94.erros=erros;questoesV94.carregado=true;
+      if(typeof v94Render==='function')v94Render();
+    }
+    await render27();
+  }
+
+  async function editarSessao32(id){
+    const r=ref27();if(!r||!id)return;
+    const s=await r.child('historico/'+id).once('value'),x=s.val();if(!x)return;
+    const feitas=prompt('Quantidade de questões:',String(Number(x.total)||0));
+    if(feitas===null)return;
+    const total=Number(feitas);
+    if(!Number.isInteger(total)||total<=0){alert('Informe uma quantidade válida de questões.');return;}
+    const ac=prompt('Quantidade de acertos:',String(Number(x.acertos)||0));
+    if(ac===null)return;
+    const acertos=Number(ac);
+    if(!Number.isInteger(acertos)||acertos<0||acertos>total){alert('Os acertos devem estar entre 0 e '+total+'.');return;}
+    await r.child('historico/'+id).update({
+      total,acertos,erros:total-acertos,aproveitamento:Math.round(acertos/total*100),
+      editadoEm:firebase.database.ServerValue.TIMESTAMP
+    });
+    await recalcularQuestoes32();
+    await renderHistorico29();
+  }
+
+  async function excluirSessao32(id){
+    const r=ref27();if(!r||!id)return;
+    const s=await r.child('historico/'+id).once('value'),x=s.val();if(!x)return;
+    const msg='Excluir este registro?\n\n'+(x.materia||'')+' — '+(x.assunto||'')+
+      '\n'+(Number(x.total)||0)+' questões • '+(Number(x.acertos)||0)+' acertos\n\nOs totais serão recalculados automaticamente.';
+    if(!confirm(msg))return;
+    await r.child('historico/'+id).remove();
+    await recalcularQuestoes32();
+    await renderHistorico29();
+  }
+
+  function bindHistorico32(){
+    const box=$q('qHistoricoV10429');if(!box||box.dataset.actions32==='1')return;
+    box.dataset.actions32='1';
+    box.addEventListener('click',e=>{
+      const be=e.target.closest('[data-qedit]'),bd=e.target.closest('[data-qdel]');
+      if(be){e.preventDefault();e.stopPropagation();editarSessao32(be.dataset.qedit);}
+      if(bd){e.preventDefault();e.stopPropagation();excluirSessao32(bd.dataset.qdel);}
+    });
+  }
+
   async function renderHistorico29(){
     const box=$q('qHistoricoV10429'), r=ref27();
     if(!box||!r) return;
@@ -3590,7 +3668,8 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
             return '<div class="qh29-item">'+
               '<div><div class="qh29-title">'+esc(x.assunto||'Assunto')+'</div>'+
               '<div class="qh29-meta">📅 '+esc(fmtData29(x.criadoEm,x.dataLocal))+'</div></div>'+
-              '<div class="qh29-numeros"><b>'+t+' questões • '+p+'%</b>✅ '+a+' acerto(s) &nbsp; ❌ '+e+' erro(s)</div>'+
+              '<div class="qh29-numeros"><b>'+t+' questões • '+p+'%</b>✅ '+a+' acerto(s) &nbsp; ❌ '+e+' erro(s)'+
+              '<div class="qh32-actions"><button class="qh32-btn" data-qedit="'+esc(x.id)+'">✏️ Editar</button><button class="qh32-btn qh32-danger" data-qdel="'+esc(x.id)+'">🗑️ Excluir</button></div></div>'+
             '</div>';
           }).join('')+
         '</details>';
@@ -3626,6 +3705,7 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
   }
 
   function bind27(){
+    bindHistorico32();
     const toggle=$q('qToggleArquivadosV10431');
     if(toggle && !toggle.dataset.bound){
       toggle.dataset.bound='1';

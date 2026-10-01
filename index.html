@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V9.2 DEV • ESTATÍSTICAS DE ESTUDO</title>
+<title>Plano & Ciclo de Estudos — V9.2.2 DEV • SEQUÊNCIA INTELIGENTE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -236,6 +236,12 @@ textarea:focus,select:focus{border-color:var(--primary)}
  .stats-v92,.stats-detail-v92{grid-template-columns:1fr}
 }
 </style>
+<style id="v922-sequencia-css">
+.v922-sim{margin-top:14px;padding:14px;border:1px dashed var(--border);border-radius:12px;background:var(--bg)}
+.v922-sim p{margin:5px 0 10px;color:var(--muted);font-size:13px;line-height:1.45}
+.v922-sim-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.v922-sim-row input{min-height:38px;padding:7px 9px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--text)}
+</style>
 </head>
 <body>
 <section id="login">
@@ -265,7 +271,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.2 • ESTATÍSTICAS DE ESTUDO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.2.2 • SEQUÊNCIA INTELIGENTE DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -297,7 +303,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
         <div class="stat"><span>📚 Tópicos estudados</span><strong id="statTopicosV92">0</strong></div>
         <div class="stat"><span>🔁 Revisões concluídas</span><strong id="statRevisoesV92">0</strong></div>
         <div class="stat"><span>🎯 Revisões no prazo</span><strong id="statNoPrazoV92">0%</strong></div>
-        <div class="stat"><span>🔥 Dias com estudo</span><strong id="statDiasV92">0</strong></div>
+        <div class="stat"><span>📅 Dias estudados</span><strong id="statDiasV92">0</strong></div>
       </div>
       <div class="stats-detail-v92">
         <div><span>D1 CONCLUÍDAS</span><b id="statD1V92">0</b></div>
@@ -310,6 +316,16 @@ textarea:focus,select:focus{border-color:var(--primary)}
         <div class="stats-track-v92"><i id="statRevProgressoV92"></i></div>
       </div>
       <div id="statStatusV92" class="status-line"></div>
+
+      <div class="v922-sim">
+        <b>🧪 Teste da sequência</b>
+        <p>Escolha uma data para conferir a sequência usando os dados reais já registrados e os dias ativos atuais. O teste não grava nem altera nada.</p>
+        <div class="v922-sim-row">
+          <input id="seqTesteDataV922" type="date">
+          <button id="seqTesteBtnV922" class="primary" type="button">Testar data</button>
+        </div>
+        <div id="seqTesteResultadoV922" class="status-line"></div>
+      </div>
     </div>
   </section>
   <section id="page-ciclo" class="page">
@@ -1107,6 +1123,85 @@ $('btnSalvarPlanejamento')?.addEventListener('click',salvarPlanejamento);
 
 
 
+
+// ========================= V9.2.2 DEV — SEQUÊNCIA INTELIGENTE =========================
+function v922IsoLocal(d){
+ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function v922DataLocal(iso){
+ const [y,m,d]=String(iso).slice(0,10).split('-').map(Number);
+ return new Date(y,m-1,d,12,0,0,0);
+}
+function v922DiaAtivo(d){
+ // Reutiliza exatamente a regra já aprovada pelo Planejamento.
+ return revDiaAtivo(d);
+}
+function v922DatasAtividadeReal(){
+ const origens=Object.values(revisoesMotor?.origens||{}).filter(o=>o&&revOrigemExisteNoEdital(o));
+ const hist=v90HistoricoReal();
+ const s=new Set(origens.map(o=>String(o.dataEstudo||'').slice(0,10)).filter(Boolean));
+ hist.forEach(x=>{
+   const d=new Date(x.concluidaEm);
+   if(!isNaN(d))s.add(v922IsoLocal(d));
+ });
+ return s;
+}
+function v922CalcularSequencia(datasAtividade, referencia){
+ const ref=new Date(referencia);
+ ref.setHours(12,0,0,0);
+ const hoje=new Date(); hoje.setHours(12,0,0,0);
+ const refIso=v922IsoLocal(ref);
+
+ // Se a referência tem atividade, começa nela.
+ // Se não tem e é "hoje", preserva a sequência enquanto o dia ainda não terminou.
+ // Se não tem e é uma data histórica ativa, essa falta quebra a sequência.
+ let cursor=new Date(ref);
+ let seq=0;
+ const refTem=datasAtividade.has(refIso);
+ if(refTem){
+   seq=1;
+   cursor.setDate(cursor.getDate()-1);
+ }else{
+   const ehHoje=v922IsoLocal(ref)===v922IsoLocal(hoje);
+   if(v922DiaAtivo(ref) && !ehHoje) return 0;
+   cursor.setDate(cursor.getDate()-1);
+ }
+
+ // Procura para trás somente pelos dias ativos; folgas não quebram.
+ let guard=0;
+ while(guard++<3660){
+   if(!v922DiaAtivo(cursor)){
+     cursor.setDate(cursor.getDate()-1);
+     continue;
+   }
+   const iso=v922IsoLocal(cursor);
+   if(datasAtividade.has(iso)){
+     seq++;
+     cursor.setDate(cursor.getDate()-1);
+     continue;
+   }
+   break;
+ }
+ return seq;
+}
+function v922TestarSequencia(){
+ const el=$('seqTesteDataV922'), out=$('seqTesteResultadoV922');
+ if(!el||!out)return;
+ if(!el.value){out.textContent='Escolha uma data para testar.';return;}
+ const ref=v922DataLocal(el.value);
+ const ativo=v922DiaAtivo(ref);
+ const dados=v922DatasAtividadeReal();
+ const seq=v922CalcularSequencia(dados,ref);
+ const tem=dados.has(el.value);
+ out.textContent='✓ '+el.value+' • '+(ativo?'dia ativo':'dia não ativo')+
+   ' • '+(tem?'há atividade real':'sem atividade real')+
+   ' • sequência exibida: '+seq+'. Nenhum dado foi alterado.';
+}
+document.addEventListener('click',e=>{
+ if(e.target?.id==='seqTesteBtnV922')v922TestarSequencia();
+});
+
+
 // ========================= V9.2 DEV — ESTATÍSTICAS DE ESTUDO =========================
 function v92Estatisticas(){
  const origens=Object.values(revisoesMotor?.origens||{}).filter(o=>o&&revOrigemExisteNoEdital(o));
@@ -1133,11 +1228,13 @@ function v92Estatisticas(){
  const revisoesConcluidas=historico.length;
  const taxaPrazo=revisoesConcluidas?Math.round((noPrazo/revisoesConcluidas)*100):0;
 
- // A V9.2 não inventa "horas líquidas": o motor atual guarda minutos programados,
- // mas ainda não mede tempo real com cronômetro.
+ // Sequência inteligente: dias não ativos do Planejamento são ignorados.
+ // Em um dia ativo ainda em andamento, a sequência não quebra antes do fim do dia.
+ const sequencia=v922CalcularSequencia(datasAtividade, new Date());
+
  return {
    topicos:origens.length,revisoesConcluidas,noPrazo,taxaPrazo,
-   diasAtividade:datasAtividade.size,tipos,totalAgendado
+   diasAtividade:datasAtividade.size,sequencia,tipos,totalAgendado
  };
 }
 function renderizarEstatisticasV92(){
@@ -1157,7 +1254,7 @@ function renderizarEstatisticasV92(){
  $('statStatusV92').textContent=s.revisoesConcluidas
    ? '✓ '+s.revisoesConcluidas+' revisão(ões) real(is) concluída(s). '+s.taxaPrazo+'% concluída(s) no prazo.'
    : 'Nenhuma revisão real concluída ainda.';
- if($('dashSeqV92'))$('dashSeqV92').textContent=s.diasAtividade||'—';
+ if($('dashSeqV92'))$('dashSeqV92').textContent=s.sequencia||'—';
  if($('dashHorasV92'))$('dashHorasV92').textContent='—';
 }
 

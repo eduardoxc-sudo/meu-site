@@ -387,6 +387,34 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .hist-tipo-v10415{display:inline-flex;align-items:center;padding:3px 8px;border:1px solid var(--border);border-radius:999px;font-size:12px;font-weight:800;margin-right:7px}
 @media(max-width:560px){.hist-materia-v10415>summary{align-items:flex-start}.hist-materia-qtd-v10415{white-space:normal;text-align:right}}
 </style>
+
+<style id="v10427-questoes-materia-css">
+.qm27-grid{display:grid;grid-template-columns:minmax(220px,1fr) minmax(280px,1.5fr);gap:12px;margin-top:14px}
+.qm27-form{display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1.4fr) 130px 130px auto;gap:10px;align-items:end;margin-top:14px}
+.qm27-form label{display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:12px;font-weight:700}
+.qm27-form input,.qm27-form select{min-height:42px}
+.qm27-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+.qm27-summary>div{border:1px solid var(--border);border-radius:11px;padding:13px;background:var(--bg)}
+.qm27-summary span{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}
+.qm27-summary b{font-size:20px}
+.qm27-materia{border:1px solid var(--border);border-radius:12px;background:var(--bg);margin-top:12px;overflow:hidden}
+.qm27-materia>summary{list-style:none;cursor:pointer;padding:14px;display:flex;justify-content:space-between;gap:12px;align-items:center;background:#0d1627;font-weight:800}
+.qm27-materia>summary::-webkit-details-marker{display:none}
+.qm27-materia>summary:after{content:'▾';font-size:17px}
+.qm27-materia:not([open])>summary:after{transform:rotate(-90deg)}
+.qm27-materia-info{margin-left:auto;color:var(--muted);font-size:12px;font-weight:600}
+.qm27-assunto{padding:12px 14px;border-top:1px solid var(--border)}
+.qm27-assunto-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.qm27-assunto-head b{line-height:1.4}
+.qm27-assunto-head span{white-space:nowrap;color:var(--muted);font-size:12px}
+.qm27-assunto-meta{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:6px}
+.qm27-bar{height:8px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-top:9px}
+.qm27-bar i{display:block;height:100%;background:linear-gradient(90deg,#38bdf8,#6366f1);border-radius:999px}
+.qm27-empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:12px;margin-top:12px}
+@media(max-width:950px){.qm27-form{grid-template-columns:1fr 1fr}.qm27-form button{grid-column:1/-1}.qm27-summary{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.qm27-grid,.qm27-form,.qm27-summary{grid-template-columns:1fr}.qm27-assunto-head{display:block}.qm27-assunto-head span{display:block;margin-top:5px}}
+</style>
+
 </head>
 <body>
 <section id="login">
@@ -420,7 +448,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.26 • EDITAIS ARQUIVADOS VISUAL CORRIGIDO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.27 • QUESTÕES POR MATÉRIA DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -676,7 +704,44 @@ textarea:focus,select:focus{border-color:var(--primary)}
     <p class="panel-sub">Iniciar começa a contar. Pausar congela o tempo. Finalizar salva a sessão vinculada ao assunto escolhido. Se a página for fechada durante uma sessão, ela volta pausada para não contar tempo que não foi estudado.</p>
   </div>
 </section>
-  <section id="page-questoes" class="page"><div class="placeholder"><b>Questões</b><br>Entrará somente o sistema atual de Questões. Flashcards e Banco de Questões antigos não serão trazidos.</div></section>
+  
+<section id="page-questoes" class="page">
+  <div class="panel">
+    <h2>🎯 Registrar questões</h2>
+    <p class="panel-sub">Escolha a matéria e o assunto do seu Edital. Os resultados ficam organizados automaticamente por matéria → assunto.</p>
+
+    <div class="qm27-form">
+      <label>MATÉRIA
+        <select id="qMateriaV10427"><option value="">Selecione a matéria</option></select>
+      </label>
+      <label>ASSUNTO
+        <select id="qAssuntoV10427"><option value="">Selecione o assunto</option></select>
+      </label>
+      <label>QUESTÕES FEITAS
+        <input id="qFeitasV10427" type="number" min="1" step="1" placeholder="Ex.: 20">
+      </label>
+      <label>ACERTOS
+        <input id="qAcertosV10427" type="number" min="0" step="1" placeholder="Ex.: 16">
+      </label>
+      <button class="btn btn-primary" id="qSalvarV10427" type="button">✓ Registrar</button>
+    </div>
+    <div id="qStatusV10427" class="status-line">Escolha a matéria e o assunto estudado.</div>
+
+    <div class="qm27-summary">
+      <div><span>🎯 Questões resolvidas</span><b id="q27Total">0</b></div>
+      <div><span>✅ Acertos</span><b id="q27Acertos">0</b></div>
+      <div><span>❌ Erros</span><b id="q27Erros">0</b></div>
+      <div><span>📈 Aproveitamento</span><b id="q27Pct">—</b></div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h2>📚 Desempenho por matéria</h2>
+    <p class="panel-sub">Abra uma matéria para ver cada assunto, quantidade de questões, acertos, erros e aproveitamento.</p>
+    <div id="qMateriasListaV10427"><div class="qm27-empty">Nenhuma questão organizada por matéria ainda.</div></div>
+  </div>
+</section>
+
 
   <section id="page-edital" class="page">
     <div class="edital-layout">
@@ -3306,5 +3371,145 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
  setTimeout(renderProgressoV10416,1100);
  window.renderProgressoV10416=renderProgressoV10416;
 })();
-</script>\n</body>
+</script>\n
+<script id="v10427-questoes-materia-js">
+(function(){
+  const $q=id=>document.getElementById(id);
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const key=s=>String(s??'').trim().toLocaleLowerCase('pt-BR').replace(/[.#$[\]/]/g,'_');
+
+  function ref27(){
+    const u=auth.currentUser;
+    return u?db.ref('usuarios/'+u.uid+'/questoesV94'):null;
+  }
+
+  function preencherMaterias27(){
+    const sel=$q('qMateriaV10427');
+    if(!sel) return;
+    const atual=sel.value;
+    const mats=Object.keys((window.estadoV2&&estadoV2.editalVerticalizado)||{});
+    sel.innerHTML='<option value="">Selecione a matéria</option>'+mats.map(m=>'<option value="'+esc(m)+'">'+esc(m)+'</option>').join('');
+    if(mats.includes(atual)) sel.value=atual;
+    preencherAssuntos27();
+  }
+
+  function preencherAssuntos27(){
+    const mat=$q('qMateriaV10427')?.value||'';
+    const sel=$q('qAssuntoV10427');
+    if(!sel) return;
+    const atual=sel.value;
+    const tops=((window.estadoV2&&estadoV2.editalVerticalizado&&estadoV2.editalVerticalizado[mat])||[]);
+    sel.innerHTML='<option value="">Selecione o assunto</option>'+tops.map(t=>'<option value="'+esc(t.titulo||'')+'">'+esc(t.titulo||'')+'</option>').join('');
+    if(tops.some(t=>(t.titulo||'')===atual)) sel.value=atual;
+  }
+
+  async function salvar27(){
+    const mat=$q('qMateriaV10427')?.value||'';
+    const assunto=$q('qAssuntoV10427')?.value||'';
+    const feitas=Math.floor(Number($q('qFeitasV10427')?.value)||0);
+    const acertos=Math.floor(Number($q('qAcertosV10427')?.value)||0);
+    const st=$q('qStatusV10427');
+    if(!mat){st.textContent='⚠ Selecione a matéria.';return;}
+    if(!assunto){st.textContent='⚠ Selecione o assunto.';return;}
+    if(feitas<=0){st.textContent='⚠ Informe quantas questões foram feitas.';return;}
+    if(acertos<0||acertos>feitas){st.textContent='⚠ Os acertos não podem ser maiores que as questões feitas.';return;}
+    const erros=feitas-acertos, r=ref27();
+    if(!r) return;
+    try{
+      const snap=await r.once('value'), d=snap.val()||{};
+      const nt=(Number(d.total)||0)+feitas, na=(Number(d.acertos)||0)+acertos, ne=(Number(d.erros)||0)+erros;
+      const mk=key(mat), ak=key(assunto);
+      const ar=r.child('porMateria/'+mk+'/assuntos/'+ak);
+      const as=await ar.once('value'), ad=as.val()||{};
+      const mr=r.child('porMateria/'+mk);
+      const ms=await mr.once('value'), md=ms.val()||{};
+      const hoje=(typeof v922IsoLocal==='function')?v922IsoLocal(new Date()):new Date().toISOString().slice(0,10);
+
+      await r.update({total:nt,acertos:na,erros:ne,atualizadoEm:firebase.database.ServerValue.TIMESTAMP});
+      await mr.update({
+        nome:mat,
+        total:(Number(md.total)||0)+feitas,
+        acertos:(Number(md.acertos)||0)+acertos,
+        erros:(Number(md.erros)||0)+erros,
+        atualizadoEm:firebase.database.ServerValue.TIMESTAMP
+      });
+      await ar.update({
+        nome:assunto,
+        total:(Number(ad.total)||0)+feitas,
+        acertos:(Number(ad.acertos)||0)+acertos,
+        erros:(Number(ad.erros)||0)+erros,
+        atualizadoEm:firebase.database.ServerValue.TIMESTAMP
+      });
+
+      const dr=r.child('dias/'+hoje), ds=await dr.once('value'), dd=ds.val()||{};
+      await dr.update({
+        total:(Number(dd.total)||0)+feitas,
+        acertos:(Number(dd.acertos)||0)+acertos,
+        erros:(Number(dd.erros)||0)+erros,
+        atualizadoEm:firebase.database.ServerValue.TIMESTAMP
+      });
+
+      if(typeof questoesV94!=='undefined'){
+        questoesV94.total=nt; questoesV94.acertos=na; questoesV94.erros=ne; questoesV94.carregado=true;
+        if(typeof v94Render==='function') v94Render();
+      }
+      $q('qFeitasV10427').value='';
+      $q('qAcertosV10427').value='';
+      st.textContent='✅ Registrado em '+mat+' → '+assunto+': '+feitas+' questões • '+acertos+' acertos • '+erros+' erros.';
+      await render27();
+    }catch(e){
+      console.error('V10.4.27 questões:',e);
+      st.textContent='⚠ Não foi possível salvar. Tente novamente.';
+    }
+  }
+
+  async function render27(){
+    const box=$q('qMateriasListaV10427');
+    const r=ref27();
+    if(!box||!r) return;
+    try{
+      const s=await r.once('value'), d=s.val()||{};
+      const total=Number(d.total)||0, ac=Number(d.acertos)||0, er=Number(d.erros)||0;
+      if($q('q27Total'))$q('q27Total').textContent=total;
+      if($q('q27Acertos'))$q('q27Acertos').textContent=ac;
+      if($q('q27Erros'))$q('q27Erros').textContent=er;
+      if($q('q27Pct'))$q('q27Pct').textContent=total?Math.round(ac/total*100)+'%':'—';
+
+      const mats=Object.values(d.porMateria||{}).filter(Boolean).sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR'));
+      if(!mats.length){
+        box.innerHTML='<div class="qm27-empty">Nenhuma questão organizada por matéria ainda.<br>Os próximos registros aparecerão aqui automaticamente.</div>';
+        return;
+      }
+      box.innerHTML=mats.map((m,i)=>{
+        const mt=Number(m.total)||0, ma=Number(m.acertos)||0, me=Number(m.erros)||0, mp=mt?Math.round(ma/mt*100):0;
+        const assuntos=Object.values(m.assuntos||{}).filter(Boolean).sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR'));
+        return '<details class="qm27-materia" '+(i===0?'open':'')+'><summary><span>📚 '+esc(m.nome||'Matéria')+'</span><span class="qm27-materia-info">'+mt+' questões • '+mp+'%</span></summary>'+
+          (assuntos.length?assuntos.map(a=>{
+            const t=Number(a.total)||0, aa=Number(a.acertos)||0, ee=Number(a.erros)||0, p=t?Math.round(aa/t*100):0;
+            return '<div class="qm27-assunto"><div class="qm27-assunto-head"><b>'+esc(a.nome||'Assunto')+'</b><span>'+t+' questão(ões)</span></div>'+
+              '<div class="qm27-assunto-meta"><span>✅ '+aa+' acerto(s)</span><span>❌ '+ee+' erro(s)</span><span>📈 '+p+'%</span></div>'+
+              '<div class="qm27-bar"><i style="width:'+p+'%"></i></div></div>';
+          }).join(''):'<div class="qm27-empty">Nenhum assunto registrado nesta matéria.</div>')+
+        '</details>';
+      }).join('');
+    }catch(e){console.error(e);box.innerHTML='<div class="qm27-empty">Não foi possível carregar os resultados.</div>';}
+  }
+
+  function bind27(){
+    const m=$q('qMateriaV10427'), b=$q('qSalvarV10427');
+    if(m&&!m.dataset.q27){m.dataset.q27='1';m.addEventListener('change',preencherAssuntos27);}
+    if(b&&!b.dataset.q27){b.dataset.q27='1';b.addEventListener('click',salvar27);}
+    preencherMaterias27(); render27();
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(bind27,1100));
+  document.addEventListener('click',e=>{
+    const btn=e.target.closest('[data-page="questoes"]');
+    if(btn) setTimeout(()=>{preencherMaterias27();render27();},100);
+  });
+  setTimeout(bind27,2200);
+})();
+</script>
+
+</body>
 </html>

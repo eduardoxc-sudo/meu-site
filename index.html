@@ -408,9 +408,9 @@ textarea:focus,select:focus{border-color:var(--primary)}
     <button data-page="timer">◷ Timer</button>
     <button data-page="questoes">✓ Questões</button>
     <button data-page="edital">▥ Edital</button>
-    <button data-page="progresso">↗ Progresso</button>
+    <button data-page="progresso">📚 Progresso do Edital</button>
     <button data-page="historico">📜 Histórico</button>
-    <button data-page="estatisticas">📊 Estatísticas</button>
+    <button data-page="estatisticas">📊 Meu Desempenho</button>
     <button data-page="planejamento">↔ Planejamento</button>
     <button data-page="diagnostico">🛠 Diagnóstico</button>
     <button data-page="seguranca">◇ Segurança</button>
@@ -420,7 +420,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.19 • PROGRESSO CONCLUSÃO SINCRONIZADA DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.20 • PROGRESSO REAL + NOMES CLAROS DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -662,7 +662,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   </section>
   <section id="page-progresso" class="page">
     <div class="panel">
-      <h2>📈 Progresso do edital</h2>
+      <h2>📚 Progresso do Edital</h2>
       <p class="panel-sub">Calculado pelos assuntos originais do Planejamento. Revisões D1/D7/D15/D30 não entram como novos assuntos.</p>
       <div class="stats-v92">
         <div class="stat"><span>📚 Total de assuntos</span><strong id="progTotalV10416">0</strong></div>
@@ -709,7 +709,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
 
   <section id="page-estatisticas" class="page">
     <div class="panel">
-      <h2>📊 Estatísticas de estudo</h2>
+      <h2>📊 Meu Desempenho</h2>
       <p class="panel-sub">Indicadores calculados a partir dos dados reais já existentes. Esta tela não altera Planejamento, Ciclo, Histórico ou revisões.</p>
       <div class="stats-v92">
         <div class="stat"><span>📚 Tópicos estudados</span><strong id="estatTopicosV10414">0</strong></div>
@@ -2934,17 +2934,21 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
  function renderProgressoV10416(){
   try{
    const itens=(typeof agendaV102!=='undefined' && Array.isArray(agendaV102?.itens))?agendaV102.itens:[];
-   // Leitura compatível da conclusão: agenda atual (concluidoEm) + estado já sincronizado no Edital (topico.t).
-   // Não grava nem altera dados; serve apenas para o Progresso reconhecer conclusões preservadas de versões anteriores.
+   // V10.4.20 — conclusão real: checklist/Estudo real (concluidoEm) OU origem existente no motor de revisões.
+   // Pela regra do projeto, uma origem no motor só nasce quando o assunto original é concluído.
+   // Revisões D1/D7/D15/D30 não contam como assuntos novos e o estado visual do Edital não é usado como conclusão.
    const concluidoV10419=(a)=>{
     if(a?.concluidoEm)return true;
-    try{const e=(typeof v103TopicoEdital==='function')?v103TopicoEdital(a?.disciplina,a?.nome):null;return !!e?.topico?.t;}catch(_){return false;}
+    try{
+     const chave=(typeof revChave==='function')?revChave(a?.disciplina,a?.nome):null;
+     return !!(chave && revisoesMotor?.origens?.[chave]);
+    }catch(_){return false;}
    };
    const total=itens.length, concl=itens.filter(concluidoV10419).length, pend=Math.max(0,total-concl);
    const pct=total?Math.round(concl/total*100):0;
    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
    set('progTotalV10416',total);set('progConclV10416',concl);set('progPendV10416',pend);set('progPctV10416',pct+'%');set('progTxtV10416',concl+' / '+total);
-   set('progFonteV10417',total?'✓ Sincronizado com o Planejamento atual. Revisões não entram nesta contagem.':'Nenhum assunto original disponível no Planejamento.');
+   set('progFonteV10417',total?'✓ Conclusão real sincronizada com Planejamento/Estudo real. Revisões não entram como novos assuntos.':'Nenhum assunto original disponível no Planejamento.');
    const bar=document.getElementById('progBarV10416');if(bar)bar.style.width=pct+'%';
    const pri=document.getElementById('progPrioridadesV10416');
    if(pri){
@@ -2957,7 +2961,7 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
     box.innerHTML=nomes.length?nomes.map(nome=>{const a=grupos[nome],c=a.filter(concluidoV10419).length,p=a.length?Math.round(c/a.length*100):0;const p1=a.filter(x=>Number(x.prioridade)===1).length,p2=a.filter(x=>Number(x.prioridade)===2).length,p3=a.filter(x=>Number(x.prioridade)===3).length;return '<div class="prog-mat-v10416"><div class="prog-mat-head-v10416"><b>📚 '+esc(nome)+'</b><span>'+c+' / '+a.length+' • '+p+'%</span></div><div class="prog-track-v10416"><i style="width:'+p+'%"></i></div><div class="prog-mat-meta-v10416"><span>✅ '+c+' concluído(s)</span><span>⏳ '+(a.length-c)+' pendente(s)</span><span>🔴 P1: '+p1+'</span><span>🟡 P2: '+p2+'</span><span>🟢 P3: '+p3+'</span></div></div>';}).join(''):'<div class="status-line">Monte o Planejamento para calcular o progresso por matéria.</div>';
    }
    if(typeof questoesV94!=='undefined'){const q=questoesV94,t=Number(q.total)||0,ac=Number(q.acertos)||0,er=Number(q.erros)||0;set('progQTotalV10416',t);set('progQAcV10416',ac);set('progQErV10416',er);set('progQPctV10416',t?Math.round(ac/t*100)+'%':'—');}
-  }catch(err){console.error('V10.4.19 progresso:',err);}
+  }catch(err){console.error('V10.4.20 progresso:',err);}
  }
  document.addEventListener('click',function(e){if(!e.target.closest('.nav button[data-page="progresso"]'))return;setTimeout(renderProgressoV10416,0);});
  setTimeout(renderProgressoV10416,1100);

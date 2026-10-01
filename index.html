@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V10.0 DEV • EDITAL PRONTO E PRIORIDADES</title>
+<title>Plano & Ciclo de Estudos — V10.1 DEV • PRIORIDADES POR ASSUNTO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -286,7 +286,12 @@ textarea:focus,select:focus{border-color:var(--primary)}
 }
 </style>
 
-</head>
+<style id="v101-css">
+.v101-materia{border:1px solid var(--border);border-radius:12px;padding:10px;margin:12px 0;background:rgba(0,0,0,.08)}.v101-materia-title{font-weight:800;font-size:17px;padding:5px 4px 10px}.v101-materia-title span{font-size:12px;color:var(--muted);font-weight:500;margin-left:6px}
+.v101-plan-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.v101-plan-summary>div{border:1px solid var(--border);background:var(--bg);border-radius:10px;padding:12px}.v101-plan-summary span{display:block;color:var(--muted);font-size:12px}.v101-plan-summary b{font-size:20px}
+.v101-plan-list{display:grid;gap:12px;margin-top:12px}.v101-plan-group{border:1px solid var(--border);border-radius:12px;overflow:hidden}.v101-plan-group h3{margin:0;padding:12px;background:rgba(0,0,0,.12)}.v101-plan-item{display:grid;grid-template-columns:90px 1fr;gap:10px;padding:10px 12px;border-top:1px solid var(--border)}.v101-plan-item small{color:var(--muted)}
+@media(max-width:760px){.v101-plan-summary{grid-template-columns:1fr 1fr}.v101-plan-item{grid-template-columns:70px 1fr}}
+</style></head>
 <body>
 <section id="login">
 <div class="login-card">
@@ -317,7 +322,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.0 • EDITAL PRONTO + PRIORIDADES DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.1 • PRIORIDADES POR ASSUNTO + PLANEJAMENTO DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -534,106 +539,9 @@ textarea:focus,select:focus{border-color:var(--primary)}
   </section>
   <section id="page-progresso" class="page"><div class="placeholder"><b>Progresso</b><br>Estrutura reservada. Ainda não implementado nesta etapa.</div></section>
   <section id="page-planejamento" class="page">
-  <div class="plan-grid">
-    <div class="panel">
-      <h3>↔ Configurar planejamento</h3>
-      <p class="panel-sub">Nesta etapa configuramos somente as regras. Ainda não será gerado calendário.</p>
-
-      <div class="plan-box">
-        <b>Dias de estudo</b>
-        <div class="plan-dias" id="planDias">
-          <label class="plan-dia"><input type="checkbox" data-plan-dia="1"> Segunda</label>
-          <label class="plan-dia"><input type="checkbox" data-plan-dia="2"> Terça</label>
-          <label class="plan-dia"><input type="checkbox" data-plan-dia="3"> Quarta</label>
-          <label class="plan-dia"><input type="checkbox" data-plan-dia="4"> Quinta</label>
-          <label class="plan-dia"><input type="checkbox" data-plan-dia="5"> Sexta</label>
-          <label class="plan-dia"><input type="checkbox" data-plan-dia="6"> Sábado</label>
-          <label class="plan-dia"><input type="checkbox" data-plan-dia="0"> Domingo</label>
-        </div>
-      </div>
-
-      <div class="field" style="margin-top:12px">
-        <label>MINUTOS DE ESTUDO POR DIA</label>
-        <input id="planMinutosDia" type="number" min="10" max="1440" step="10" value="120">
-      </div>
-
-      <button class="btn btn-primary" id="btnSalvarPlanejamento" style="margin-top:12px">Salvar planejamento</button>
-      <div id="statusPlanejamento" class="status-line"></div>
-    </div>
-
-    <div class="panel">
-      <h3>↻ Revisões espaçadas</h3>
-      <p class="panel-sub">Escolha quais revisões serão usadas. Elas serão ligadas aos tópicos estudados somente na próxima etapa.</p>
-
-      <div class="plan-revisoes">
-        <label class="plan-rev"><input type="checkbox" data-plan-rev="1"> <b>D1</b> — 1 dia depois</label>
-        <label class="plan-rev"><input type="checkbox" data-plan-rev="7"> <b>D7</b> — 7 dias depois</label>
-        <label class="plan-rev"><input type="checkbox" data-plan-rev="15"> <b>D15</b> — 15 dias depois</label>
-        <label class="plan-rev"><input type="checkbox" data-plan-rev="30"> <b>D30</b> — 30 dias depois</label>
-      </div>
-
-      <div class="plan-resumo">
-        <div><span>DIAS ATIVOS</span><strong id="planResumoDias">0</strong></div>
-        <div><span>META DIÁRIA</span><strong id="planResumoMin">120 min</strong></div>
-        <div><span>REVISÕES ATIVAS</span><strong id="planResumoRev">0</strong></div>
-      </div>
-
-      <div class="plan-aviso">
-        <b>Regra protegida:</b> D1, D7, D15 e D30 são referências do mesmo tópico estudado.
-        Não criam disciplina, não copiam tópico para o Edital e não viram novo conteúdo.
-        Nesta V7 ainda não existe calendário.
-      </div>
-      <div class="plan-aviso" style="margin-top:14px">
-        <b>V8:</b> o motor agora é acionado automaticamente quando um tópico é concluído no fluxo real do Ciclo.
-        O botão de simulação da V7 foi retirado da interface.
-      </div>
-    </div>
-    <div class="panel" style="margin-top:16px">
-      <h2>📅 Revisões agendadas</h2>
-      <p class="panel-sub">Visualização do motor aprovado. Esta área não cria, altera nem exclui revisões.</p>
-      <div id="resumoRevisoesAgendadas" class="cycle-stats" style="margin:12px 0"></div>
-      <div id="listaRevisoesAgendadas"><div class="empty">Nenhuma revisão registrada.</div></div>
-    </div>
-
-    <div class="panel" style="margin-top:16px">
-      <h2>✅ Revisões de hoje</h2>
-      <p class="panel-sub">Mostra as revisões devidas hoje e as atrasadas. Concluir uma revisão não cria novas D1/D7/D15/D30.</p>
-      <div id="resumoRevisoesHojeV87" class="cycle-stats" style="margin:12px 0"></div>
-      <div id="revisoesHojeV87"><div class="empty">Nenhuma revisão para hoje.</div></div>
-
-      <div class="plan-aviso" style="margin-top:14px">
-        <b>🧪 Simular data das revisões de hoje</b><br>
-        Escolha uma data para visualizar o que estaria vencendo naquele dia. No modo de teste, você também pode concluir revisões em uma cópia temporária para conferir os contadores. Nada é salvo no Firebase ou nos dados reais.<br><br>
-        <input id="dataTesteHojeV88" type="date" style="max-width:220px">
-        <button class="btn btn-primary" id="btnAtivarTesteHojeV88" type="button">Simular data</button>
-        <button class="btn" id="btnSairTesteHojeV88" type="button" style="display:none">Voltar para hoje real</button>
-        <div id="statusTesteHojeV88" class="status-line"></div>
-      </div>
-    </div>
-
-    <div class="panel" style="margin-top:16px">
-      <h2>📚 Histórico de revisões</h2>
-      <p class="panel-sub">Registra somente revisões concluídas de verdade. Mostra disciplina, tópico, intervalo, data prevista e data da conclusão.</p>
-      <div id="resumoHistoricoV90" class="cycle-stats" style="margin:12px 0"></div>
-      <div id="historicoRevisoesV90"><div class="empty">Nenhuma revisão concluída ainda.</div></div>
-    </div>
-
-    <div class="panel" style="margin-top:16px">
-      <h2>🗓 Agenda de revisões por dia</h2>
-      <p class="panel-sub">Agrupa todas as revisões que caem na mesma data. Se a data cair em um dia não ativo, ela é exibida no próximo dia ativo do Planejamento.</p>
-      <div id="resumoAgendaV86" class="cycle-stats" style="margin:12px 0"></div>
-      <div id="agendaRevisoesV86"><div class="empty">Nenhuma revisão para exibir.</div></div>
-
-      <div class="plan-aviso" style="margin-top:14px">
-        <b>🧪 Teste de próximo dia ativo</b><br>
-        Escolha uma data hipotética de revisão. O teste mostra onde ela apareceria conforme os dias ativos atuais. Não grava nem altera nenhuma revisão.<br><br>
-        <input id="testeDataNaoAtivaV861" type="date" style="max-width:220px">
-        <button class="btn btn-primary" id="btnTesteDataNaoAtivaV861" type="button">Testar data</button>
-        <div id="resultadoTesteDataNaoAtivaV861" class="status-line"></div>
-      </div>
-    </div>
-  </div>
-</section>
+<h1>Planejamento</h1><div class="panel"><h2>🗓 Planejamento por prioridade</h2><p class="panel-sub">Assuntos recebidos do Edital pronto. P1 aparece primeiro, depois P2 e P3.</p>
+<div class="v101-plan-summary"><div><span>🔴 P1</span><b id="planP1V101">0</b></div><div><span>🟡 P2</span><b id="planP2V101">0</b></div><div><span>🟢 P3</span><b id="planP3V101">0</b></div><div><span>📚 Total</span><b id="planTotalV101">0</b></div></div>
+<div id="planejamentoV101Status" class="status-line">Nenhum edital enviado ao Planejamento ainda.</div><div id="planejamentoV101Lista" class="v101-plan-list"></div></div></section>
   <section id="page-diagnostico" class="page">
 <div class="panel">
 <h2>🛠 Diagnóstico da V3</h2>
@@ -654,13 +562,13 @@ textarea:focus,select:focus{border-color:var(--primary)}
 <section id="page-editalPronto" class="page" style="display:none">
   <div class="panel">
     <h2>📚 Edital pronto</h2>
-    <p class="panel-sub">Escolha um edital, confira as disciplinas, ajuste as prioridades e envie tudo para o Planejamento.</p>
+    <p class="panel-sub">Carregue seu Edital atual, ajuste a prioridade em cada assunto e envie tudo para o Planejamento.</p>
 
     <div class="v100-edital-toolbar">
       <label>Concurso / edital
         <select id="editalProntoSelectV100">
           <option value="">Selecione um edital</option>
-          <option value="pmpe">PMPE — Soldado (modelo inicial)</option>
+          <option value="atual">Meu edital atual (30/30)</option>
         </select>
       </label>
       <button class="primary" id="carregarEditalV100" type="button">📥 Carregar edital</button>
@@ -672,7 +580,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
       <div class="v100-head">
         <div>
           <h3 id="editalProntoTituloV100">Edital</h3>
-          <p class="panel-sub">Prioridade 1 = mais importante. Você pode ajustar antes de enviar.</p>
+          <p class="panel-sub">A prioridade fica em cada assunto. P1 = mais importante.</p>
         </div>
         <div class="v100-legend">
           <span>🔴 P1 Alta</span><span>🟡 P2 Média</span><span>🟢 P3 Normal</span>
@@ -2148,128 +2056,60 @@ setTimeout(renderizarDashboardRevisoesV91,500);
 
 setTimeout(renderizarEstatisticasV92,650);
 
-// ========================= V10.0 DEV — EDITAL PRONTO + PRIORIDADES =========================
-const EDITAIS_PRONTOS_V100 = {
-  pmpe: {
-    titulo: 'PMPE — Soldado (modelo inicial)',
-    disciplinas: [
-      {nome:'Língua Portuguesa', prioridade:1},
-      {nome:'Raciocínio Lógico-Matemático', prioridade:1},
-      {nome:'História', prioridade:2},
-      {nome:'Geografia', prioridade:2},
-      {nome:'Direito', prioridade:1}
-    ]
-  }
-};
-let editalAtualV100 = null;
-
-function v100Ref(){
-  const u=auth.currentUser;
-  return u ? db.ref('usuarios/'+u.uid+'/editalProntoV100') : null;
-}
-function v100PlanejamentoRef(){
-  const u=auth.currentUser;
-  return u ? db.ref('usuarios/'+u.uid+'/planejamento/importacaoEditalV100') : null;
-}
-function v100PrioridadeLabel(p){
-  return p===1?'🔴 P1 — Alta':p===2?'🟡 P2 — Média':'🟢 P3 — Normal';
+// ========================= V10.1 DEV — PRIORIDADES POR ASSUNTO + PLANEJAMENTO =========================
+let editalAtualV100=null;
+function v100Ref(){const u=auth.currentUser;return u?db.ref('usuarios/'+u.uid+'/editalProntoV100'):null;}
+function v100PlanejamentoRef(){const u=auth.currentUser;return u?db.ref('usuarios/'+u.uid+'/planejamento/importacaoEditalV100'):null;}
+function v100PrioridadeLabel(p){return p===1?'🔴 P1 — Alta':p===2?'🟡 P2 — Média':'🟢 P3 — Normal';}
+function v101MontarDoEditalAtual(){
+ const assuntos=[];
+ const ev=estadoV2?.editalVerticalizado||{};
+ Object.keys(ev).forEach(disc=>{
+   (ev[disc]||[]).forEach(t=>assuntos.push({disciplina:disc,nome:t.titulo||String(t),prioridade:2}));
+ });
+ return {titulo:'Meu edital atual',assuntos};
 }
 function v100Render(){
-  const box=$('editalProntoConteudoV100'), lista=$('editalProntoListaV100');
-  if(!box||!lista)return;
-  if(!editalAtualV100){box.style.display='none';return;}
-  box.style.display='';
-  $('editalProntoTituloV100').textContent=editalAtualV100.titulo;
-  lista.innerHTML=editalAtualV100.disciplinas
-    .slice().sort((a,b)=>a.prioridade-b.prioridade || a.nome.localeCompare(b.nome))
-    .map((d,i)=>`
-      <div class="v100-row" data-nome="${d.nome.replace(/"/g,'&quot;')}">
-        <div class="v100-order">${i+1}</div>
-        <div class="v100-disc"><b>${d.nome}</b><small>${v100PrioridadeLabel(d.prioridade)}</small></div>
-        <select class="v100-priority" data-disciplina="${d.nome.replace(/"/g,'&quot;')}">
-          <option value="1" ${d.prioridade===1?'selected':''}>🔴 P1 — Alta</option>
-          <option value="2" ${d.prioridade===2?'selected':''}>🟡 P2 — Média</option>
-          <option value="3" ${d.prioridade===3?'selected':''}>🟢 P3 — Normal</option>
-        </select>
-      </div>`).join('');
-  lista.querySelectorAll('.v100-priority').forEach(sel=>{
-    sel.onchange=async()=>{
-      const d=editalAtualV100.disciplinas.find(x=>x.nome===sel.dataset.disciplina);
-      if(d)d.prioridade=Number(sel.value);
-      await v100Salvar();
-      v100Render();
-    };
-  });
+ const box=$('editalProntoConteudoV100'),lista=$('editalProntoListaV100');if(!box||!lista)return;
+ if(!editalAtualV100){box.style.display='none';return;} box.style.display='';
+ $('editalProntoTituloV100').textContent=editalAtualV100.titulo;
+ const grupos={};(editalAtualV100.assuntos||[]).forEach(a=>(grupos[a.disciplina]??=[]).push(a));
+ lista.innerHTML=Object.entries(grupos).map(([disc,arr])=>`<div class="v101-materia"><div class="v101-materia-title">📘 ${disc} <span>${arr.length} assunto(s)</span></div>`+
+ arr.map((a,i)=>`<div class="v100-row"><div class="v100-order">${i+1}</div><div class="v100-disc"><b>${a.nome}</b><small>${v100PrioridadeLabel(a.prioridade)}</small></div><select class="v100-priority" data-disc="${disc.replace(/"/g,'&quot;')}" data-assunto="${a.nome.replace(/"/g,'&quot;')}"><option value="1" ${a.prioridade===1?'selected':''}>🔴 P1 — Alta</option><option value="2" ${a.prioridade===2?'selected':''}>🟡 P2 — Média</option><option value="3" ${a.prioridade===3?'selected':''}>🟢 P3 — Normal</option></select></div>`).join('')+'</div>').join('');
+ lista.querySelectorAll('.v100-priority').forEach(s=>s.onchange=async()=>{const a=editalAtualV100.assuntos.find(x=>x.disciplina===s.dataset.disc&&x.nome===s.dataset.assunto);if(a)a.prioridade=Number(s.value);await v100Salvar();v100Render();});
 }
-async function v100Salvar(){
-  const r=v100Ref(); if(!r||!editalAtualV100)return;
-  await r.set({...editalAtualV100, atualizadoEm:firebase.database.ServerValue.TIMESTAMP});
-}
+async function v100Salvar(){const r=v100Ref();if(r&&editalAtualV100)await r.set({...editalAtualV100,atualizadoEm:firebase.database.ServerValue.TIMESTAMP});}
 async function v100CarregarEscolhido(){
-  const key=$('editalProntoSelectV100')?.value;
-  const base=EDITAIS_PRONTOS_V100[key];
-  if(!base){
-    if($('editalProntoStatusV100'))$('editalProntoStatusV100').textContent='⚠ Selecione um edital.';
-    return;
-  }
-  editalAtualV100=JSON.parse(JSON.stringify(base));
-  await v100Salvar();
-  $('editalProntoStatusV100').textContent='✅ Edital carregado. Ajuste as prioridades e envie para o Planejamento.';
-  v100Render();
+ editalAtualV100=v101MontarDoEditalAtual();
+ if(!editalAtualV100.assuntos.length){$('editalProntoStatusV100').textContent='⚠ Seu Edital ainda não possui assuntos.';return;}
+ await v100Salvar();$('editalProntoStatusV100').textContent='✅ '+editalAtualV100.assuntos.length+' assuntos carregados do seu Edital. Ajuste as prioridades.';v100Render();
 }
-async function v100Restaurar(){
-  const key=$('editalProntoSelectV100')?.value || 'pmpe';
-  if(!EDITAIS_PRONTOS_V100[key])return;
-  editalAtualV100=JSON.parse(JSON.stringify(EDITAIS_PRONTOS_V100[key]));
-  await v100Salvar(); v100Render();
-  $('envioPlanejamentoStatusV100').textContent='↩ Prioridades restauradas.';
-}
+async function v100Restaurar(){editalAtualV100=v101MontarDoEditalAtual();await v100Salvar();v100Render();$('envioPlanejamentoStatusV100').textContent='↩ Prioridades restauradas para P2.';}
 async function v100EnviarPlanejamento(){
-  if(!editalAtualV100)return;
-  const r=v100PlanejamentoRef(); if(!r)return;
-  const payload={
-    titulo:editalAtualV100.titulo,
-    disciplinas:editalAtualV100.disciplinas.slice().sort((a,b)=>a.prioridade-b.prioridade),
-    status:'pronto_para_planejamento',
-    enviadoEm:firebase.database.ServerValue.TIMESTAMP
-  };
-  await r.set(payload);
-  $('envioPlanejamentoStatusV100').textContent='✅ Enviado para o Planejamento com as prioridades escolhidas.';
-  // Abre Planejamento quando a navegação existente usa data-page.
-  const btn=[...document.querySelectorAll('[data-page]')].find(x=>(x.textContent||'').toLowerCase().includes('planejamento'));
-  if(btn)setTimeout(()=>btn.click(),450);
+ if(!editalAtualV100)return;const r=v100PlanejamentoRef();if(!r)return;
+ const payload={titulo:editalAtualV100.titulo,assuntos:editalAtualV100.assuntos.slice().sort((a,b)=>a.prioridade-b.prioridade||a.disciplina.localeCompare(b.disciplina)),status:'pronto_para_planejamento',enviadoEm:firebase.database.ServerValue.TIMESTAMP};
+ await r.set(payload);v101RenderPlan(payload);$('envioPlanejamentoStatusV100').textContent='✅ Assuntos enviados ao Planejamento.';
+ const btn=[...document.querySelectorAll('[data-page]')].find(x=>(x.textContent||'').toLowerCase().includes('planejamento'));if(btn)setTimeout(()=>btn.click(),350);
 }
-async function v100CarregarSalvo(){
-  const r=v100Ref(); if(!r)return;
-  try{
-    const s=await r.once('value'), d=s.val();
-    if(d&&Array.isArray(d.disciplinas)){
-      editalAtualV100={titulo:d.titulo||'Edital pronto',disciplinas:d.disciplinas};
-      if($('editalProntoSelectV100'))$('editalProntoSelectV100').value='pmpe';
-      if($('editalProntoStatusV100'))$('editalProntoStatusV100').textContent='✅ Edital pronto carregado da sua conta.';
-      v100Render();
-    }
-  }catch(e){console.error('V10 carregar edital pronto:',e);}
+async function v100CarregarSalvo(){const r=v100Ref();if(!r)return;try{const s=await r.once('value'),d=s.val();if(d&&Array.isArray(d.assuntos)){editalAtualV100={titulo:d.titulo||'Meu edital atual',assuntos:d.assuntos};$('editalProntoStatusV100').textContent='✅ Prioridades carregadas da sua conta.';v100Render();}}catch(e){console.error(e);}}
+function v101PlanRef(){return v100PlanejamentoRef();}
+function v101PlanLabel(p){return p===1?'🔴 P1':p===2?'🟡 P2':'🟢 P3';}
+function v101RenderPlan(d){
+ const lista=$('planejamentoV101Lista'),st=$('planejamentoV101Status');if(!lista||!st)return;
+ const assuntos=d&&Array.isArray(d.assuntos)?d.assuntos:[];const c={1:0,2:0,3:0};assuntos.forEach(a=>c[a.prioridade]=(c[a.prioridade]||0)+1);
+ ['1','2','3'].forEach(p=>{const el=$('planP'+p+'V101');if(el)el.textContent=c[p]||0;});if($('planTotalV101'))$('planTotalV101').textContent=assuntos.length;
+ if(!assuntos.length){st.textContent='Nenhum edital enviado ao Planejamento ainda.';lista.innerHTML='';return;}
+ st.textContent='✅ '+assuntos.length+' assuntos recebidos e organizados por prioridade.';
+ const g={1:[],2:[],3:[]};assuntos.forEach(a=>(g[a.prioridade]||g[3]).push(a));
+ lista.innerHTML=[1,2,3].filter(p=>g[p].length).map(p=>`<div class="v101-plan-group"><h3>${v101PlanLabel(p)} — ${p===1?'Alta prioridade':p===2?'Média prioridade':'Prioridade normal'}</h3>${g[p].map(a=>`<div class="v101-plan-item"><b>${v101PlanLabel(p)}</b><div><strong>${a.nome}</strong><br><small>${a.disciplina}</small></div></div>`).join('')}</div>`).join('');
 }
+async function v101CarregarPlan(){const r=v101PlanRef();if(!r)return;try{const s=await r.once('value');v101RenderPlan(s.val());}catch(e){console.error(e);}}
 function v100Bind(){
-  const c=$('carregarEditalV100'),r=$('restaurarPrioridadesV100'),e=$('enviarPlanejamentoV100');
-  if(c&&!c.dataset.v100){c.dataset.v100='1';c.onclick=v100CarregarEscolhido;}
-  if(r&&!r.dataset.v100){r.dataset.v100='1';r.onclick=v100Restaurar;}
-  if(e&&!e.dataset.v100){e.dataset.v100='1';e.onclick=v100EnviarPlanejamento;}
-  // Compatibilidade com o roteador visual existente.
-  document.querySelectorAll('[data-page="editalPronto"]').forEach(b=>{
-    if(!b.dataset.v100nav){
-      b.dataset.v100nav='1';
-      b.addEventListener('click',()=>{
-        document.querySelectorAll('.page').forEach(p=>p.style.display='none');
-        const pg=$('page-editalPronto'); if(pg)pg.style.display='';
-      });
-    }
-  });
+ const c=$('carregarEditalV100'),r=$('restaurarPrioridadesV100'),e=$('enviarPlanejamentoV100');if(c)c.onclick=v100CarregarEscolhido;if(r)r.onclick=v100Restaurar;if(e)e.onclick=v100EnviarPlanejamento;
+ document.querySelectorAll('[data-page="editalPronto"]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.page').forEach(p=>p.style.display='none');if($('page-editalPronto'))$('page-editalPronto').style.display='';});
 }
-document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{v100Bind();v100CarregarSalvo();},1100));
-setTimeout(()=>{v100Bind();v100CarregarSalvo();},1900);
-
+document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},1200));
+setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
 
 </script>
 </body>

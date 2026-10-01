@@ -103,6 +103,13 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .estudo-real-box p{margin:0 0 10px;color:var(--muted);font-size:.76rem;line-height:1.45}
 .estudo-real-ok{color:#22c55e}
 
+/* V10.4.5 — checklist real + regeneração somente de pendentes */
+.ciclo-check-v1045{width:22px;height:22px;accent-color:#22c55e;cursor:pointer;flex:0 0 auto}
+.ciclo-check-v1045:disabled{cursor:not-allowed;opacity:.75}
+.ciclo-hoje-item.done .ciclo-check-v1045{filter:saturate(.75)}
+#planRegenerarPendentesV1045{background:#16243a;color:#fff;border:1px solid #334968;border-radius:9px;padding:9px 12px;font-weight:700}
+#planRegenerarPendentesV1045:disabled{opacity:.45;cursor:not-allowed}
+
 #btnConcluirEstudoReal:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(.55);pointer-events:none}
 
 /* V10.2.0 — Planejamento por data */
@@ -384,7 +391,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.4 • FECHAMENTO CICLO / ESTUDO REAL DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.5 • FECHAMENTO CICLO / ESTUDO REAL DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -641,6 +648,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
 </select>
 </label>
 <button id="planGerarV102" type="button">📅 Montar planejamento</button>
+<button id="planRegenerarPendentesV1045" type="button" title="Redistribui somente assuntos ainda não concluídos">🔄 Regenerar pendentes</button>
 </div>
 <div id="planejamentoV102Status" class="status-line"></div>
 <div id="planejamentoV101Lista" class="v101-plan-list"></div></div></section>
@@ -2178,11 +2186,26 @@ function renderizarPlanejamentoHojeV103(){
  if(!itens.length){box.innerHTML='<div class="ciclo-vazio">Nenhum assunto planejado para hoje.</div>';if(st)st.textContent='O Ciclo seguirá sua ordem normal.';return;}
  const pend=itens.filter(a=>!v103ConcluidoNoPlano(a)), concl=itens.filter(v103ConcluidoNoPlano);
  let html='';
- if(pend.length) html+='<div class="ciclo-hoje-sub"><b>Pendentes de hoje</b></div>'+pend.map(a=>'<div class="ciclo-hoje-item"><div class="ciclo-hoje-num">'+String(a.numero||'').padStart(2,'0')+'</div><div><b>'+v101PlanLabel(a.prioridade)+'</b></div><div class="ciclo-hoje-main"><strong>'+v2Escape(a.nome)+'</strong><small>'+v2Escape(a.disciplina)+' • Pendente</small></div></div>').join('');
- if(concl.length) html+='<div class="ciclo-hoje-sub ciclo-hoje-concl"><b>✓ Concluídos hoje</b></div>'+concl.map(a=>'<div class="ciclo-hoje-item done"><div class="ciclo-hoje-num">'+String(a.numero||'').padStart(2,'0')+'</div><div><b>'+v101PlanLabel(a.prioridade)+'</b></div><div class="ciclo-hoje-main"><strong>'+v2Escape(a.nome)+'</strong><small>'+v2Escape(a.disciplina)+' • ✓ Concluído neste planejamento</small></div></div>').join('');
+ if(pend.length) html+='<div class="ciclo-hoje-sub"><b>Pendentes de hoje</b></div>'+pend.map(a=>'<div class="ciclo-hoje-item"><input class="ciclo-check-v1045" type="checkbox" data-check-agenda="'+v2Escape(a.id)+'" aria-label="Concluir '+v2Escape(a.nome)+'"><div class="ciclo-hoje-num">'+String(a.numero||'').padStart(2,'0')+'</div><div><b>'+v101PlanLabel(a.prioridade)+'</b></div><div class="ciclo-hoje-main"><strong>'+v2Escape(a.nome)+'</strong><small>'+v2Escape(a.disciplina)+' • Pendente</small></div></div>').join('');
+ if(concl.length) html+='<div class="ciclo-hoje-sub ciclo-hoje-concl"><b>✓ Concluídos hoje</b></div>'+concl.map(a=>'<div class="ciclo-hoje-item done"><input class="ciclo-check-v1045" type="checkbox" checked disabled aria-label="Concluído"><div class="ciclo-hoje-num">'+String(a.numero||'').padStart(2,'0')+'</div><div><b>'+v101PlanLabel(a.prioridade)+'</b></div><div class="ciclo-hoje-main"><strong>'+v2Escape(a.nome)+'</strong><small>'+v2Escape(a.disciplina)+' • ✓ Concluído neste planejamento</small></div></div>').join('');
  box.innerHTML=html;
+ box.querySelectorAll('[data-check-agenda]').forEach(ch=>ch.addEventListener('change',async()=>{if(!ch.checked)return;ch.disabled=true;await concluirAgendaV1045(ch.dataset.checkAgenda);}));
  if(st)st.textContent='📚 '+itens.length+' planejado(s) para hoje • '+pend.length+' pendente(s) • '+concl.length+' concluído(s).';
 }
+async function concluirAgendaV1045(id){
+ const a=(agendaV102?.itens||[]).find(x=>x.id===id); if(!a||a.concluidoEm)return;
+ try{
+   const r=await revisoesMotorRegistrarConclusao(a.disciplina,a.nome,v102HojeISO());
+   a.concluidoEm=new Date().toISOString();
+   await v102SalvarAgenda();
+   const e=v103TopicoEdital(a.disciplina,a.nome); if(e?.topico){e.topico.t=true;v2Salvar();}
+   const ativas=cicloAtivas(),idx=ativas.findIndex(x=>v2Norm(x.nome)===v2Norm(a.disciplina));
+   if(idx>=0){cicloExec.indice=idx;cicloExecAvancar();}
+   atualizarEditalV2();renderizarPlanejamentoHojeV103();renderizarAssuntosCicloV1022();renderizarEstudoReal();v102Render();v104RenderSemana();
+   const st=$('statusEstudoReal');if(st)st.textContent='Tópico concluído pelo checklist. '+r.msg;
+ }catch(e){ultimoErroV3=String(e?.code||e?.message||e);renderizarPlanejamentoHojeV103();const st=$('statusEstudoReal');if(st)st.textContent='Falha ao concluir pelo checklist.';}
+}
+
 function estudoRealLocalizarProximo(){
  const ativas=cicloAtivas();
  // REGRA PRINCIPAL: a fila do Planejamento de hoje vem antes do filtro de disciplinas ativas.
@@ -2578,6 +2601,20 @@ function v102Render(){
  renderizarPlanejamentoHojeV103();
  v104RenderSemana();
 }
+async function v1045RegenerarPendentes(){
+ if(!agendaV102?.itens?.length||!importacaoV102?.assuntos?.length)return;
+ const concluidos=agendaV102.itens.filter(a=>!!a.concluidoEm);
+ const idsConcluidos=new Set(concluidos.map(a=>a.id));
+ const pendentes=v102AssuntosNumerados(importacaoV102).filter(a=>!idsConcluidos.has(a.id)).sort((a,b)=>a.prioridade-b.prioridade||a.numero-b.numero);
+ const inp=$('planDataInicialV102'),sel=$('planQtdDiaV102');
+ const dataInicial=inp?.value||v102HojeISO(),limite=Math.max(1,Math.min(5,Number(sel?.value)||2));
+ let data=v102PrimeiroDiaAtivo(dataInicial<v102HojeISO()?v102HojeISO():dataInicial),noDia=0;
+ const novos=pendentes.map(a=>{if(noDia>=limite){data=v102ProximoDiaAtivo(data,1);noDia=0;}noDia++;return {...a,dataPlanejada:data};});
+ agendaV102={...agendaV102,dataInicial:dataInicial<v102HojeISO()?v102HojeISO():dataInicial,assuntosPorDia:limite,itens:[...concluidos,...novos],atualizadoEm:new Date().toISOString()};
+ await v102SalvarAgenda();v102Render();renderizarPlanejamentoHojeV103();v104RenderSemana();renderizarEstudoReal();
+ const st=$('planejamentoV102Status');if(st)st.textContent='🔄 '+novos.length+' assunto(s) pendente(s) redistribuído(s). '+concluidos.length+' concluído(s) preservado(s), sem alterar revisões.';
+}
+
 async function v102Gerar(){
  if(!importacaoV102||!Array.isArray(importacaoV102.assuntos)||!importacaoV102.assuntos.length)return;
  const inp=$('planDataInicialV102'),sel=$('planQtdDiaV102');
@@ -2601,6 +2638,7 @@ function v100Bind(){
  if(r)r.onclick=v100Restaurar;
  if(e)e.onclick=v100EnviarPlanejamento;
  const g=$('planGerarV102');if(g)g.onclick=v102Gerar;
+ const rg=$('planRegenerarPendentesV1045');if(rg)rg.onclick=v1045RegenerarPendentes;
  // V10.1.1: não altera style.display das páginas. A navegação oficial abrirPaginaV3
  // controla exclusivamente a classe .active, evitando páginas vazias até um F5.
  document.querySelectorAll('.page').forEach(p=>p.style.removeProperty('display'));

@@ -147,8 +147,8 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .ciclo-semana-v104{margin-top:18px}
 .ciclo-semana-toolbar-v104{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:10px 0}
 .ciclo-semana-toolbar-v104 .acoes{display:flex;gap:8px;flex-wrap:wrap}
-.ciclo-semana-grid-v104{display:grid;grid-template-columns:repeat(7,minmax(175px,1fr));gap:10px;overflow-x:auto;padding-bottom:6px}
-.ciclo-dia-v104{min-width:175px;border:1px solid var(--border);border-radius:12px;background:var(--bg);overflow:hidden}
+.ciclo-semana-grid-v104{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;width:100%;overflow:visible;padding-bottom:6px}
+.ciclo-dia-v104{min-width:0;border:1px solid var(--border);border-radius:12px;background:var(--bg);overflow:hidden}
 .ciclo-dia-v104.hoje{outline:2px solid var(--primary);outline-offset:-2px}
 .ciclo-dia-head-v104{padding:10px;background:#111c2e;border-bottom:1px solid var(--border)}
 .ciclo-dia-head-v104 b,.ciclo-dia-head-v104 small{display:block}
@@ -159,10 +159,11 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .ciclo-card-v104 .linha{display:flex;align-items:center;gap:7px;margin-bottom:5px}
 .ciclo-card-v104 strong{display:block;font-size:.9rem;line-height:1.25}
 .ciclo-card-v104 small{display:block;color:var(--muted);margin-top:4px}
-.ciclo-card-actions-v104{display:flex;justify-content:space-between;gap:6px;margin-top:8px}
-.ciclo-card-actions-v104 button{padding:5px 8px}
+.ciclo-card-v104[data-agenda-id]{cursor:pointer;transition:border-color .15s,transform .15s}.ciclo-card-v104[data-agenda-id]:hover{border-color:var(--primary);transform:translateY(-1px)}
+.ciclo-card-v104[data-agenda-id]::after{content:"Clique para mover";display:block;color:var(--muted);font-size:.72rem;margin-top:7px}
 .ciclo-dia-vazio-v104{color:var(--muted);font-size:.82rem;padding:8px 4px}
-@media(max-width:900px){.ciclo-semana-grid-v104{grid-template-columns:repeat(7,minmax(210px,1fr))}}
+@media(max-width:900px){.ciclo-semana-grid-v104{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.ciclo-semana-grid-v104{grid-template-columns:1fr}}
 </style>
 
 
@@ -381,7 +382,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.1 • CICLO SEMANAL LIMITADO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.2 • CICLO SEMANAL UX FIX DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -2085,19 +2086,29 @@ function v104RenderSemana(){
  grid.innerHTML=datas.map(data=>{
    const arr=itens.filter(a=>a.dataPlanejada===data).sort((a,b)=>(a.numero||0)-(b.numero||0));
    const rr=revs.filter(r=>r.data===data);
-   const assuntos=arr.map(a=>'<div class="ciclo-card-v104 '+(a.concluidoEm?'done':'')+'" data-agenda-id="'+v104Esc(a.id)+'"><div class="linha"><b>'+String(a.numero||'').padStart(2,'0')+'</b><span>'+v101PlanLabel(a.prioridade)+'</span></div><strong>'+v104Esc(a.nome)+'</strong><small>'+v104Esc(a.disciplina)+(a.concluidoEm?' • ✓ Concluído':' • Pendente')+'</small><div class="ciclo-card-actions-v104"><button type="button" data-v104-move="-1" title="Mover para o dia anterior">←</button><button type="button" data-v104-move="1" title="Mover para o dia seguinte">→</button></div></div>').join('');
+   const assuntos=arr.map(a=>'<div class="ciclo-card-v104 '+(a.concluidoEm?'done':'')+'" data-agenda-id="'+v104Esc(a.id)+'" title="Clique para mover este assunto"><div class="linha"><b>'+String(a.numero||'').padStart(2,'0')+'</b><span>'+v101PlanLabel(a.prioridade)+'</span></div><strong>'+v104Esc(a.nome)+'</strong><small>'+v104Esc(a.disciplina)+(a.concluidoEm?' • ✓ Concluído':' • Pendente')+'</small></div>').join('');
    const revisoes=rr.map(r=>'<div class="ciclo-card-v104 '+(r.concluida?'done':'')+'"><div class="linha"><b>🔁 '+v104Esc(r.tipo)+'</b></div><strong>'+v104Esc(r.topico)+'</strong><small>'+v104Esc(r.disciplina)+(r.concluida?' • ✓ Revisão concluída':' • Revisão espaçada')+'</small></div>').join('');
    return '<div class="ciclo-dia-v104 '+(data===hoje?'hoje':'')+'" data-dia="'+data+'"><div class="ciclo-dia-head-v104"><b>'+v104NomeDia(data).toUpperCase()+'</b><small>'+v102FmtData(data)+(data===hoje?' • Hoje':'')+'</small></div><div class="ciclo-dia-body-v104">'+(assuntos+revisoes||'<div class="ciclo-dia-vazio-v104">Nenhum assunto.</div>')+'</div></div>';
  }).join('');
- grid.querySelectorAll('[data-v104-move]').forEach(btn=>btn.onclick=async()=>{
-   const card=btn.closest('[data-agenda-id]'),a=itens.find(x=>x.id===card?.dataset.agendaId);if(!a)return;
-   const nova=v102ISOAdd(a.dataPlanejada,Number(btn.dataset.v104Move));
+ grid.querySelectorAll('[data-agenda-id]').forEach(card=>card.onclick=async()=>{
+   const a=itens.find(x=>x.id===card.dataset.agendaId);if(!a)return;
+   const atual=a.dataPlanejada;
+   const max=v104LimiteFinal()>atual?v104LimiteFinal():v102ISOAdd(atual,30);
+   const entrada=prompt('Mover assunto para qual data?\nUse DD/MM/AAAA.\nData atual: '+v102FmtData(atual),v102FmtData(atual));
+   if(entrada===null)return;
+   const m=String(entrada).trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+   if(!m){if(st)st.textContent='Data inválida. Use DD/MM/AAAA.';return}
+   const nova=m[3]+'-'+m[2]+'-'+m[1];
+   const d=v104Data(nova);
+   if(Number.isNaN(d.getTime())||v104DateISO(d)!==nova){if(st)st.textContent='Data inválida.';return}
    if(nova<hoje){if(st)st.textContent='Não é permitido mover assunto para antes de hoje.';return}
    a.dataPlanejada=nova;
-   await v102SalvarAgenda();v102Render();v104RenderSemana();renderizarPlanejamentoHojeV103();renderizarEstudoReal();
+   await v102SalvarAgenda();
+   if(nova>v104LimiteFinal())cicloSemanaBaseV104=nova;
+   v102Render();v104RenderSemana();renderizarPlanejamentoHojeV103();renderizarEstudoReal();
  });
  v104AtualizarBotoes();
- if(st)st.textContent=(itens.length||revs.length)?'↔ A semana começa hoje e termina na última data real do Planejamento/revisões. Revisões aparecem sem duplicar assuntos.':'Monte o Planejamento para preencher o ciclo.';
+ if(st)st.textContent=(itens.length||revs.length)?'A semana começa hoje e termina na última data real do Planejamento/revisões. Clique em um assunto para mover. Revisões permanecem fixas.':'Monte o Planejamento para preencher o ciclo.';
 }
 function v104MudarSemana(delta){
  v104NormalizarBase();

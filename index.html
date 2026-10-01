@@ -487,7 +487,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.37 • LIMPEZA TOTAL VERIFICADA DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.38 • GERENCIAR EDITAL SIMPLIFICADO DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -780,35 +780,8 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <section id="page-gerenciarEdital" class="page">
     <div class="panel ge35-hero">
       <h2>⚙️ Gerenciar Edital</h2>
-      <p class="panel-sub">Central de controle do edital. As funções de troca, arquivos e dados antigos ficam reunidas aqui, sem misturar com Timer ou Questões.</p>
-      <div class="ge35-warning">⚠️ Confira sempre a mensagem de confirmação antes de excluir ou zerar dados.</div>
-    </div>
-
-    <div class="panel" style="margin-top:16px">
-      <h2>📚 Trocar ou reiniciar edital</h2>
-      <p class="panel-sub">Ao começar outro edital, você pode arquivar as horas atuais e iniciar o novo contador em 00:00:00.</p>
-      <div class="actions" style="margin-top:12px">
-        <button class="btn btn-primary" id="timerNovoEditalV10423" type="button">📚 Iniciar novo edital</button>
-        <button class="btn" id="timerZerarAtualV10423" type="button">🗑 Zerar horas do edital atual</button>
-      </div>
-      <div id="timerGerenciarStatusV10423" class="status-line"></div>
-    </div>
-
-    <div class="panel" style="margin-top:16px">
-      <h2>📦 Horas de editais arquivados</h2>
-      <p class="panel-sub">Aqui ficam os arquivos de horas dos editais anteriores. Cada arquivo pode ser excluído individualmente.</p>
-      <div id="timerArquivosV10423" style="margin-top:14px"></div>
-    </div>
-
-    <div class="panel" style="margin-top:16px">
-      <button type="button" id="qToggleArquivadosV10431" class="btn secondary" style="width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left">
-        <span>🎯 Questões de editais arquivados <strong id="qCountArquivadosV10431">(0)</strong></span>
-        <span id="qSetaArquivadosV10431">▼</span>
-      </button>
-      <div id="qAreaArquivadosV10431" style="display:none;margin-top:12px">
-        <p class="panel-sub">Questões preservadas de editais anteriores ficam aqui, fora da tela principal de Questões.</p>
-        <div id="qEditaisArquivadosV10430"><div class="qm27-empty">Nenhum conjunto de questões arquivado ainda.</div></div>
-      </div>
+      <p class="panel-sub">Use esta área quando quiser apagar o edital atual e começar novamente do zero.</p>
+      <div class="ge35-warning">⚠️ A limpeza remove somente os dados ativos do edital. Arquivos históricos preservados não são apagados.</div>
     </div>
 
     <div class="panel" style="margin-top:16px">

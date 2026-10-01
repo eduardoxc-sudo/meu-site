@@ -322,7 +322,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.1.6 • LOGIN + TIMER STATE FIX DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.1.7 • TIMER LIVE STATE FIX DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -1329,33 +1329,48 @@ async function v93Salvar(extra={}){
 }
 function v93Render(){
  const finalizada=timerV93.estado==='finalizada';
- const sessaoVisivel=finalizada ? 0 : Math.max(0,Number(timerV93.sessaoSegundos)||0);
+ const sessaoVisivel=finalizada ? 0 : v93SessaoAtual();
+ const totalVisivel=finalizada ? Math.max(0,Number(timerV93.totalSegundos)||0) : v93TotalAtual();
+
  if($('timerDisplayV93'))$('timerDisplayV93').textContent=v93Fmt(sessaoVisivel);
- if($('timerTotalV931'))$('timerTotalV931').textContent=v93Fmt(Math.max(0,Number(timerV93.totalSegundos)||0));
- if($('dashHorasV92'))$('dashHorasV92').textContent=v932FmtDashboard(Math.max(0,Number(timerV93.totalSegundos)||0));
+ if($('timerTotalV931'))$('timerTotalV931').textContent=v93Fmt(totalVisivel);
+ if($('dashHorasV92'))$('dashHorasV92').textContent=v932FmtDashboard(totalVisivel);
+
+ const st=$('timerStatusV93');
+ if(st && timerV93.estado==='andamento')
+   st.textContent='▶ Sessão em andamento — somente o tempo ativo é contado.';
+ else if(st && timerV93.estado==='pausada')
+   st.textContent='Ⅱ Sessão pausada — o tempo está parado.';
 }
 async function v93Iniciar(){
  if(timerV93.rodando)return;
- // Depois de finalizar, Iniciar cria uma nova sessão; após Pausar, continua a mesma.
+
  if(timerV93.estado==='finalizada'){
    timerV93.sessaoSegundos=0;
+   timerV93.inicioMs=null;
  }
+
  timerV93.rodando=true;
  timerV93.inicioMs=Date.now();
  timerV93.estado='andamento';
- await v93Salvar();
  v93Render();
+
+ try{ await v93Salvar(); }
+ catch(e){ console.error('V10.1.7 iniciar timer:',e); }
 }
 async function v93Pausar(){
- if(!timerV93.rodando)return;
+ if(!timerV93.rodando || !timerV93.inicioMs)return;
+
  const delta=Math.max(0,Math.floor((Date.now()-timerV93.inicioMs)/1000));
  timerV93.sessaoSegundos+=delta;
  timerV93.totalSegundos+=delta;
  timerV93.rodando=false;
  timerV93.inicioMs=null;
  timerV93.estado='pausada';
- await v93Salvar();
  v93Render();
+
+ try{ await v93Salvar(); }
+ catch(e){ console.error('V10.1.7 pausar timer:',e); }
 }
 async function v93Finalizar(){
  if(timerV93.estado==='finalizada')return;

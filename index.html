@@ -360,7 +360,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.3.0 • PLANEJAMENTO + CICLO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.3.2 • FILA DIÁRIA NO ESTUDO REAL DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -2031,19 +2031,20 @@ function renderizarPlanejamentoHojeV103(){
 }
 function estudoRealLocalizarProximo(){
  const ativas=cicloAtivas();
- if(!ativas.length)return null;
- cicloExecAjustar();
- // A fila diária pertence ao planejamento atual. Conclusões antigas do Edital não encerram esta fila.
- const nomesAtivos=new Set(ativas.map(x=>v2Norm(x.nome)));
+ // REGRA PRINCIPAL: a fila do Planejamento de hoje vem antes do filtro de disciplinas ativas.
+ // Assim, um assunto planejado para hoje não desaparece do Estudo real só porque sua disciplina
+ // está temporariamente desmarcada na configuração do ciclo.
  for(const a of v103PlanejadosHoje()){
-   if(v103ConcluidoNoPlano(a)||!nomesAtivos.has(v2Norm(a.disciplina)))continue;
+   if(v103ConcluidoNoPlano(a))continue;
    const e=v103TopicoEdital(a.disciplina,a.nome);
    if(e){
-     const indice=ativas.findIndex(x=>v2Norm(x.nome)===v2Norm(e.disciplina));
-     return {disciplina:e.disciplina,topico:e.topico,indice:Math.max(0,indice),passo:0,planejadoHoje:true,numero:a.numero,prioridade:a.prioridade,agendaId:a.id};
+     const indiceAtivo=ativas.findIndex(x=>v2Norm(x.nome)===v2Norm(e.disciplina));
+     return {disciplina:e.disciplina,topico:e.topico,indice:indiceAtivo>=0?indiceAtivo:(cicloExec?.indice||0),passo:0,planejadoHoje:true,numero:a.numero,prioridade:a.prioridade,agendaId:a.id,foraDoCiclo:indiceAtivo<0};
    }
  }
- // Só usa a ordem normal quando não há fila diária pendente.
+ // Sem pendência planejada para hoje, volta para a ordem normal das disciplinas ativas.
+ if(!ativas.length)return null;
+ cicloExecAjustar();
  for(let passo=0;passo<ativas.length;passo++){
    const indice=(cicloExec.indice+passo)%ativas.length;
    const disciplina=ativas[indice]?.nome;
@@ -2079,7 +2080,7 @@ function renderizarEstudoReal(){
   }
 
   // Se a disciplina atual acabou, move a posição para a próxima com conteúdo pendente.
-  if(atual.passo>0){
+  if(atual.passo>0 && !atual.foraDoCiclo){
     cicloExec.indice=atual.indice;
     cicloExecAjustar();
     // salva a correção de posição sem contabilizar volta artificial
@@ -2091,7 +2092,7 @@ function renderizarEstudoReal(){
   }
 
   titulo.textContent=atual.topico.titulo;
-  info.textContent=(atual.planejadoHoje?'📅 Planejado para hoje • ':'')+atual.disciplina+' • '+(Number(ativasMinutosAtual())||50)+' minutos programados no ciclo.';
+  info.textContent=(atual.planejadoHoje?'📅 Planejado para hoje • ':'')+atual.disciplina+(atual.foraDoCiclo?' • disciplina fora da rotação ativa':' • '+(Number(ativasMinutosAtual())||50)+' minutos programados no ciclo.');
   btn.disabled=false;
   btn.removeAttribute('disabled');
   btn.removeAttribute('aria-disabled');
@@ -2112,7 +2113,7 @@ async function concluirEstudoReal(){
   $('statusEstudoReal').textContent='Salvando conclusão e revisões...';
   try{
     // garante que a execução corresponde ao tópico realmente mostrado
-    cicloExec.indice=atual.indice;
+    if(!atual.foraDoCiclo)cicloExec.indice=atual.indice;
     const r=await revisoesMotorRegistrarConclusao(
       atual.disciplina,
       atual.topico.titulo,
@@ -2126,8 +2127,8 @@ async function concluirEstudoReal(){
     atual.topico.t=true;
     v2Salvar();
 
-    // avança uma única vez após conclusão real
-    cicloExecAvancar();
+    // Só avança a rotação normal quando o item pertence a uma disciplina ativa do ciclo.
+    if(!atual.foraDoCiclo)cicloExecAvancar();
     atualizarEditalV2();
     renderizarPlanejamentoHojeV103();
     renderizarAssuntosCicloV1022();

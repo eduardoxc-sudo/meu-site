@@ -464,7 +464,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.29 • HISTÓRICO DE QUESTÕES POR MATÉRIA DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.30 • QUESTÕES SEPARADAS POR EDITAL DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -762,6 +762,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
     <p class="panel-sub">Cada registro fica preservado separadamente e organizado por matéria. Este histórico não altera o Progresso do Edital.</p>
     <div id="qHistoricoV10429"><div class="qm27-empty">Nenhuma sessão de questões registrada neste histórico ainda.</div></div>
   </div>
+  <div class="panel" style="margin-top:16px"><h2>📦 Questões de editais arquivados</h2><p class="panel-sub">Ao iniciar um novo edital, os dados de Questões do anterior ficam preservados aqui. Nada é apagado.</p><div id="qEditaisArquivadosV10430"><div class="qm27-empty">Nenhum conjunto de questões arquivado ainda.</div></div></div>
 </section>
 
 
@@ -1972,6 +1973,8 @@ async function v10423NovoEdital(){
  const nome=prompt('Nome do novo edital:','Novo edital')||'Novo edital';
  try{
    const r=v10423Ref(); if(!r)return;
+   // V10.4.30: preserva Questões do edital que está sendo encerrado antes de zerar o novo.
+   await arquivarQuestoesEdital30(timerEditalV10423.titulo||'Edital anterior');
    if(atual>0){
      const ar=r.child('arquivados').push();
      await ar.set({
@@ -1987,6 +1990,7 @@ async function v10423NovoEdital(){
    await v93Salvar();
    await r.child('atual').set({...timerEditalV10423,inicioEm:firebase.database.ServerValue.TIMESTAMP});
    await v10423Carregar();
+   await render27(); await renderHistorico29(); await renderEditaisQuestoes30();
    const st=$('timerGerenciarStatusV10423');if(st)st.textContent='✅ Novo edital iniciado em 00:00:00. O anterior foi preservado no arquivo.';
  }catch(e){console.error('V10.4.23 novo edital:',e);}
 }
@@ -3588,17 +3592,40 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
     }
   }
 
+
+  async function renderEditaisQuestoes30(){
+    const box=$q('qEditaisArquivadosV10430'),u=auth.currentUser;if(!box||!u)return;
+    const s=await db.ref('usuarios/'+u.uid+'/questoesEditaisArquivadosV10430').once('value');
+    const arr=Object.values(s.val()||{}).filter(Boolean).sort((a,b)=>(+b.arquivadoEm||0)-(+a.arquivadoEm||0));
+    if(!arr.length){box.innerHTML='<div class="qm27-empty">Nenhum conjunto de questões arquivado ainda.</div>';return;}
+    box.innerHTML=arr.map(x=>{const q=x.questoes||{},tt=+q.total||0,aa=+q.acertos||0,ee=+q.erros||0,p=tt?Math.round(aa/tt*100):0;
+      return '<details class="qm27-materia"><summary><span>📦 '+esc(x.titulo||'Edital arquivado')+'</span><span class="qm27-materia-info">'+tt+' questões • '+p+'%</span></summary>'+
+      '<div class="qm27-assunto"><div class="qm27-assunto-meta"><span>🎯 '+tt+' resolvidas</span><span>✅ '+aa+' acertos</span><span>❌ '+ee+' erros</span><span>📈 '+(tt?p+'%':'—')+'</span></div></div></details>';
+    }).join('');
+  }
+  async function arquivarQuestoesEdital30(tituloAnterior){
+    const u=auth.currentUser;if(!u)return;
+    const r=db.ref('usuarios/'+u.uid+'/questoesV94'),s=await r.once('value'),q=s.val()||{};
+    if((+q.total||0)>0 || (q.historico&&Object.keys(q.historico).length) || (q.porMateria&&Object.keys(q.porMateria).length)){
+      await db.ref('usuarios/'+u.uid+'/questoesEditaisArquivadosV10430').push({
+        titulo:tituloAnterior||'Edital anterior',arquivadoEm:firebase.database.ServerValue.TIMESTAMP,questoes:q
+      });
+    }
+    await r.set({total:0,acertos:0,erros:0,atualizadoEm:firebase.database.ServerValue.TIMESTAMP});
+    if(typeof questoesV94!=='undefined'){questoesV94.total=0;questoesV94.acertos=0;questoesV94.erros=0;questoesV94.carregado=true;if(typeof v94Render==='function')v94Render();}
+  }
+
   function bind27(){
     const m=$q('qMateriaV10427'), b=$q('qSalvarV10427');
     if(m&&!m.dataset.q27){m.dataset.q27='1';m.addEventListener('change',preencherAssuntos27);}
     if(b&&!b.dataset.q27){b.dataset.q27='1';b.addEventListener('click',salvar27);}
-    preencherMaterias27(); render27(); renderHistorico29();
+    preencherMaterias27(); render27(); renderHistorico29(); renderEditaisQuestoes30();
   }
 
   document.addEventListener('DOMContentLoaded',()=>setTimeout(bind27,1100));
   document.addEventListener('click',e=>{
     const btn=e.target.closest('[data-page="questoes"]');
-    if(btn) setTimeout(()=>{preencherMaterias27();render27();renderHistorico29();},100);
+    if(btn) setTimeout(()=>{preencherMaterias27();render27();renderHistorico29();renderEditaisQuestoes30();},100);
   });
   setTimeout(bind27,2200);
 })();

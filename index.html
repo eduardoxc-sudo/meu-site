@@ -420,7 +420,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.21 • TIMER + HORAS LÍQUIDAS DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.22 • TIMER + ASSUNTO + HISTÓRICO DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -608,24 +608,60 @@ textarea:focus,select:focus{border-color:var(--primary)}
 </section>
   <section id="page-timer" class="page">
   <h1>Timer</h1>
+
   <div class="panel">
     <h2>⏱ Timer de estudo</h2>
-    <p class="panel-sub">Registra somente o tempo líquido real. O tempo pausado não entra no total acumulado.</p>
-    <div class="v93-timer">
+    <p class="panel-sub">Escolha o assunto estudado. O sistema registra assunto, matéria, data/hora e somente o tempo líquido real.</p>
+
+    <div class="field" style="max-width:760px;margin-top:14px">
+      <label>ASSUNTO ESTUDADO</label>
+      <select id="timerAssuntoV10422">
+        <option value="">Selecione um assunto do Planejamento</option>
+      </select>
+    </div>
+
+    <div class="v93-timer" style="margin-top:14px">
       <div class="v93-clock" id="timerPageDisplayV10421">00:00:00</div>
       <div class="v931-total">Total acumulado: <b id="timerPageTotalV10421">00:00:00</b></div>
-      <div class="v93-actions">
-        <button class="primary" id="timerPageStartV10421" type="button">▶ Iniciar</button>
-        <button id="timerPagePauseV10421" type="button">⏸ Pausar</button>
-        <button id="timerPageFinishV10421" type="button">✓ Finalizar sessão</button>
+      <div class="actions" style="margin-top:14px">
+        <button class="btn btn-primary" id="timerPageStartV10421" type="button">▶ Iniciar</button>
+        <button class="btn" id="timerPagePauseV10421" type="button">⏸ Pausar</button>
+        <button class="btn" id="timerPageFinishV10421" type="button">✓ Finalizar sessão</button>
       </div>
       <div id="timerPageStatusV10421" class="status-line">Nenhuma sessão em andamento.</div>
     </div>
   </div>
 
   <div class="panel" style="margin-top:16px">
+    <h2>✍️ Adicionar tempo manualmente</h2>
+    <p class="panel-sub">Use quando você estudou fora do Timer. Isso soma horas líquidas, mas não conclui o assunto e não altera o Progresso do Edital.</p>
+    <div style="display:grid;grid-template-columns:minmax(260px,2fr) 130px 130px auto;gap:12px;align-items:end">
+      <div class="field" style="margin:0">
+        <label>ASSUNTO</label>
+        <select id="timerManualAssuntoV10422"><option value="">Selecione um assunto</option></select>
+      </div>
+      <div class="field" style="margin:0">
+        <label>HORAS</label>
+        <input id="timerManualHorasV10422" type="number" min="0" max="24" value="0">
+      </div>
+      <div class="field" style="margin:0">
+        <label>MINUTOS</label>
+        <input id="timerManualMinV10422" type="number" min="0" max="59" value="30">
+      </div>
+      <button class="btn btn-primary" id="timerManualSalvarV10422" type="button">＋ Adicionar tempo</button>
+    </div>
+    <div id="timerManualStatusV10422" class="status-line"></div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h2>📚 Histórico de sessões</h2>
+    <p class="panel-sub">Registros automáticos e manuais. Nenhum registro desta área marca assunto como concluído.</p>
+    <div id="timerHistoricoV10422"><div class="placeholder">Carregando sessões...</div></div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
     <h2>📌 Como funciona</h2>
-    <p class="panel-sub">Iniciar começa a contar. Pausar congela o tempo. Finalizar encerra a sessão e mantém o total acumulado salvo no Firebase. Se a página for fechada durante uma sessão, ela volta pausada para não contar tempo que não foi estudado.</p>
+    <p class="panel-sub">Iniciar começa a contar. Pausar congela o tempo. Finalizar salva a sessão vinculada ao assunto escolhido. Se a página for fechada durante uma sessão, ela volta pausada para não contar tempo que não foi estudado.</p>
   </div>
 </section>
   <section id="page-questoes" class="page"><div class="placeholder"><b>Questões</b><br>Entrará somente o sistema atual de Questões. Flashcards e Banco de Questões antigos não serão trazidos.</div></section>
@@ -1577,7 +1613,8 @@ setTimeout(v941AtualizarCardDashboard,2200);
 // ========================= V9.3.1 DEV — SESSÃO ATUAL + TOTAL ACUMULADO =========================
 let timerV93={
  sessaoSegundos:0,totalSegundos:0,rodando:false,inicioMs:null,
- estado:'parada',tick:null,carregado:false
+ estado:'parada',tick:null,carregado:false,
+ assuntoId:null,assuntoNome:'',disciplina:'',numero:null
 };
 
 function v93Fmt(seg){
@@ -1614,6 +1651,10 @@ async function v93Carregar(){
    timerV93.rodando=!!d.rodando;
    timerV93.inicioMs=d.inicioMs?Number(d.inicioMs):null;
    timerV93.sessaoSegundos=Math.max(0,Number(d.sessaoSegundos)||0);
+   timerV93.assuntoId=d.assuntoId||null;
+   timerV93.assuntoNome=d.assuntoNome||'';
+   timerV93.disciplina=d.disciplina||'';
+   timerV93.numero=d.numero||null;
 
    // Recuperação segura:
    // se a página foi fechada/recarregada enquanto estava "andamento",
@@ -1649,6 +1690,10 @@ async function v93Salvar(extra={}){
    estado:timerV93.estado||'parada',
    rodando:finalizada ? false : !!timerV93.rodando,
    inicioMs:finalizada ? null : (timerV93.inicioMs||null),
+   assuntoId:timerV93.assuntoId||null,
+   assuntoNome:timerV93.assuntoNome||'',
+   disciplina:timerV93.disciplina||'',
+   numero:timerV93.numero||null,
    atualizadoEm:firebase.database.ServerValue.TIMESTAMP,
    ...extra
  };
@@ -1687,6 +1732,21 @@ function v93Render(){
 }
 async function v93Iniciar(){
  if(timerV93.rodando)return;
+
+ const sel=$('timerAssuntoV10422');
+ if(sel){
+   const id=sel.value;
+   const a=(agendaV102?.itens||[]).find(x=>String(x.id)===String(id));
+   if(!a){
+     const st=$('timerPageStatusV10421');
+     if(st)st.textContent='⚠ Selecione o assunto que você vai estudar antes de iniciar.';
+     return;
+   }
+   timerV93.assuntoId=a.id;
+   timerV93.assuntoNome=a.nome||'';
+   timerV93.disciplina=a.disciplina||'';
+   timerV93.numero=a.numero||null;
+ }
 
  if(timerV93.estado==='finalizada'){
    timerV93.sessaoSegundos=0;
@@ -1741,10 +1801,100 @@ async function v93Finalizar(){
 
  try{
    await v93Salvar({ultimaSessaoFinalizadaSegundos:ultimaSessaoFinalizada});
+   if(ultimaSessaoFinalizada>0 && timerV93.assuntoNome){
+     await v10422SalvarSessao({
+       tipo:'automatico',
+       segundos:ultimaSessaoFinalizada,
+       assuntoId:timerV93.assuntoId,
+       assuntoNome:timerV93.assuntoNome,
+       disciplina:timerV93.disciplina,
+       numero:timerV93.numero
+     });
+     await v10422CarregarHistorico();
+   }
  }catch(e){
-   console.error('V10.1.5 salvar finalização:',e);
-   if(st)st.textContent='⚠ Sessão finalizada, mas houve falha ao salvar. Tempo líquido: '+v93Fmt(ultimaSessaoFinalizada);
+   console.error('V10.4.22 salvar finalização:',e);
+   if(st)st.textContent='⚠ Sessão finalizada, mas houve falha ao salvar o registro. Tempo líquido: '+v93Fmt(ultimaSessaoFinalizada);
  }
+}
+
+
+function v10422SessoesRef(){
+ const u=auth.currentUser;
+ return u?db.ref('usuarios/'+u.uid+'/estudo/sessoesV10422'):null;
+}
+function v10422FmtDataHora(ts){
+ const d=new Date(Number(ts)||Date.now());
+ return d.toLocaleDateString('pt-BR')+' • '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+function v10422Esc(s){
+ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function v10422PopularAssuntos(){
+ const itens=(agendaV102?.itens||[]).slice().sort((a,b)=>(Number(a.numero)||0)-(Number(b.numero)||0));
+ const selects=[$('timerAssuntoV10422'),$('timerManualAssuntoV10422')].filter(Boolean);
+ selects.forEach(sel=>{
+   const atual=sel.value||timerV93.assuntoId||'';
+   sel.innerHTML='<option value="">Selecione um assunto do Planejamento</option>'+itens.map(a=>
+     '<option value="'+v10422Esc(a.id)+'">'+String(a.numero||'').padStart(2,'0')+' • '+v10422Esc(a.disciplina)+' — '+v10422Esc(a.nome)+'</option>'
+   ).join('');
+   if(atual && itens.some(a=>String(a.id)===String(atual)))sel.value=String(atual);
+ });
+}
+async function v10422SalvarSessao(dados){
+ const r=v10422SessoesRef(); if(!r)return;
+ const novo=r.push();
+ await novo.set({
+   ...dados,
+   criadoEm:firebase.database.ServerValue.TIMESTAMP
+ });
+}
+async function v10422CarregarHistorico(){
+ const box=$('timerHistoricoV10422'); if(!box)return;
+ const r=v10422SessoesRef();
+ if(!r){box.innerHTML='<div class="placeholder">Faça login para visualizar o histórico.</div>';return;}
+ try{
+   const s=await r.limitToLast(50).once('value'), arr=[];
+   s.forEach(c=>arr.push({id:c.key,...(c.val()||{})}));
+   arr.sort((a,b)=>(Number(b.criadoEm)||0)-(Number(a.criadoEm)||0));
+   if(!arr.length){box.innerHTML='<div class="placeholder">Nenhuma sessão registrada ainda.</div>';return;}
+   box.innerHTML=arr.map(x=>'<div class="v102-topic" style="margin-bottom:10px">'+
+     '<div class="v102-num">'+String(x.numero||'—').padStart(2,'0')+'</div>'+
+     '<div class="v102-main"><strong>'+v10422Esc(x.assuntoNome||'Assunto')+'</strong>'+
+     '<small>'+v10422Esc(x.disciplina||'')+' • '+(x.tipo==='manual'?'✍️ Manual':'⏱ Timer')+' • '+v10422FmtDataHora(x.criadoEm)+'</small></div>'+
+     '<div style="font-weight:800;white-space:nowrap">'+v93Fmt(Number(x.segundos)||0)+'</div></div>'
+   ).join('');
+ }catch(e){
+   console.error('V10.4.22 histórico:',e);
+   box.innerHTML='<div class="placeholder">Não foi possível carregar o histórico agora.</div>';
+ }
+}
+async function v10422AdicionarManual(){
+ const st=$('timerManualStatusV10422'), sel=$('timerManualAssuntoV10422');
+ const a=(agendaV102?.itens||[]).find(x=>String(x.id)===String(sel?.value||''));
+ const h=Math.max(0,Math.floor(Number($('timerManualHorasV10422')?.value)||0));
+ const m=Math.max(0,Math.min(59,Math.floor(Number($('timerManualMinV10422')?.value)||0)));
+ const segundos=h*3600+m*60;
+ if(!a){if(st)st.textContent='⚠ Selecione o assunto estudado.';return;}
+ if(segundos<=0){if(st)st.textContent='⚠ Informe um tempo maior que zero.';return;}
+ try{
+   timerV93.totalSegundos=Math.max(0,Number(timerV93.totalSegundos)||0)+segundos;
+   await v93Salvar({tempoManualAdicionadoEm:firebase.database.ServerValue.TIMESTAMP});
+   await v10422SalvarSessao({
+     tipo:'manual',segundos,
+     assuntoId:a.id,assuntoNome:a.nome||'',disciplina:a.disciplina||'',numero:a.numero||null
+   });
+   v93Render();
+   await v10422CarregarHistorico();
+   if(st)st.textContent='✅ '+v93Fmt(segundos)+' adicionados a '+(a.nome||'assunto')+'.';
+ }catch(e){
+   console.error('V10.4.22 manual:',e);
+   if(st)st.textContent='⚠ Não foi possível salvar o tempo manual.';
+ }
+}
+function v10422AtualizarTimer(){
+ v10422PopularAssuntos();
+ v10422CarregarHistorico();
 }
 
 
@@ -1759,10 +1909,26 @@ function v93Bind(){
  if(pp&&!pp.dataset.v10421){pp.dataset.v10421='1';pp.onclick=v93Pausar;}
  if(fp&&!fp.dataset.v10421){fp.dataset.v10421='1';fp.onclick=v93Finalizar;}
 
+ const sm=$('timerManualSalvarV10422');
+ if(sm&&!sm.dataset.v10422){sm.dataset.v10422='1';sm.onclick=v10422AdicionarManual;}
+
+ const sa=$('timerAssuntoV10422');
+ if(sa&&!sa.dataset.v10422){
+   sa.dataset.v10422='1';
+   sa.onchange=async()=>{
+     const a=(agendaV102?.itens||[]).find(x=>String(x.id)===String(sa.value));
+     if(a){
+       timerV93.assuntoId=a.id;timerV93.assuntoNome=a.nome||'';timerV93.disciplina=a.disciplina||'';timerV93.numero=a.numero||null;
+       try{await v93Salvar();}catch(_){}
+     }
+   };
+ }
+
  if(!timerV93.tick)timerV93.tick=setInterval(v93Render,1000);
 }
-document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{v93Bind();v93Carregar();},800));
-setTimeout(()=>{v93Bind();v93Carregar();},1500);
+document.addEventListener('DOMContentLoaded',()=>setTimeout(async()=>{v93Bind();await v93Carregar();v10422AtualizarTimer();},800));
+setTimeout(async()=>{v93Bind();await v93Carregar();v10422AtualizarTimer();},1800);
+setTimeout(v10422AtualizarTimer,3000);
 
 // ========================= V9.2.2 DEV — SEQUÊNCIA INTELIGENTE =========================
 function v922IsoLocal(d){

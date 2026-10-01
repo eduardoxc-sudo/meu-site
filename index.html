@@ -104,6 +104,22 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .estudo-real-ok{color:#22c55e}
 
 #btnConcluirEstudoReal:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(.55);pointer-events:none}
+
+/* V10.2.0 — Planejamento por data */
+.v102-toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin:16px 0}
+.v102-toolbar label{display:flex;flex-direction:column;gap:6px;color:#9fb7d5;font-size:13px}
+.v102-toolbar input{background:#0b1220;color:#fff;border:1px solid #2a3b55;border-radius:9px;padding:9px 10px}
+.v102-toolbar button,.v102-actions button{cursor:pointer}
+.v102-day{border:1px solid #2a3b55;border-radius:14px;overflow:hidden;margin:14px 0;background:#0b1220}
+.v102-day-head{padding:12px 14px;background:#111c2e;font-weight:800;display:flex;justify-content:space-between;gap:10px}
+.v102-topic{display:grid;grid-template-columns:58px 72px 1fr auto;gap:12px;align-items:center;padding:12px 14px;border-top:1px solid #223149}
+.v102-num{font-weight:900;font-size:18px;text-align:center}
+.v102-main strong{display:block}.v102-main small{color:#91abc9}
+.v102-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.v102-actions input{width:135px;background:#0b1220;color:#fff;border:1px solid #2a3b55;border-radius:8px;padding:7px}
+.v102-actions button{background:#16243a;color:#fff;border:1px solid #334968;border-radius:8px;padding:7px 9px}
+@media(max-width:760px){.v102-topic{grid-template-columns:45px 62px 1fr}.v102-actions{grid-column:1/-1;padding-left:0}.v102-actions input{flex:1}}
+
 </style>
 
 
@@ -322,7 +338,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.1.9 • TIMER RECOVERY DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.2.0 • PLANEJAMENTO POR DATA DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -541,7 +557,13 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <section id="page-planejamento" class="page">
 <h1>Planejamento</h1><div class="panel"><h2>🗓 Planejamento por prioridade</h2><p class="panel-sub">Assuntos recebidos do Edital pronto. P1 aparece primeiro, depois P2 e P3.</p>
 <div class="v101-plan-summary"><div><span>🔴 P1</span><b id="planP1V101">0</b></div><div><span>🟡 P2</span><b id="planP2V101">0</b></div><div><span>🟢 P3</span><b id="planP3V101">0</b></div><div><span>📚 Total</span><b id="planTotalV101">0</b></div></div>
-<div id="planejamentoV101Status" class="status-line">Nenhum edital enviado ao Planejamento ainda.</div><div id="planejamentoV101Lista" class="v101-plan-list"></div></div></section>
+<div id="planejamentoV101Status" class="status-line">Nenhum edital enviado ao Planejamento ainda.</div>
+<div class="v102-toolbar">
+<label>Data inicial do planejamento<input id="planDataInicialV102" type="date"></label>
+<button id="planGerarV102" type="button">📅 Montar planejamento</button>
+</div>
+<div id="planejamentoV102Status" class="status-line"></div>
+<div id="planejamentoV101Lista" class="v101-plan-list"></div></div></section>
   <section id="page-diagnostico" class="page">
 <div class="panel">
 <h2>🛠 Diagnóstico da V3</h2>
@@ -2103,7 +2125,7 @@ setTimeout(renderizarDashboardRevisoesV91,500);
 
 setTimeout(renderizarEstatisticasV92,650);
 
-// ========================= V10.1 DEV — PRIORIDADES POR ASSUNTO + PLANEJAMENTO =========================
+// ========================= V10.2.0 DEV — PRIORIDADES + PLANEJAMENTO POR DATA =========================
 let editalAtualV100=null;
 function v100Ref(){const u=auth.currentUser;return u?db.ref('usuarios/'+u.uid+'/editalProntoV100'):null;}
 function v100PlanejamentoRef(){const u=auth.currentUser;return u?db.ref('usuarios/'+u.uid+'/planejamento/importacaoEditalV100'):null;}
@@ -2152,8 +2174,8 @@ async function v100CarregarEscolhido(){
 async function v100Restaurar(){editalAtualV100=v101MontarDoEditalAtual();await v100Salvar();v100Render();$('envioPlanejamentoStatusV100').textContent='↩ Prioridades restauradas para P2.';}
 async function v100EnviarPlanejamento(){
  if(!editalAtualV100)return;const r=v100PlanejamentoRef();if(!r)return;
- const payload={titulo:editalAtualV100.titulo,assuntos:editalAtualV100.assuntos.slice().sort((a,b)=>a.prioridade-b.prioridade||a.disciplina.localeCompare(b.disciplina)),status:'pronto_para_planejamento',enviadoEm:firebase.database.ServerValue.TIMESTAMP};
- await r.set(payload);v101RenderPlan(payload);$('envioPlanejamentoStatusV100').textContent='✅ Assuntos enviados ao Planejamento.';
+ const payload={titulo:editalAtualV100.titulo,assuntos:editalAtualV100.assuntos.slice().sort((a,b)=>a.prioridade-b.prioridade||a.disciplina.localeCompare(b.disciplina)).map((a,i)=>({...a,numero:i+1,id:v102Key(a,i)})),status:'pronto_para_planejamento',enviadoEm:firebase.database.ServerValue.TIMESTAMP};
+ await r.set(payload);importacaoV102=payload;agendaV102=null;const ar=v102AgendaRef();if(ar)await ar.remove();v102Render();$('envioPlanejamentoStatusV100').textContent='✅ Assuntos enviados ao Planejamento.';
  const btn=[...document.querySelectorAll('[data-page]')].find(x=>(x.textContent||'').toLowerCase().includes('planejamento'));if(btn)setTimeout(()=>btn.click(),350);
 }
 async function v100CarregarSalvo(){
@@ -2162,23 +2184,107 @@ async function v100CarregarSalvo(){
  const box=$('editalProntoConteudoV100'); if(box)box.style.display='none';
  const st=$('editalProntoStatusV100'); if(st)st.textContent='Nenhum edital selecionado.';
 }
+
 function v101PlanRef(){return v100PlanejamentoRef();}
+function v102AgendaRef(){const u=auth.currentUser;return u?db.ref('usuarios/'+u.uid+'/planejamento/agendaV102'):null;}
 function v101PlanLabel(p){return p===1?'🔴 P1':p===2?'🟡 P2':'🟢 P3';}
-function v101RenderPlan(d){
- const lista=$('planejamentoV101Lista'),st=$('planejamentoV101Status');if(!lista||!st)return;
- const assuntos=d&&Array.isArray(d.assuntos)?d.assuntos:[];const c={1:0,2:0,3:0};assuntos.forEach(a=>c[a.prioridade]=(c[a.prioridade]||0)+1);
- ['1','2','3'].forEach(p=>{const el=$('planP'+p+'V101');if(el)el.textContent=c[p]||0;});if($('planTotalV101'))$('planTotalV101').textContent=assuntos.length;
- if(!assuntos.length){st.textContent='Nenhum edital enviado ao Planejamento ainda.';lista.innerHTML='';return;}
- st.textContent='✅ '+assuntos.length+' assuntos recebidos e organizados por prioridade.';
- const g={1:[],2:[],3:[]};assuntos.forEach(a=>(g[a.prioridade]||g[3]).push(a));
- lista.innerHTML=[1,2,3].filter(p=>g[p].length).map(p=>`<div class="v101-plan-group"><h3>${v101PlanLabel(p)} — ${p===1?'Alta prioridade':p===2?'Média prioridade':'Prioridade normal'}</h3>${g[p].map(a=>`<div class="v101-plan-item"><b>${v101PlanLabel(p)}</b><div><strong>${a.nome}</strong><br><small>${a.disciplina}</small></div></div>`).join('')}</div>`).join('');
+let agendaV102=null, importacaoV102=null;
+
+function v102HojeISO(){
+ const d=new Date(),m=String(d.getMonth()+1).padStart(2,'0'),dia=String(d.getDate()).padStart(2,'0');
+ return d.getFullYear()+'-'+m+'-'+dia;
 }
-async function v101CarregarPlan(){const r=v101PlanRef();if(!r)return;try{const s=await r.once('value');v101RenderPlan(s.val());}catch(e){console.error(e);}}
+function v102ISOAdd(iso,n){
+ const [y,m,d]=iso.split('-').map(Number),x=new Date(y,m-1,d);x.setDate(x.getDate()+n);
+ return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+}
+function v102DiaAtivo(iso){
+ const [y,m,d]=iso.split('-').map(Number),dow=new Date(y,m-1,d).getDay();
+ const ativos=[...new Set((planejamentoEstado?.dias||[]).map(Number))];
+ return !ativos.length || ativos.includes(dow);
+}
+function v102ProximoDiaAtivo(iso,passos=1){
+ let x=iso,achados=0,seg=0;
+ while(achados<passos && seg<370){x=v102ISOAdd(x,1);if(v102DiaAtivo(x))achados++;seg++;}
+ return x;
+}
+function v102PrimeiroDiaAtivo(iso){
+ let x=iso,seg=0;while(!v102DiaAtivo(x)&&seg<14){x=v102ISOAdd(x,1);seg++;}return x;
+}
+function v102Key(a,i){return a.id||encodeURIComponent(a.disciplina+'|||'+a.nome+'|||'+i);}
+function v102AssuntosNumerados(d){
+ const arr=d&&Array.isArray(d.assuntos)?d.assuntos:[];
+ return arr.map((a,i)=>({...a,numero:Number(a.numero)||i+1,id:a.id||v102Key(a,i)}));
+}
+function v102CriarAgenda(d,dataInicial){
+ const assuntos=v102AssuntosNumerados(d).sort((a,b)=>a.prioridade-b.prioridade||a.numero-b.numero);
+ let data=v102PrimeiroDiaAtivo(dataInicial||v102HojeISO());
+ const itens=assuntos.map((a,i)=>{
+   if(i>0)data=v102ProximoDiaAtivo(data,1);
+   return {...a,dataPlanejada:data};
+ });
+ return {titulo:d?.titulo||'Planejamento',dataInicial:dataInicial||v102HojeISO(),itens,atualizadoEm:new Date().toISOString()};
+}
+async function v102SalvarAgenda(){
+ const r=v102AgendaRef();if(!r||!agendaV102)return;
+ agendaV102.atualizadoEm=new Date().toISOString();
+ await r.set(agendaV102);
+}
+function v102FmtData(iso){
+ if(!iso)return 'Sem data';const [y,m,d]=iso.split('-');return d+'/'+m+'/'+y;
+}
+function v102Render(){
+ const lista=$('planejamentoV101Lista'),st=$('planejamentoV101Status'),st2=$('planejamentoV102Status');
+ if(!lista||!st)return;
+ const assuntos=v102AssuntosNumerados(importacaoV102);
+ const c={1:0,2:0,3:0};assuntos.forEach(a=>c[a.prioridade]=(c[a.prioridade]||0)+1);
+ ['1','2','3'].forEach(p=>{const el=$('planP'+p+'V101');if(el)el.textContent=c[p]||0;});
+ if($('planTotalV101'))$('planTotalV101').textContent=assuntos.length;
+ if(!assuntos.length){st.textContent='Nenhum edital enviado ao Planejamento ainda.';lista.innerHTML='';if(st2)st2.textContent='';return;}
+ st.textContent='✅ '+assuntos.length+' assuntos recebidos. Cada assunto mantém seu número e prioridade.';
+ if(!agendaV102||!Array.isArray(agendaV102.itens)||!agendaV102.itens.length){
+   lista.innerHTML='<div class="v101-plan-group"><h3>📅 Planejamento ainda não montado</h3><div class="v101-plan-item"><div><strong>Escolha a data inicial e clique em “Montar planejamento”.</strong><br><small>P1 entra primeiro, depois P2 e P3. Depois você poderá mover qualquer assunto livremente.</small></div></div></div>';
+   if(st2)st2.textContent='Nenhum assunto foi preso a uma data ainda.';
+   return;
+ }
+ const grupos={};agendaV102.itens.slice().sort((a,b)=>(a.dataPlanejada||'9999').localeCompare(b.dataPlanejada||'9999')||a.numero-b.numero).forEach(a=>(grupos[a.dataPlanejada]??=[]).push(a));
+ lista.innerHTML=Object.entries(grupos).map(([data,arr])=>`<div class="v102-day"><div class="v102-day-head"><span>📅 ${v102FmtData(data)}</span><span>${arr.length} assunto(s)</span></div>${arr.map(a=>`<div class="v102-topic" data-id="${a.id}"><div class="v102-num">${String(a.numero).padStart(2,'0')}</div><div><b>${v101PlanLabel(a.prioridade)}</b></div><div class="v102-main"><strong>${a.nome}</strong><small>${a.disciplina}</small></div><div class="v102-actions"><button data-move="-1" title="Mover para o dia ativo anterior">← Dia</button><input type="date" value="${a.dataPlanejada}" data-date><button data-move="1" title="Mover para o próximo dia ativo">Dia →</button></div></div>`).join('')}</div>`).join('');
+ lista.querySelectorAll('.v102-topic').forEach(row=>{
+   const id=row.dataset.id;
+   row.querySelectorAll('[data-move]').forEach(btn=>btn.onclick=async()=>{
+     const a=agendaV102.itens.find(x=>x.id===id);if(!a)return;
+     if(Number(btn.dataset.move)>0)a.dataPlanejada=v102ProximoDiaAtivo(a.dataPlanejada,1);
+     else{
+       let x=a.dataPlanejada,seg=0;do{x=v102ISOAdd(x,-1);seg++;}while(!v102DiaAtivo(x)&&seg<14);a.dataPlanejada=x;
+     }
+     await v102SalvarAgenda();v102Render();
+   });
+   const inp=row.querySelector('[data-date]');
+   if(inp)inp.onchange=async()=>{const a=agendaV102.itens.find(x=>x.id===id);if(!a||!inp.value)return;a.dataPlanejada=inp.value;await v102SalvarAgenda();v102Render();};
+ });
+ if(st2)st2.textContent='↔ Você pode mover qualquer assunto para outra data. Isso não muda sua prioridade nem cria cópia.';
+}
+async function v102Gerar(){
+ if(!importacaoV102||!Array.isArray(importacaoV102.assuntos)||!importacaoV102.assuntos.length)return;
+ const inp=$('planDataInicialV102'),data=inp?.value||v102HojeISO();
+ agendaV102=v102CriarAgenda(importacaoV102,data);
+ await v102SalvarAgenda();v102Render();
+}
+async function v101CarregarPlan(){
+ const r=v101PlanRef();if(!r)return;
+ try{
+   const s=await r.once('value');importacaoV102=s.val();
+   const ar=v102AgendaRef(),as=ar?await ar.once('value'):null;agendaV102=as?as.val():null;
+   const inp=$('planDataInicialV102');if(inp&&!inp.value)inp.value=agendaV102?.dataInicial||v102HojeISO();
+   v102Render();
+ }catch(e){console.error('V10.2.0 planejamento:',e);}
+}
 function v100Bind(){
  const c=$('carregarEditalV100'),r=$('restaurarPrioridadesV100'),e=$('enviarPlanejamentoV100');
  if(c)c.onclick=v100CarregarEscolhido;
  if(r)r.onclick=v100Restaurar;
  if(e)e.onclick=v100EnviarPlanejamento;
+ const g=$('planGerarV102');if(g)g.onclick=v102Gerar;
  // V10.1.1: não altera style.display das páginas. A navegação oficial abrirPaginaV3
  // controla exclusivamente a classe .active, evitando páginas vazias até um F5.
  document.querySelectorAll('.page').forEach(p=>p.style.removeProperty('display'));

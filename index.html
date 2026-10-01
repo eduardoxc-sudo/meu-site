@@ -383,6 +383,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
     <button data-page="edital">▥ Edital</button>
     <button data-page="progresso">↗ Progresso</button>
     <button data-page="historico">📜 Histórico</button>
+    <button data-page="estatisticas">📊 Estatísticas</button>
     <button data-page="planejamento">↔ Planejamento</button>
     <button data-page="diagnostico">🛠 Diagnóstico</button>
     <button data-page="seguranca">◇ Segurança</button>
@@ -392,7 +393,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.13 • HISTÓRICO RESTAURADO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.14 • ESTATÍSTICAS RESTAURADAS DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -644,6 +645,40 @@ textarea:focus,select:focus{border-color:var(--primary)}
       <h2>📊 Estatísticas</h2>
       <p class="panel-sub">As estatísticas existentes continuam usando o motor atual. Esta restauração não cria um segundo motor nem duplica dados.</p>
       <div class="status-line">Os indicadores completos permanecem na estrutura já existente do sistema; esta etapa restaura primeiro o Histórico sem alterar o núcleo aprovado.</div>
+    </div>
+  </section>
+
+  <section id="page-estatisticas" class="page">
+    <div class="panel">
+      <h2>📊 Estatísticas de estudo</h2>
+      <p class="panel-sub">Indicadores calculados a partir dos dados reais já existentes. Esta tela não altera Planejamento, Ciclo, Histórico ou revisões.</p>
+      <div class="stats-v92">
+        <div class="stat"><span>📚 Tópicos estudados</span><strong id="estatTopicosV10414">0</strong></div>
+        <div class="stat"><span>🔁 Revisões concluídas</span><strong id="estatRevisoesV10414">0</strong></div>
+        <div class="stat"><span>🎯 Revisões no prazo</span><strong id="estatPrazoV10414">0%</strong></div>
+        <div class="stat"><span>📅 Dias estudados</span><strong id="estatDiasV10414">0</strong></div>
+      </div>
+      <div class="stats-detail-v92" style="margin-top:12px">
+        <div><span>D1 CONCLUÍDAS</span><b id="estatD1V10414">0</b></div>
+        <div><span>D7 CONCLUÍDAS</span><b id="estatD7V10414">0</b></div>
+        <div><span>D15 CONCLUÍDAS</span><b id="estatD15V10414">0</b></div>
+        <div><span>D30 CONCLUÍDAS</span><b id="estatD30V10414">0</b></div>
+      </div>
+      <div class="stats-bars-v92" style="margin-top:14px">
+        <div class="stats-bar-head-v92"><span>Progresso das revisões</span><b id="estatRevTxtV10414">0 / 0</b></div>
+        <div class="stats-track-v92"><i id="estatRevBarV10414"></i></div>
+      </div>
+      <div id="estatStatusV10414" class="status-line"></div>
+    </div>
+    <div class="panel" style="margin-top:16px">
+      <h2>🎯 Estatísticas de questões</h2>
+      <p class="panel-sub">Lê os registros já salvos pelo módulo Questões. Nenhum registro é criado ou modificado nesta tela.</p>
+      <div class="v95-qstats">
+        <div><span>🎯 Questões resolvidas</span><b id="estatQuestoesV10414">0</b></div>
+        <div><span>✅ Acertos</span><b id="estatAcertosV10414">0</b></div>
+        <div><span>❌ Erros</span><b id="estatErrosV10414">0</b></div>
+        <div><span>📈 Aproveitamento</span><b id="estatPctV10414">—</b></div>
+      </div>
     </div>
   </section>
   <section id="page-planejamento" class="page">
@@ -2780,6 +2815,47 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
   setTimeout(function(){
     try{ if(typeof renderizarHistoricoV90==='function') renderizarHistoricoV90(); }catch(err){}
   },700);
+})();
+</script>
+
+<script id="v10414-estatisticas-ui">
+(function(){
+  function renderEstatisticasV10414(){
+    try{
+      if(typeof v92Estatisticas==='function'){
+        const s=v92Estatisticas();
+        const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
+        set('estatTopicosV10414',s.topicos||0);
+        set('estatRevisoesV10414',s.revisoesConcluidas||0);
+        set('estatPrazoV10414',(s.taxaPrazo||0)+'%');
+        set('estatDiasV10414',s.diasAtividade||0);
+        set('estatD1V10414',s.tipos?.D1||0);
+        set('estatD7V10414',s.tipos?.D7||0);
+        set('estatD15V10414',s.tipos?.D15||0);
+        set('estatD30V10414',s.tipos?.D30||0);
+        set('estatRevTxtV10414',(s.revisoesConcluidas||0)+' / '+(s.totalAgendado||0));
+        const pct=s.totalAgendado?Math.min(100,Math.round(((s.revisoesConcluidas||0)/s.totalAgendado)*100)):0;
+        const bar=document.getElementById('estatRevBarV10414');if(bar)bar.style.width=pct+'%';
+        set('estatStatusV10414',s.revisoesConcluidas?'✓ '+s.revisoesConcluidas+' revisão(ões) real(is) concluída(s). '+(s.taxaPrazo||0)+'% concluída(s) no prazo.':'Nenhuma revisão real concluída ainda.');
+      }
+      if(typeof questoesV94!=='undefined'){
+        const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
+        const total=Number(questoesV94.total)||0, ac=Number(questoesV94.acertos)||0, er=Number(questoesV94.erros)||0;
+        set('estatQuestoesV10414',total);set('estatAcertosV10414',ac);set('estatErrosV10414',er);
+        set('estatPctV10414',total?Math.round((ac/total)*100)+'%':'—');
+      }
+    }catch(err){console.error('V10.4.14 estatísticas:',err);}
+  }
+  document.addEventListener('click',function(e){
+    if(!e.target.closest('.nav button[data-page="estatisticas"]'))return;
+    setTimeout(function(){
+      try{if(typeof renderizarEstatisticasV92==='function')renderizarEstatisticasV92();}catch(_){}
+      try{if(typeof v94Render==='function')v94Render();}catch(_){}
+      renderEstatisticasV10414();
+    },0);
+  });
+  setTimeout(renderEstatisticasV10414,900);
+  window.renderEstatisticasV10414=renderEstatisticasV10414;
 })();
 </script>
 </body>

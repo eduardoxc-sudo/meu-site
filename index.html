@@ -487,7 +487,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.36 • LIMPEZA SINCRONIZADA DO EDITAL DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.37 • LIMPEZA TOTAL VERIFICADA DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -813,7 +813,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
 
     <div class="panel" style="margin-top:16px">
       <h2>🧹 Limpar edital atual</h2>
-      <p class="panel-sub">Remove os dados ativos ligados ao edital atual para você começar outro do zero. Editais/horas arquivados e questões arquivadas são preservados.</p>
+      <p class="panel-sub">Remove e verifica os dados ativos ligados ao edital atual para você começar outro do zero. Dias ativos, minutos/dia e intervalos D1/D7/D15/D30 são mantidos como configuração. Arquivos antigos também são preservados.</p>
       <div class="ge35-warning"><b>Será limpo:</b> Edital, Edital pronto, Planejamento, agenda, Ciclo, execução do ciclo, Revisões ativas, Progresso/Desempenho derivados e Questões do edital atual.</div>
       <div class="actions" style="margin-top:12px">
         <button class="btn btn-danger" id="btnLimpezaCompletaEditalV10436" type="button">🗑️ Limpar edital e dados ativos</button>
@@ -2691,8 +2691,16 @@ function renderizarRevisoesAgendadasV85(){
 
 
 
-// ========================= V10.4.36 DEV — LIMPEZA SINCRONIZADA DO EDITAL =========================
+// ========================= V10.4.37 DEV — LIMPEZA TOTAL VERIFICADA DO EDITAL =========================
 let v10436Limpando=false;
+
+async function v10437RemoverRef(path){
+  const ref=db.ref(path);
+  await ref.remove();
+  const check=await ref.once('value');
+  if(check.exists()) throw new Error('Ainda existem dados em: '+path);
+}
+
 async function v10436LimparEditalCompleto(){
   const u=auth.currentUser;
   const status=$('statusLimpezaCompletaV10436')||$('statusEditalV2');
@@ -2704,10 +2712,10 @@ async function v10436LimparEditalCompleto(){
 
 Serão apagados os dados ATIVOS deste edital:
 • Edital e Edital pronto
-• Planejamento e agenda
-• Ciclo e posição atual
-• Revisões do edital
-• Progresso e Meu Desempenho derivados
+• Planejamento por prioridade e agenda
+• Semana do Ciclo e execução do Ciclo
+• Revisões D1/D7/D15/D30 e histórico ativo
+• Progresso do Edital e Meu Desempenho derivados
 • Questões do edital atual
 
 SERÃO PRESERVADOS:
@@ -2724,51 +2732,70 @@ Esta ação não pode ser desfeita.`;
   }
 
   v10436Limpando=true;
-  if(status)status.textContent='🧹 Limpando dados ativos do edital...';
+  if(status)status.textContent='🧹 Limpando e verificando cada módulo...';
 
   try{
-    const uid=u.uid, updates={};
+    const uid=u.uid;
 
-    // Núcleo NOVA V3
-    updates['nova_app_v3/users/'+uid+'/app']=null;
-    updates['nova_app_v3/users/'+uid+'/ciclo']=null;
-    updates['nova_app_v3/users/'+uid+'/cicloExecucao']=null;
-    updates['nova_app_v3/users/'+uid+'/planejamento']=null;
-    updates['nova_app_v3/users/'+uid+'/revisoesMotor']=null;
+    // Remove cada fonte REAL separadamente e confirma que desapareceu.
+    const paths=[
+      'nova_app_v3/users/'+uid+'/app',
+      'nova_app_v3/users/'+uid+'/ciclo',
+      'nova_app_v3/users/'+uid+'/cicloExecucao',
+      'nova_app_v3/users/'+uid+'/revisoesMotor',
+      'usuarios/'+uid+'/editalProntoV100',
+      'usuarios/'+uid+'/planejamento/importacaoEditalV100',
+      'usuarios/'+uid+'/planejamento/agendaV102',
+      'usuarios/'+uid+'/questoesV94',
+      'usuarios/'+uid+'/estatisticasV93'
+    ];
+    for(const p of paths) await v10437RemoverRef(p);
 
-    // Módulos atuais ligados ao edital
-    updates['usuarios/'+uid+'/editalProntoV100']=null;
-    updates['usuarios/'+uid+'/planejamento/importacaoEditalV100']=null;
-    updates['usuarios/'+uid+'/planejamento/agendaV102']=null;
-    updates['usuarios/'+uid+'/questoesV94']=null;
-    updates['usuarios/'+uid+'/estatisticasV93']=null;
+    // Planejamento de configuração NÃO é apagado:
+    // dias ativos, minutos/dia e D1/D7/D15/D30 são preferências do usuário.
 
-    await db.ref().update(updates);
-
-    // Remove cópias locais para que nenhum módulo ressuscite dados antigos.
+    // Remove somente caches locais relacionados ao conteúdo do edital.
     [
       'nova_v3_'+uid,
       'nova_v3_ciclo_'+uid,
       'nova_v3_ciclo_exec_'+uid,
-      'nova_v3_planejamento_'+uid,
       'nova_v3_revisoes_motor_'+uid
     ].forEach(k=>localStorage.removeItem(k));
 
-    // Estados em memória.
+    // Zera todos os estados em memória que alimentam as telas.
     estadoV2={editalVerticalizado:{},disciplinas:[],atualizadoEm:null};
     cicloEstado={itens:[],atualizadoEm:null};
     cicloExec={indice:0,voltas:0,atualizadoEm:null};
-    revisoesMotor={};
+    revisoesMotor={origens:{},atualizadoEm:null};
     editalAtualV100=null;
+    importacaoV102=null;
+    agendaV102=null;
+    if(typeof questoesV94!=='undefined'){
+      questoesV94={total:0,acertos:0,erros:0,carregado:true};
+    }
 
-    if(status)status.textContent='✅ Edital e dados ativos limpos. Recarregando o sistema...';
+    // Atualiza as telas imediatamente antes do reload.
+    try{renderizarEditalV2();}catch(_){}
+    try{renderizarCiclo();}catch(_){}
+    try{renderizarExecucaoCiclo();}catch(_){}
+    try{v102Render();}catch(_){}
+    try{v104RenderSemana();}catch(_){}
+    try{renderizarRevisoesMotor();}catch(_){}
+    try{renderizarRevisoesAgendadasV85();}catch(_){}
+    try{renderizarAgendaRevisoesV86();}catch(_){}
+    try{renderizarRevisoesHojeV87();}catch(_){}
+    try{renderizarHistoricoV90();}catch(_){}
+    try{renderizarDashboardRevisoesV91();}catch(_){}
+    try{renderizarEstatisticasV92();}catch(_){}
+    try{if(typeof renderProgressoV10416==='function')renderProgressoV10416();}catch(_){}
+    try{if(typeof v94Render==='function')v94Render();}catch(_){}
 
-    // Reabre tudo a partir do Firebase já limpo, evitando dados fantasmas na tela.
-    setTimeout(()=>location.reload(),700);
+    if(status)status.textContent='✅ Limpeza verificada. Nenhum dado ativo do edital permaneceu. Recarregando...';
+    setTimeout(()=>location.reload(),900);
   }catch(e){
-    console.error('V10.4.36 limpeza sincronizada:',e);
-    if(status)status.textContent='❌ Não foi possível concluir a limpeza. Nenhuma nova tentativa automática foi feita.';
-    alert('Falha ao limpar o edital. Tente novamente antes de carregar um novo edital.');
+    console.error('V10.4.37 limpeza total:',e);
+    if(status)status.textContent='❌ A limpeza parou porque um módulo não pôde ser confirmado como vazio.';
+    alert('A limpeza não foi confirmada em todos os módulos.\n\nDetalhe: '+(e?.message||e));
   }finally{
     v10436Limpando=false;
   }
@@ -2776,8 +2803,8 @@ Esta ação não pode ser desfeita.`;
 
 setTimeout(()=>{
   const b=$('btnLimpezaCompletaEditalV10436');
-  if(b&&!b.dataset.v10436){
-    b.dataset.v10436='1';
+  if(b&&!b.dataset.v10437){
+    b.dataset.v10437='1';
     b.addEventListener('click',v10436LimparEditalCompleto);
   }
 },0);

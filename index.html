@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V9.4.2 DEV • QUESTÕES DASHBOARD FIX REAL</title>
+<title>Plano & Ciclo de Estudos — V9.5 DEV • ESTATÍSTICAS DE QUESTÕES</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -259,6 +259,13 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .v94-summary b{font-size:18px}
 @media(max-width:760px){.v94-qgrid,.v94-summary{grid-template-columns:1fr 1fr}}
 </style>
+<style id="v95-estatisticas-questoes-css">
+.v95-qstats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+.v95-qstats>div{border:1px solid var(--border);border-radius:10px;padding:12px;background:var(--bg)}
+.v95-qstats span{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}
+.v95-qstats b{font-size:18px}
+@media(max-width:760px){.v95-qstats{grid-template-columns:1fr 1fr}}
+</style>
 </head>
 <body>
 <section id="login">
@@ -288,7 +295,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.4.2 • QUESTÕES DASHBOARD FIX REAL DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.5 • ESTATÍSTICAS DE QUESTÕES DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -366,6 +373,12 @@ textarea:focus,select:focus{border-color:var(--primary)}
         <div><span>D7 CONCLUÍDAS</span><b id="statD7V92">0</b></div>
         <div><span>D15 CONCLUÍDAS</span><b id="statD15V92">0</b></div>
         <div><span>D30 CONCLUÍDAS</span><b id="statD30V92">0</b></div>
+      </div>
+      <div class="v95-qstats">
+        <div><span>🎯 Questões resolvidas</span><b id="statQuestoesV95">0</b></div>
+        <div><span>✅ Acertos</span><b id="statAcertosV95">0</b></div>
+        <div><span>❌ Erros</span><b id="statErrosV95">0</b></div>
+        <div><span>📈 Aproveitamento</span><b id="statPctV95">—</b></div>
       </div>
       <div class="stats-bars-v92">
         <div class="stats-bar-head-v92"><span>Progresso das revisões</span><b id="statRevProgressoTxtV92">0 / 0</b></div>
@@ -1201,6 +1214,10 @@ function v94Render(){
  if($('qTotalErrosV94'))$('qTotalErrosV94').textContent=questoesV94.erros;
  const pct=v94Pct();
  if($('qPctV94'))$('qPctV94').textContent=pct===null?'—':pct+'%';
+ if($('statQuestoesV95'))$('statQuestoesV95').textContent=questoesV94.total;
+ if($('statAcertosV95'))$('statAcertosV95').textContent=questoesV94.acertos;
+ if($('statErrosV95'))$('statErrosV95').textContent=questoesV94.erros;
+ if($('statPctV95'))$('statPctV95').textContent=pct===null?'—':pct+'%';
  v941AtualizarCardDashboard();
 }
 async function v94Carregar(){

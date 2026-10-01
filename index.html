@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V9.1 DEV • DASHBOARD DE REVISÕES</title>
+<title>Plano & Ciclo de Estudos — V9.2 DEV • ESTATÍSTICAS DE ESTUDO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -218,6 +218,24 @@ textarea:focus,select:focus{border-color:var(--primary)}
 @media(max-width:900px){.dash-rev-v91{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.dash-rev-info-v91{grid-template-columns:1fr}}
 </style>
+<style id="v92-estatisticas-css">
+.stats-v92{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.stats-v92 .stat{min-width:0}
+.stats-detail-v92{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:10px}
+.stats-detail-v92>div{min-width:0;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg)}
+.stats-detail-v92 span{display:block;font-size:12px;margin-bottom:5px;color:var(--muted)}
+.stats-detail-v92 b{font-size:1.2rem}
+.stats-bars-v92{margin-top:12px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg)}
+.stats-bar-head-v92{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px}
+.stats-track-v92{height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+.stats-track-v92 i{display:block;width:0;height:100%;background:linear-gradient(90deg,#38bdf8,#6366f1);border-radius:999px;transition:width .25s ease}
+@media(max-width:900px){
+ .stats-v92,.stats-detail-v92{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:430px){
+ .stats-v92,.stats-detail-v92{grid-template-columns:1fr}
+}
+</style>
 </head>
 <body>
 <section id="login">
@@ -247,12 +265,12 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.1 • DASHBOARD DE REVISÕES DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V9.2 • ESTATÍSTICAS DE ESTUDO DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
-      <div class="stat"><span>🔥 Sequência</span><strong>—</strong></div>
-      <div class="stat"><span>⏱ Horas líquidas</span><strong>—</strong></div>
+      <div class="stat"><span>🔥 Sequência</span><strong id="dashSeqV92">—</strong></div>
+      <div class="stat"><span>⏱ Horas líquidas</span><strong id="dashHorasV92">—</strong></div>
       <div class="stat"><span>✅ Edital</span><strong id="dashEdital">0 / 0</strong></div>
       <div class="stat"><span>🎯 Questões</span><strong>—</strong></div>
     </div>
@@ -270,6 +288,28 @@ textarea:focus,select:focus{border-color:var(--primary)}
         <div><span>TOTAL AGENDADO</span><b id="dashRevTotalV91">0</b></div>
       </div>
       <div id="dashRevStatusV91" class="status-line"></div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h2>📊 Estatísticas de estudo</h2>
+      <p class="panel-sub">Calculadas a partir do estudo real e das revisões concluídas. Simulações não entram nas estatísticas.</p>
+      <div class="stats-v92">
+        <div class="stat"><span>📚 Tópicos estudados</span><strong id="statTopicosV92">0</strong></div>
+        <div class="stat"><span>🔁 Revisões concluídas</span><strong id="statRevisoesV92">0</strong></div>
+        <div class="stat"><span>🎯 Revisões no prazo</span><strong id="statNoPrazoV92">0%</strong></div>
+        <div class="stat"><span>🔥 Dias com estudo</span><strong id="statDiasV92">0</strong></div>
+      </div>
+      <div class="stats-detail-v92">
+        <div><span>D1 CONCLUÍDAS</span><b id="statD1V92">0</b></div>
+        <div><span>D7 CONCLUÍDAS</span><b id="statD7V92">0</b></div>
+        <div><span>D15 CONCLUÍDAS</span><b id="statD15V92">0</b></div>
+        <div><span>D30 CONCLUÍDAS</span><b id="statD30V92">0</b></div>
+      </div>
+      <div class="stats-bars-v92">
+        <div class="stats-bar-head-v92"><span>Progresso das revisões</span><b id="statRevProgressoTxtV92">0 / 0</b></div>
+        <div class="stats-track-v92"><i id="statRevProgressoV92"></i></div>
+      </div>
+      <div id="statStatusV92" class="status-line"></div>
     </div>
   </section>
   <section id="page-ciclo" class="page">
@@ -1066,6 +1106,62 @@ $('btnSalvarPlanejamento')?.addEventListener('click',salvarPlanejamento);
 
 
 
+
+// ========================= V9.2 DEV — ESTATÍSTICAS DE ESTUDO =========================
+function v92Estatisticas(){
+ const origens=Object.values(revisoesMotor?.origens||{}).filter(o=>o&&revOrigemExisteNoEdital(o));
+ const historico=v90HistoricoReal();
+ const tipos={D1:0,D7:0,D15:0,D30:0};
+ historico.forEach(x=>{if(Object.prototype.hasOwnProperty.call(tipos,x.tipo))tipos[x.tipo]++});
+
+ const datasEstudo=new Set(origens.map(o=>String(o.dataEstudo||'').slice(0,10)).filter(Boolean));
+ const datasAtividade=new Set(datasEstudo);
+ historico.forEach(x=>{
+   const d=new Date(x.concluidaEm);
+   if(!isNaN(d))datasAtividade.add(
+     d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')
+   );
+ });
+
+ let noPrazo=0;
+ historico.forEach(x=>{
+   const concluida=String(x.concluidaEm||'').slice(0,10);
+   if(concluida && concluida<=x.exibicao)noPrazo++;
+ });
+
+ const totalAgendado=origens.reduce((n,o)=>n+Object.values(o.revisoes||{}).filter(r=>r?.data).length,0);
+ const revisoesConcluidas=historico.length;
+ const taxaPrazo=revisoesConcluidas?Math.round((noPrazo/revisoesConcluidas)*100):0;
+
+ // A V9.2 não inventa "horas líquidas": o motor atual guarda minutos programados,
+ // mas ainda não mede tempo real com cronômetro.
+ return {
+   topicos:origens.length,revisoesConcluidas,noPrazo,taxaPrazo,
+   diasAtividade:datasAtividade.size,tipos,totalAgendado
+ };
+}
+function renderizarEstatisticasV92(){
+ if(!$('statTopicosV92'))return;
+ const s=v92Estatisticas();
+ $('statTopicosV92').textContent=s.topicos;
+ $('statRevisoesV92').textContent=s.revisoesConcluidas;
+ $('statNoPrazoV92').textContent=s.taxaPrazo+'%';
+ $('statDiasV92').textContent=s.diasAtividade;
+ $('statD1V92').textContent=s.tipos.D1;
+ $('statD7V92').textContent=s.tipos.D7;
+ $('statD15V92').textContent=s.tipos.D15;
+ $('statD30V92').textContent=s.tipos.D30;
+ $('statRevProgressoTxtV92').textContent=s.revisoesConcluidas+' / '+s.totalAgendado;
+ const pct=s.totalAgendado?Math.min(100,Math.round((s.revisoesConcluidas/s.totalAgendado)*100)):0;
+ $('statRevProgressoV92').style.width=pct+'%';
+ $('statStatusV92').textContent=s.revisoesConcluidas
+   ? '✓ '+s.revisoesConcluidas+' revisão(ões) real(is) concluída(s). '+s.taxaPrazo+'% concluída(s) no prazo.'
+   : 'Nenhuma revisão real concluída ainda.';
+ if($('dashSeqV92'))$('dashSeqV92').textContent=s.diasAtividade||'—';
+ if($('dashHorasV92'))$('dashHorasV92').textContent='—';
+}
+
+
 // ========================= V9.1 DEV — DASHBOARD DE REVISÕES =========================
 function v91ResumoDashboard(){
  const hoje=v87HojeISO(), itens=[], concluidas=[];
@@ -1212,7 +1308,7 @@ async function v87ConcluirRevisao(chave,tipo){
  localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));
  try{
    await REVISOES_MOTOR_REF.set(revisoesMotor);
-   renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();renderizarDashboardRevisoesV91();renderizarRevisoesHojeV87();
+   renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();renderizarDashboardRevisoesV91();renderizarEstatisticasV92();renderizarRevisoesHojeV87();
  }catch(e){
    rev.concluida=false;delete rev.concluidaEm;
    ultimoErroV3=String(e?.code||e?.message||e);
@@ -1486,7 +1582,7 @@ async function revisoesMotorCarregar(){
  let local=null;try{local=JSON.parse(localStorage.getItem('nova_v3_revisoes_motor_'+auth.currentUser.uid)||'null')}catch(_){}
  if(local)revisoesMotor=revisoesMotorNormalizar(local);
  try{const s=await REVISOES_MOTOR_REF.once('value'),cloud=s.val();if(cloud){const lm=Date.parse(revisoesMotor.atualizadoEm||'')||0,cm=Date.parse(cloud.atualizadoEm||'')||0;if(cm>=lm)revisoesMotor=revisoesMotorNormalizar(cloud)}}catch(e){ultimoErroV3=String(e?.code||e?.message||e)}
- revDevPreencherDisciplinas();renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();renderizarDashboardRevisoesV91();
+ revDevPreencherDisciplinas();renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();renderizarDashboardRevisoesV91();renderizarEstatisticasV92();
 }
 function revDevPreencherDisciplinas(){
  const s=$('revDevDisciplina');if(!s)return;const ds=Object.keys(estadoV2?.editalVerticalizado||{});
@@ -1506,7 +1602,7 @@ async function revisoesMotorRegistrarConclusao(disciplina,topico,dataBase){
  revisoesMotor.origens[chave]={disciplina,topico,dataEstudo:base,revisoes,criadoEm:new Date().toISOString()};
  revisoesMotor.atualizadoEm=new Date().toISOString();
  localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));
- await REVISOES_MOTOR_REF.set(revisoesMotor);renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();renderizarDashboardRevisoesV91();
+ await REVISOES_MOTOR_REF.set(revisoesMotor);renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();renderizarDashboardRevisoesV91();renderizarEstatisticasV92();
  return {msg:'Revisões vinculadas ao tópico original.'};
 }
 function renderizarRevisoesMotor(){
@@ -1581,6 +1677,8 @@ auth.onAuthStateChanged(u=>{if(u)abrirApp(u);else{$('app').classList.add('hidden
 
 
 setTimeout(renderizarDashboardRevisoesV91,500);
+
+setTimeout(renderizarEstatisticasV92,650);
 </script>
 </body>
 </html>

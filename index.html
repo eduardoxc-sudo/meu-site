@@ -415,6 +415,22 @@ textarea:focus,select:focus{border-color:var(--primary)}
 @media(max-width:560px){.qm27-grid,.qm27-form,.qm27-summary{grid-template-columns:1fr}.qm27-assunto-head{display:block}.qm27-assunto-head span{display:block;margin-top:5px}}
 </style>
 
+
+<style id="v10429-historico-questoes-css">
+.qh29-materia{border:1px solid var(--border);border-radius:12px;background:var(--bg);margin-top:12px;overflow:hidden}
+.qh29-materia>summary{list-style:none;cursor:pointer;padding:14px;display:flex;align-items:center;gap:12px;background:#0d1627;font-weight:800}
+.qh29-materia>summary::-webkit-details-marker{display:none}
+.qh29-resumo{margin-left:auto;color:var(--muted);font-size:12px;font-weight:600}
+.qh29-materia>summary:after{content:'▾';font-size:17px}
+.qh29-materia:not([open])>summary:after{transform:rotate(-90deg)}
+.qh29-item{padding:12px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.qh29-title{font-weight:800;line-height:1.35}
+.qh29-meta{margin-top:5px;color:var(--muted);font-size:12px}
+.qh29-numeros{text-align:right;white-space:nowrap;font-size:12px;color:var(--muted)}
+.qh29-numeros b{display:block;color:var(--text);font-size:15px;margin-bottom:3px}
+@media(max-width:650px){.qh29-item{display:block}.qh29-numeros{text-align:left;margin-top:8px;white-space:normal}.qh29-resumo{display:none}}
+</style>
+
 </head>
 <body>
 <section id="login">
@@ -448,7 +464,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.28 • QUESTÕES MATÉRIAS CORRIGIDAS DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.29 • HISTÓRICO DE QUESTÕES POR MATÉRIA DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -739,6 +755,12 @@ textarea:focus,select:focus{border-color:var(--primary)}
     <h2>📚 Desempenho por matéria</h2>
     <p class="panel-sub">Abra uma matéria para ver cada assunto, quantidade de questões, acertos, erros e aproveitamento.</p>
     <div id="qMateriasListaV10427"><div class="qm27-empty">Nenhuma questão organizada por matéria ainda.</div></div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h2>🧾 Histórico de questões</h2>
+    <p class="panel-sub">Cada registro fica preservado separadamente e organizado por matéria. Este histórico não altera o Progresso do Edital.</p>
+    <div id="qHistoricoV10429"><div class="qm27-empty">Nenhuma sessão de questões registrada neste histórico ainda.</div></div>
   </div>
 </section>
 
@@ -3449,6 +3471,18 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
         atualizadoEm:firebase.database.ServerValue.TIMESTAMP
       });
 
+      // V10.4.29: preserva cada sessão individual de questões.
+      await r.child('historico').push({
+        materia:mat,
+        assunto:assunto,
+        total:feitas,
+        acertos:acertos,
+        erros:erros,
+        aproveitamento:Math.round((acertos/feitas)*100),
+        dataLocal:hoje,
+        criadoEm:firebase.database.ServerValue.TIMESTAMP
+      });
+
       if(typeof questoesV94!=='undefined'){
         questoesV94.total=nt; questoesV94.acertos=na; questoesV94.erros=ne; questoesV94.carregado=true;
         if(typeof v94Render==='function') v94Render();
@@ -3457,6 +3491,7 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
       $q('qAcertosV10427').value='';
       st.textContent='✅ Registrado em '+mat+' → '+assunto+': '+feitas+' questões • '+acertos+' acertos • '+erros+' erros.';
       await render27();
+      await renderHistorico29();
     }catch(e){
       console.error('V10.4.27 questões:',e);
       st.textContent='⚠ Não foi possível salvar. Tente novamente.';
@@ -3495,17 +3530,75 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
     }catch(e){console.error(e);box.innerHTML='<div class="qm27-empty">Não foi possível carregar os resultados.</div>';}
   }
 
+
+  function fmtData29(v, fallback){
+    try{
+      if(v){
+        const d=new Date(Number(v));
+        if(!isNaN(d.getTime())) return d.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      }
+    }catch(_){}
+    if(fallback){
+      const p=String(fallback).split('-');
+      if(p.length===3) return p[2]+'/'+p[1]+'/'+p[0];
+    }
+    return 'Data não disponível';
+  }
+
+  async function renderHistorico29(){
+    const box=$q('qHistoricoV10429'), r=ref27();
+    if(!box||!r) return;
+    try{
+      const snap=await r.child('historico').once('value');
+      const raw=snap.val()||{};
+      const regs=Object.entries(raw).map(([id,v])=>({id,...(v||{})}))
+        .sort((a,b)=>(Number(b.criadoEm)||0)-(Number(a.criadoEm)||0));
+
+      if(!regs.length){
+        box.innerHTML='<div class="qm27-empty">Nenhuma sessão de questões registrada neste histórico ainda.<br>Os novos registros aparecerão aqui automaticamente.</div>';
+        return;
+      }
+
+      const grupos={};
+      regs.forEach(x=>{
+        const m=x.materia||'Matéria não identificada';
+        (grupos[m]||(grupos[m]=[])).push(x);
+      });
+
+      box.innerHTML=Object.keys(grupos).sort((a,b)=>a.localeCompare(b,'pt-BR')).map((m,idx)=>{
+        const itens=grupos[m];
+        const total=itens.reduce((s,x)=>s+(Number(x.total)||0),0);
+        const ac=itens.reduce((s,x)=>s+(Number(x.acertos)||0),0);
+        const pct=total?Math.round(ac/total*100):0;
+        return '<details class="qh29-materia" '+(idx===0?'open':'')+'>'+
+          '<summary><span>📚 '+esc(m)+'</span><span class="qh29-resumo">'+itens.length+' registro(s) • '+total+' questões • '+pct+'%</span></summary>'+
+          itens.map(x=>{
+            const t=Number(x.total)||0,a=Number(x.acertos)||0,e=Number(x.erros)||0,p=t?Math.round(a/t*100):0;
+            return '<div class="qh29-item">'+
+              '<div><div class="qh29-title">'+esc(x.assunto||'Assunto')+'</div>'+
+              '<div class="qh29-meta">📅 '+esc(fmtData29(x.criadoEm,x.dataLocal))+'</div></div>'+
+              '<div class="qh29-numeros"><b>'+t+' questões • '+p+'%</b>✅ '+a+' acerto(s) &nbsp; ❌ '+e+' erro(s)</div>'+
+            '</div>';
+          }).join('')+
+        '</details>';
+      }).join('');
+    }catch(e){
+      console.error('V10.4.29 histórico de questões:',e);
+      box.innerHTML='<div class="qm27-empty">Não foi possível carregar o histórico de questões.</div>';
+    }
+  }
+
   function bind27(){
     const m=$q('qMateriaV10427'), b=$q('qSalvarV10427');
     if(m&&!m.dataset.q27){m.dataset.q27='1';m.addEventListener('change',preencherAssuntos27);}
     if(b&&!b.dataset.q27){b.dataset.q27='1';b.addEventListener('click',salvar27);}
-    preencherMaterias27(); render27();
+    preencherMaterias27(); render27(); renderHistorico29();
   }
 
   document.addEventListener('DOMContentLoaded',()=>setTimeout(bind27,1100));
   document.addEventListener('click',e=>{
     const btn=e.target.closest('[data-page="questoes"]');
-    if(btn) setTimeout(()=>{preencherMaterias27();render27();},100);
+    if(btn) setTimeout(()=>{preencherMaterias27();render27();renderHistorico29();},100);
   });
   setTimeout(bind27,2200);
 })();

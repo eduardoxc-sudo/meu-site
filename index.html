@@ -2152,7 +2152,7 @@ function v104RenderSemana(){
      const futura=r.data>hoje;
      const check=r.concluida
        ? '<input class="ciclo-check-v1045" type="checkbox" checked disabled aria-label="Revisão concluída">'
-       : '<input class="ciclo-check-v1045 ciclo-rev-check-v1046" type="checkbox" '+(futura?'disabled ':'')+'data-rev-chave="'+encodeURIComponent(r.chave||'')+'" data-rev-tipo="'+v104Esc(r.tipo)+'" aria-label="Concluir revisão '+v104Esc(r.tipo)+' de '+v104Esc(r.topico)+'">';
+       : '<input class="ciclo-check-v1045 ciclo-rev-check-v1046" type="checkbox" data-rev-chave="'+encodeURIComponent(r.chave||'')+'" data-rev-tipo="'+v104Esc(r.tipo)+'" aria-label="Concluir revisão '+v104Esc(r.tipo)+' de '+v104Esc(r.topico)+'">';
      return '<div class="ciclo-card-v104 '+(r.concluida?'done':'')+'"><div class="linha">'+check+'<b>'+(numero?numero+' ':'')+'🔁 '+v104Esc(r.tipo)+'</b></div><strong>'+v104Esc(r.topico)+'</strong><small>'+v104Esc(r.disciplina)+(r.concluida?' • ✓ Revisão concluída':futura?' • Revisão futura':' • Revisão pendente')+'</small></div>';
    }).join('');
    return '<div class="ciclo-dia-v104 '+(data===hoje?'hoje':'')+'" data-dia="'+data+'"><div class="ciclo-dia-head-v104"><b>'+v104NomeDia(data).toUpperCase()+'</b><small>'+v102FmtData(data)+(data===hoje?' • Hoje':'')+'</small></div><div class="ciclo-dia-body-v104">'+(assuntos+revisoes||'<div class="ciclo-dia-vazio-v104">Nenhum assunto.</div>')+'</div></div>';

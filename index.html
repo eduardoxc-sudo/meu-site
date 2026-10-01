@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V10.1.3 DEV • TIMER RESET FIX</title>
+<title>Plano & Ciclo de Estudos — V10.2.2 DEV • CICLO MOVER ASSUNTOS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -120,6 +120,18 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .v102-actions input{width:135px;background:#0b1220;color:#fff;border:1px solid #2a3b55;border-radius:8px;padding:7px}
 .v102-actions button{background:#16243a;color:#fff;border:1px solid #334968;border-radius:8px;padding:7px 9px}
 @media(max-width:760px){.v102-topic{grid-template-columns:45px 62px 1fr}.v102-actions{grid-column:1/-1;padding-left:0}.v102-actions input{flex:1}}
+
+/* ===== V10.2.2 — mover assuntos no Ciclo ===== */
+.ciclo-assuntos{margin-top:16px}
+.ciclo-assuntos-grupo{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:10px;background:var(--bg)}
+.ciclo-assuntos-head{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:11px 12px;background:#111c2e;font-weight:800}
+.ciclo-assunto-row{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border-top:1px solid var(--border)}
+.ciclo-assunto-row.done{opacity:.58}
+.ciclo-assunto-num{font-weight:900;text-align:center;color:var(--primary)}
+.ciclo-assunto-main strong{display:block;font-size:.82rem;line-height:1.4}
+.ciclo-assunto-main small{display:block;color:var(--muted);font-size:.68rem;margin-top:3px}
+.ciclo-assunto-acoes{display:flex;gap:5px}
+@media(max-width:700px){.ciclo-assunto-row{grid-template-columns:42px minmax(0,1fr)}.ciclo-assunto-acoes{grid-column:2}}
 
 </style>
 
@@ -339,7 +351,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.2.1 • ASSUNTOS POR DIA DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.2.2 • CICLO MOVER ASSUNTOS DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -497,6 +509,13 @@ textarea:focus,select:focus{border-color:var(--primary)}
       <h3>📚 Ordem do ciclo</h3>
       <p class="panel-sub">Use ↑ e ↓ para organizar. Desmarcar uma disciplina apenas a retira do ciclo; ela continua normalmente no Edital.</p>
       <div id="listaCiclo" class="ciclo-list"></div>
+
+      <div class="ciclo-assuntos">
+        <h3>↕ Ordem dos assuntos no ciclo</h3>
+        <p class="panel-sub">Mova os assuntos com ↑ e ↓. A ordem é salva no Edital e passa a ser a ordem real de estudo, sem criar cópias e sem alterar a prioridade do Planejamento.</p>
+        <div id="listaAssuntosCicloV1022"></div>
+        <div id="statusAssuntosCicloV1022" class="status-line"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -963,10 +982,12 @@ function renderizarCiclo(){
   $('cicloTempoTotal').textContent=ativas.reduce((n,x)=>n+(Number(x.minutos)||0),0)+' min';
   if(!itens.length){
     renderizarExecucaoCiclo();
+    renderizarAssuntosCicloV1022();
     box.innerHTML='<div class="ciclo-vazio">Nenhuma disciplina no Edital.<br>Carregue primeiro seu edital para montar o ciclo.</div>';
     return;
   }
   renderizarExecucaoCiclo();
+  renderizarAssuntosCicloV1022();
   box.innerHTML=itens.map((x,i)=>`<div class="ciclo-item ${x.ativo?'':'off'}">
     <input type="checkbox" data-ciclo-ativo="${i}" ${x.ativo?'checked':''} title="Usar no ciclo">
     <div><strong>${v2Escape(x.nome)}</strong><small>${x.ativo?'Incluída no ciclo':'Fora do ciclo'}</small></div>
@@ -1009,6 +1030,54 @@ document.addEventListener('click',e=>{
 $('btnSalvarCiclo')?.addEventListener('click',()=>cicloPersistir());
 $('btnRestaurarCiclo')?.addEventListener('click',cicloRestaurarDoEdital);
 
+
+// ========================= V10.2.2 DEV — ORDEM DOS ASSUNTOS NO CICLO =========================
+// A fonte continua sendo o Edital. Apenas reordena o array original de tópicos.
+// Não cria cópia, não duplica assunto e não altera prioridade do Planejamento.
+function renderizarAssuntosCicloV1022(){
+  const box=$('listaAssuntosCicloV1022'); if(!box)return;
+  const ativas=cicloAtivas();
+  if(!ativas.length){
+    box.innerHTML='<div class="ciclo-vazio">Ative pelo menos uma disciplina no ciclo para organizar seus assuntos.</div>';
+    return;
+  }
+  let html='';
+  ativas.forEach(d=>{
+    const topicos=estadoV2?.editalVerticalizado?.[d.nome]||[];
+    html+='<div class="ciclo-assuntos-grupo"><div class="ciclo-assuntos-head"><span>'+v2Escape(d.nome)+'</span><small>'+topicos.length+' assunto(s)</small></div>';
+    if(!topicos.length){
+      html+='<div class="ciclo-vazio">Nenhum assunto nesta disciplina.</div>';
+    }else{
+      html+=topicos.map((t,i)=>'<div class="ciclo-assunto-row '+(t.t?'done':'')+'">'
+        +'<div class="ciclo-assunto-num">'+String(i+1).padStart(2,'0')+'</div>'
+        +'<div class="ciclo-assunto-main"><strong>'+v2Escape(t.titulo)+'</strong><small>'+(t.t?'✓ Concluído':'Pendente')+'</small></div>'
+        +'<div class="ciclo-assunto-acoes">'
+        +'<button class="btn btn-outline mini" type="button" data-ciclo-assunto-up="'+i+'" data-ciclo-assunto-materia="'+v2Escape(d.nome)+'" '+(i===0?'disabled':'')+'>↑</button>'
+        +'<button class="btn btn-outline mini" type="button" data-ciclo-assunto-down="'+i+'" data-ciclo-assunto-materia="'+v2Escape(d.nome)+'" '+(i===topicos.length-1?'disabled':'')+'>↓</button>'
+        +'</div></div>').join('');
+    }
+    html+='</div>';
+  });
+  box.innerHTML=html;
+}
+function moverAssuntoCicloV1022(materia,indice,delta){
+  const topicos=estadoV2?.editalVerticalizado?.[materia];
+  if(!Array.isArray(topicos))return;
+  const destino=indice+delta;
+  if(indice<0||destino<0||indice>=topicos.length||destino>=topicos.length)return;
+  [topicos[indice],topicos[destino]]=[topicos[destino],topicos[indice]];
+  const status=$('statusAssuntosCicloV1022');
+  if(status)status.textContent='Salvando nova ordem...';
+  v2Salvar();
+  renderizarAssuntosCicloV1022();
+  if(status)status.textContent='✓ Ordem dos assuntos atualizada e salva.';
+}
+document.addEventListener('click',e=>{
+  const up=e.target.closest('[data-ciclo-assunto-up]');
+  const down=e.target.closest('[data-ciclo-assunto-down]');
+  const b=up||down; if(!b)return;
+  moverAssuntoCicloV1022(b.dataset.cicloAssuntoMateria,Number(up?b.dataset.cicloAssuntoUp:b.dataset.cicloAssuntoDown),up?-1:1);
+});
 
 
 // ========================= V5 DEV — EXECUÇÃO DO CICLO =========================

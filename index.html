@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V10.2.2 DEV • CICLO MOVER ASSUNTOS</title>
+<title>Plano & Ciclo de Estudos — V1 • CHECKLIST COMPLETO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -391,7 +391,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.6 • FECHAMENTO CICLO / ESTUDO REAL DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">V1 • CHECKLIST COMPLETO + ESTUDO REAL</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -1866,9 +1866,9 @@ function renderizarRevisoesHojeV87(){
  box.innerHTML=itens.map(x=>'<div class="revdev-item" style="margin-top:10px">'+
    '<b>'+(x.atrasada?'⚠️ ATRASADA • ':'')+v851Esc(x.tipo)+' — '+v851Esc(x.disciplina)+'</b>'+
    '<small>'+v851Esc(x.topico)+' • prevista: '+v86BR(x.exibicao)+(x.original!==x.exibicao?' • original: '+v86BR(x.original):'')+'</small>'+
-   '<button class="btn btn-primary" type="button" data-revconcluir="'+encodeURIComponent(x.chave)+'" data-revtipo="'+v851Esc(x.tipo)+'" style="margin-top:8px">✓ Concluir revisão</button>'+
+   '<label style="display:flex;align-items:center;gap:8px;margin-top:9px;font-weight:700;cursor:pointer"><input class="ciclo-check-v1045" type="checkbox" data-revconcluir="'+encodeURIComponent(x.chave)+'" data-revtipo="'+v851Esc(x.tipo)+''"> Concluir revisão</label>'+
  '</div>').join('');
- box.querySelectorAll('[data-revconcluir]').forEach(btn=>btn.addEventListener('click',()=>v87ConcluirRevisao(decodeURIComponent(btn.dataset.revconcluir),btn.dataset.revtipo)));
+ box.querySelectorAll('[data-revconcluir]').forEach(ch=>ch.addEventListener('change',async()=>{if(!ch.checked)return;ch.disabled=true;try{await v87ConcluirRevisao(decodeURIComponent(ch.dataset.revconcluir),ch.dataset.revtipo)}catch(e){ch.checked=false;ch.disabled=false;ultimoErroV3=String(e?.code||e?.message||e)}}));
 }
 async function v87ConcluirRevisao(chave,tipo){
  if(dataSimuladaV88){

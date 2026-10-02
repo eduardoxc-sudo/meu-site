@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.13 • DIAGNÓSTICO E MOTOR CORRIGIDOS</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.14 • DASHBOARD COMPLETO</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -5992,6 +5992,9 @@ html body :is(
   display:none !important;
 }
 </style>
+<style id="v10514-dashboard-restaurado">
+#page-dashboard > .panel{visibility:visible !important;}
+</style>
 
 <script id="v10493-semantic-cleanup">
 (function(){
@@ -6031,13 +6034,15 @@ html body :is(
       "executar ciclo"
     ]);
 
-    /* Dashboard: remove apenas as três ferramentas duplicadas */
-    hideByHeading(dash, [
-      "cronômetro de estudo",
-      "timer de estudo",
-      "questões",
-      "estatísticas de estudo"
-    ]);
+    /* V10.5.14 — Dashboard completo restaurado.
+       Não ocultar Questões, Cronômetro nem Estatísticas. */
+    if(dash){
+      Array.from(dash.children).forEach(function(box){
+        const h=box.querySelector && box.querySelector("h1,h2,h3,h4");
+        const t=norm(h && h.textContent);
+        if(["questões","cronômetro de estudo","estatísticas de estudo"].some(function(term){return t.includes(term);})) box.style.removeProperty("display");
+      });
+    }
   }
 
   document.addEventListener("DOMContentLoaded", applyV10493);

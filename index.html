@@ -501,7 +501,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.61 • CICLO PERSISTENTE APÓS LOGIN</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.62 • CICLO PERSISTENTE APÓS LOGIN</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -1340,7 +1340,7 @@ let cicloExec={indice:0,voltas:0,atualizadoEm:null};
 let CICLO_REF=null;
 let CICLO_EXEC_REF=null;
 let cicloSaveTimer=null;
-// V10.4.61 — impede sobrescrita do Ciclo durante a inicialização/login.
+// V10.4.62 — impede sobrescrita do Ciclo durante a inicialização/login.
 let cicloLoginCarregandoV10461=true;
 let cicloCloudLidoV10461=false;
 
@@ -1354,39 +1354,37 @@ function cicloNormalizar(raw){
     itens:itens
       .filter(x=>x&&typeof x.nome==='string'&&x.nome.trim())
       .map(x=>({nome:x.nome.trim(),ativo:x.ativo!==false,minutos:Math.max(5,Math.min(600,Number(x.minutos)||50))})),
-    // V10.4.61: não perder a data usada para decidir entre cache local e Firebase.
+    // V10.4.62: não perder a data usada para decidir entre cache local e Firebase.
     atualizadoEm:typeof fonte.atualizadoEm==='string'?fonte.atualizadoEm:null
   };
 }
 function cicloSincronizarComEdital(render=true){
   const nomes=cicloNomesEdital();
+  const atuais=Array.isArray(cicloEstado?.itens)?cicloEstado.itens:[];
 
-  // V10.4.61 — proteção do usuário comum:
-  // no login, o Ciclo pode chegar do Firebase antes de o Edital terminar de carregar.
-  // Antes, nomes=[] fazia a sincronização apagar temporariamente todos os itens
-  // que tinham acabado de ser recuperados da nuvem.
-  // Se já existe Ciclo salvo e o Edital ainda está vazio, preserva o Ciclo.
-  if(!nomes.length && Array.isArray(cicloEstado?.itens) && cicloEstado.itens.length){
-    if(render)renderizarCicloSemSincronizarV10460();
-    return;
-  }
-
-  const porNome=new Map((cicloEstado.itens||[]).map(x=>[v2Norm(x.nome),x]));
-  const novos=[];
-  // preserva a ordem das disciplinas já configuradas que ainda existem
-  (cicloEstado.itens||[]).forEach(x=>{
+  // V10.4.62 — sincronização NÃO DESTRUTIVA.
+  // O Ciclo salvo pelo usuário é a fonte da configuração do Ciclo.
+  // O carregamento tardio/temporário do Edital nunca pode remover disciplinas
+  // que acabaram de voltar do Firebase. A sincronização automática apenas:
+  //   1) preserva TODOS os itens já salvos, na mesma ordem/configuração;
+  //   2) atualiza o nome quando encontra correspondência no Edital;
+  //   3) acrescenta disciplinas realmente novas do Edital ao final.
+  // Remover/recriar o Ciclo só acontece pela ação explícita do usuário.
+  const novos=atuais.map(x=>{
     const real=nomes.find(n=>v2Norm(n)===v2Norm(x.nome));
-    if(real)novos.push({...x,nome:real});
+    return real?{...x,nome:real}:{...x};
   });
-  // adiciona ao final somente disciplinas novas vindas do Edital
+
   nomes.forEach(nome=>{
     if(!novos.some(x=>v2Norm(x.nome)===v2Norm(nome))){
-      const antigo=porNome.get(v2Norm(nome));
-      novos.push(antigo?{...antigo,nome}:{nome,ativo:true,minutos:50});
+      novos.push({nome,ativo:true,minutos:50});
     }
   });
+
   cicloEstado.itens=novos;
-  if(render)renderizarCiclo();
+
+  // Evita recursão renderizarCiclo -> sincronizar -> renderizarCiclo.
+  if(render)renderizarCicloSemSincronizarV10460();
 }
 async function cicloCarregar(){
   if(!auth.currentUser)return;
@@ -1415,14 +1413,14 @@ async function cicloCarregar(){
 function cicloPersistir(mensagem='Ciclo salvo.'){
   if(!auth.currentUser||!CICLO_REF)return Promise.resolve(false);
 
-  // V10.4.61: durante login/inicialização, nunca gravar estado vazio/temporário.
+  // V10.4.62: durante login/inicialização, nunca gravar estado vazio/temporário.
   // Isso evita apagar no Firebase o Ciclo que ainda está sendo recuperado.
   if(cicloLoginCarregandoV10461 || !cicloCloudLidoV10461){
-    console.warn('V10.4.61: salvamento bloqueado enquanto o Ciclo do UID está carregando.');
+    console.warn('V10.4.62: salvamento bloqueado enquanto o Ciclo do UID está carregando.');
     return Promise.resolve(false);
   }
   if(!Array.isArray(cicloEstado?.itens) || !cicloEstado.itens.length){
-    console.warn('V10.4.61: salvamento automático de Ciclo vazio bloqueado.');
+    console.warn('V10.4.62: salvamento automático de Ciclo vazio bloqueado.');
     return Promise.resolve(false);
   }
 
@@ -1433,7 +1431,7 @@ function cicloPersistir(mensagem='Ciclo salvo.'){
   localStorage.setItem('nova_v3_ciclo_'+auth.currentUser.uid,JSON.stringify(payload));
   clearTimeout(cicloSaveTimer);
   $('statusCiclo').textContent='Salvando...';
-  // V10.4.61: grava imediatamente no Firebase. Assim logout/reload não cancela
+  // V10.4.62: grava imediatamente no Firebase. Assim logout/reload não cancela
   // um setTimeout pendente e o ciclo volta corretamente no próximo login.
   return CICLO_REF.set(payload)
     .then(()=>{ $('statusCiclo').textContent=mensagem; return true; })

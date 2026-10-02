@@ -501,7 +501,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.54 • D1 VISUAL GARANTIDO</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.55 • D1 DATA LOCAL CORRIGIDA</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -4395,10 +4395,10 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 </style>
 
 
-<!-- V10.4.52 — D1 corrigida no motor original -->
+<!-- V10.4.55 — D1 usa a data LOCAL da conclusão (corrige virada UTC/Brasil) -->
 <script id="v10452-d1-core-fix">
 (function(){
- function baseISO(v){if(!v)return '';var m=String(v).match(/^(\d{4}-\d{2}-\d{2})/);if(m)return m[1];var d=new Date(v);return isNaN(d)?'':v104DateISO(d)}
+ function baseISO(v){if(!v)return '';var txt=String(v);if(/^\d{4}-\d{2}-\d{2}$/.test(txt))return txt;var d=new Date(v);return isNaN(d)?'':v104DateISO(d)}
  function pacote(base,old){var x=(old&&typeof old==='object')?old:{};[1,7,15,30].forEach(function(n){var k='D'+n,dt=revDataISO(base,n);if(!x[k])x[k]={dias:n,data:dt,concluida:false};else{x[k].dias=n;if(!x[k].concluida)x[k].data=dt}});return x}
  async function reconstruir(){
   if(!auth.currentUser||!REVISOES_MOTOR_REF)return false;var mudou=false;

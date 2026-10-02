@@ -466,6 +466,32 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .v10440-drop{outline:2px dashed #38bdf8;outline-offset:-3px}
 .v10440-empty{padding:18px;text-align:center;color:#9bb4d2;border:1px dashed #2b3a51;border-radius:12px}
 </style>
+
+<style id="v10466-visual-only">
+/* V10.4.66 — SOMENTE VISUAL. Nenhuma regra de negócio alterada. */
+:root{--bg:#091321;--surface:#101d31;--card:#111f34;--border:#2b405d;--text:#f8fafc;--muted:#9db0ca;--primary:#31b9ff;--accent:#7048ff;--success:#20c77a;--danger:#ef3340}
+body{background:linear-gradient(180deg,#08111e 0%,#0a1524 100%)}
+#app{grid-template-columns:220px minmax(0,1fr)}
+aside{background:linear-gradient(180deg,#5b20df 0%,#7b31f3 52%,#6624e7 100%);border-right:1px solid rgba(255,255,255,.13);padding:20px 10px 16px;gap:15px;box-shadow:10px 0 32px rgba(0,0,0,.14);position:sticky;top:0;height:100vh;overflow:auto}
+.brand{padding:4px 7px 12px;border-bottom:1px solid rgba(255,255,255,.14)}
+.brand h2{color:#fff;font-size:1.06rem;line-height:1.08}.brand .user,.brand .sync{color:#f1eaff}.brand .sync{opacity:.88}
+.nav{gap:5px}.nav button,.nav button.nav-gerenciar-edital-v10435{color:#eee8ff;border:0;background:transparent;border-radius:10px;padding:10px 12px;font-size:.78rem;box-shadow:none;transition:.15s ease}
+.nav button:hover{background:rgba(255,255,255,.11);color:#fff;transform:translateX(2px)}
+.nav button.active,.nav button.nav-gerenciar-edital-v10435.active{background:#fff;color:#5421d5;border:0;box-shadow:0 7px 18px rgba(34,12,91,.18)}
+.aside-bottom{padding:8px 6px 0}.aside-bottom .btn{border-color:rgba(255,255,255,.35);color:#fff;background:rgba(255,255,255,.08)}
+main{padding:32px clamp(20px,4vw,66px);max-width:1500px;width:100%;margin:0 auto}.top{margin-bottom:18px}.top h1{font-size:1.75rem;letter-spacing:-.035em}.version{background:#0c1728;border-color:#263c59;color:#91a9c8}
+.hero{position:relative;overflow:hidden;background:linear-gradient(120deg,#17183f 0%,#10283a 54%,#121d35 100%);border-color:#313363;border-radius:20px;padding:27px 30px;box-shadow:0 12px 32px rgba(0,0,0,.12)}
+.hero:after{content:'';position:absolute;width:210px;height:210px;border-radius:50%;right:-65px;top:-115px;background:rgba(112,72,255,.13)}
+.hero h2{font-size:1.7rem;letter-spacing:-.035em}.hero p{font-size:.93rem;color:#8fa2bf}
+.grid{gap:14px}.stat,.panel,.plan-box,.ciclo-proxima,.ciclo-posicao{background:#111f34;border-color:#2b405d;border-radius:15px;box-shadow:0 8px 22px rgba(0,0,0,.08)}
+.stat{padding:18px 19px;border-left:4px solid var(--primary)}.stat span{color:#8ea3bf}.stat strong{font-size:1.42rem}
+.btn{border-radius:10px}.btn-primary{background:linear-gradient(110deg,#397cff,#7048ff);box-shadow:0 7px 18px rgba(89,72,255,.18)}.btn-outline{background:#101d31;border-color:#334b6b}.btn-success{background:#0aa879}.btn-danger{background:#a91f2c}
+input,textarea,select{background:#13233a!important;border-color:#36506f!important;border-radius:9px!important;color:#fff!important}input:focus,textarea:focus,select:focus{border-color:#36bdfc!important;box-shadow:0 0 0 2px rgba(54,189,252,.10)}
+.materia-card,.ciclo-item,.edital-summary,.empty{border-color:#2c4260;background:#0c1728}.materia-head{background:#12253c}.topico-row{border-color:#223852}
+.placeholder{background:#101d31;border-color:#304660}
+@media(max-width:1000px){#app{grid-template-columns:190px minmax(0,1fr)}main{padding:24px 18px}}
+@media(max-width:800px){#app{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid rgba(255,255,255,.15)}.nav{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:18px 12px}.hero{padding:22px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
 </head>
 <body>
 <section id="login">
@@ -501,7 +527,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.65 • CICLO PERSISTENTE APÓS LOGIN</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.66 • REDESIGN VISUAL</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">

@@ -501,7 +501,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.64 • CICLO PERSISTENTE APÓS LOGIN</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.65 • CICLO PERSISTENTE APÓS LOGIN</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -1115,6 +1115,14 @@ async function abrirApp(user){
  await cicloCarregar();
  await planejamentoCarregar();
  await revisoesMotorCarregar();
+
+ // V10.4.65 — carregamento dependente de autenticação.
+ // O Planejamento/agendaV102 não pode depender de setTimeout do DOM,
+ // porque no primeiro login auth.currentUser ainda podia não existir.
+ // No F5 a sessão já vinha restaurada e por isso funcionava.
+ // Agora aguardamos a agenda do UID aqui, dentro do fluxo oficial do login.
+ await v101CarregarPlan();
+
  const ultima=localStorage.getItem('nova_v3_ultima_pagina_'+user.uid)||'dashboard';
  if(!abrirPaginaV3(ultima,false))abrirPaginaV3('dashboard',false);
 }
@@ -1340,7 +1348,7 @@ let cicloExec={indice:0,voltas:0,atualizadoEm:null};
 let CICLO_REF=null;
 let CICLO_EXEC_REF=null;
 let cicloSaveTimer=null;
-// V10.4.64 — impede sobrescrita do Ciclo durante a inicialização/login.
+// V10.4.65 — impede sobrescrita do Ciclo durante a inicialização/login.
 let cicloLoginCarregandoV10461=true;
 let cicloCloudLidoV10461=false;
 
@@ -1354,7 +1362,7 @@ function cicloNormalizar(raw){
     itens:itens
       .filter(x=>x&&typeof x.nome==='string'&&x.nome.trim())
       .map(x=>({nome:x.nome.trim(),ativo:x.ativo!==false,minutos:Math.max(5,Math.min(600,Number(x.minutos)||50))})),
-    // V10.4.64: não perder a data usada para decidir entre cache local e Firebase.
+    // V10.4.65: não perder a data usada para decidir entre cache local e Firebase.
     atualizadoEm:typeof fonte.atualizadoEm==='string'?fonte.atualizadoEm:null
   };
 }
@@ -1362,7 +1370,7 @@ function cicloSincronizarComEdital(render=true){
   const nomes=cicloNomesEdital();
   const atuais=Array.isArray(cicloEstado?.itens)?cicloEstado.itens:[];
 
-  // V10.4.64 — sincronização NÃO DESTRUTIVA.
+  // V10.4.65 — sincronização NÃO DESTRUTIVA.
   // O Ciclo salvo pelo usuário é a fonte da configuração do Ciclo.
   // O carregamento tardio/temporário do Edital nunca pode remover disciplinas
   // que acabaram de voltar do Firebase. A sincronização automática apenas:
@@ -1413,14 +1421,14 @@ async function cicloCarregar(){
 function cicloPersistir(mensagem='Ciclo salvo.'){
   if(!auth.currentUser||!CICLO_REF)return Promise.resolve(false);
 
-  // V10.4.64: durante login/inicialização, nunca gravar estado vazio/temporário.
+  // V10.4.65: durante login/inicialização, nunca gravar estado vazio/temporário.
   // Isso evita apagar no Firebase o Ciclo que ainda está sendo recuperado.
   if(cicloLoginCarregandoV10461 || !cicloCloudLidoV10461){
-    console.warn('V10.4.64: salvamento bloqueado enquanto o Ciclo do UID está carregando.');
+    console.warn('V10.4.65: salvamento bloqueado enquanto o Ciclo do UID está carregando.');
     return Promise.resolve(false);
   }
   if(!Array.isArray(cicloEstado?.itens) || !cicloEstado.itens.length){
-    console.warn('V10.4.64: salvamento automático de Ciclo vazio bloqueado.');
+    console.warn('V10.4.65: salvamento automático de Ciclo vazio bloqueado.');
     return Promise.resolve(false);
   }
 
@@ -1431,7 +1439,7 @@ function cicloPersistir(mensagem='Ciclo salvo.'){
   localStorage.setItem('nova_v3_ciclo_'+auth.currentUser.uid,JSON.stringify(payload));
   clearTimeout(cicloSaveTimer);
   $('statusCiclo').textContent='Salvando...';
-  // V10.4.64: grava imediatamente no Firebase. Assim logout/reload não cancela
+  // V10.4.65: grava imediatamente no Firebase. Assim logout/reload não cancela
   // um setTimeout pendente e o ciclo volta corretamente no próximo login.
   return CICLO_REF.set(payload)
     .then(()=>{ $('statusCiclo').textContent=mensagem; return true; })
@@ -3634,7 +3642,7 @@ async function v101CarregarPlan(){
    const inp=$('planDataInicialV102');if(inp&&!inp.value)inp.value=agendaV102?.dataInicial||v102HojeISO();
    const sel=$('planQtdDiaV102');if(sel)sel.value=String(agendaV102?.assuntosPorDia||2);
    v102Render();
-    // V10.4.64: agendaV102 é a fonte real da "Semana do ciclo".
+    // V10.4.65: agendaV102 é a fonte real da "Semana do ciclo".
     // Ela termina de carregar aqui, depois do login. Portanto reconstruímos
     // a Semana somente depois de receber a agenda definitiva deste UID.
     if(typeof renderizarPlanejamentoHojeV103==='function')renderizarPlanejamentoHojeV103();
@@ -3656,8 +3664,10 @@ function v100Bind(){
  // controla exclusivamente a classe .active, evitando páginas vazias até um F5.
  document.querySelectorAll('.page').forEach(p=>p.style.removeProperty('display'));
 }
-document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},1200));
-setTimeout(()=>{v100Bind();v100CarregarSalvo();v101CarregarPlan();},2100);
+// V10.4.65: UI pode ser ligada pelo DOM, mas dados do usuário NÃO.
+// v101CarregarPlan() agora é chamado e aguardado dentro de abrirApp(user).
+document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{v100Bind();v100CarregarSalvo();},1200));
+setTimeout(()=>{v100Bind();v100CarregarSalvo();},2100);
 
 </script>
 

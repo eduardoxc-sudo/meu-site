@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.10 • ESTABILIZAÇÃO FINAL</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.11 • HISTÓRICO CORRIGIDO</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -2656,66 +2656,58 @@ async function v10422SalvarSessao(dados){
  if(!confirmado.exists()) throw new Error('Sessão não foi persistida no histórico.');
  return {id:novo.key,...(confirmado.val()||{})};
 }
+function v10511RenderHistorico(arr){
+ const box=$('timerHistoricoV10422'); if(!box)return;
+ const mapa=new Map();
+ (arr||[]).filter(Boolean).forEach(x=>{
+   const chave=String(x.cloudId||x.id||'');
+   if(chave)mapa.set(chave,x);
+ });
+ const lista=[...mapa.values()].sort((a,b)=>(Number(b.criadoEm)||0)-(Number(a.criadoEm)||0));
+ if(!lista.length){box.innerHTML='<div class="placeholder">Nenhuma sessão registrada ainda.</div>';return;}
+ const grupos={};
+ lista.forEach(x=>{
+   const materia=String(x.disciplina||'Sem matéria').trim()||'Sem matéria';
+   (grupos[materia]??={materia,sessoes:[],segundos:0}).sessoes.push(x);
+   grupos[materia].segundos+=Math.max(0,Number(x.segundos)||0);
+ });
+ box.innerHTML=Object.values(grupos).sort((a,b)=>a.materia.localeCompare(b.materia,'pt-BR')).map((g,gi)=>{
+   const id='timerMateriaV10511_'+gi;
+   const sessoes=g.sessoes.map(x=>
+    '<div class="v102-topic" style="margin:10px 0 0;display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:14px;align-items:center;width:100%">'+
+      '<div class="v102-num">'+String(x.numero||'—').padStart(2,'0')+'</div>'+
+      '<div class="v102-main"><strong style="display:block;white-space:normal;overflow-wrap:anywhere">'+v10422Esc(x.assuntoNome||'Assunto')+'</strong>'+
+      '<small style="display:block">'+(x.tipo==='manual'?'✍️ Manual':'⏱ Timer')+' • '+v10422FmtDataHora(x.criadoEm)+(x.pendenteNuvem?' • salvando…':'')+'</small></div>'+
+      '<div style="display:flex;align-items:center;gap:10px;white-space:nowrap"><b>'+v93Fmt(Number(x.segundos)||0)+'</b>'+
+      '<button type="button" data-excluir-sessao-v10434="'+v10422Esc(x.cloudId||x.id)+'" style="border:1px solid #7a2638;background:#3a1720;color:#fff;border-radius:8px;padding:6px 9px;font-weight:800;cursor:pointer">🗑️ Excluir</button></div>'+
+    '</div>').join('');
+   return '<div style="border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden">'+
+    '<button type="button" data-hist-toggle="'+id+'" style="width:100%;border:0;background:var(--surface-soft);color:inherit;padding:16px;text-align:left;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer">'+
+    '<strong>📚 '+v10422Esc(g.materia)+'</strong><span style="white-space:nowrap">'+g.sessoes.length+' sessão(ões) • '+v93Fmt(g.segundos)+' &nbsp; <span data-arrow>▼</span></span></button>'+
+    '<div id="'+id+'" style="padding:0 12px 12px">'+sessoes+'</div></div>';
+ }).join('');
+}
+let v10511HistoricoToken=0;
 async function v10422CarregarHistorico(){
  const box=$('timerHistoricoV10422'); if(!box)return;
  v10434BindExcluirSessoes();
- const r=v10422SessoesRef();
- if(!r){box.innerHTML='<div class="placeholder">Faça login para visualizar o histórico.</div>';return;}
+ const token=++v10511HistoricoToken;
+ const locais=v10506LocalLer();
+ // nunca mostra "Carregando..." por causa da nuvem: render local primeiro
+ v10511RenderHistorico(locais);
+ const r=v10422SessoesRef(); if(!r)return;
  try{
-   const arr=[];
-   // V10.5.08: o histórico local não pode ficar bloqueado esperando a nuvem.
-   // Primeiro prepara os registros locais; depois tenta buscar Firebase com timeout.
-   const locais=v10506LocalLer();
-   let s=null;
-   try{
-     s=await Promise.race([
-       r.limitToLast(50).once('value'),
-       new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout-historico')),1800))
-     ]);
-   }catch(e){
-     console.warn('V10.5.08 histórico: usando cache local enquanto Firebase não responde.',e);
-   }
-   if(s) s.forEach(c=>arr.push({id:c.key,...(c.val()||{})}));
-   // Mescla o espelho local das sessões manuais.
-   // Assim o registro aparece imediatamente mesmo se outro render antigo sobrescrever a tela.
-   const ids=new Set(arr.map(x=>String(x.id)));
-   locais.forEach(x=>{if(x&&x.id&&!ids.has(String(x.id)))arr.push(x)});
-   arr.sort((a,b)=>(Number(b.criadoEm)||0)-(Number(a.criadoEm)||0));
-   if(!arr.length){box.innerHTML='<div class="placeholder">Nenhuma sessão registrada ainda.</div>';return;}
-   const grupos={};
-   arr.forEach(x=>{
-     const materia=(x.disciplina||'Sem matéria').trim()||'Sem matéria';
-     if(!grupos[materia])grupos[materia]={materia,sessoes:[],segundos:0};
-     grupos[materia].sessoes.push(x);
-     grupos[materia].segundos+=Math.max(0,Number(x.segundos)||0);
+   const s=await r.limitToLast(100).once('value');
+   if(token!==v10511HistoricoToken)return;
+   const cloud=[];s.forEach(c=>cloud.push({id:c.key,...(c.val()||{})}));
+   const mapa=new Map(cloud.map(x=>[String(x.id),x]));
+   locais.forEach(x=>{
+     const k=String(x.cloudId||x.id||'');
+     if(!mapa.has(k))mapa.set(k,x);
    });
-
-   box.innerHTML=Object.values(grupos).sort((a,b)=>a.materia.localeCompare(b.materia,'pt-BR')).map((g,gi)=>{
-     const id='timerMateriaV10424_'+gi;
-     const sessoes=g.sessoes.map(x=>
-       '<div class="v102-topic" style="margin:10px 0 0;display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:14px;align-items:center;width:100%">'+
-         '<div class="v102-num" style="min-width:0">'+String(x.numero||'—').padStart(2,'0')+'</div>'+
-         '<div class="v102-main" style="min-width:0;width:100%"><strong style="display:block;white-space:normal;overflow-wrap:anywhere">'+v10422Esc(x.assuntoNome||'Assunto')+'</strong>'+
-         '<small style="display:block;white-space:normal">'+(x.tipo==='manual'?'✍️ Manual':'⏱ Timer')+' • '+v10422FmtDataHora(x.criadoEm)+'</small></div>'+
-         '<div style="display:flex;align-items:center;gap:10px;white-space:nowrap">'+
-           '<div style="font-weight:800;text-align:right">'+v93Fmt(Number(x.segundos)||0)+'</div>'+
-           '<button type="button" data-excluir-sessao-v10434="'+v10422Esc(x.id)+'" style="border:1px solid #7a2638;background:#3a1720;color:#fff;border-radius:8px;padding:6px 9px;font-weight:800;cursor:pointer">🗑️ Excluir</button>'+
-         '</div>'+
-       '</div>'
-     ).join('');
-
-     return '<div style="border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden">'+
-       '<button type="button" onclick="(()=>{const e=document.getElementById(\''+id+'\');const a=this.querySelector(\'[data-arrow]\');const fechado=e.style.display===\'none\';e.style.display=fechado?\'block\':\'none\';if(a)a.textContent=fechado?\'▼\':\'▶\';})()" '+
-       'style="width:100%;border:0;background:rgba(7,13,24,.55);color:inherit;padding:16px;text-align:left;display:flex;justify-content:space-between;gap:16px;align-items:center;cursor:pointer">'+
-         '<strong>📚 '+v10422Esc(g.materia)+'</strong>'+
-         '<span style="white-space:nowrap;color:var(--muted)">'+g.sessoes.length+' sessão(ões) • '+v93Fmt(g.segundos)+' &nbsp; <span data-arrow>▼</span></span>'+
-       '</button>'+
-       '<div id="'+id+'" style="padding:0 12px 12px">'+sessoes+'</div>'+
-     '</div>';
-   }).join('');
+   v10511RenderHistorico([...mapa.values()]);
  }catch(e){
-   console.error('V10.4.22 histórico:',e);
-   box.innerHTML='<div class="placeholder">Não foi possível carregar o histórico agora.</div>';
+   console.warn('V10.5.11 histórico: mantendo cache local.',e);
  }
 }
 
@@ -7278,7 +7270,7 @@ main{min-width:0}
    try{
      if(typeof v922CalcularSequencia==='function'){
        const seq=v922CalcularSequencia(datas,new Date());
-       set('dashSeqV92',Number.isFinite(Number(seq))?Number(seq):0);
+       if(document.getElementById('page-dashboard')?.classList.contains('active')) set('dashSeqV92',Number.isFinite(Number(seq))?Number(seq):0);
      }
    }catch(e){console.warn('V10.5.10 sequência',e)}
  }
@@ -7311,6 +7303,17 @@ main{min-width:0}
  window.addEventListener('load',()=>{setTimeout(refresh,700);setTimeout(refresh,1800)});
  window.v10510Refresh=refresh;
 })();
+</script>
+
+
+<script id="v10511-historico-toggle">
+document.addEventListener('click',function(e){
+ const b=e.target.closest('[data-hist-toggle]'); if(!b)return;
+ const area=document.getElementById(b.dataset.histToggle); if(!area)return;
+ const abrir=area.style.display==='none';
+ area.style.display=abrir?'block':'none';
+ const a=b.querySelector('[data-arrow]'); if(a)a.textContent=abrir?'▼':'▶';
+});
 </script>
 
 </body>

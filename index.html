@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.11 • HISTÓRICO CORRIGIDO</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.12 • FILTRO E SEQUÊNCIA ESTÁVEIS</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -2995,7 +2995,7 @@ function renderizarEstatisticasV92(){
  $('statStatusV92').textContent=s.revisoesConcluidas
    ? '✓ '+s.revisoesConcluidas+' revisão(ões) real(is) concluída(s). '+s.taxaPrazo+'% concluída(s) no prazo.'
    : 'Nenhuma revisão real concluída ainda.';
- if($('dashSeqV92'))$('dashSeqV92').textContent=Number.isFinite(Number(s.sequencia))?String(Number(s.sequencia)):'0';
+ if(document.getElementById('page-dashboard')?.classList.contains('active')&&$('dashSeqV92')) $('dashSeqV92').textContent=Number.isFinite(Number(s.sequencia))?String(Number(s.sequencia)):'0';
  v93Render();
 }
 
@@ -6529,7 +6529,7 @@ html body :is(
       if(typeof v922DatasAtividadeReal!=='function' || typeof v922CalcularSequencia!=='function') return;
       var datas=v922DatasAtividadeReal();
       var seq=v922CalcularSequencia(datas,new Date());
-      setSomenteSeMudou('dashSeqV92', Number.isFinite(Number(seq)) ? Number(seq) : 0);
+      if(document.getElementById('page-dashboard')?.classList.contains('active')) setSomenteSeMudou('dashSeqV92', Number.isFinite(Number(seq)) ? Number(seq) : 0);
     }catch(e){ console.warn('V10.4.98 sequência dashboard',e); }
   }
 
@@ -6746,6 +6746,8 @@ html body :is(
       tops.map(t=>'<option value="'+esc(t.titulo||'')+'">'+esc(t.titulo||'')+'</option>').join('');
     if(tops.some(t=>(t.titulo||'') === atual)) sel.value = atual;
   }
+
+  window.carregarFonteRealV10500=carregarFonteReal;
 
   async function sincronizarQuestoes(force){
     const sel = document.getElementById('qMateriaV10427');
@@ -7314,6 +7316,156 @@ document.addEventListener('click',function(e){
  area.style.display=abrir?'block':'none';
  const a=b.querySelector('[data-arrow]'); if(a)a.textContent=abrir?'▼':'▶';
 });
+</script>
+
+
+<style id="v10512-no-flicker">
+body[data-v10512-page]:not([data-v10512-page="dashboard"]) #page-dashboard{display:none!important;visibility:hidden!important}
+body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:visible!important}
+</style>
+
+<script id="v10512-filtro-sequencia">
+(function(){
+ const $=id=>document.getElementById(id);
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+ const normBusca=v=>norm(v).replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+
+ function pagina(nome){
+   document.body.dataset.v10512Page=nome||'';
+ }
+
+ // Define o estado visual ANTES dos listeners antigos.
+ document.addEventListener('click',function(e){
+   const b=e.target.closest('button[data-page]');
+   if(!b)return;
+   pagina(b.getAttribute('data-page'));
+ },true);
+
+ window.addEventListener('load',function(){
+   const a=document.querySelector('section.page.active');
+   pagina(a?.id?.replace(/^page-/,'')||'dashboard');
+ });
+
+ async function fonte(){
+   try{
+     if(typeof window.carregarFonteRealV10500==='function'){
+       const d=await window.carregarFonteRealV10500(false);
+       if(d&&Object.keys(d).length)return d;
+     }
+   }catch(_){}
+   try{
+     if(typeof editalAtualV100!=='undefined'&&Array.isArray(editalAtualV100?.assuntos)){
+       const g={};
+       editalAtualV100.assuntos.forEach(a=>{
+         const m=String(a?.disciplina||'').trim(), n=String(a?.nome||a?.titulo||'').trim();
+         if(m&&n)(g[m]??=[]).push({id:a.id||'',titulo:n});
+       });
+       if(Object.keys(g).length)return g;
+     }
+   }catch(_){}
+   try{
+     const u=auth.currentUser;if(!u)return {};
+     const s=await db.ref('usuarios/'+u.uid+'/editalProntoV100').once('value');
+     const a=s.val()?.assuntos||[],g={};
+     a.forEach(x=>{
+       const m=String(x?.disciplina||'').trim(),n=String(x?.nome||x?.titulo||'').trim();
+       if(m&&n)(g[m]??=[]).push({id:x.id||'',titulo:n});
+     });
+     return g;
+   }catch(_){return {}}
+ }
+
+ let marcados={};
+ async function lerChecklist(){
+   try{
+     const u=auth.currentUser;if(!u)return;
+     const s=await db.ref('usuarios/'+u.uid+'/editalVerticalizadoChecklistV10499').once('value');
+     marcados=s.val()||{};
+   }catch(_){}
+ }
+ const chave=(m,t)=>norm(m)+'||'+norm(t);
+
+ async function render(opts={}){
+   const lista=$('ev499Lista'), sel=$('ev499Filtro'), busca=$('ev499Busca');
+   if(!lista||!sel)return;
+   const valorFiltro = opts.filtro!==undefined ? opts.filtro : sel.value;
+   const valorBusca = opts.busca!==undefined ? opts.busca : (busca?.value||'');
+   const dados=await fonte(), mats=Object.keys(dados);
+
+   // Só reconstrói opções quando realmente mudaram.
+   const assinatura=mats.join('\u0001');
+   if(sel.dataset.v10512Mats!==assinatura){
+     sel.innerHTML='<option value="">Todas as disciplinas</option>'+
+       mats.map(m=>'<option value="'+esc(m)+'">'+esc(m)+'</option>').join('');
+     sel.dataset.v10512Mats=assinatura;
+   }
+   sel.value=mats.includes(valorFiltro)?valorFiltro:'';
+   if(busca && busca.value!==valorBusca)busca.value=valorBusca;
+
+   let total=0,feitos=0;
+   mats.forEach(m=>(dados[m]||[]).forEach(x=>{total++;if(marcados[chave(m,x.titulo)])feitos++}));
+   const pct=total?Math.round(feitos*100/total):0;
+   if($('ev499GeralTxt'))$('ev499GeralTxt').textContent=feitos+' / '+total+' • '+pct+'%';
+   if($('ev499GeralBar'))$('ev499GeralBar').style.width=pct+'%';
+
+   const q=normBusca(valorBusca);
+   const vis=mats.filter(m=>!sel.value||m===sel.value).map(m=>{
+     const todos=dados[m]||[];
+     const tops=todos.filter(x=>!q||normBusca(x.titulo).includes(q));
+     if(!tops.length)return '';
+     const fm=todos.filter(x=>marcados[chave(m,x.titulo)]).length;
+     const pm=todos.length?Math.round(fm*100/todos.length):0;
+     return '<section class="ev499-materia">'+
+       '<div class="ev499-materia-head"><span>📚 '+esc(m)+'</span><small>'+fm+' / '+todos.length+' • '+pm+'%</small></div>'+
+       '<div class="ev499-materia-track"><i style="width:'+pm+'%"></i></div>'+
+       tops.map(x=>{
+         const k=chave(m,x.titulo),ok=!!marcados[k],num=todos.indexOf(x)+1;
+         return '<div class="ev499-topico '+(ok?'ev499-feito':'')+'"><span class="ev499-num">'+String(num).padStart(2,'0')+
+           '</span><span class="ev499-nome">'+esc(x.titulo)+'</span><label><input type="checkbox" data-ev10512-key="'+esc(k)+'" '+(ok?'checked':'')+'> Estudado</label></div>';
+       }).join('')+'</section>';
+   }).join('');
+   lista.innerHTML=vis||'<div class="ev499-empty">Nenhum assunto encontrado.</div>';
+   if($('ev499Status'))$('ev499Status').textContent=total?'✓ '+mats.length+' matéria(s) • '+total+' assunto(s) carregados do Edital.':'Nenhum assunto disponível no Edital.';
+ }
+
+ // CAPTURE: impede que os renderizadores antigos resetem o filtro/busca.
+ document.addEventListener('change',function(e){
+   if(e.target?.id==='ev499Filtro'){
+     const v=e.target.value;
+     e.stopImmediatePropagation();
+     render({filtro:v,busca:$('ev499Busca')?.value||''});
+     return;
+   }
+   const cb=e.target?.closest?.('[data-ev10512-key]');
+   if(cb){
+     e.stopImmediatePropagation();
+     const k=cb.dataset.ev10512Key;
+     if(cb.checked)marcados[k]=true;else delete marcados[k];
+     try{
+       const u=auth.currentUser;
+       if(u)db.ref('usuarios/'+u.uid+'/editalVerticalizadoChecklistV10499').set(marcados);
+     }catch(_){}
+     render();
+   }
+ },true);
+
+ document.addEventListener('input',function(e){
+   if(e.target?.id==='ev499Busca'){
+     const q=e.target.value;
+     e.stopImmediatePropagation();
+     render({filtro:$('ev499Filtro')?.value||'',busca:q});
+   }
+ },true);
+
+ document.addEventListener('click',function(e){
+   if(e.target.closest?.('[data-page="editalVerticalizadoAcompanhamento"]')){
+     setTimeout(async()=>{await lerChecklist();render();},120);
+   }
+ },true);
+
+ window.renderEditalVerticalizadoV10512=render;
+})();
 </script>
 
 </body>

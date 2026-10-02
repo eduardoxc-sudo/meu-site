@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.16 • SEQUÊNCIA FONTE ÚNICA</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.17 • DASHBOARD INSTANTÂNEO</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -7505,5 +7505,57 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
  window.v10516AtualizarSequencia=atualizar;
 })();
 </script>
+
+<script id="v10517-dashboard-instantaneo">
+(function(){
+  const getUid=()=>{try{return auth&&auth.currentUser?auth.currentUser.uid:''}catch(_){return ''}};
+  const key=(n)=>'nova_v10517_dash_'+n+'_'+getUid();
+  function put(n,v){if(!getUid())return;try{localStorage.setItem(key(n),String(v))}catch(_){}}
+  function get(n){if(!getUid())return null;try{return localStorage.getItem(key(n))}catch(_){return null}}
+  function set(id,v){const e=document.getElementById(id);if(e&&v!==null&&v!==undefined&&e.textContent!==String(v))e.textContent=String(v)}
+  function editalAgora(){
+    try{
+      const edital=(typeof estadoV2!=='undefined'&&estadoV2&&estadoV2.editalVerticalizado)||{};
+      const agenda=(typeof agendaV102!=='undefined'&&Array.isArray(agendaV102?.itens))?agendaV102.itens:[];
+      const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+      const concl=new Set(agenda.filter(a=>a&&(a.concluidoEm||a.concluido===true||a.status==='concluido')).map(a=>norm(a.disciplina)+'||'+norm(a.nome)));
+      let total=0,feitos=0;
+      Object.keys(edital).forEach(d=>(edital[d]||[]).forEach(t=>{total++;if(t?.t||concl.has(norm(d)+'||'+norm(t?.titulo)))feitos++}));
+      if(total){const v=feitos+' / '+total;set('dashEdital',v);put('edital',v);return v}
+    }catch(_){ }
+    return null;
+  }
+  function seqAgora(){
+    try{
+      if(typeof v922DatasAtividadeReal==='function'&&typeof v922CalcularSequencia==='function'){
+        const seq=v922CalcularSequencia(v922DatasAtividadeReal(),new Date());
+        if(Number.isFinite(Number(seq))){const v=String(Number(seq));set('dashSeqV92',v);put('seq',v);return v}
+      }
+    }catch(_){ }
+    return null;
+  }
+  function mostrarCache(){
+    const s=get('seq'),e=get('edital');
+    if(s!==null)set('dashSeqV92',s);
+    if(e!==null)set('dashEdital',e);
+    // O Edital já está em estadoV2/localStorage no fluxo normal; tenta cálculo síncrono imediatamente.
+    editalAgora(); seqAgora();
+  }
+  function atualizar(){editalAgora();seqAgora()}
+  // Captura ANTES do roteador: os cards recebem o último valor válido sem esperar Firebase/renderizações.
+  document.addEventListener('click',function(ev){if(ev.target.closest?.('[data-page="dashboard"]'))mostrarCache()},true);
+  // Quando o Dashboard já é a página restaurada após login.
+  document.addEventListener('DOMContentLoaded',mostrarCache);
+  window.addEventListener('load',function(){mostrarCache();setTimeout(atualizar,0);setTimeout(atualizar,120)});
+  // Persistir toda vez que rotinas antigas mudarem os dois cards.
+  const obs=new MutationObserver(function(ms){
+    ms.forEach(m=>{const id=m.target&&m.target.id;if(id==='dashSeqV92')put('seq',m.target.textContent);if(id==='dashEdital'&&/\d+\s*\/\s*\d+/.test(m.target.textContent))put('edital',m.target.textContent)});
+  });
+  const startObs=()=>{['dashSeqV92','dashEdital'].forEach(id=>{const e=document.getElementById(id);if(e)obs.observe(e,{childList:true,characterData:true,subtree:true})})};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startObs);else startObs();
+  window.v10517DashboardInstantaneo={mostrarCache,atualizar};
+})();
+</script>
+
 </body>
 </html>

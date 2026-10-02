@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.99 • EDITAL VERTICALIZADO</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.00 • EDITAL VERTICALIZADO SINCRONIZADO</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -6404,5 +6404,251 @@ html body :is(
 </script>
 
 \n<style id="v10499-edital-verticalizado-css">\n.ev499-title-row{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.ev499-geral{min-width:180px;border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:var(--card2,rgba(0,0,0,.06));display:flex;flex-direction:column;gap:4px}.ev499-geral span{font-size:.72rem;color:var(--muted);font-weight:800}.ev499-geral strong{font-size:1.05rem}.ev499-track{height:10px;border-radius:999px;background:var(--card2,rgba(127,127,127,.15));overflow:hidden;margin:12px 0 16px}.ev499-track i{display:block;height:100%;width:0;background:var(--primary);border-radius:inherit;transition:width .2s ease}.ev499-tools{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}.ev499-tools label{display:grid;gap:6px;font-size:.76rem;font-weight:800}.ev499-tools select,.ev499-tools input{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg,var(--card));color:var(--text);font:inherit}.ev499-list{display:grid;gap:14px}.ev499-materia{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}.ev499-materia-head{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 14px;background:var(--card2,rgba(127,127,127,.08));font-weight:800}.ev499-materia-head small{color:var(--muted);font-weight:700}.ev499-materia-track{height:5px;background:var(--card2,rgba(127,127,127,.12))}.ev499-materia-track i{display:block;height:100%;background:var(--primary)}.ev499-topico{display:grid;grid-template-columns:44px 1fr 105px;gap:10px;align-items:center;padding:11px 14px;border-top:1px solid var(--border)}.ev499-num{font-weight:800;color:var(--muted)}.ev499-topico label{display:flex;align-items:center;gap:8px;justify-content:flex-start;font-weight:700;cursor:pointer}.ev499-topico input[type=checkbox]{width:19px;height:19px;accent-color:var(--primary)}.ev499-topico.ev499-feito .ev499-nome{text-decoration:line-through;opacity:.62}.ev499-empty{padding:28px;text-align:center;border:1px dashed var(--border);border-radius:12px;color:var(--muted)}@media(max-width:760px){.ev499-title-row{display:block}.ev499-geral{margin-top:12px}.ev499-tools{grid-template-columns:1fr}.ev499-topico{grid-template-columns:36px 1fr}.ev499-topico label{grid-column:2}}\n</style>\n<script id="v10499-edital-verticalizado-js">\n(function(){\n  var marcados={}, ref=null, uid=null, iniciado=false;\n  function esc(v){return String(v??'').replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}\n  function norm(v){return String(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/\\s+/g,' ').trim()}\n  function chave(m,t){return norm(m)+'||'+norm(t)}\n  function fonte(){return (window.estadoV2&&window.estadoV2.editalVerticalizado)||{}}\n  function elementos(){return {f:document.getElementById('ev499Filtro'),q:document.getElementById('ev499Busca'),l:document.getElementById('ev499Lista'),s:document.getElementById('ev499Status')}}\n  function atualizarFiltro(){\n    var e=elementos(), mats=Object.keys(fonte()), atual=e.f?.value||''; if(!e.f)return;\n    e.f.innerHTML='<option value="">Todas as disciplinas</option>'+mats.map(m=>'<option value="'+esc(m)+'">'+esc(m)+'</option>').join('');\n    if(mats.includes(atual))e.f.value=atual;\n  }\n  function render(){\n    var e=elementos(); if(!e.l)return; var dados=fonte(), mats=Object.keys(dados); atualizarFiltro();\n    var filtro=e.f?.value||'', busca=norm(e.q?.value||''); var total=0, feitos=0;\n    mats.forEach(m=>(dados[m]||[]).forEach(t=>{total++;if(marcados[chave(m,t.titulo)])feitos++}));\n    var pct=total?Math.round(feitos*100/total):0, gt=document.getElementById('ev499GeralTxt'), gb=document.getElementById('ev499GeralBar'); if(gt)gt.textContent=feitos+' / '+total+' • '+pct+'%';if(gb)gb.style.width=pct+'%';\n    var vis=mats.filter(m=>!filtro||m===filtro).map(function(m){\n      var tops=(dados[m]||[]).filter(t=>!busca||norm(t.titulo).includes(busca)); if(!tops.length)return '';\n      var all=dados[m]||[], fm=all.filter(t=>marcados[chave(m,t.titulo)]).length, pm=all.length?Math.round(fm*100/all.length):0;\n      return '<section class="ev499-materia"><div class="ev499-materia-head"><span>📚 '+esc(m)+'</span><small>'+fm+' / '+all.length+' • '+pm+'%</small></div><div class="ev499-materia-track"><i style="width:'+pm+'%"></i></div>'+tops.map(function(t,i){var k=chave(m,t.titulo),ok=!!marcados[k],numero=(all.indexOf(t)+1);return '<div class="ev499-topico '+(ok?'ev499-feito':'')+'"><span class="ev499-num">'+String(numero).padStart(2,'0')+'</span><span class="ev499-nome">'+esc(t.titulo)+'</span><label><input type="checkbox" data-ev499-key="'+esc(k)+'" '+(ok?'checked':'')+'> Estudado</label></div>'}).join('')+'</section>'\n    }).join('');\n    e.l.innerHTML=vis||'<div class="ev499-empty">Nenhum assunto encontrado.</div>';\n    if(e.s)e.s.textContent=total?('✓ '+mats.length+' matéria(s) • '+total+' assunto(s) carregados do Edital.'):'Nenhum assunto no Edital ainda.';\n  }\n  async function iniciar(){\n    var u=window.auth&&auth.currentUser;if(!u)return; if(iniciado&&uid===u.uid){render();return} iniciado=true;uid=u.uid;ref=db.ref('usuarios/'+uid+'/editalVerticalizadoChecklistV10499');\n    try{var snap=await ref.once('value');marcados=snap.val()||{};render()}catch(err){console.warn('V10.4.99 checklist',err);render()}\n  }\n  async function marcar(k,valor){marcados[k]=!!valor;if(!valor)delete marcados[k];render();try{if(ref)await ref.set(marcados)}catch(err){console.warn('V10.4.99 salvar checklist',err)}}\n  document.addEventListener('change',function(ev){if(ev.target.id==='ev499Filtro')render();var cb=ev.target.closest('[data-ev499-key]');if(cb)marcar(cb.dataset.ev499Key,cb.checked)});\n  document.addEventListener('input',function(ev){if(ev.target.id==='ev499Busca')render()});\n  document.addEventListener('click',function(ev){if(ev.target.closest('[data-page="editalVerticalizadoAcompanhamento"]'))setTimeout(iniciar,40)});\n  var antigaAtualizar=window.atualizarEditalV2;if(typeof antigaAtualizar==='function'){window.atualizarEditalV2=function(){var r=antigaAtualizar.apply(this,arguments);setTimeout(function(){if(document.getElementById('page-editalVerticalizadoAcompanhamento')?.classList.contains('active'))render()},0);return r}}\n  window.renderEditalVerticalizadoV10499=render;\n})();\n</script>\n
+
+<script id="v10500-fonte-real-edital-pronto">
+/* V10.5.00
+   Correção isolada:
+   - Edital Verticalizado passa a ler o Edital pronto realmente carregado.
+   - Questões passa a usar a mesma fonte.
+   - Não altera Ciclo, Dashboard, Revisões, Planejamento ou prioridades.
+*/
+(function(){
+  let cacheV10500 = null;
+  let uidV10500 = null;
+
+  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+
+  function usuario(){
+    try { return window.auth && auth.currentUser ? auth.currentUser : null; }
+    catch(_) { return null; }
+  }
+
+  function normalizarAssuntos(payload){
+    const assuntos = Array.isArray(payload?.assuntos) ? payload.assuntos : [];
+    const grupos = {};
+    assuntos.forEach(a=>{
+      const disciplina = String(a?.disciplina || '').trim();
+      const nome = String(a?.nome || a?.titulo || '').trim();
+      if(!disciplina || !nome) return;
+      (grupos[disciplina] ??= []).push({
+        id: String(a?.id || ''),
+        titulo: nome,
+        prioridade: Number(a?.prioridade) || 2
+      });
+    });
+    return grupos;
+  }
+
+  async function carregarFonteReal(force){
+    const u = usuario();
+    if(!u) return {};
+    if(!force && cacheV10500 && uidV10500 === u.uid) return cacheV10500;
+
+    uidV10500 = u.uid;
+    let payload = null;
+
+    // 1) objeto já carregado na aba "Edital pronto"
+    try {
+      if(typeof editalAtualV100 !== 'undefined' &&
+         editalAtualV100 &&
+         Array.isArray(editalAtualV100.assuntos) &&
+         editalAtualV100.assuntos.length){
+        payload = editalAtualV100;
+      }
+    } catch(_){}
+
+    // 2) persistência oficial do Edital pronto do usuário
+    if(!payload){
+      try {
+        const snap = await db.ref('usuarios/'+u.uid+'/editalProntoV100').once('value');
+        const d = snap.val();
+        if(d && Array.isArray(d.assuntos) && d.assuntos.length) payload = d;
+      } catch(e) {
+        console.warn('V10.5.00 editalProntoV100:', e);
+      }
+    }
+
+    // 3) importação enviada ao Planejamento (mesmo edital, sem criar cópia visual)
+    if(!payload){
+      try {
+        const snap = await db.ref('usuarios/'+u.uid+'/planejamento/importacaoEditalV100').once('value');
+        const d = snap.val();
+        if(d && Array.isArray(d.assuntos) && d.assuntos.length) payload = d;
+      } catch(e) {
+        console.warn('V10.5.00 importacaoEditalV100:', e);
+      }
+    }
+
+    // 4) compatibilidade com edital digitado antigo, somente se não houver Edital pronto
+    let grupos = normalizarAssuntos(payload);
+    if(!Object.keys(grupos).length){
+      try {
+        grupos = (typeof estadoV2 !== 'undefined' && estadoV2?.editalVerticalizado)
+          ? estadoV2.editalVerticalizado : {};
+      } catch(_) { grupos = {}; }
+    }
+
+    cacheV10500 = grupos || {};
+    return cacheV10500;
+  }
+
+  function preencherAssuntosQuestao(grupos){
+    const mat = document.getElementById('qMateriaV10427')?.value || '';
+    const sel = document.getElementById('qAssuntoV10427');
+    if(!sel) return;
+    const atual = sel.value;
+    const tops = grupos[mat] || [];
+    sel.innerHTML = '<option value="">Selecione o assunto</option>' +
+      tops.map(t=>'<option value="'+esc(t.titulo||'')+'">'+esc(t.titulo||'')+'</option>').join('');
+    if(tops.some(t=>(t.titulo||'') === atual)) sel.value = atual;
+  }
+
+  async function sincronizarQuestoes(force){
+    const sel = document.getElementById('qMateriaV10427');
+    if(!sel) return;
+    const grupos = await carregarFonteReal(!!force);
+    const atual = sel.value;
+    const mats = Object.keys(grupos);
+    sel.innerHTML = '<option value="">Selecione a matéria</option>' +
+      mats.map(m=>'<option value="'+esc(m)+'">'+esc(m)+'</option>').join('');
+    if(mats.includes(atual)) sel.value = atual;
+    preencherAssuntosQuestao(grupos);
+  }
+
+  // Substitui somente os preenchimentos dos selects da tela Questões.
+  window.preencherMateriasV10500 = sincronizarQuestoes;
+
+  document.addEventListener('change', async function(e){
+    if(e.target?.id === 'qMateriaV10427'){
+      const grupos = await carregarFonteReal(false);
+      preencherAssuntosQuestao(grupos);
+    }
+  });
+
+  // Render próprio do acompanhamento verticalizado usando a fonte real.
+  let marcados = {}, checklistRef = null, checklistUid = null;
+
+  function norm(v){
+    return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .toLowerCase().replace(/\s+/g,' ').trim();
+  }
+  function chave(m,t){ return norm(m)+'||'+norm(t); }
+
+  async function carregarChecklist(){
+    const u = usuario();
+    if(!u) return;
+    if(checklistUid === u.uid && checklistRef) return;
+    checklistUid = u.uid;
+    checklistRef = db.ref('usuarios/'+u.uid+'/editalVerticalizadoChecklistV10499');
+    try {
+      const s = await checklistRef.once('value');
+      marcados = s.val() || {};
+    } catch(e) {
+      console.warn('V10.5.00 checklist:', e);
+      marcados = {};
+    }
+  }
+
+  async function renderVerticalizado(force){
+    const lista = document.getElementById('ev499Lista');
+    if(!lista) return;
+
+    await carregarChecklist();
+    const dados = await carregarFonteReal(!!force);
+    const mats = Object.keys(dados);
+
+    const filtroEl = document.getElementById('ev499Filtro');
+    const buscaEl = document.getElementById('ev499Busca');
+    const atual = filtroEl?.value || '';
+
+    if(filtroEl){
+      filtroEl.innerHTML = '<option value="">Todas as disciplinas</option>' +
+        mats.map(m=>'<option value="'+esc(m)+'">'+esc(m)+'</option>').join('');
+      if(mats.includes(atual)) filtroEl.value = atual;
+    }
+
+    const filtro = filtroEl?.value || '';
+    const busca = norm(buscaEl?.value || '');
+    let total=0, feitos=0;
+
+    mats.forEach(m=>(dados[m]||[]).forEach(t=>{
+      total++;
+      if(marcados[chave(m,t.titulo)]) feitos++;
+    }));
+
+    const pct = total ? Math.round(feitos*100/total) : 0;
+    const gt = document.getElementById('ev499GeralTxt');
+    const gb = document.getElementById('ev499GeralBar');
+    if(gt) gt.textContent = feitos+' / '+total+' • '+pct+'%';
+    if(gb) gb.style.width = pct+'%';
+
+    const vis = mats.filter(m=>!filtro || m===filtro).map(m=>{
+      const todos = dados[m] || [];
+      const tops = todos.filter(t=>!busca || norm(t.titulo).includes(busca));
+      if(!tops.length) return '';
+      const fm = todos.filter(t=>marcados[chave(m,t.titulo)]).length;
+      const pm = todos.length ? Math.round(fm*100/todos.length) : 0;
+
+      return '<section class="ev499-materia">'+
+        '<div class="ev499-materia-head"><span>📚 '+esc(m)+'</span><small>'+fm+' / '+todos.length+' • '+pm+'%</small></div>'+
+        '<div class="ev499-materia-track"><i style="width:'+pm+'%"></i></div>'+
+        tops.map(t=>{
+          const k=chave(m,t.titulo), ok=!!marcados[k], numero=todos.indexOf(t)+1;
+          return '<div class="ev499-topico '+(ok?'ev499-feito':'')+'">'+
+            '<span class="ev499-num">'+String(numero).padStart(2,'0')+'</span>'+
+            '<span class="ev499-nome">'+esc(t.titulo)+'</span>'+
+            '<label><input type="checkbox" data-ev10500-key="'+esc(k)+'" '+(ok?'checked':'')+'> Estudado</label>'+
+          '</div>';
+        }).join('')+
+      '</section>';
+    }).join('');
+
+    lista.innerHTML = vis || '<div class="ev499-empty">Nenhum assunto encontrado.</div>';
+    const st = document.getElementById('ev499Status');
+    if(st) st.textContent = total
+      ? '✓ '+mats.length+' matéria(s) • '+total+' assunto(s) carregados do Edital pronto.'
+      : 'Nenhum assunto disponível no Edital pronto.';
+  }
+
+  document.addEventListener('change', async function(e){
+    if(e.target?.id === 'ev499Filtro') renderVerticalizado(false);
+    const cb = e.target?.closest?.('[data-ev10500-key]');
+    if(cb){
+      const k=cb.dataset.ev10500Key;
+      if(cb.checked) marcados[k]=true; else delete marcados[k];
+      try { if(checklistRef) await checklistRef.set(marcados); } catch(err){ console.warn(err); }
+      renderVerticalizado(false);
+    }
+  });
+
+  document.addEventListener('input', function(e){
+    if(e.target?.id === 'ev499Busca') renderVerticalizado(false);
+  });
+
+  document.addEventListener('click', function(e){
+    if(e.target.closest?.('[data-page="questoes"]'))
+      setTimeout(()=>sincronizarQuestoes(true),80);
+
+    if(e.target.closest?.('[data-page="editalVerticalizadoAcompanhamento"]'))
+      setTimeout(()=>renderVerticalizado(true),80);
+
+    // Ao carregar/trocar Edital pronto, invalida cache para as duas telas.
+    if(e.target.closest?.('#carregarEditalV100')){
+      cacheV10500=null;
+      setTimeout(async ()=>{
+        cacheV10500=null;
+        await carregarFonteReal(true);
+      },500);
+    }
+  });
+
+  // Após login/carregamento inicial, prepara os selects sem tocar no restante.
+  setTimeout(()=>sincronizarQuestoes(true),1800);
+  window.renderEditalVerticalizadoV10500 = renderVerticalizado;
+})();
+</script>
+
 </body>
 </html>

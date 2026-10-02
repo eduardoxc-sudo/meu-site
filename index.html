@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.09 • CORREÇÃO GERAL</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.10 • ESTABILIZAÇÃO FINAL</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -2950,38 +2950,41 @@ setTimeout(v923BindTesteSequencia,1400);
 
 // ========================= V9.2 DEV — ESTATÍSTICAS DE ESTUDO =========================
 function v92Estatisticas(){
+ const agenda=(typeof agendaV102!=='undefined'&&Array.isArray(agendaV102?.itens))?agendaV102.itens:[];
+ const conclAgenda=agenda.filter(a=>a&&(a.concluidoEm||a.concluido===true||a.status==='concluido'));
  const origens=Object.values(revisoesMotor?.origens||{}).filter(o=>o&&revOrigemExisteNoEdital(o));
  const historico=v90HistoricoReal();
  const tipos={D1:0,D7:0,D15:0,D30:0};
  historico.forEach(x=>{if(Object.prototype.hasOwnProperty.call(tipos,x.tipo))tipos[x.tipo]++});
 
- const datasEstudo=new Set(origens.map(o=>String(o.dataEstudo||'').slice(0,10)).filter(Boolean));
- const datasAtividade=new Set(datasEstudo);
- historico.forEach(x=>{
-   const d=new Date(x.concluidaEm);
-   if(!isNaN(d))datasAtividade.add(
-     d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')
-   );
- });
+ const datasAtividade=new Set();
+ const addData=v=>{
+   if(!v)return;
+   const s=String(v);
+   const iso=(s.match(/^(\d{4}-\d{2}-\d{2})/)||[])[1];
+   if(iso){datasAtividade.add(iso);return}
+   const d=new Date(v);
+   if(!isNaN(d))datasAtividade.add(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));
+ };
+ origens.forEach(o=>addData(o.dataEstudo));
+ conclAgenda.forEach(a=>addData(a.concluidoEm||a.dataEstudo||a.data));
+ historico.forEach(x=>addData(x.concluidaEm));
 
  let noPrazo=0;
  historico.forEach(x=>{
    const concluida=String(x.concluidaEm||'').slice(0,10);
    if(concluida && concluida<=x.exibicao)noPrazo++;
  });
-
  const totalAgendado=origens.reduce((n,o)=>n+Object.values(o.revisoes||{}).filter(r=>r?.data).length,0);
  const revisoesConcluidas=historico.length;
  const taxaPrazo=revisoesConcluidas?Math.round((noPrazo/revisoesConcluidas)*100):0;
+ const sequencia=v922CalcularSequencia(datasAtividade,new Date());
 
- // Sequência inteligente: dias não ativos do Planejamento são ignorados.
- // Em um dia ativo ainda em andamento, a sequência não quebra antes do fim do dia.
- const sequencia=v922CalcularSequencia(datasAtividade, new Date());
-
- return {
-   topicos:origens.length,revisoesConcluidas,noPrazo,taxaPrazo,
-   diasAtividade:datasAtividade.size,sequencia,tipos,totalAgendado
- };
+ // A agenda é a fonte canônica de assuntos originais; origens entram apenas como compatibilidade.
+ const chaves=new Set();
+ conclAgenda.forEach(a=>chaves.add(String(a.id||((a.disciplina||'')+'||'+(a.nome||a.titulo||'')))));
+ origens.forEach(o=>chaves.add(String(o.id||((o.disciplina||'')+'||'+(o.topico||'')))));
+ return {topicos:chaves.size,revisoesConcluidas,noPrazo,taxaPrazo,diasAtividade:datasAtividade.size,sequencia,tipos,totalAgendado};
 }
 function renderizarEstatisticasV92(){
  if(!$('statTopicosV92'))return;
@@ -3000,7 +3003,7 @@ function renderizarEstatisticasV92(){
  $('statStatusV92').textContent=s.revisoesConcluidas
    ? '✓ '+s.revisoesConcluidas+' revisão(ões) real(is) concluída(s). '+s.taxaPrazo+'% concluída(s) no prazo.'
    : 'Nenhuma revisão real concluída ainda.';
- if($('dashSeqV92'))$('dashSeqV92').textContent=s.sequencia||'—';
+ if($('dashSeqV92'))$('dashSeqV92').textContent=Number.isFinite(Number(s.sequencia))?String(Number(s.sequencia)):'0';
  v93Render();
 }
 
@@ -6534,7 +6537,7 @@ html body :is(
       if(typeof v922DatasAtividadeReal!=='function' || typeof v922CalcularSequencia!=='function') return;
       var datas=v922DatasAtividadeReal();
       var seq=v922CalcularSequencia(datas,new Date());
-      setSomenteSeMudou('dashSeqV92', seq>0 ? seq : '—');
+      setSomenteSeMudou('dashSeqV92', Number.isFinite(Number(seq)) ? Number(seq) : 0);
     }catch(e){ console.warn('V10.4.98 sequência dashboard',e); }
   }
 
@@ -7248,47 +7251,65 @@ html body :is(
 })();
 </script>
 
-<script id="v10509-reparo-geral">
+<style id="v10510-estabilidade-css">
+.page{display:none!important}
+.page.active{display:block!important}
+main{min-width:0}
+#page-ciclo,#page-dashboard,#page-questoes,#page-estatisticas{contain:layout style}
+</style>
+<script id="v10510-estabilidade-final">
 (function(){
+ let qToken=0;
  const $=id=>document.getElementById(id);
- const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- function itens(){return (typeof agendaV102!=='undefined'&&Array.isArray(agendaV102?.itens))?agendaV102.itens:[]}
+ function set(id,v){const e=$(id);if(e&&e.textContent!==String(v))e.textContent=String(v)}
+ function agenda(){
+   try{return (typeof agendaV102!=='undefined'&&Array.isArray(agendaV102?.itens))?agendaV102.itens:[]}catch(_){return []}
+ }
  function concluido(a){return !!(a&&(a.concluidoEm||a.concluido===true||a.status==='concluido'))}
- function preencherQuestoesLocal(){
-   const mat=$('qMateriaV10427'),ass=$('qAssuntoV10427');if(!mat||!ass)return;
-   const arr=itens();if(!arr.length)return;
-   const grupos={};arr.forEach(a=>{const m=String(a.disciplina||'').trim();if(m)(grupos[m]??=[]).push(a)});
-   if(mat.options.length<=1){
-     const atual=mat.value;mat.innerHTML='<option value="">Selecione a matéria</option>'+Object.keys(grupos).sort((a,b)=>a.localeCompare(b,'pt-BR')).map(m=>'<option value="'+esc(m)+'">'+esc(m)+'</option>').join('');
-     if(grupos[atual])mat.value=atual;
+ function iso(v){
+   if(!v)return '';
+   const m=String(v).match(/^(\d{4}-\d{2}-\d{2})/);if(m)return m[1];
+   const d=new Date(v);return isNaN(d)?'':d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+ }
+ function atualizarEstudo(){
+   const feitos=agenda().filter(concluido), datas=new Set(feitos.map(a=>iso(a.concluidoEm||a.dataEstudo||a.data)).filter(Boolean));
+   set('estatTopicosV10414',feitos.length);set('estatDiasV10414',datas.size);
+   set('statTopicosV92',feitos.length);set('statDiasV92',datas.size);
+   try{
+     if(typeof v922CalcularSequencia==='function'){
+       const seq=v922CalcularSequencia(datas,new Date());
+       set('dashSeqV92',Number.isFinite(Number(seq))?Number(seq):0);
+     }
+   }catch(e){console.warn('V10.5.10 sequência',e)}
+ }
+ async function atualizarQuestoes(){
+   const token=++qToken;
+   try{
+     const u=(typeof auth!=='undefined'&&auth)?auth.currentUser:null;if(!u)return;
+     const s=await db.ref('usuarios/'+u.uid+'/questoesV94').once('value');
+     if(token!==qToken)return;
+     const d=s.val()||{},total=Number(d.total)||0,ac=Number(d.acertos)||0,er=Number(d.erros)||0,pct=total?Math.round(ac/total*100):0;
+     set('dashQuestoesV92',total);
+     set('q27Total',total);set('q27Acertos',ac);set('q27Erros',er);set('q27Pct',total?pct+'%':'—');
+     set('estatQuestoesV10414',total);set('estatAcertosV10414',ac);set('estatErrosV10414',er);set('estatPctV10414',total?pct+'%':'—');
+     set('statQuestoesV95',total);set('statAcertosV95',ac);set('statErrosV95',er);set('statPctV95',total?pct+'%':'—');
+     if(typeof questoesV94!=='undefined'){questoesV94.total=total;questoesV94.acertos=ac;questoesV94.erros=er;questoesV94.carregado=true}
+   }catch(e){console.warn('V10.5.10 questões',e)}
+ }
+ function refresh(){atualizarEstudo();atualizarQuestoes()}
+ document.addEventListener('click',e=>{
+   const b=e.target.closest('button[data-page]');
+   if(!b)return;
+   // A troca visual é atômica; impede um frame da página anterior aparecer na próxima aba.
+   const nome=b.getAttribute('data-page'),dest=$('page-'+nome);
+   if(dest){
+     document.querySelectorAll('section.page.active').forEach(p=>{if(p!==dest)p.classList.remove('active')});
+     dest.classList.add('active');
    }
-   if(mat.value && ass.options.length<=1){
-     ass.innerHTML='<option value="">Selecione o assunto</option>'+(grupos[mat.value]||[]).map(a=>'<option value="'+esc(a.nome||a.titulo||'')+'">'+esc(a.nome||a.titulo||'')+'</option>').join('');
-   }
- }
- function desempenho(){
-   const arr=itens(), feitos=arr.filter(concluido);
-   const datas=new Set(feitos.map(a=>{const d=new Date(a.concluidoEm);return isNaN(d)?'':d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}).filter(Boolean));
-   if($('estatTopicosV10414'))$('estatTopicosV10414').textContent=feitos.length;
-   if($('estatDiasV10414'))$('estatDiasV10414').textContent=datas.size;
-   if($('statTopicosV92'))$('statTopicosV92').textContent=feitos.length;
-   if($('statDiasV92'))$('statDiasV92').textContent=datas.size;
- }
- function sequencia(){
-   const el=$('dashSeqV92');if(!el)return;
-   const ds=new Set(itens().filter(concluido).map(a=>{const d=new Date(a.concluidoEm);if(isNaN(d))return '';return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}).filter(Boolean));
-   if(!ds.size){el.textContent='0';return}
-   let d=new Date(),seq=0;
-   const iso=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
-   if(!ds.has(iso(d)))d.setDate(d.getDate()-1);
-   while(ds.has(iso(d))){seq++;d.setDate(d.getDate()-1)}
-   el.textContent=seq;
- }
- function reparar(){preencherQuestoesLocal();desempenho();sequencia()}
- document.addEventListener('change',e=>{if(e.target?.id==='qMateriaV10427'){const ass=$('qAssuntoV10427'),arr=itens().filter(a=>String(a.disciplina||'')===e.target.value);if(ass)ass.innerHTML='<option value="">Selecione o assunto</option>'+arr.map(a=>'<option value="'+esc(a.nome||a.titulo||'')+'">'+esc(a.nome||a.titulo||'')+'</option>').join('')}});
- document.addEventListener('click',e=>{if(e.target.closest('[data-page]'))setTimeout(reparar,350)});
- window.addEventListener('load',()=>{setTimeout(reparar,1200);setTimeout(reparar,2800)});
- window.v10509Reparar=reparar;
+   setTimeout(refresh,80);
+ });
+ window.addEventListener('load',()=>{setTimeout(refresh,700);setTimeout(refresh,1800)});
+ window.v10510Refresh=refresh;
 })();
 </script>
 

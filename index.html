@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.89 • TEMAS COMPLETOS</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.90 • CORES 100% DO TEMA</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -5330,6 +5330,110 @@ html[data-theme-v85="rosa"]{--theme-bg:#fff1f7!important;--theme-panel:#ffffff!i
 
 /* Ciclo: descrições nunca viram faixas brancas */
 #page-ciclo p,#page-ciclo small,#page-ciclo .panel-sub,#page-ciclo [class*="desc"],#page-ciclo [class*="info"]{background:transparent!important}
+</style>
+
+
+<style id="v10490-no-legacy-blue">
+/* V10.4.90 — remove azul-marinho herdado de TODAS as páginas sem alterar a lógica. */
+html body .version{
+  background:var(--theme-soft)!important;
+  color:var(--theme-text)!important;
+  border-color:var(--theme-border)!important;
+}
+
+/* caixas antigas que ainda carregavam #0c1728 / #101d31 / azul-marinho */
+html body .page .edital-summary,
+html body .page .placeholder,
+html body .page .empty,
+html body .page .materia-card,
+html body .page .ciclo-item,
+html body .page .qm27-empty,
+html body .page .qh29-empty,
+html body .page .v10440-empty,
+html body .page [class*="empty"],
+html body .page [class*="placeholder"],
+html body .page [class*="vazio"]{
+  background:var(--theme-card)!important;
+  color:var(--theme-text)!important;
+  border-color:var(--theme-border)!important;
+}
+
+/* cabeçalhos e superfícies internas também seguem a família cromática do tema */
+html body .page .materia-head,
+html body .page .qm27-materia>summary,
+html body .page .qh29-materia>summary,
+html body .page .v10440-materia,
+html body .page .v10440-materia-head{
+  background:var(--theme-soft)!important;
+  color:var(--theme-text)!important;
+  border-color:var(--theme-border)!important;
+}
+
+/* Ciclo: sobrescreve regras antigas de alta especificidade que ainda eram azuis */
+html body #page-ciclo .ciclo-config-v10472,
+html body #page-ciclo .ciclo-exec-panel-v10472,
+html body #page-ciclo .ciclo-week-full-v10472{
+  background:var(--theme-panel)!important;
+  color:var(--theme-text)!important;
+  border-color:var(--theme-border)!important;
+}
+html body #page-ciclo .ciclo-config-v10472 .ciclo-resumo>div,
+html body #page-ciclo .ciclo-exec-v10472 .ciclo-proxima,
+html body #page-ciclo .ciclo-exec-v10472 .ciclo-posicao,
+html body #page-ciclo .ciclo-card-v104{
+  background:var(--theme-card)!important;
+  color:var(--theme-text)!important;
+  border-color:var(--theme-border)!important;
+}
+
+/* barras, avisos e resumos: nada de azul fixo fora do tema Noturno */
+html body .page .hero,
+html body .page [class*="summary"],
+html body .page [class*="resumo"],
+html body .page [class*="status-box"],
+html body .page [class*="info-box"]{
+  background:var(--theme-soft)!important;
+  color:var(--theme-text)!important;
+  border-color:var(--theme-border)!important;
+}
+
+/* texto secundário dentro das caixas usa a cor secundária do próprio tema */
+html body .page .placeholder,
+html body .page .empty,
+html body .page [class*="empty"],
+html body .page [class*="placeholder"]{
+  color:var(--theme-muted)!important;
+}
+
+/* CLARO: nenhuma faixa azul; cinzas claros + texto escuro */
+html[data-theme-v85="claro"] body .version,
+html[data-theme-v85="claro"] body .page .edital-summary,
+html[data-theme-v85="claro"] body .page .placeholder,
+html[data-theme-v85="claro"] body .page .empty,
+html[data-theme-v85="claro"] body .page [class*="empty"],
+html[data-theme-v85="claro"] body .page [class*="placeholder"],
+html[data-theme-v85="claro"] body .page [class*="summary"],
+html[data-theme-v85="claro"] body .page [class*="resumo"]{
+  background:#f7f9fc!important;
+  color:#111827!important;
+  border-color:#d5deea!important;
+}
+
+/* ROSA: caixas antes azuis passam a rosa muito claro */
+html[data-theme-v85="rosa"] body .version,
+html[data-theme-v85="rosa"] body .page .edital-summary,
+html[data-theme-v85="rosa"] body .page .placeholder,
+html[data-theme-v85="rosa"] body .page .empty,
+html[data-theme-v85="rosa"] body .page [class*="empty"],
+html[data-theme-v85="rosa"] body .page [class*="placeholder"],
+html[data-theme-v85="rosa"] body .page [class*="summary"],
+html[data-theme-v85="rosa"] body .page [class*="resumo"]{
+  background:#fde2ee!important;
+  color:#3f1729!important;
+  border-color:#f2bfd4!important;
+}
+
+/* Esmeralda/Oceano/Café/Pôr do Sol/Violeta usam apenas superfícies do próprio tema. */
 </style>
 
 </body>

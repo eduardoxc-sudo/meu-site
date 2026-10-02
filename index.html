@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.92 • CORREÇÃO PROFUNDA DOS TEMAS</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.93 • CICLO E DASHBOARD LIMPOS</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -5807,6 +5807,127 @@ html body :is(
   color:var(--surface-muted)!important;
 }
 </style>
+
+
+<style id="v10493-interface-cleanup">
+/* ============================================================
+   V10.4.93 — LIMPEZA DA INTERFACE
+   CICLO: mantém visível somente "Semana do ciclo".
+   DASHBOARD: remove ferramentas duplicadas que já têm abas próprias.
+   IMPORTANTE: elementos são ocultados visualmente; motores/IDs/JS
+   permanecem intactos para não quebrar planejamento/revisões/dados.
+   ============================================================ */
+
+/* ---------- CICLO ----------
+   Esconde os blocos superiores de configuração, ordem e execução.
+   Mantém a semana do ciclo e sua navegação.
+*/
+#page-ciclo .ciclo-top-v10472,
+#page-ciclo .ciclo-config-v10472,
+#page-ciclo .ciclo-order-v10472,
+#page-ciclo .ciclo-exec-panel-v10472 {
+  display:none !important;
+}
+
+/* Caso a versão tenha wrappers diferentes, identifica os blocos
+   anteriores à semana pelo conjunto de classes já usado no sistema. */
+#page-ciclo :is(
+  [class*="ciclo-config"],
+  [class*="ciclo-order"],
+  [class*="ciclo-ordem"],
+  [class*="ciclo-exec"]
+){
+  display:none !important;
+}
+
+/* Garante que Semana do Ciclo continue visível */
+#page-ciclo :is(
+  .ciclo-week-full-v10472,
+  [class*="ciclo-week"],
+  [class*="semana-ciclo"]
+){
+  display:block !important;
+}
+
+/* ---------- DASHBOARD ----------
+   Cronômetro, Questões e Estatísticas completas já existem
+   respectivamente em Timer, Questões e Meu Desempenho.
+*/
+#page-dashboard :is(
+  #dashTimerV104,
+  #dashQuestoesV104,
+  #dashEstatisticasV104,
+  [class*="dashboard-timer"],
+  [class*="dash-timer"],
+  [class*="dashboard-quest"],
+  [class*="dash-quest"],
+  [class*="dashboard-estat"],
+  [class*="dash-estat"]
+){
+  display:none !important;
+}
+</style>
+
+<script id="v10493-semantic-cleanup">
+(function(){
+  function norm(s){
+    return (s||"").replace(/\s+/g," ").trim().toLowerCase();
+  }
+
+  function hideByHeading(page, terms){
+    if(!page) return;
+    const nodes = page.querySelectorAll("h1,h2,h3,h4,strong,b");
+    nodes.forEach(function(n){
+      const t = norm(n.textContent);
+      const match = terms.some(function(term){ return t.includes(term); });
+      if(!match) return;
+
+      /* sobe até o bloco visual mais provável, sem tocar na página inteira */
+      let box = n;
+      for(let i=0;i<5 && box && box.parentElement!==page;i++){
+        if(box.matches && box.matches(".panel,.card,.box,.section,[class*='panel'],[class*='card'],[class*='section']")){
+          break;
+        }
+        box = box.parentElement;
+      }
+      if(box && box!==page) box.style.setProperty("display","none","important");
+    });
+  }
+
+  function applyV10493(){
+    const ciclo = document.getElementById("page-ciclo");
+    const dash  = document.getElementById("page-dashboard");
+
+    /* Ciclo: só removemos as seções pedidas; Semana do ciclo não entra aqui */
+    hideByHeading(ciclo, [
+      "configurar ciclo",
+      "ordem do ciclo",
+      "ordem dos assuntos no ciclo",
+      "executar ciclo"
+    ]);
+
+    /* Dashboard: remove apenas as três ferramentas duplicadas */
+    hideByHeading(dash, [
+      "cronômetro de estudo",
+      "timer de estudo",
+      "questões",
+      "estatísticas de estudo"
+    ]);
+  }
+
+  document.addEventListener("DOMContentLoaded", applyV10493);
+  window.addEventListener("load", applyV10493);
+
+  /* reaplica após renderizações dinâmicas */
+  const obs = new MutationObserver(function(){
+    clearTimeout(window.__v10493t);
+    window.__v10493t = setTimeout(applyV10493, 40);
+  });
+  document.addEventListener("DOMContentLoaded", function(){
+    obs.observe(document.body,{childList:true,subtree:true});
+  });
+})();
+</script>
 
 </body>
 </html>

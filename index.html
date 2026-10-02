@@ -5148,7 +5148,7 @@ function setVars(t){
  document.querySelectorAll("#page-ciclo p,#page-ciclo small,#page-ciclo .panel-sub,#page-ciclo [class*='desc'],#page-ciclo [class*='info']").forEach(e=>e.style.setProperty("background","transparent","important"));
 }
 function apply(name,quiet){
- const t=T[name]||T.noturno; setVars(t);localStorage.setItem(store(),name);
+ const t=T[name]||T.noturno; document.documentElement.dataset.themeV85=name; setVars(t);localStorage.setItem(store(),name);
  document.querySelectorAll(".theme-choice-v85").forEach(b=>b.classList.toggle("active",b.dataset.theme===name));
  if(!quiet){const s=document.getElementById("v85Status");if(s)s.textContent="✓ Tema aplicado no sistema inteiro";}
 }
@@ -5171,5 +5171,63 @@ function init(){
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
 </script>
+\n<style id="v10487-light-theme-fix">
+/* V10.4.87 — acabamento exclusivo do tema Claro. Não altera lógica. */
+html[data-theme-v85="claro"] body,
+html[data-theme-v85="claro"] #app,
+html[data-theme-v85="claro"] main,
+html[data-theme-v85="claro"] .main,
+html[data-theme-v85="claro"] .content,
+html[data-theme-v85="claro"] .page{background:#f4f7fb!important;color:#10233f!important}
+html[data-theme-v85="claro"] .panel,
+html[data-theme-v85="claro"] .card,
+html[data-theme-v85="claro"] [class*="panel"],
+html[data-theme-v85="claro"] [class*="card"]{background:#fff!important;color:#10233f!important;border-color:#cfdae8!important}
+html[data-theme-v85="claro"] input,
+html[data-theme-v85="claro"] select,
+html[data-theme-v85="claro"] textarea{background:#f8fbff!important;color:#10233f!important;border-color:#c8d5e5!important}
+html[data-theme-v85="claro"] input::placeholder,
+html[data-theme-v85="claro"] textarea::placeholder{color:#718096!important}
+html[data-theme-v85="claro"] h1,
+html[data-theme-v85="claro"] h2,
+html[data-theme-v85="claro"] h3,
+html[data-theme-v85="claro"] h4,
+html[data-theme-v85="claro"] strong,
+html[data-theme-v85="claro"] b,
+html[data-theme-v85="claro"] label{color:#10233f!important}
+html[data-theme-v85="claro"] p,
+html[data-theme-v85="claro"] small,
+html[data-theme-v85="claro"] .panel-sub,
+html[data-theme-v85="claro"] .status-line,
+html[data-theme-v85="claro"] .muted{color:#5f7696!important}
+/* substitui os antigos blocos azul-marinho por superfícies claras */
+html[data-theme-v85="claro"] #page-dashboard [class*="proxima"],
+html[data-theme-v85="claro"] #page-dashboard [class*="agendado"],
+html[data-theme-v85="claro"] #page-ciclo [class*="proxima"],
+html[data-theme-v85="claro"] #page-ciclo [class*="posicao"],
+html[data-theme-v85="claro"] .v93-timer,
+html[data-theme-v85="claro"] [class*="total-agendado"],
+html[data-theme-v85="claro"] [class*="proxima-revisao"]{background:#eef4fb!important;color:#10233f!important;border-color:#c7d7e9!important}
+/* progresso por matéria: remove cinza pesado */
+html[data-theme-v85="claro"] #page-progresso .card,
+html[data-theme-v85="claro"] #page-progresso [class*="materia"],
+html[data-theme-v85="claro"] [class*="progresso"] [class*="card"],
+html[data-theme-v85="claro"] [class*="progress"] [class*="card"]{background:#f8fbff!important;color:#10233f!important;border-color:#cbd9e8!important}
+html[data-theme-v85="claro"] progress,
+html[data-theme-v85="claro"] [class*="progress-bar"],
+html[data-theme-v85="claro"] [class*="barra"]{background-color:#e1e9f2!important}
+/* semana do ciclo: cabeçalhos claros e cartões legíveis */
+html[data-theme-v85="claro"] #cicloSemanaV104 [data-dia],
+html[data-theme-v85="claro"] #cicloSemanaV104 [class*="dia"]{background:#fff!important;color:#10233f!important;border-color:#cbd9e8!important}
+html[data-theme-v85="claro"] #cicloSemanaV104 [class*="header"],
+html[data-theme-v85="claro"] #cicloSemanaV104 [class*="cabec"]{background:#eaf2fb!important;color:#10233f!important}
+/* botões neutros não ficam azul-marinho; primário continua destacado */
+html[data-theme-v85="claro"] button:not(.btn-primary):not(.primary):not(.danger),
+html[data-theme-v85="claro"] .btn-outline{background:#fff!important;color:#173a64!important;border-color:#b9cbe0!important}
+html[data-theme-v85="claro"] .btn-primary,
+html[data-theme-v85="claro"] button.primary{background:#2f73c9!important;color:#fff!important;border-color:#2f73c9!important}
+html[data-theme-v85="claro"] .danger,
+html[data-theme-v85="claro"] .btn-danger{color:#fff!important}
+</style>
 </body>
 </html>

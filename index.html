@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.90 • CORES 100% DO TEMA</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.91 • AUDITORIA COMPLETA DE CORES</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -5434,6 +5434,192 @@ html[data-theme-v85="rosa"] body .page [class*="resumo"]{
 }
 
 /* Esmeralda/Oceano/Café/Pôr do Sol/Violeta usam apenas superfícies do próprio tema. */
+</style>
+
+
+<style id="v10491-complete-theme-color-audit">
+/* ============================================================
+   V10.4.91 — AUDITORIA COMPLETA
+   Remove superfícies azul-marinho herdadas em todas as páginas.
+   Mantém a lógica e deixa cada tema controlar painel/cartão/vazio.
+   ============================================================ */
+
+/* Tokens semânticos finais */
+html body{
+  --surface-page:var(--theme-bg);
+  --surface-panel:var(--theme-panel);
+  --surface-card:var(--theme-card);
+  --surface-soft:var(--theme-soft);
+  --surface-border:var(--theme-border);
+  --surface-text:var(--theme-text);
+  --surface-muted:var(--theme-muted);
+}
+
+/* Elementos estruturais e caixas genéricas */
+html body .page :is(
+  .panel,.card,.box,.section,.widget,.module,.tile,
+  [class*="panel"],[class*="card"],[class*="box"],
+  [class*="container"],[class*="section"]
+){
+  border-color:var(--surface-border);
+}
+
+/* VAZIOS / PLACEHOLDERS / RESUMOS / STATUS — eram os maiores focos de azul */
+html body .page :is(
+  .empty,.placeholder,.edital-summary,.hero,
+  [class*="empty"],[class*="placeholder"],[class*="vazio"],
+  [class*="summary"],[class*="resumo"],[class*="status"],
+  [class*="notice"],[class*="message"]
+){
+  background:var(--surface-soft)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+
+/* Cards internos */
+html body .page :is(
+  .materia-card,.materia-head,.ciclo-item,.ciclo-card-v104,
+  .qm27-materia,.qh29-materia,.v10440-materia,.v10440-materia-head
+){
+  background:var(--surface-card)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+
+/* Ciclo: regras antigas tinham azul com seletores muito específicos */
+html body #page-ciclo :is(
+  .ciclo-config-v10472,.ciclo-exec-panel-v10472,.ciclo-week-full-v10472,
+  .ciclo-proxima,.ciclo-posicao,.ciclo-resumo>div
+){
+  background:var(--surface-panel)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+html body #page-ciclo .ciclo-card-v104{
+  background:var(--surface-card)!important;
+}
+
+/* Histórico / segurança / timer / edital: áreas de informação não ficam azuis fixas */
+html body :is(
+  #page-historico,#page-seguranca,#page-timer,#page-edital,
+  #page-dashboard,#page-progresso,#page-desempenho,#page-planejamento,
+  #page-diagnostico,#page-edital-pronto,#page-admin
+) :is(
+  [class*="empty"],[class*="placeholder"],[class*="summary"],
+  [class*="resumo"],[class*="status"],[class*="info"]
+){
+  background:var(--surface-soft)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+
+/* selo superior acompanha o tema */
+html body .version{
+  background:var(--surface-soft)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+
+/* ---------------- CLARO ---------------- */
+html[data-theme-v85="claro"] body{
+  --surface-page:#f3f6fa;
+  --surface-panel:#ffffff;
+  --surface-card:#f8fafc;
+  --surface-soft:#f1f5f9;
+  --surface-border:#cbd5e1;
+  --surface-text:#111827;
+  --surface-muted:#64748b;
+}
+html[data-theme-v85="claro"] body .page :is(
+  .empty,.placeholder,.edital-summary,.hero,
+  [class*="empty"],[class*="placeholder"],[class*="vazio"],
+  [class*="summary"],[class*="resumo"],[class*="status"],
+  [class*="notice"],[class*="message"]
+){
+  background:#f1f5f9!important;
+  color:#111827!important;
+  border-color:#cbd5e1!important;
+}
+
+/* ---------------- ROSA ---------------- */
+html[data-theme-v85="rosa"] body{
+  --surface-page:#fff1f7;
+  --surface-panel:#fffafd;
+  --surface-card:#fff5f9;
+  --surface-soft:#fde2ee;
+  --surface-border:#f2b8cf;
+  --surface-text:#45172b;
+  --surface-muted:#a24b70;
+}
+html[data-theme-v85="rosa"] body .page :is(
+  .empty,.placeholder,.edital-summary,.hero,
+  [class*="empty"],[class*="placeholder"],[class*="vazio"],
+  [class*="summary"],[class*="resumo"],[class*="status"],
+  [class*="notice"],[class*="message"]
+){
+  background:#fde2ee!important;
+  color:#45172b!important;
+  border-color:#f2b8cf!important;
+}
+
+/* ---------------- ESMERALDA ---------------- */
+html[data-theme-v85="esmeralda"] body{
+  --surface-soft:#0d3b30;
+  --surface-card:#0b342b;
+  --surface-border:#256b58;
+  --surface-text:#f3fff9;
+  --surface-muted:#9ee8d1;
+}
+
+/* ---------------- CAFÉ ---------------- */
+html[data-theme-v85="cafe"] body{
+  --surface-soft:#2a1d16;
+  --surface-card:#201711;
+  --surface-border:#6b4b34;
+  --surface-text:#fff7ed;
+  --surface-muted:#e9c39f;
+}
+
+/* ---------------- OCEANO ---------------- */
+html[data-theme-v85="oceano"] body{
+  --surface-soft:#0b3940;
+  --surface-card:#082f35;
+  --surface-border:#286874;
+  --surface-text:#f0ffff;
+  --surface-muted:#8ed9df;
+}
+
+/* ---------------- VIOLETA ---------------- */
+html[data-theme-v85="violeta"] body{
+  --surface-soft:#30214a;
+  --surface-card:#281c3d;
+  --surface-border:#70539b;
+  --surface-text:#fbf7ff;
+  --surface-muted:#d4c0ee;
+}
+
+/* ---------------- PÔR DO SOL ---------------- */
+html[data-theme-v85="pordosol"] body,
+html[data-theme-v85="por-do-sol"] body{
+  --surface-soft:#48251d;
+  --surface-card:#3a1f19;
+  --surface-border:#8a4b38;
+  --surface-text:#fff7ed;
+  --surface-muted:#f4b99d;
+}
+
+/* Inputs e selects nunca recebem fundo azul-marinho por herança */
+html body .page :is(input,select,textarea){
+  background:var(--surface-card)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+html body .page :is(input,textarea)::placeholder{
+  color:var(--surface-muted)!important;
+  opacity:1;
+}
+
+/* Exceção: botões continuam usando a cor de ação do tema, não são "superfícies azuis". */
 </style>
 
 </body>

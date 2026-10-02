@@ -865,52 +865,16 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 </style>
 
 
-<style id="v10484-themes-css">
-:root{
- --t-bg:#07111f;--t-sidebar:#6d28d9;--t-panel:#112238;--t-card:#081526;
- --t-text:#ffffff;--t-muted:#9fc5ff;--t-border:#29445f;--t-primary:#6d4aff;--t-accent:#25b8ff;
- --t-font:system-ui,-apple-system,"Segoe UI",sans-serif;--t-size:16px;
-}
-body.theme-v84{background:var(--t-bg)!important;color:var(--t-text)!important;font-family:var(--t-font)!important;font-size:var(--t-size)!important}
-body.theme-v84 #app,body.theme-v84 main,body.theme-v84 .main,body.theme-v84 .content,body.theme-v84 .page{background:var(--t-bg)!important;color:var(--t-text)!important}
-body.theme-v84 aside,body.theme-v84 .sidebar{background:var(--t-sidebar)!important}
-body.theme-v84 .panel,body.theme-v84 .hero,body.theme-v84 .stat,
-body.theme-v84 [class*="panel"],body.theme-v84 [class*="section"],body.theme-v84 [class*="box"]{
- background:var(--t-panel)!important;color:var(--t-text)!important;border-color:var(--t-border)!important}
-body.theme-v84 .card,body.theme-v84 [class*="card"],body.theme-v84 [class*="item"],
-body.theme-v84 [class*="topic"],body.theme-v84 [class*="review"],body.theme-v84 [class*="day"],
-body.theme-v84 [class*="week"],body.theme-v84 [class*="semana"]{
- background:var(--t-card)!important;color:var(--t-text)!important;border-color:var(--t-border)!important}
-body.theme-v84 h1,body.theme-v84 h2,body.theme-v84 h3,body.theme-v84 h4,
-body.theme-v84 strong,body.theme-v84 label,body.theme-v84 td,body.theme-v84 th{color:var(--t-text)!important}
-body.theme-v84 p,body.theme-v84 small,body.theme-v84 .muted,body.theme-v84 .meta,
-body.theme-v84 .sub,body.theme-v84 .panel-sub{color:var(--t-muted)!important}
-body.theme-v84 input:not([type=checkbox]),body.theme-v84 select,body.theme-v84 textarea{
- background:var(--t-card)!important;color:var(--t-text)!important;border-color:var(--t-border)!important}
-body.theme-v84 .btn-primary,body.theme-v84 button.primary{background:var(--t-primary)!important;color:#fff!important}
-body.theme-v84 input[type=checkbox]{accent-color:var(--t-accent)!important}
-body.theme-v84 a,body.theme-v84 .accent,body.theme-v84 .link{color:var(--t-accent)!important}
-body.theme-v84 hr,body.theme-v84 table,body.theme-v84 td,body.theme-v84 th{border-color:var(--t-border)!important}
-
-.theme-lead{margin-bottom:18px}
-.theme-gallery-v84{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-.theme-choice-v84{
- text-align:left;padding:13px;border:2px solid var(--t-border);border-radius:14px;background:var(--t-panel);
- color:var(--t-text);cursor:pointer;transition:.15s transform,.15s border-color;min-height:168px
-}
-.theme-choice-v84:hover{transform:translateY(-2px);border-color:var(--t-accent)}
-.theme-choice-v84.active{border-color:var(--t-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--t-accent) 20%,transparent)}
-.theme-choice-v84 strong,.theme-choice-v84 small,.theme-choice-v84 .theme-action-v84{display:block}
-.theme-choice-v84 strong{font-size:17px;margin-top:10px}
-.theme-choice-v84 small{margin-top:4px}
-.theme-action-v84{margin-top:10px;color:var(--t-accent);font-weight:800;font-size:13px}
-.theme-preview-v84{height:62px;border-radius:10px;display:block;border:1px solid rgba(255,255,255,.15);
- background:linear-gradient(135deg,var(--p1) 0 35%,var(--p2) 35% 62%,var(--p3) 62% 82%,var(--p4) 82%)}
-.theme-font-v84{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;padding:16px;border:1px solid var(--t-border);border-radius:14px;background:var(--t-panel)}
-.theme-font-v84 label{display:block;margin-bottom:7px;font-weight:800}.theme-font-v84 select{width:100%;padding:11px;border-radius:9px}
-.theme-status-v84{min-height:24px;margin-top:10px;color:var(--t-accent);font-weight:700}
-@media(max-width:1050px){.theme-gallery-v84{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:650px){.theme-gallery-v84,.theme-font-v84{grid-template-columns:1fr}}
+<style id="v10485-themes-css">
+/* V10.4.86 - tema aplicado nas variáveis ORIGINAIS do sistema */
+.theme-gallery-v85{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:16px}
+.theme-choice-v85{padding:12px;text-align:left;border:2px solid var(--border);border-radius:14px;background:var(--panel);color:var(--text);cursor:pointer}
+.theme-choice-v85.active{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 22%,transparent)}
+.theme-preview-v85{display:block;height:62px;border-radius:10px;background:linear-gradient(135deg,var(--a) 0 35%,var(--b) 35% 63%,var(--c) 63% 82%,var(--d) 82%);border:1px solid rgba(127,127,127,.3)}
+.theme-choice-v85 strong,.theme-choice-v85 small{display:block}.theme-choice-v85 strong{margin-top:9px;font-size:16px}.theme-choice-v85 small{margin-top:3px;color:var(--muted)}
+.theme-font-v85{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}.theme-font-v85 label{display:block;font-weight:800}.theme-font-v85 select{width:100%;margin-top:6px}
+.theme-status-v85{margin-top:12px;color:var(--accent);font-weight:800;min-height:22px}
+@media(max-width:1000px){.theme-gallery-v85{grid-template-columns:repeat(2,1fr)}}@media(max-width:620px){.theme-gallery-v85,.theme-font-v85{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -945,7 +909,7 @@ body.theme-v84 hr,body.theme-v84 table,body.theme-v84 td,body.theme-v84 th{borde
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.84 • REDESIGN VISUAL</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.86 • REDESIGN VISUAL</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -1119,62 +1083,22 @@ body.theme-v84 hr,body.theme-v84 table,body.theme-v84 td,body.theme-v84 th{borde
 </section>
 <section class="page" id="page-visual">
 <h1>🎨 Visual</h1>
-<p class="theme-lead">Escolha um tema pronto. A mudança altera somente a aparência do sistema.</p>
-<div class="theme-gallery-v84">
-<button class="theme-choice-v84" data-theme="noturno" type="button">
-<span class="theme-preview-v84" style="--p1:#07111f;--p2:#112238;--p3:#081526;--p4:#25b8ff"></span>
-<strong>🌙 Noturno</strong><small>Azul-marinho + ciano</small><span class="theme-action-v84">Aplicar tema</span>
-</button>
-<button class="theme-choice-v84" data-theme="violeta" type="button">
-<span class="theme-preview-v84" style="--p1:#10091f;--p2:#20123b;--p3:#160d2b;--p4:#9b6cff"></span>
-<strong>💜 Violeta</strong><small>Roxo profundo + violeta</small><span class="theme-action-v84">Aplicar tema</span>
-</button>
-<button class="theme-choice-v84" data-theme="oceano" type="button">
-<span class="theme-preview-v84" style="--p1:#061a20;--p2:#0c2d35;--p3:#08232a;--p4:#37c8e8"></span>
-<strong>🌊 Oceano</strong><small>Azul-petróleo + azul-claro</small><span class="theme-action-v84">Aplicar tema</span>
-</button>
-<button class="theme-choice-v84" data-theme="esmeralda" type="button">
-<span class="theme-preview-v84" style="--p1:#071a16;--p2:#10342b;--p3:#0a261f;--p4:#2ed69b"></span>
-<strong>🌲 Esmeralda</strong><small>Verde escuro + esmeralda</small><span class="theme-action-v84">Aplicar tema</span>
-</button>
-<button class="theme-choice-v84" data-theme="por-do-sol" type="button">
-<span class="theme-preview-v84" style="--p1:#17120f;--p2:#2a201a;--p3:#211813;--p4:#ff9854"></span>
-<strong>🌅 Pôr do Sol</strong><small>Grafite quente + laranja</small><span class="theme-action-v84">Aplicar tema</span>
-</button>
-<button class="theme-choice-v84" data-theme="cafe" type="button">
-<span class="theme-preview-v84" style="--p1:#17120e;--p2:#2c2118;--p3:#211810;--p4:#d7aa68"></span>
-<strong>☕ Café</strong><small>Marrom + bege dourado</small><span class="theme-action-v84">Aplicar tema</span>
-</button>
-<button class="theme-choice-v84" data-theme="claro" type="button">
-<span class="theme-preview-v84" style="--p1:#eef4fa;--p2:#ffffff;--p3:#f7faff;--p4:#2878d8"></span>
-<strong>❄️ Claro</strong><small>Branco + cinza + azul</small><span class="theme-action-v84">Aplicar tema</span>
-</button>
-<button class="theme-choice-v84" data-theme="oled" type="button">
-<span class="theme-preview-v84" style="--p1:#000000;--p2:#0a0a0d;--p3:#050507;--p4:#7c5cff"></span>
-<strong>🖤 OLED</strong><small>Preto verdadeiro + violeta</small><span class="theme-action-v84">Aplicar tema</span>
-</button>
+<p class="panel-sub">Escolha um tema pronto. Ele muda as cores do sistema inteiro sem alterar nenhuma função de estudo.</p>
+<div class="theme-gallery-v85">
+<button class="theme-choice-v85" data-theme="noturno"><span class="theme-preview-v85" style="--a:#08111f;--b:#112238;--c:#0b1728;--d:#20b7ff"></span><strong>🌙 Noturno</strong><small>Azul-marinho + ciano</small></button>
+<button class="theme-choice-v85" data-theme="violeta"><span class="theme-preview-v85" style="--a:#110b20;--b:#24163f;--c:#190f2e;--d:#9b6cff"></span><strong>💜 Violeta</strong><small>Roxo profundo + violeta</small></button>
+<button class="theme-choice-v85" data-theme="oceano"><span class="theme-preview-v85" style="--a:#061a20;--b:#0d3038;--c:#09242b;--d:#37c8e8"></span><strong>🌊 Oceano</strong><small>Azul-petróleo + azul-claro</small></button>
+<button class="theme-choice-v85" data-theme="esmeralda"><span class="theme-preview-v85" style="--a:#071a16;--b:#10342b;--c:#0a261f;--d:#2ed69b"></span><strong>🌲 Esmeralda</strong><small>Verde escuro + esmeralda</small></button>
+<button class="theme-choice-v85" data-theme="por-do-sol"><span class="theme-preview-v85" style="--a:#17120f;--b:#302219;--c:#211813;--d:#ff9854"></span><strong>🌅 Pôr do Sol</strong><small>Grafite + laranja</small></button>
+<button class="theme-choice-v85" data-theme="cafe"><span class="theme-preview-v85" style="--a:#17120e;--b:#2c2118;--c:#211810;--d:#d7aa68"></span><strong>☕ Café</strong><small>Marrom + bege dourado</small></button>
+<button class="theme-choice-v85" data-theme="claro"><span class="theme-preview-v85" style="--a:#eef4fa;--b:#ffffff;--c:#f7faff;--d:#2878d8"></span><strong>❄️ Claro</strong><small>Branco + cinza + azul</small></button>
+<button class="theme-choice-v85" data-theme="oled"><span class="theme-preview-v85" style="--a:#000;--b:#0a0a0d;--c:#050507;--d:#8e73ff"></span><strong>🖤 OLED</strong><small>Preto verdadeiro + violeta</small></button>
 </div>
-<div class="theme-font-v84">
-<div>
-<label for="v84Font">Fonte</label>
-<select id="v84Font">
-<option value="system">Padrão do sistema</option>
-<option value="arial">Arial</option>
-<option value="verdana">Verdana</option>
-<option value="trebuchet">Trebuchet MS</option>
-<option value="georgia">Georgia</option>
-</select>
+<div class="theme-font-v85">
+<label>Fonte<select id="v85Font"><option value="system">Padrão</option><option value="arial">Arial</option><option value="verdana">Verdana</option><option value="trebuchet">Trebuchet MS</option><option value="georgia">Georgia</option></select></label>
+<label>Tamanho<select id="v85Size"><option value="14">Pequena</option><option value="16">Padrão</option><option value="18">Grande</option></select></label>
 </div>
-<div>
-<label for="v84Size">Tamanho da fonte</label>
-<select id="v84Size">
-<option value="14">Pequena</option>
-<option value="16">Padrão</option>
-<option value="18">Grande</option>
-</select>
-</div>
-</div>
-<div class="theme-status-v84" id="v84Status"></div>
+<div class="theme-status-v85" id="v85Status"></div>
 </section><section class="page" id="page-timer">
 <h1>Timer</h1>
 <div class="panel">
@@ -5185,45 +5109,67 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 </script>
 
 
-
-<script id="v10484-themes-js">
+\n<style id="v10486-theme-coherence-css">\n/* V10.4.86 — cada tema controla todas as superfícies; remove azul fixo herdado. */\n:root{--theme-bg:var(--bg);--theme-panel:var(--panel);--theme-card:var(--card);--theme-text:var(--text);--theme-muted:var(--muted);--theme-border:var(--border);--theme-accent:var(--accent);--theme-primary:var(--primary);--theme-soft:var(--card);}\nhtml,body,#app,main,.main,.content,.page{background:var(--theme-bg)!important;color:var(--theme-text)!important}\n.panel,.card,.stat-card,.dash-stat,.metric-card,.dashboard-hero,.dash-hero,.estudo-real-box,.v93-timer,\n#page-ciclo .ciclo-grid>.panel,#page-ciclo .ciclo-proxima,#page-ciclo .ciclo-posicao,\n[class*="panel"],[class*="card"]{background:var(--theme-panel)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}\ninput,select,textarea,.ciclo-resumo>div,.dashboard-grid .card,.dash-grid .card{background:var(--theme-card)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}\ninput::placeholder,textarea::placeholder{color:var(--theme-muted)!important}\np,small,.small,.panel-sub,.status-line,.muted,[class*="sub"]{color:var(--theme-muted)!important}\nh1,h2,h3,h4,strong,b,label,.rotulo{color:var(--theme-text)!important}\n.btn-outline{background:transparent!important;border-color:var(--theme-border)!important;color:var(--theme-text)!important}\n.btn-primary,button.primary{background:var(--theme-primary)!important;color:var(--theme-on-primary,#fff)!important;border-color:var(--theme-primary)!important}\n/* blocos que nas versões antigas ficaram azul-marinho fixo */\n#page-dashboard [class*="proxima"],#page-dashboard [class*="agendado"],\n#page-ciclo [class*="proxima"],#page-ciclo [class*="posicao"],\n.v93-timer,[class*="total-agendado"],[class*="proxima-revisao"]{background:var(--theme-card)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}\n/* evita faixas brancas criadas por regras antigas na tela Ciclo */\n#page-ciclo p,#page-ciclo small,#page-ciclo .panel-sub,#page-ciclo [class*="desc"],#page-ciclo [class*="info"]{background:transparent!important}\n</style>\n<script id="v10485-themes-js">
 (function(){
- const themes={
-  noturno:{bg:'#07111f',sidebar:'#6d28d9',panel:'#112238',card:'#081526',text:'#ffffff',muted:'#9fc5ff',border:'#29445f',primary:'#6d4aff',accent:'#25b8ff'},
-  violeta:{bg:'#10091f',sidebar:'#4c1d95',panel:'#20123b',card:'#160d2b',text:'#fffaff',muted:'#cbb7f6',border:'#513777',primary:'#7c3aed',accent:'#b794ff'},
-  oceano:{bg:'#061a20',sidebar:'#075985',panel:'#0c2d35',card:'#08232a',text:'#f3fdff',muted:'#9edbe7',border:'#24505a',primary:'#0891b2',accent:'#37c8e8'},
-  esmeralda:{bg:'#071a16',sidebar:'#065f46',panel:'#10342b',card:'#0a261f',text:'#f2fff9',muted:'#a7d9c7',border:'#28594a',primary:'#059669',accent:'#2ed69b'},
-  'por-do-sol':{bg:'#17120f',sidebar:'#7c2d12',panel:'#2a201a',card:'#211813',text:'#fff8f2',muted:'#d8bba8',border:'#5a4031',primary:'#ea580c',accent:'#ff9854'},
-  cafe:{bg:'#17120e',sidebar:'#5b3a22',panel:'#2c2118',card:'#211810',text:'#fffaf2',muted:'#d7c3a8',border:'#594633',primary:'#9a6a3a',accent:'#d7aa68'},
-  claro:{bg:'#eef4fa',sidebar:'#2459a6',panel:'#ffffff',card:'#f7faff',text:'#10243e',muted:'#607894',border:'#c7d5e5',primary:'#2878d8',accent:'#168bd2'},
-  oled:{bg:'#000000',sidebar:'#15101f',panel:'#0a0a0d',card:'#050507',text:'#ffffff',muted:'#a9a5b3',border:'#292532',primary:'#6548e8',accent:'#8e73ff'}
- };
- const fonts={system:'system-ui,-apple-system,"Segoe UI",sans-serif',arial:'Arial,sans-serif',verdana:'Verdana,sans-serif',trebuchet:'"Trebuchet MS",sans-serif',georgia:'Georgia,serif'};
- function key(){return 'nova_v3_theme_v84_'+(window.auth&&auth.currentUser?auth.currentUser.uid:'local')}
- function fkey(){return key()+'_font'}
- function apply(name){
-  const t=themes[name]||themes.noturno,r=document.documentElement.style;
-  Object.keys(t).forEach(k=>r.setProperty('--t-'+k,t[k]));
-  document.body.classList.add('theme-v84');
-  document.querySelectorAll('.theme-choice-v84').forEach(b=>b.classList.toggle('active',b.dataset.theme===name));
-  localStorage.setItem(key(),name);
-  const s=document.getElementById('v84Status');if(s)s.textContent='✓ Tema aplicado: '+document.querySelector('.theme-choice-v84[data-theme="'+name+'"] strong').textContent;
- }
- function applyFont(){
-  const f=document.getElementById('v84Font'),z=document.getElementById('v84Size'); if(!f||!z)return;
-  document.documentElement.style.setProperty('--t-font',fonts[f.value]||fonts.system);
-  document.documentElement.style.setProperty('--t-size',z.value+'px');
-  localStorage.setItem(fkey(),JSON.stringify({font:f.value,size:z.value}));
- }
- function init(){
-  let saved=localStorage.getItem(key())||'noturno'; apply(saved);
-  try{const x=JSON.parse(localStorage.getItem(fkey())||'{}');document.getElementById('v84Font').value=x.font||'system';document.getElementById('v84Size').value=x.size||'16'}catch(e){}
-  applyFont();
-  document.querySelectorAll('.theme-choice-v84').forEach(b=>b.addEventListener('click',()=>apply(b.dataset.theme)));
-  ['v84Font','v84Size'].forEach(id=>document.getElementById(id)?.addEventListener('change',applyFont));
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+const T={
+noturno:{bg:"#07111f",panel:"#112238",card:"#0b1728",text:"#f8fbff",muted:"#91acd0",border:"#29445f",accent:"#25b8ff",primary:"#6d4aff",sidebar:"#6d28d9"},
+violeta:{bg:"#10091f",panel:"#24163f",card:"#190f2e",text:"#fffaff",muted:"#cbb7f6",border:"#513777",accent:"#b794ff",primary:"#7c3aed",sidebar:"#4c1d95"},
+oceano:{bg:"#06191b",panel:"#0b3438",card:"#0d292c",text:"#f1ffff",muted:"#9ad8d9",border:"#286064",accent:"#49d5d2",primary:"#159a9c",sidebar:"#083f43"},
+esmeralda:{bg:"#061712",panel:"#0d3a2d",card:"#0a2b22",text:"#f2fff9",muted:"#a5d7c4",border:"#28614e",accent:"#37d89d",primary:"#118b64",sidebar:"#074b38"},
+"por-do-sol":{bg:"#17120f",panel:"#302219",card:"#211813",text:"#fff8f2",muted:"#d8bba8",border:"#5a4031",accent:"#ff9854",primary:"#ea580c",sidebar:"#7c2d12"},
+cafe:{bg:"#18110c",panel:"#34251a",card:"#261b13",text:"#fff8ec",muted:"#d9c3a4",border:"#674b33",accent:"#e0b46f",primary:"#a66f38",sidebar:"#4b2f1d"},
+claro:{bg:"#f3f5f7",panel:"#ffffff",card:"#f7f8fa",text:"#172033",muted:"#667085",border:"#d7dde5",accent:"#64748b",primary:"#334155",sidebar:"#202938"},
+oled:{bg:"#000000",panel:"#0a0a0d",card:"#050507",text:"#ffffff",muted:"#aaa6b5",border:"#292532",accent:"#8e73ff",primary:"#6548e8",sidebar:"#15101f"}
+};
+const F={system:'system-ui,-apple-system,"Segoe UI",sans-serif',arial:'Arial,sans-serif',verdana:'Verdana,sans-serif',trebuchet:'"Trebuchet MS",sans-serif',georgia:'Georgia,serif'};
+const aliases={
+ bg:["--bg","--background","--body-bg","--page-bg","--cor-fundo"],
+ panel:["--panel","--panel-bg","--surface","--surface-1","--bg2","--cor-painel"],
+ card:["--card","--card-bg","--surface-2","--bg3","--cor-card"],
+ text:["--text","--text-color","--fg","--foreground","--cor-texto"],
+ muted:["--muted","--text-muted","--subtext","--cor-texto-secundario"],
+ border:["--border","--border-color","--line","--cor-borda"],
+ accent:["--accent","--cyan","--secondary","--cor-destaque"],
+ primary:["--primary","--brand","--purple","--cor-primaria"],
+ sidebar:["--sidebar","--sidebar-bg","--nav-bg","--cor-menu"]
+};
+function uid(){try{return auth&&auth.currentUser?auth.currentUser.uid:"local"}catch(e){return"local"}}
+function store(){return"nova_theme_v85_"+uid()}
+function setVars(t){
+ const r=document.documentElement.style;
+ Object.entries(aliases).forEach(([k,names])=>names.forEach(n=>r.setProperty(n,t[k],"important")));
+ // Directly target the real major containers too, avoiding the old problem where only some cards changed.
+ r.setProperty("--theme-bg",t.bg,"important");r.setProperty("--theme-panel",t.panel,"important");r.setProperty("--theme-card",t.card,"important");r.setProperty("--theme-text",t.text,"important");r.setProperty("--theme-muted",t.muted,"important");r.setProperty("--theme-border",t.border,"important");r.setProperty("--theme-accent",t.accent,"important");r.setProperty("--theme-primary",t.primary,"important");r.setProperty("--theme-soft",t.card,"important");
+ document.body.style.setProperty("background",t.bg,"important");document.body.style.setProperty("color",t.text,"important");
+ document.querySelectorAll("main,.main,.content,.page,#app").forEach(e=>{e.style.setProperty("background",t.bg,"important");e.style.setProperty("color",t.text,"important")});
+ document.querySelectorAll("aside,.sidebar").forEach(e=>e.style.setProperty("background",t.sidebar,"important"));
+ document.querySelectorAll(".panel,.hero,[class*='panel']").forEach(e=>{e.style.setProperty("background",t.panel,"important");e.style.setProperty("color",t.text,"important");e.style.setProperty("border-color",t.border,"important")});
+ document.querySelectorAll(".stat,.card,[class*='card'],input,select,textarea,.v93-timer,.ciclo-proxima,.ciclo-posicao").forEach(e=>{e.style.setProperty("background",t.card,"important");e.style.setProperty("color",t.text,"important");e.style.setProperty("border-color",t.border,"important")});
+ document.querySelectorAll("#page-ciclo p,#page-ciclo small,#page-ciclo .panel-sub,#page-ciclo [class*='desc'],#page-ciclo [class*='info']").forEach(e=>e.style.setProperty("background","transparent","important"));
+}
+function apply(name,quiet){
+ const t=T[name]||T.noturno; setVars(t);localStorage.setItem(store(),name);
+ document.querySelectorAll(".theme-choice-v85").forEach(b=>b.classList.toggle("active",b.dataset.theme===name));
+ if(!quiet){const s=document.getElementById("v85Status");if(s)s.textContent="✓ Tema aplicado no sistema inteiro";}
+}
+function font(){
+ const f=document.getElementById("v85Font"),z=document.getElementById("v85Size");if(!f||!z)return;
+ document.documentElement.style.setProperty("--app-font",F[f.value]||F.system,"important");
+ document.body.style.setProperty("font-family",F[f.value]||F.system,"important");
+ document.body.style.setProperty("font-size",z.value+"px","important");
+ localStorage.setItem(store()+"_font",JSON.stringify({f:f.value,z:z.value}));
+}
+function init(){
+ apply(localStorage.getItem(store())||"noturno",true);
+ try{let x=JSON.parse(localStorage.getItem(store()+"_font")||"{}");v85Font.value=x.f||"system";v85Size.value=x.z||"16"}catch(e){}
+ font();
+ document.querySelectorAll(".theme-choice-v85").forEach(b=>b.onclick=()=>apply(b.dataset.theme));
+ v85Font.onchange=font;v85Size.onchange=font;
+ // Reapply after SPA redraws.
+ new MutationObserver(()=>{clearTimeout(window.__v85t);window.__v85t=setTimeout(()=>apply(localStorage.getItem(store())||"noturno",true),40)}).observe(document.body,{childList:true,subtree:true});
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
 </script>
 </body>
-</html><!-- teste deploy 2 -->
+</html>

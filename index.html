@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.88 • TEMAS UNIFICADOS</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.89 • TEMAS COMPLETOS</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -1092,7 +1092,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <button class="theme-choice-v85" data-theme="por-do-sol"><span class="theme-preview-v85" style="--a:#17120f;--b:#302219;--c:#211813;--d:#ff9854"></span><strong>🌅 Pôr do Sol</strong><small>Grafite + laranja</small></button>
 <button class="theme-choice-v85" data-theme="cafe"><span class="theme-preview-v85" style="--a:#17120e;--b:#2c2118;--c:#211810;--d:#d7aa68"></span><strong>☕ Café</strong><small>Marrom + bege dourado</small></button>
 <button class="theme-choice-v85" data-theme="claro"><span class="theme-preview-v85" style="--a:#eef4fa;--b:#ffffff;--c:#f7faff;--d:#2878d8"></span><strong>❄️ Claro</strong><small>Branco + cinza + azul</small></button>
-<button class="theme-choice-v85" data-theme="oled"><span class="theme-preview-v85" style="--a:#000;--b:#0a0a0d;--c:#050507;--d:#8e73ff"></span><strong>🖤 OLED</strong><small>Preto verdadeiro + violeta</small></button>
+<button class="theme-choice-v85" data-theme="rosa"><span class="theme-preview-v85" style="--a:#fff1f7;--b:#ffffff;--c:#fff7fb;--d:#ec4899"></span><strong>🌸 Rosa</strong><small>Rosa suave + branco</small></button>
 </div>
 <div class="theme-font-v85">
 <label>Fonte<select id="v85Font"><option value="system">Padrão</option><option value="arial">Arial</option><option value="verdana">Verdana</option><option value="trebuchet">Trebuchet MS</option><option value="georgia">Georgia</option></select></label>
@@ -5119,7 +5119,7 @@ esmeralda:{bg:"#061712",panel:"#0d3a2d",card:"#0a2b22",text:"#f2fff9",muted:"#a5
 "por-do-sol":{bg:"#17120f",panel:"#302219",card:"#211813",text:"#fff8f2",muted:"#d8bba8",border:"#5a4031",accent:"#ff9854",primary:"#ea580c",sidebar:"#7c2d12"},
 cafe:{bg:"#18110c",panel:"#34251a",card:"#261b13",text:"#fff8ec",muted:"#d9c3a4",border:"#674b33",accent:"#e0b46f",primary:"#a66f38",sidebar:"#4b2f1d"},
 claro:{bg:"#f3f5f7",panel:"#ffffff",card:"#f7f8fa",text:"#172033",muted:"#667085",border:"#d7dde5",accent:"#64748b",primary:"#334155",sidebar:"#202938"},
-oled:{bg:"#000000",panel:"#0a0a0d",card:"#050507",text:"#ffffff",muted:"#aaa6b5",border:"#292532",accent:"#8e73ff",primary:"#6548e8",sidebar:"#15101f"}
+rosa:{bg:"#fff1f7",panel:"#ffffff",card:"#fff7fb",text:"#3f1729",muted:"#8f5b73",border:"#f2bfd4",accent:"#f472b6",primary:"#ec4899",sidebar:"#b42362"}
 };
 const F={system:'system-ui,-apple-system,"Segoe UI",sans-serif',arial:'Arial,sans-serif',verdana:'Verdana,sans-serif',trebuchet:'"Trebuchet MS",sans-serif',georgia:'Georgia,serif'};
 const aliases={
@@ -5135,6 +5135,7 @@ const aliases={
 };
 function uid(){try{return auth&&auth.currentUser?auth.currentUser.uid:"local"}catch(e){return"local"}}
 function store(){return"nova_theme_v85_"+uid()}
+try{if(localStorage){for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf("nova_theme_v85_")===0){try{const v=JSON.parse(localStorage.getItem(k));if(v&&v.theme==="oled"){v.theme="rosa";localStorage.setItem(k,JSON.stringify(v));}}catch(_){}}}}}catch(_){}
 function setVars(t){
  const r=document.documentElement.style;
  Object.entries(aliases).forEach(([k,names])=>names.forEach(n=>r.setProperty(n,t[k],"important")));
@@ -5230,6 +5231,20 @@ html[data-theme-v85="claro"] .danger,
 html[data-theme-v85="claro"] .btn-danger{color:#fff!important}
 </style>
 
+<style id="v10489-theme-pages-polish">
+/* V10.4.89 — paletas aplicadas em TODAS as páginas; OLED removido e Rosa adicionado. */
+html[data-theme-v85="rosa"]{--theme-bg:#fff1f7!important;--theme-panel:#fff!important;--theme-card:#fff7fb!important;--theme-text:#3f1729!important;--theme-muted:#8f5b73!important;--theme-border:#f2bfd4!important;--theme-accent:#f472b6!important;--theme-primary:#ec4899!important;--theme-soft:#fde2ee!important;--sidebar:#b42362!important;--sidebar-text:#fff!important}
+/* Qualquer bloco legado azul-escuro passa a seguir a paleta atual em todas as telas. */
+.page .panel,.page [class*="card"],.page [class*="box"],.page [class*="stat"],.page [class*="metric"],.page [class*="summary"],.page [class*="resumo"],.page [class*="proxima"],.page [class*="agendado"],.page [class*="posicao"],.page [class*="empty"],.page [class*="vazio"],.v93-timer{border-color:var(--theme-border)!important}
+.page [class*="proxima"],.page [class*="agendado"],.page [class*="posicao"],.page [class*="empty"],.page [class*="vazio"],.v93-timer{background:var(--theme-card)!important;color:var(--theme-text)!important}
+.page input,.page select,.page textarea{background:var(--theme-card)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}
+.page input::placeholder,.page textarea::placeholder{color:var(--theme-muted)!important;opacity:1}
+.page button:not(.danger):not(.btn-danger){border-color:var(--theme-border)!important}
+/* Claro: texto realmente escuro e superfícies claras em todas as páginas. */
+html[data-theme-v85="claro"]{--theme-bg:#f3f5f7!important;--theme-panel:#fff!important;--theme-card:#f7f8fa!important;--theme-text:#111827!important;--theme-muted:#526077!important;--theme-border:#d5deea!important;--theme-accent:#2878d8!important;--theme-primary:#2878d8!important;--theme-soft:#edf3fa!important;--sidebar:#edf3fa!important;--sidebar-text:#111827!important}
+html[data-theme-v85="claro"] body,html[data-theme-v85="claro"] .page,html[data-theme-v85="claro"] .panel,html[data-theme-v85="claro"] [class*="card"]{color:#111827!important}
+html[data-theme-v85="claro"] .page [class*="proxima"],html[data-theme-v85="claro"] .page [class*="agendado"],html[data-theme-v85="claro"] .page [class*="posicao"],html[data-theme-v85="claro"] .page [class*="empty"],html[data-theme-v85="claro"] .page [class*="vazio"],html[data-theme-v85="claro"] .v93-timer{background:#f7f8fa!important;color:#111827!important}
+</style>
 <style id="v10488-unified-theme-polish">
 /* V10.4.88 — acabamento visual unificado em TODAS as telas e temas. Sem alterar lógica. */
 html,body,#app,main,.main,.content,.page{background:var(--theme-bg)!important;color:var(--theme-text)!important}
@@ -5311,7 +5326,7 @@ html[data-theme-v85="esmeralda"]{--theme-bg:#051711!important;--theme-panel:#0b3
 html[data-theme-v85="noturno"]{--sidebar-text:#f8fbff!important;--theme-soft:#172d45!important}
 html[data-theme-v85="violeta"]{--sidebar-text:#fffaff!important;--theme-soft:#352052!important}
 html[data-theme-v85="por-do-sol"]{--sidebar-text:#fff8f2!important;--theme-soft:#452d20!important}
-html[data-theme-v85="oled"]{--sidebar-text:#ffffff!important;--theme-soft:#17131d!important}
+html[data-theme-v85="rosa"]{--theme-bg:#fff1f7!important;--theme-panel:#ffffff!important;--theme-card:#fff7fb!important;--theme-text:#3f1729!important;--theme-muted:#8f5b73!important;--theme-border:#f2bfd4!important;--theme-accent:#f472b6!important;--theme-primary:#ec4899!important;--theme-soft:#fde2ee!important;--sidebar:#b42362!important;--sidebar-text:#ffffff!important}
 
 /* Ciclo: descrições nunca viram faixas brancas */
 #page-ciclo p,#page-ciclo small,#page-ciclo .panel-sub,#page-ciclo [class*="desc"],#page-ciclo [class*="info"]{background:transparent!important}

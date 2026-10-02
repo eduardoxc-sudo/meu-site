@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.17 • DASHBOARD INSTANTÂNEO</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.18 • TIMER PLANEJAMENTO CORRIGIDO</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -7554,6 +7554,114 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
   const startObs=()=>{['dashSeqV92','dashEdital'].forEach(id=>{const e=document.getElementById(id);if(e)obs.observe(e,{childList:true,characterData:true,subtree:true})})};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startObs);else startObs();
   window.v10517DashboardInstantaneo={mostrarCache,atualizar};
+})();
+</script>
+
+
+<script id="v10518-timer-planejamento-fix">
+/* V10.5.18 — Timer usa a agenda REAL do Planejamento.
+   Corrige corrida de inicialização: o Timer podia popular os selects antes de agendaV102
+   terminar de chegar do Firebase e ficava apenas com a opção vazia. */
+(function(){
+  const esc = (s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const listaDaAgenda = (d)=>{
+    if(!d)return [];
+    if(Array.isArray(d.itens))return d.itens.filter(Boolean);
+    if(d.itens && typeof d.itens==='object')return Object.values(d.itens).filter(Boolean);
+    if(Array.isArray(d))return d.filter(Boolean);
+    return [];
+  };
+  const ordenar = (arr)=>arr.slice().sort((a,b)=>
+    (Number(a?.numero)||999999)-(Number(b?.numero)||999999) ||
+    String(a?.disciplina||'').localeCompare(String(b?.disciplina||''),'pt-BR') ||
+    String(a?.nome||a?.titulo||'').localeCompare(String(b?.nome||b?.titulo||''),'pt-BR')
+  );
+  function preencher(itens){
+    itens=ordenar(itens);
+    const sels=[document.getElementById('timerAssuntoV10422'),document.getElementById('timerManualAssuntoV10422')].filter(Boolean);
+    sels.forEach(sel=>{
+      const atual=sel.value || ((typeof timerV93!=='undefined'&&timerV93)?timerV93.assuntoId:'') || '';
+      sel.innerHTML='<option value="">Selecione um assunto do Planejamento</option>'+itens.map((a,i)=>{
+        const id=String(a?.id ?? 'agenda_'+i);
+        const numero=String(Number(a?.numero)||i+1).padStart(2,'0');
+        const disciplina=String(a?.disciplina||'Sem disciplina');
+        const nome=String(a?.nome||a?.titulo||'Assunto');
+        return '<option value="'+esc(id)+'">'+numero+' • '+esc(disciplina)+' — '+esc(nome)+'</option>';
+      }).join('');
+      if(atual && itens.some(a=>String(a?.id)===String(atual)))sel.value=String(atual);
+    });
+    return itens.length;
+  }
+  async function sincronizar(){
+    // 1. Memória: caminho instantâneo quando Planejamento já carregou.
+    try{
+      const mem=listaDaAgenda(typeof agendaV102!=='undefined'?agendaV102:null);
+      if(mem.length){preencher(mem);return mem;}
+    }catch(_){ }
+
+    // 2. Firebase: elimina a corrida de inicialização entre Timer e Planejamento.
+    try{
+      const u=(typeof auth!=='undefined'&&auth)?auth.currentUser:null;
+      if(u && typeof db!=='undefined'){
+        const snap=await db.ref('usuarios/'+u.uid+'/planejamento/agendaV102').once('value');
+        const d=snap.val();
+        const itens=listaDaAgenda(d);
+        if(itens.length){
+          // Mantém a fonte global sincronizada porque Iniciar e Tempo manual usam agendaV102.
+          if(typeof agendaV102!=='undefined')agendaV102=d;
+          preencher(itens);
+          return itens;
+        }
+      }
+    }catch(e){console.warn('V10.5.18 Timer agendaV102:',e);}
+
+    // 3. Fallback: importação do Planejamento. Só é usado se ainda não existir agenda montada.
+    try{
+      let imp=(typeof importacaoV102!=='undefined')?importacaoV102:null;
+      if(!imp){
+        const u=(typeof auth!=='undefined'&&auth)?auth.currentUser:null;
+        if(u && typeof db!=='undefined'){
+          const snap=await db.ref('usuarios/'+u.uid+'/planejamento/importacaoEditalV100').once('value');
+          imp=snap.val();
+          if(typeof importacaoV102!=='undefined'&&imp)importacaoV102=imp;
+        }
+      }
+      const assuntos=Array.isArray(imp?.assuntos)?imp.assuntos:[];
+      if(assuntos.length){
+        // Não inventa agenda/data. Exibe apenas como último fallback para o seletor.
+        preencher(assuntos.map((a,i)=>({...a,id:a.id||('import_'+i),numero:Number(a.numero)||i+1})));
+        return assuntos;
+      }
+    }catch(e){console.warn('V10.5.18 Timer importação:',e);}
+    preencher([]);
+    return [];
+  }
+
+  // Substitui a rotina antiga. Assim TODOS os timeouts antigos passam a usar a fonte robusta.
+  try{v10422PopularAssuntos=function(){sincronizar();};}catch(_){ }
+
+  // Toda entrada na página Timer força sincronização com o Planejamento atual.
+  document.addEventListener('click',function(e){
+    if(e.target.closest?.('[data-page="timer"]')){
+      sincronizar();
+      setTimeout(sincronizar,120);
+      setTimeout(sincronizar,700);
+    }
+  },true);
+
+  // Se o Planejamento for montado/regenerado nesta sessão, o Timer é atualizado logo depois.
+  try{
+    if(typeof v102Render==='function'&&!v102Render.__v10518){
+      const original=v102Render;
+      const wrapper=function(){const r=original.apply(this,arguments);setTimeout(sincronizar,0);return r;};
+      wrapper.__v10518=true; v102Render=wrapper;
+    }
+  }catch(_){ }
+
+  // Inicialização tolerante à ordem assíncrona do login/Firebase.
+  const arrancar=()=>{sincronizar();setTimeout(sincronizar,500);setTimeout(sincronizar,1600);setTimeout(sincronizar,3200);};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',arrancar);else arrancar();
+  window.v10518TimerPlanejamento={sincronizar,preencher};
 })();
 </script>
 

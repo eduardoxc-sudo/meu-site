@@ -501,7 +501,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.51 • TROFÉU DE CONCLUSÃO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.52 • D1 MOTOR ORIGINAL CORRIGIDO</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -2982,7 +2982,7 @@ function v104RenderSemana(){
      const futura=r.data>hoje;
      const check=r.concluida
        ? '<input class="ciclo-check-v1045" type="checkbox" checked disabled aria-label="Revisão concluída">'
-       : '<input class="ciclo-check-v1045 ciclo-rev-check-v1046" type="checkbox" data-rev-chave="'+encodeURIComponent(r.chave||'')+'" data-rev-tipo="'+v104Esc(r.tipo)+'" aria-label="Concluir revisão '+v104Esc(r.tipo)+' de '+v104Esc(r.topico)+'">';
+       : '<input class="ciclo-check-v1045 ciclo-rev-check-v1046" type="checkbox" '+(futura?'disabled title="Revisão liberada em '+v102FmtData(r.data)+'" ':'')+'data-rev-chave="'+encodeURIComponent(r.chave||'')+'" data-rev-tipo="'+v104Esc(r.tipo)+'" aria-label="Concluir revisão '+v104Esc(r.tipo)+' de '+v104Esc(r.topico)+'">';
      return '<div class="ciclo-card-v104 '+(r.concluida?'done':'')+'"><div class="linha">'+check+'<b>'+(numero?numero+' ':'')+'🔁 '+v104Esc(r.tipo)+'</b></div><strong>'+v104Esc(r.topico)+'</strong><small>'+v104Esc(r.disciplina)+(r.concluida?' • ✓ Revisão concluída':futura?' • Revisão futura':' • Revisão pendente')+'</small></div>';
    }).join('');
    return '<div class="ciclo-dia-v104 '+(data===hoje?'hoje':'')+'" data-dia="'+data+'"><div class="ciclo-dia-head-v104"><b>'+v104NomeDia(data).toUpperCase()+'</b><small>'+v102FmtData(data)+(data===hoje?' • Hoje':'')+'</small></div><div class="ciclo-dia-body-v104">'+(assuntos+revisoes||'<div class="ciclo-dia-vazio-v104">Nenhum assunto.</div>')+'</div></div>';
@@ -3249,7 +3249,7 @@ async function revisoesMotorRegistrarConclusao(disciplina,topico,dataBase){
  const chave=revChave(disciplina,topico);
  if(revisoesMotor.origens[chave])return {msg:'Este tópico já possui revisões. Nenhuma duplicata foi criada.'};
  const base=dataBase||new Date().toISOString().slice(0,10),revisoes={};
- (planejamentoEstado?.revisoes||[]).filter(n=>[1,7,15,30].includes(Number(n))).forEach(n=>revisoes['D'+n]={dias:Number(n),data:revDataISO(base,n),concluida:false});
+ [1,7,15,30].forEach(n=>revisoes['D'+n]={dias:n,data:revDataISO(base,n),concluida:false});
  revisoesMotor.origens[chave]={disciplina,topico,dataEstudo:base,revisoes,criadoEm:new Date().toISOString()};
  revisoesMotor.atualizadoEm=new Date().toISOString();
  localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));
@@ -4375,427 +4375,24 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 </style>
 
 
-<!-- =========================================================
- V10.4.51 — REVISÕES POR DIAS CORRIDOS
- D1 = dia seguinte à conclusão; D7 = +7; D15 = +15; D30 = +30.
- Corrige também revisões PENDENTES antigas que tenham sido
- gravadas em data incorreta. Revisões já concluídas não são movidas.
-========================================================== -->
-<script id="v10448-revisoes-dias-corridos">
+<!-- V10.4.52 — D1 corrigida no motor original -->
+<script id="v10452-d1-core-fix">
 (function(){
-  function isoAddDiasV10448(base, dias){
-    var p=String(base||'').slice(0,10).split('-').map(Number);
-    if(p.length!==3 || !p[0] || !p[1] || !p[2]) return '';
-    var d=new Date(p[0],p[1]-1,p[2],12,0,0,0);
-    d.setDate(d.getDate()+Number(dias||0));
-    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  }
-
-  /* Substitui o cálculo do motor: nunca permite D1 no mesmo dia. */
-  window.revDataISO = function(base,dias){
-    return isoAddDiasV10448(base,dias);
-  };
-
-  async function corrigirPendentesV10448(){
-    try{
-      if(!window.revisoesMotor || !revisoesMotor.origens) return false;
-      var mudou=false;
-
-      Object.values(revisoesMotor.origens).forEach(function(o){
-        if(!o || !o.dataEstudo || !o.revisoes) return;
-        Object.entries(o.revisoes).forEach(function(entry){
-          var tipo=entry[0], r=entry[1];
-          if(!r || r.concluida) return; // histórico concluído fica intacto
-
-          var dias=Number(r.dias || String(tipo).replace(/\D/g,''));
-          if(![1,7,15,30].includes(dias)) return;
-
-          var correta=isoAddDiasV10448(o.dataEstudo,dias);
-          if(correta && r.data!==correta){
-            r.data=correta;
-            r.dias=dias;
-            mudou=true;
-          }
-        });
-      });
-
-      if(!mudou) return false;
-
-      revisoesMotor.atualizadoEm=new Date().toISOString();
-      if(auth && auth.currentUser){
-        localStorage.setItem(
-          'nova_v3_revisoes_motor_'+auth.currentUser.uid,
-          JSON.stringify(revisoesMotor)
-        );
-      }
-      if(window.REVISOES_MOTOR_REF){
-        await REVISOES_MOTOR_REF.set(revisoesMotor);
-      }
-
-      if(typeof renderizarRevisoesMotor==='function') renderizarRevisoesMotor();
-      if(typeof renderizarRevisoesAgendadasV85==='function') renderizarRevisoesAgendadasV85();
-      if(typeof renderizarAgendaRevisoesV86==='function') renderizarAgendaRevisoesV86();
-      if(typeof renderizarRevisoesHojeV87==='function') renderizarRevisoesHojeV87();
-      if(typeof renderizarHistoricoV90==='function') renderizarHistoricoV90();
-      if(typeof renderizarDashboardRevisoesV91==='function') renderizarDashboardRevisoesV91();
-      if(typeof renderizarEstatisticasV92==='function') renderizarEstatisticasV92();
-      if(typeof renderizarPlanejamentoHojeV103==='function') renderizarPlanejamentoHojeV103();
-      if(typeof v104RenderSemana==='function') v104RenderSemana();
-      return true;
-    }catch(e){
-      console.error('V10.4.51: falha ao corrigir datas pendentes',e);
-      return false;
-    }
-  }
-
-  /* Depois que o motor terminar de carregar, corrige registros antigos. */
-  document.addEventListener('DOMContentLoaded',function(){
-    setTimeout(corrigirPendentesV10448,1200);
-    setTimeout(corrigirPendentesV10448,2600);
+ function baseISO(v){if(!v)return '';var m=String(v).match(/^(\d{4}-\d{2}-\d{2})/);if(m)return m[1];var d=new Date(v);return isNaN(d)?'':v104DateISO(d)}
+ function pacote(base,old){var x=(old&&typeof old==='object')?old:{};[1,7,15,30].forEach(function(n){var k='D'+n,dt=revDataISO(base,n);if(!x[k])x[k]={dias:n,data:dt,concluida:false};else{x[k].dias=n;if(!x[k].concluida)x[k].data=dt}});return x}
+ async function reconstruir(){
+  if(!auth.currentUser||!REVISOES_MOTOR_REF)return false;var mudou=false;
+  (Array.isArray(agendaV102?.itens)?agendaV102.itens:[]).forEach(function(a){
+   if(!a||!a.concluidoEm||!a.disciplina||!a.nome)return;var base=baseISO(a.concluidoEm);if(!base)return;var k=revChave(a.disciplina,a.nome),o=revisoesMotor.origens[k];
+   if(!o){revisoesMotor.origens[k]={disciplina:a.disciplina,topico:a.nome,dataEstudo:base,revisoes:pacote(base,{}),criadoEm:a.concluidoEm};mudou=true}
+   else{var antes=JSON.stringify(o);o.dataEstudo=base;o.revisoes=pacote(base,o.revisoes);if(JSON.stringify(o)!==antes)mudou=true}
   });
-
-  /* Também disponibiliza para chamadas internas/testes. */
-  window.corrigirPendentesV10448=corrigirPendentesV10448;
+  if(mudou){revisoesMotor.atualizadoEm=new Date().toISOString();localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));await REVISOES_MOTOR_REF.set(revisoesMotor)}
+  renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarPlanejamentoHojeV103();v104RenderSemana();renderizarDashboardRevisoesV91();renderizarEstatisticasV92();return mudou;
+ }
+ document.addEventListener('click',function(e){if(e.target.closest('[data-page="ciclo"]'))setTimeout(function(){reconstruir().catch(console.error)},200)});
+ setTimeout(function(){reconstruir().catch(function(){})},2500);setTimeout(function(){reconstruir().catch(function(){})},4500);
 })();
 </script>
-
-
-<!-- =========================================================
- V10.4.51 — VISUAL DOS CARDS DE REVISÃO NO CICLO
- Mantém toda a lógica da V10.4.51.
- - revisão destacada como D1/D7/D15/D30
- - remove apenas a seta azul decorativa dos cards de revisão
-========================================================== -->
-<style id="v10449-revisao-card-visual">
-#page-ciclo [data-revisao="1"],
-#page-ciclo .revisao-card,
-#page-ciclo .ciclo-revisao-item{
-  position:relative;
-  border-color:rgba(124,92,255,.45) !important;
-  background:linear-gradient(135deg,rgba(124,92,255,.10),rgba(10,18,32,.96)) !important;
-}
-#page-ciclo .rev-badge-v10449{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding:2px 7px;
-  margin:0 0 5px 0;
-  border-radius:5px;
-  background:#7657ff;
-  color:#fff;
-  font-size:12px;
-  font-weight:800;
-  line-height:1.25;
-}
-#page-ciclo .rev-label-v10449{
-  display:block;
-  font-weight:700;
-  line-height:1.3;
-}
-</style>
-
-<script id="v10449-revisao-card-visual-js">
-(function(){
-  function decorarRevisoesV10449(){
-    var raiz=document.getElementById('page-ciclo');
-    if(!raiz) return;
-
-    raiz.querySelectorAll('div,article,label').forEach(function(card){
-      var txt=(card.innerText||'').trim();
-      if(!/(Revis[aã]o\s*(D)?(1|7|15|30)\b|Revis[aã]o pendente)/i.test(txt)) return;
-
-      var filhos=Array.from(card.children||[]);
-      if(!filhos.length) return;
-
-      /* Marca somente o menor card que contém a revisão. */
-      var temFilhoRevisao=filhos.some(function(f){
-        return /Revis[aã]o\s*(D)?(1|7|15|30)\b/i.test((f.innerText||'').trim());
-      });
-      if(temFilhoRevisao) return;
-
-      card.classList.add('ciclo-revisao-item');
-      card.setAttribute('data-revisao','1');
-
-      /* Remove somente botões/setas azuis decorativas dentro do card de revisão. */
-      card.querySelectorAll('button,a,span').forEach(function(el){
-        var t=(el.textContent||'').trim();
-        if(t==='▶' || t==='►' || t==='▸' || t==='→'){
-          el.style.display='none';
-        }
-      });
-
-      /* Cria badge visual a partir do texto já existente, sem alterar dados. */
-      var m=txt.match(/Revis[aã]o\s*(?:D)?(1|7|15|30)\b/i);
-      if(!m) return;
-      var d='D'+m[1];
-
-      if(!card.querySelector('.rev-badge-v10449')){
-        var badge=document.createElement('span');
-        badge.className='rev-badge-v10449';
-        badge.textContent=d;
-        var alvo=card.querySelector('strong,b') || card.firstElementChild;
-        if(alvo && alvo.parentNode) alvo.parentNode.insertBefore(badge,alvo);
-        else card.insertBefore(badge,card.firstChild);
-      }
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded',function(){
-    setTimeout(decorarRevisoesV10449,500);
-    setTimeout(decorarRevisoesV10449,1500);
-  });
-
-  var obs=new MutationObserver(function(){
-    clearTimeout(window.__v10449t);
-    window.__v10449t=setTimeout(decorarRevisoesV10449,80);
-  });
-  document.addEventListener('DOMContentLoaded',function(){
-    var r=document.getElementById('page-ciclo');
-    if(r) obs.observe(r,{childList:true,subtree:true});
-  });
-
-  window.decorarRevisoesV10449=decorarRevisoesV10449;
-})();
-</script>
-
-
-<!-- =========================================================
- V10.4.51 — CORREÇÃO DO MOTOR + EXIBIÇÃO DAS REVISÕES NO CICLO
- Regra fixa: D1/D7/D15/D30 a partir da data real da conclusão.
- Repara origens antigas sem revisões e salva no Firebase por UID.
-========================================================== -->
-<script id="v10450-fix-revisoes-ciclo">
-(function(){
-  function addDiasV10450(base,dias){
-    if(typeof v102ISOAdd==='function') return v102ISOAdd(base,Number(dias));
-    var p=String(base||'').slice(0,10).split('-').map(Number);
-    if(p.length!==3||!p[0]||!p[1]||!p[2]) return '';
-    var d=new Date(p[0],p[1]-1,p[2],12);
-    d.setDate(d.getDate()+Number(dias));
-    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  }
-
-  function montar4V10450(base, existentes){
-    var out=(existentes && typeof existentes==='object') ? existentes : {};
-    [1,7,15,30].forEach(function(n){
-      var k='D'+n, correta=addDiasV10450(base,n);
-      if(!out[k]) out[k]={dias:n,data:correta,concluida:false};
-      else {
-        out[k].dias=n;
-        /* Só reposiciona revisão ainda não concluída. */
-        if(!out[k].concluida) out[k].data=correta;
-      }
-    });
-    return out;
-  }
-
-  async function salvarMotorV10450(){
-    if(!window.auth || !auth.currentUser) return;
-    revisoesMotor.atualizadoEm=new Date().toISOString();
-    localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));
-    if(window.REVISOES_MOTOR_REF) await REVISOES_MOTOR_REF.set(revisoesMotor);
-  }
-
-  async function repararMotorV10450(){
-    try{
-      if(!window.revisoesMotor || !revisoesMotor.origens) return;
-      var mudou=false;
-      Object.values(revisoesMotor.origens).forEach(function(o){
-        if(!o || !o.dataEstudo) return;
-        var antes=JSON.stringify(o.revisoes||{});
-        o.revisoes=montar4V10450(o.dataEstudo,o.revisoes);
-        if(JSON.stringify(o.revisoes)!==antes) mudou=true;
-      });
-      if(mudou) await salvarMotorV10450();
-
-      if(typeof renderizarRevisoesMotor==='function') renderizarRevisoesMotor();
-      if(typeof renderizarRevisoesAgendadasV85==='function') renderizarRevisoesAgendadasV85();
-      if(typeof renderizarAgendaRevisoesV86==='function') renderizarAgendaRevisoesV86();
-      if(typeof renderizarRevisoesHojeV87==='function') renderizarRevisoesHojeV87();
-      if(typeof renderizarPlanejamentoHojeV103==='function') renderizarPlanejamentoHojeV103();
-      if(typeof v104RenderSemana==='function') v104RenderSemana();
-    }catch(e){ console.error('V10.4.51 reparar revisões:',e); }
-  }
-
-  /* Substitui o registrador: não depende de configuração vazia para criar as 4 revisões. */
-  window.revisoesMotorRegistrarConclusao = async function(disciplina,topico,dataBase){
-    if(!disciplina||!topico||!window.REVISOES_MOTOR_REF)
-      return {msg:'Não foi possível vincular as revisões.'};
-
-    var origemTeste={disciplina:disciplina,topico:topico};
-    if(typeof revOrigemExisteNoEdital==='function' && !revOrigemExisteNoEdital(origemTeste))
-      return {msg:'O tópico não pertence ao Edital atual.'};
-
-    var chave=revChave(disciplina,topico);
-    var base=dataBase || (typeof v102HojeISO==='function' ? v102HojeISO() : new Date().toISOString().slice(0,10));
-    var existente=revisoesMotor.origens[chave];
-
-    if(existente){
-      existente.dataEstudo=existente.dataEstudo||base;
-      existente.revisoes=montar4V10450(existente.dataEstudo,existente.revisoes);
-    }else{
-      revisoesMotor.origens[chave]={
-        disciplina:disciplina,
-        topico:topico,
-        dataEstudo:base,
-        revisoes:montar4V10450(base,{}),
-        criadoEm:new Date().toISOString()
-      };
-    }
-
-    await salvarMotorV10450();
-
-    if(typeof renderizarRevisoesMotor==='function') renderizarRevisoesMotor();
-    if(typeof renderizarRevisoesAgendadasV85==='function') renderizarRevisoesAgendadasV85();
-    if(typeof renderizarAgendaRevisoesV86==='function') renderizarAgendaRevisoesV86();
-    if(typeof renderizarRevisoesHojeV87==='function') renderizarRevisoesHojeV87();
-    if(typeof renderizarHistoricoV90==='function') renderizarHistoricoV90();
-    if(typeof renderizarDashboardRevisoesV91==='function') renderizarDashboardRevisoesV91();
-    if(typeof renderizarEstatisticasV92==='function') renderizarEstatisticasV92();
-    if(typeof renderizarPlanejamentoHojeV103==='function') renderizarPlanejamentoHojeV103();
-    if(typeof v104RenderSemana==='function') v104RenderSemana();
-
-    return {msg:'D1, D7, D15 e D30 criadas nas datas corretas.'};
-  };
-
-  /* Repara inclusive os assuntos 01/02 já concluídos no teste anterior. */
-  document.addEventListener('DOMContentLoaded',function(){
-    setTimeout(repararMotorV10450,1800);
-    setTimeout(repararMotorV10450,3500);
-  });
-  window.repararMotorV10450=repararMotorV10450;
-})();
-</script>
-
-
-<!-- =========================================================
- V10.4.51 — CORREÇÃO DEFINITIVA D1 NO CICLO
- 1) Reconstrói revisões de assuntos JÁ concluídos na agenda.
- 2) D1/D7/D15/D30 usam a data real da conclusão.
- 3) Revisão futura aparece no dia correto, mas checkbox fica bloqueado.
- 4) Não altera numeração nem planejamento dos assuntos.
-========================================================== -->
-<script id="v10451-backfill-revisoes">
-(function(){
-  function isoLocalV10451(valor){
-    if(!valor) return '';
-    var s=String(valor);
-    var m=s.match(/^(\d{4}-\d{2}-\d{2})/);
-    if(m) return m[1];
-    var d=new Date(valor);
-    if(isNaN(d)) return '';
-    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  }
-  function addV10451(base,n){
-    var p=String(base).split('-').map(Number);
-    var d=new Date(p[0],p[1]-1,p[2],12);
-    d.setDate(d.getDate()+n);
-    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  }
-  function pacoteV10451(base,antigo){
-    var x=(antigo&&typeof antigo==='object')?antigo:{};
-    [1,7,15,30].forEach(function(n){
-      var k='D'+n;
-      if(!x[k]) x[k]={dias:n,data:addV10451(base,n),concluida:false};
-      else if(!x[k].concluida){ x[k].dias=n; x[k].data=addV10451(base,n); }
-    });
-    return x;
-  }
-  async function salvarV10451(){
-    if(!window.auth || !auth.currentUser || !window.revisoesMotor) return;
-    revisoesMotor.atualizadoEm=new Date().toISOString();
-    localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));
-    if(window.REVISOES_MOTOR_REF) await REVISOES_MOTOR_REF.set(revisoesMotor);
-  }
-  async function reconstruirV10451(){
-    try{
-      if(!window.revisoesMotor || !revisoesMotor.origens) return false;
-      var itens=(window.agendaV102 && Array.isArray(agendaV102.itens))?agendaV102.itens:[];
-      var mudou=false;
-
-      itens.forEach(function(a){
-        if(!a || !a.concluidoEm || !a.disciplina || !a.nome) return;
-        var base=isoLocalV10451(a.concluidoEm);
-        if(!base) return;
-
-        var chave=revChave(a.disciplina,a.nome);
-        var o=revisoesMotor.origens[chave];
-        if(!o){
-          revisoesMotor.origens[chave]={
-            disciplina:a.disciplina,
-            topico:a.nome,
-            dataEstudo:base,
-            revisoes:pacoteV10451(base,{}),
-            criadoEm:a.concluidoEm
-          };
-          mudou=true;
-        }else{
-          var antes=JSON.stringify(o);
-          o.dataEstudo=base;
-          o.revisoes=pacoteV10451(base,o.revisoes);
-          if(JSON.stringify(o)!==antes) mudou=true;
-        }
-      });
-
-      if(mudou) await salvarV10451();
-
-      if(typeof renderizarRevisoesMotor==='function') renderizarRevisoesMotor();
-      if(typeof renderizarRevisoesAgendadasV85==='function') renderizarRevisoesAgendadasV85();
-      if(typeof renderizarAgendaRevisoesV86==='function') renderizarAgendaRevisoesV86();
-      if(typeof renderizarRevisoesHojeV87==='function') renderizarRevisoesHojeV87();
-      if(typeof renderizarPlanejamentoHojeV103==='function') renderizarPlanejamentoHojeV103();
-      if(typeof v104RenderSemana==='function') v104RenderSemana();
-      return mudou;
-    }catch(e){
-      console.error('V10.4.51 reconstrução:',e);
-      return false;
-    }
-  }
-
-  /* Bloqueio extra: revisão futura nunca pode ser concluída antes da data. */
-  document.addEventListener('change',function(e){
-    var ch=e.target.closest && e.target.closest('.ciclo-rev-check-v1046');
-    if(!ch) return;
-    var card=ch.closest('.ciclo-card-v104');
-    var dia=card && card.closest('[data-dia]');
-    var data=dia && dia.dataset.dia;
-    var hoje=(typeof v102HojeISO==='function')?v102HojeISO():isoLocalV10451(new Date());
-    if(data && data>hoje){
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      ch.checked=false;
-      ch.disabled=true;
-    }
-  },true);
-
-  function bloquearFuturasV10451(){
-    var hoje=(typeof v102HojeISO==='function')?v102HojeISO():isoLocalV10451(new Date());
-    document.querySelectorAll('#cicloSemanaGridV104 [data-dia]').forEach(function(dia){
-      if((dia.dataset.dia||'')<=hoje) return;
-      dia.querySelectorAll('.ciclo-rev-check-v1046').forEach(function(ch){
-        ch.disabled=true;
-        ch.title='Esta revisão será liberada em '+dia.dataset.dia.split('-').reverse().join('/');
-      });
-    });
-  }
-
-  var renderOriginal=window.v104RenderSemana;
-  if(typeof renderOriginal==='function'){
-    window.v104RenderSemana=function(){
-      var r=renderOriginal.apply(this,arguments);
-      setTimeout(bloquearFuturasV10451,0);
-      return r;
-    };
-  }
-
-  document.addEventListener('DOMContentLoaded',function(){
-    setTimeout(async function(){await reconstruirV10451(); bloquearFuturasV10451();},1800);
-    setTimeout(async function(){await reconstruirV10451(); bloquearFuturasV10451();},3500);
-  });
-
-  window.reconstruirRevisoesV10451=reconstruirV10451;
-})();
-</script>
-
 </body>
 </html>

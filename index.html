@@ -501,7 +501,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.46 • TROFÉU DE CONCLUSÃO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.47 • TROFÉU DE CONCLUSÃO DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -4097,7 +4097,7 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 </script>
 
 
-<!-- V10.4.46 — TROFÉU DE CONCLUSÃO: camada isolada; não altera persistência/checklist -->
+<!-- V10.4.47 — TROFÉU DE CONCLUSÃO: camada isolada; não altera persistência/checklist -->
 <style id="v10444-trofeu-css">
 #v10444Victory{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;pointer-events:none;background:rgba(4,9,18,.22)}
 #v10444Victory.show{display:flex;animation:v10444Fade .25s ease}
@@ -4135,7 +4135,7 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 
 
 <!-- =========================================================
- V10.4.46 — MOBILE: CARDS DO CICLO MAIS LARGOS E LEGÍVEIS
+ V10.4.47 — MOBILE: CARDS DO CICLO MAIS LARGOS E LEGÍVEIS
  Somente layout responsivo. Não altera Firebase, checklist,
  planejamento, histórico, revisões ou lógica de conclusão.
 ========================================================== -->
@@ -4234,7 +4234,7 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 
 
 <!-- =========================================================
- V10.4.46 — CORREÇÃO REAL DOS CARDS "PLANEJAMENTO DE HOJE"
+ V10.4.47 — CORREÇÃO REAL DOS CARDS "PLANEJAMENTO DE HOJE"
  No celular: checkbox + número + prioridade na 1ª linha;
  título/matéria/status ocupam 100% da largura na 2ª linha.
  Somente CSS. Não altera dados, Firebase ou checklist.
@@ -4305,6 +4305,72 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
     line-height: 1.35 !important;
     white-space: normal !important;
   }
+}
+</style>
+
+
+<!-- =========================================================
+ V10.4.47 — PENDENTES DE HOJE: CORREÇÃO INDEPENDENTE DO VIEWPORT
+ A coluna do Ciclo pode ser estreita mesmo em tela > 768px.
+ Por isso esta regra não depende mais do @media.
+========================================================== -->
+<style id="v10447-pendentes-hoje-fix">
+#cicloPlanejadoHojeListaV103 .ciclo-hoje-item{
+  display:grid !important;
+  grid-template-columns:38px 52px minmax(0,1fr) !important;
+  grid-template-rows:auto auto !important;
+  column-gap:10px !important;
+  row-gap:8px !important;
+  align-items:center !important;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+}
+#cicloPlanejadoHojeListaV103 .ciclo-hoje-item > input[type="checkbox"]{
+  grid-column:1 !important;
+  grid-row:1 !important;
+  margin:0 !important;
+  width:22px !important;
+  height:22px !important;
+  min-width:22px !important;
+}
+#cicloPlanejadoHojeListaV103 .ciclo-hoje-item > .ciclo-hoje-num{
+  grid-column:2 !important;
+  grid-row:1 !important;
+  width:auto !important;
+  text-align:left !important;
+}
+#cicloPlanejadoHojeListaV103 .ciclo-hoje-item > div:nth-of-type(2){
+  grid-column:3 !important;
+  grid-row:1 !important;
+  min-width:0 !important;
+}
+#cicloPlanejadoHojeListaV103 .ciclo-hoje-item > .ciclo-hoje-main{
+  grid-column:1 / -1 !important;
+  grid-row:2 !important;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+}
+#cicloPlanejadoHojeListaV103 .ciclo-hoje-main strong{
+  display:block !important;
+  width:100% !important;
+  max-width:100% !important;
+  white-space:normal !important;
+  word-break:normal !important;
+  overflow-wrap:break-word !important;
+  line-height:1.28 !important;
+}
+#cicloPlanejadoHojeListaV103 .ciclo-hoje-main small{
+  display:block !important;
+  width:100% !important;
+  max-width:100% !important;
+  margin-top:5px !important;
+  white-space:normal !important;
+  line-height:1.35 !important;
 }
 </style>
 

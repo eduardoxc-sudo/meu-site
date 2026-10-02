@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.94 • SINCRONIZAÇÃO DASHBOARD</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.95 • DASHBOARD DADOS REAIS</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -5929,5 +5929,164 @@ html body :is(
 })();
 </script>
 
-\n<!-- V10.4.94 — SINCRONIZAÇÃO DASHBOARD ↔ CICLO/REVISÕES -->\n<script id="v10494-dashboard-sync">\n(function(){\n  function norm(v){\n    return String(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/\\s+/g,' ').trim();\n  }\n  function agendaConcluidos(){\n    return (Array.isArray(window.agendaV102?.itens)?window.agendaV102.itens:[]).filter(function(a){return a&&a.concluidoEm&&a.disciplina&&a.nome;});\n  }\n  function chave(d,t){return norm(d)+'||'+norm(t);}\n\n  function atualizarContadorEdital(){\n    var edital=window.estadoV2?.editalVerticalizado||{};\n    var concl=new Set(agendaConcluidos().map(function(a){return chave(a.disciplina,a.nome);}));\n    var total=0, feitos=0;\n    Object.keys(edital).forEach(function(d){\n      (edital[d]||[]).forEach(function(t){\n        total++;\n        if(t?.t || concl.has(chave(d,t?.titulo))) feitos++;\n      });\n    });\n    var el=document.getElementById('dashEdital');\n    if(el) el.textContent=feitos+' / '+total;\n  }\n\n  function dataLocal(v){\n    if(!v)return '';\n    var d=new Date(v);\n    if(!isNaN(d) && typeof window.v104DateISO==='function') return v104DateISO(d);\n    var m=String(v).match(/^(\\d{4}-\\d{2}-\\d{2})/);\n    return m?m[1]:'';\n  }\n\n  async function garantirRevisoesDosConcluidos(){\n    if(!window.auth?.currentUser || !window.REVISOES_MOTOR_REF || !window.revisoesMotor)return false;\n    if(!revisoesMotor.origens || typeof revisoesMotor.origens!=='object') revisoesMotor.origens={};\n    var mudou=false;\n    agendaConcluidos().forEach(function(a){\n      var base=dataLocal(a.concluidoEm); if(!base)return;\n      var k=typeof window.revChave==='function'?revChave(a.disciplina,a.nome):chave(a.disciplina,a.nome);\n      var o=revisoesMotor.origens[k];\n      if(!o){\n        o=revisoesMotor.origens[k]={disciplina:a.disciplina,topico:a.nome,dataEstudo:base,revisoes:{},criadoEm:a.concluidoEm};\n        mudou=true;\n      }\n      if(!o.revisoes || typeof o.revisoes!=='object'){o.revisoes={};mudou=true;}\n      [1,7,15,30].forEach(function(n){\n        var tipo='D'+n, dt=typeof window.revDataISO==='function'?revDataISO(base,n):'';\n        if(!o.revisoes[tipo]){o.revisoes[tipo]={dias:n,data:dt,concluida:false};mudou=true;}\n        else if(!o.revisoes[tipo].concluida && dt && o.revisoes[tipo].data!==dt){o.revisoes[tipo].data=dt;o.revisoes[tipo].dias=n;mudou=true;}\n      });\n    });\n    if(mudou){\n      revisoesMotor.atualizadoEm=new Date().toISOString();\n      try{localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));}catch(_){}\n      try{await REVISOES_MOTOR_REF.set(revisoesMotor);}catch(e){console.warn('V10.4.94 sync Firebase',e);}\n    }\n    return mudou;\n  }\n\n  async function sincronizarDashboardV10494(){\n    atualizarContadorEdital();\n    await garantirRevisoesDosConcluidos();\n    if(typeof window.renderizarDashboardRevisoesV91==='function') renderizarDashboardRevisoesV91();\n    if(typeof window.renderizarEstatisticasV92==='function') renderizarEstatisticasV92();\n    atualizarContadorEdital(); // renderizações antigas não podem devolver 0/0\n  }\n  window.sincronizarDashboardV10494=sincronizarDashboardV10494;\n\n  document.addEventListener('click',function(e){\n    if(e.target.closest('[data-page="dashboard"]')) setTimeout(function(){sincronizarDashboardV10494().catch(console.error);},120);\n  });\n  window.addEventListener('load',function(){\n    [600,1800,3500].forEach(function(ms){setTimeout(function(){sincronizarDashboardV10494().catch(function(){});},ms);});\n  });\n\n  // atualizarEditalV2 recalculava o Dashboard apenas pelo campo t e podia voltar a 0/0.\n  var antigaAtualizar=window.atualizarEditalV2;\n  if(typeof antigaAtualizar==='function'){\n    window.atualizarEditalV2=function(){\n      var r=antigaAtualizar.apply(this,arguments);\n      setTimeout(atualizarContadorEdital,0);\n      return r;\n    };\n  }\n})();\n</script>\n</body>
+\n<!-- V10.4.94 — SINCRONIZAÇÃO DASHBOARD ↔ CICLO/REVISÕES -->\n<script id="v10494-dashboard-sync">\n(function(){\n  function norm(v){\n    return String(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/\\s+/g,' ').trim();\n  }\n  function agendaConcluidos(){\n    return (Array.isArray(window.agendaV102?.itens)?window.agendaV102.itens:[]).filter(function(a){return a&&a.concluidoEm&&a.disciplina&&a.nome;});\n  }\n  function chave(d,t){return norm(d)+'||'+norm(t);}\n\n  function atualizarContadorEdital(){\n    var edital=window.estadoV2?.editalVerticalizado||{};\n    var concl=new Set(agendaConcluidos().map(function(a){return chave(a.disciplina,a.nome);}));\n    var total=0, feitos=0;\n    Object.keys(edital).forEach(function(d){\n      (edital[d]||[]).forEach(function(t){\n        total++;\n        if(t?.t || concl.has(chave(d,t?.titulo))) feitos++;\n      });\n    });\n    var el=document.getElementById('dashEdital');\n    if(el) el.textContent=feitos+' / '+total;\n  }\n\n  function dataLocal(v){\n    if(!v)return '';\n    var d=new Date(v);\n    if(!isNaN(d) && typeof window.v104DateISO==='function') return v104DateISO(d);\n    var m=String(v).match(/^(\\d{4}-\\d{2}-\\d{2})/);\n    return m?m[1]:'';\n  }\n\n  async function garantirRevisoesDosConcluidos(){\n    if(!window.auth?.currentUser || !window.REVISOES_MOTOR_REF || !window.revisoesMotor)return false;\n    if(!revisoesMotor.origens || typeof revisoesMotor.origens!=='object') revisoesMotor.origens={};\n    var mudou=false;\n    agendaConcluidos().forEach(function(a){\n      var base=dataLocal(a.concluidoEm); if(!base)return;\n      var k=typeof window.revChave==='function'?revChave(a.disciplina,a.nome):chave(a.disciplina,a.nome);\n      var o=revisoesMotor.origens[k];\n      if(!o){\n        o=revisoesMotor.origens[k]={disciplina:a.disciplina,topico:a.nome,dataEstudo:base,revisoes:{},criadoEm:a.concluidoEm};\n        mudou=true;\n      }\n      if(!o.revisoes || typeof o.revisoes!=='object'){o.revisoes={};mudou=true;}\n      [1,7,15,30].forEach(function(n){\n        var tipo='D'+n, dt=typeof window.revDataISO==='function'?revDataISO(base,n):'';\n        if(!o.revisoes[tipo]){o.revisoes[tipo]={dias:n,data:dt,concluida:false};mudou=true;}\n        else if(!o.revisoes[tipo].concluida && dt && o.revisoes[tipo].data!==dt){o.revisoes[tipo].data=dt;o.revisoes[tipo].dias=n;mudou=true;}\n      });\n    });\n    if(mudou){\n      revisoesMotor.atualizadoEm=new Date().toISOString();\n      try{localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));}catch(_){}\n      try{await REVISOES_MOTOR_REF.set(revisoesMotor);}catch(e){console.warn('V10.4.94 sync Firebase',e);}\n    }\n    return mudou;\n  }\n\n  async function sincronizarDashboardV10494(){\n    atualizarContadorEdital();\n    await garantirRevisoesDosConcluidos();\n    if(typeof window.renderizarDashboardRevisoesV91==='function') renderizarDashboardRevisoesV91();\n    if(typeof window.renderizarEstatisticasV92==='function') renderizarEstatisticasV92();\n    atualizarContadorEdital(); // renderizações antigas não podem devolver 0/0\n  }\n  window.sincronizarDashboardV10494=sincronizarDashboardV10494;\n\n  document.addEventListener('click',function(e){\n    if(e.target.closest('[data-page="dashboard"]')) setTimeout(function(){sincronizarDashboardV10494().catch(console.error);},120);\n  });\n  window.addEventListener('load',function(){\n    [600,1800,3500].forEach(function(ms){setTimeout(function(){sincronizarDashboardV10494().catch(function(){});},ms);});\n  });\n\n  // atualizarEditalV2 recalculava o Dashboard apenas pelo campo t e podia voltar a 0/0.\n  var antigaAtualizar=window.atualizarEditalV2;\n  if(typeof antigaAtualizar==='function'){\n    window.atualizarEditalV2=function(){\n      var r=antigaAtualizar.apply(this,arguments);\n      setTimeout(atualizarContadorEdital,0);\n      return r;\n    };\n  }\n})();\n</script>\n
+<!-- V10.4.95 — CORREÇÃO: Dashboard lê as variáveis reais do sistema (let), não window.* -->
+<script id="v10495-dashboard-real-data">
+(function(){
+  function norm95(v){
+    return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .toLowerCase().replace(/\s+/g,' ').trim();
+  }
+
+  function itens95(){
+    try{
+      return Array.isArray(agendaV102?.itens) ? agendaV102.itens : [];
+    }catch(_){ return []; }
+  }
+
+  function atualizarEdital95(){
+    const itens = itens95();
+    let total = itens.length;
+    let feitos = itens.filter(a => !!a?.concluidoEm).length;
+
+    // Se a agenda ainda não existir, usa o Edital verticalizado real.
+    if(!total){
+      try{
+        const edital = estadoV2?.editalVerticalizado || {};
+        total = 0; feitos = 0;
+        Object.values(edital).forEach(lista=>{
+          (lista||[]).forEach(t=>{
+            total++;
+            if(t?.t) feitos++;
+          });
+        });
+      }catch(_){}
+    }
+
+    const el = document.getElementById('dashEdital');
+    if(el) el.textContent = feitos + ' / ' + total;
+  }
+
+  async function garantirRevisoes95(){
+    let itens = itens95().filter(a=>a?.concluidoEm && a?.disciplina && a?.nome);
+    if(!itens.length) return;
+
+    try{
+      if(!revisoesMotor || typeof revisoesMotor!=='object')
+        revisoesMotor={origens:{},atualizadoEm:null};
+      if(!revisoesMotor.origens || typeof revisoesMotor.origens!=='object')
+        revisoesMotor.origens={};
+
+      let mudou=false;
+
+      itens.forEach(a=>{
+        const txt=String(a.concluidoEm||'');
+        const base=/^\d{4}-\d{2}-\d{2}$/.test(txt)
+          ? txt
+          : (typeof v104DateISO==='function' ? v104DateISO(new Date(a.concluidoEm)) : txt.slice(0,10));
+
+        if(!base) return;
+
+        const k=typeof revChave==='function'
+          ? revChave(a.disciplina,a.nome)
+          : norm95(a.disciplina)+'||'+norm95(a.nome);
+
+        let o=revisoesMotor.origens[k];
+        if(!o){
+          o=revisoesMotor.origens[k]={
+            disciplina:a.disciplina,
+            topico:a.nome,
+            dataEstudo:base,
+            revisoes:{},
+            criadoEm:a.concluidoEm
+          };
+          mudou=true;
+        }
+
+        if(!o.revisoes || typeof o.revisoes!=='object'){
+          o.revisoes={};
+          mudou=true;
+        }
+
+        [1,7,15,30].forEach(n=>{
+          const tipo='D'+n;
+          const data=typeof revDataISO==='function' ? revDataISO(base,n) : '';
+          if(!o.revisoes[tipo]){
+            o.revisoes[tipo]={dias:n,data:data,concluida:false};
+            mudou=true;
+          }
+        });
+      });
+
+      if(mudou){
+        revisoesMotor.atualizadoEm=new Date().toISOString();
+        try{
+          if(auth?.currentUser){
+            localStorage.setItem(
+              'nova_v3_revisoes_motor_'+auth.currentUser.uid,
+              JSON.stringify(revisoesMotor)
+            );
+          }
+        }catch(_){}
+        try{
+          if(REVISOES_MOTOR_REF) await REVISOES_MOTOR_REF.set(revisoesMotor);
+        }catch(e){ console.warn('V10.4.95 Firebase revisões',e); }
+      }
+    }catch(e){
+      console.warn('V10.4.95 garantir revisões',e);
+    }
+  }
+
+  async function sync95(){
+    atualizarEdital95();
+    await garantirRevisoes95();
+
+    try{
+      if(typeof renderizarDashboardRevisoesV91==='function')
+        renderizarDashboardRevisoesV91();
+    }catch(e){console.warn(e)}
+
+    try{
+      if(typeof renderizarEstatisticasV92==='function')
+        renderizarEstatisticasV92();
+    }catch(e){console.warn(e)}
+
+    // Faz por último para nenhum render antigo devolver 0 / 0.
+    atualizarEdital95();
+  }
+
+  window.sincronizarDashboardV10495=sync95;
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('[data-page="dashboard"]')){
+      setTimeout(sync95,50);
+      setTimeout(sync95,400);
+    }
+  });
+
+  window.addEventListener('load',function(){
+    [300,900,1800,3200,5000].forEach(ms=>setTimeout(sync95,ms));
+  });
+
+  // A conclusão no Ciclo passa por concluirAgendaV1045.
+  try{
+    const antiga=concluirAgendaV1045;
+    if(typeof antiga==='function'){
+      concluirAgendaV1045=async function(){
+        const r=await antiga.apply(this,arguments);
+        await sync95();
+        return r;
+      };
+    }
+  }catch(_){}
+
+  // Também acompanha alterações posteriores da agenda/revisões.
+  setInterval(function(){
+    const dash=document.getElementById('page-dashboard');
+    if(dash && dash.classList.contains('active')) sync95();
+  },2500);
+})();
+</script>
+
+</body>
 </html>

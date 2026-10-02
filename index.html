@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.86 • REDESIGN VISUAL</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.88 • TEMAS UNIFICADOS</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -5229,5 +5229,93 @@ html[data-theme-v85="claro"] button.primary{background:#2f73c9!important;color:#
 html[data-theme-v85="claro"] .danger,
 html[data-theme-v85="claro"] .btn-danger{color:#fff!important}
 </style>
+
+<style id="v10488-unified-theme-polish">
+/* V10.4.88 — acabamento visual unificado em TODAS as telas e temas. Sem alterar lógica. */
+html,body,#app,main,.main,.content,.page{background:var(--theme-bg)!important;color:var(--theme-text)!important}
+body{font-family:var(--app-font,Inter,system-ui,-apple-system,"Segoe UI",sans-serif)!important}
+
+/* texto: sempre acompanha o tema */
+h1,h2,h3,h4,h5,h6,strong,b,label,.rotulo,.title,.section-title,.page-title,
+nav button,.nav button,.stat strong,.metric strong{color:var(--theme-text)!important}
+p,small,.small,.panel-sub,.status-line,.muted,.hint,.help,.subtitle,[class*="sub"]{color:var(--theme-muted)!important}
+
+/* superfícies principais */
+.panel,.hero,.card,.stat,.stat-card,.dash-stat,.metric-card,.dashboard-hero,.dash-hero,
+.estudo-real-box,.v93-timer,[class*="panel"],[class*="card"]{
+  background:var(--theme-panel)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important;
+}
+input,select,textarea,.ciclo-resumo>div,.ciclo-proxima,.ciclo-posicao,
+#page-dashboard [class*="proxima"],#page-dashboard [class*="agendado"],
+#page-ciclo [class*="proxima"],#page-ciclo [class*="posicao"],
+[class*="total-agendado"],[class*="proxima-revisao"]{
+  background:var(--theme-card)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important;
+}
+input::placeholder,textarea::placeholder{color:var(--theme-muted)!important;opacity:.78}
+
+/* remove azul-marinho fixo herdado de blocos internos */
+#page-dashboard .panel>div,#page-historico .panel>div,#page-estatisticas .panel>div,
+#page-seguranca .panel>div,#page-edital .panel>div,#page-gerenciarEdital .panel>div,
+#page-progresso .panel>div,#page-ciclo .panel>div{
+  border-color:var(--theme-border)!important;
+}
+
+/* botões */
+.btn-primary,button.primary{background:var(--theme-primary)!important;color:#fff!important;border-color:var(--theme-primary)!important}
+.btn-outline,button:not(.btn-primary):not(.primary):not(.danger):not(.btn-danger){
+  border-color:var(--theme-border)!important;
+}
+.btn-outline{background:var(--theme-card)!important;color:var(--theme-text)!important}
+.danger,.btn-danger{color:#fff!important}
+
+/* sidebar coerente */
+aside,.sidebar{background:var(--sidebar)!important}
+aside .nav button,.sidebar .nav button{color:var(--sidebar-text,var(--theme-text))!important}
+aside .nav button.active,.sidebar .nav button.active{
+  background:var(--theme-primary)!important;color:#fff!important;border-color:var(--theme-primary)!important;
+}
+
+/* barras/progresso e semana */
+progress,[class*="progress-bar"],[class*="barra"]{background-color:var(--theme-soft)!important}
+#cicloSemanaV104 [data-dia],#cicloSemanaV104 [class*="dia"]{
+  background:var(--theme-panel)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important;
+}
+#cicloSemanaV104 [class*="header"],#cicloSemanaV104 [class*="cabec"]{
+  background:var(--theme-card)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important;
+}
+
+/* CLARO — fonte preta/grafite e superfícies realmente claras */
+html[data-theme-v85="claro"]{--theme-bg:#f3f6fa!important;--theme-panel:#ffffff!important;--theme-card:#f7f9fc!important;--theme-text:#111827!important;--theme-muted:#52627a!important;--theme-border:#d5deea!important;--theme-accent:#3b82f6!important;--theme-primary:#2563eb!important;--theme-soft:#e8eef6!important;--sidebar:#edf3fa!important;--sidebar-text:#172033!important}
+html[data-theme-v85="claro"] h1,html[data-theme-v85="claro"] h2,html[data-theme-v85="claro"] h3,html[data-theme-v85="claro"] h4,
+html[data-theme-v85="claro"] strong,html[data-theme-v85="claro"] b,html[data-theme-v85="claro"] label{color:#111827!important}
+html[data-theme-v85="claro"] p,html[data-theme-v85="claro"] small,html[data-theme-v85="claro"] .muted,html[data-theme-v85="claro"] .panel-sub{color:#52627a!important}
+html[data-theme-v85="claro"] #page-dashboard [class*="proxima"],html[data-theme-v85="claro"] #page-dashboard [class*="agendado"],
+html[data-theme-v85="claro"] #page-ciclo [class*="proxima"],html[data-theme-v85="claro"] #page-ciclo [class*="posicao"],
+html[data-theme-v85="claro"] .v93-timer,html[data-theme-v85="claro"] [class*="total-agendado"],html[data-theme-v85="claro"] [class*="proxima-revisao"]{
+  background:#f7f9fc!important;color:#111827!important;border-color:#d5deea!important;
+}
+html[data-theme-v85="claro"] aside,html[data-theme-v85="claro"] .sidebar{background:#edf3fa!important;border-color:#d5deea!important}
+html[data-theme-v85="claro"] aside .brand,html[data-theme-v85="claro"] aside .brand *{color:#111827!important}
+html[data-theme-v85="claro"] aside .nav button:not(.active){background:transparent!important;color:#24344d!important}
+
+/* CAFÉ — substitui qualquer azul interno por chocolate/caramelo */
+html[data-theme-v85="cafe"]{--theme-bg:#17100c!important;--theme-panel:#332317!important;--theme-card:#24180f!important;--theme-text:#fff7ea!important;--theme-muted:#d8bea0!important;--theme-border:#68472d!important;--theme-accent:#e1ad67!important;--theme-primary:#b86427!important;--theme-soft:#4a321f!important;--sidebar:#6f2e12!important;--sidebar-text:#fff7ea!important}
+
+/* OCEANO — sem blocos azul-marinho; tudo em petróleo/ciano */
+html[data-theme-v85="oceano"]{--theme-bg:#04181d!important;--theme-panel:#0a353c!important;--theme-card:#082830!important;--theme-text:#f1feff!important;--theme-muted:#9fd7dc!important;--theme-border:#25606a!important;--theme-accent:#43d3dc!important;--theme-primary:#0797a8!important;--theme-soft:#104650!important;--sidebar:#06333c!important;--sidebar-text:#f1feff!important}
+
+/* ESMERALDA — sem azul fixo */
+html[data-theme-v85="esmeralda"]{--theme-bg:#051711!important;--theme-panel:#0b3a2b!important;--theme-card:#08291f!important;--theme-text:#f2fff8!important;--theme-muted:#a8d9c5!important;--theme-border:#28644e!important;--theme-accent:#38d99d!important;--theme-primary:#0f9a68!important;--theme-soft:#124b38!important;--sidebar:#06442f!important;--sidebar-text:#f2fff8!important}
+
+/* demais temas também ganham superfícies coerentes */
+html[data-theme-v85="noturno"]{--sidebar-text:#f8fbff!important;--theme-soft:#172d45!important}
+html[data-theme-v85="violeta"]{--sidebar-text:#fffaff!important;--theme-soft:#352052!important}
+html[data-theme-v85="por-do-sol"]{--sidebar-text:#fff8f2!important;--theme-soft:#452d20!important}
+html[data-theme-v85="oled"]{--sidebar-text:#ffffff!important;--theme-soft:#17131d!important}
+
+/* Ciclo: descrições nunca viram faixas brancas */
+#page-ciclo p,#page-ciclo small,#page-ciclo .panel-sub,#page-ciclo [class*="desc"],#page-ciclo [class*="info"]{background:transparent!important}
+</style>
+
 </body>
 </html>

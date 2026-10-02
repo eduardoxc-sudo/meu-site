@@ -1,13 +1,12 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
-<title>Plano &amp; Ciclo de Estudos — V10.2.2 DEV • CICLO MOVER ASSUNTOS</title>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Plano & Ciclo de Estudos — V10.2.2 DEV • CICLO MOVER ASSUNTOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -187,6 +186,8 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .prog-mat-meta-v10416{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;color:var(--muted);font-size:13px}
 @media(max-width:760px){.prog-prior-v10416{grid-template-columns:1fr}.prog-mat-head-v10416{align-items:flex-start;flex-direction:column}}
 </style>
+
+
 <style id="v871-ajuste-contadores">
 #resumoRevisoesHojeV87,
 #resumoRevisoesAgendadas,
@@ -220,6 +221,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
  }
 }
 </style>
+
 <style id="v90-historico-css">
 #resumoHistoricoV90{
   display:grid;
@@ -258,6 +260,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   #resumoHistoricoV90{grid-template-columns:1fr}
 }
 </style>
+
 <style id="v903-historico-2x2-fixo">
 #resumoHistoricoV90{
   width:100% !important;
@@ -286,6 +289,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   }
 }
 </style>
+
 <style id="v91-dashboard-revisoes-css">
 .dash-rev-v91{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
 .dash-rev-v91 .stat{min-width:0}
@@ -343,6 +347,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .v95-qstats b{font-size:18px}
 @media(max-width:760px){.v95-qstats{grid-template-columns:1fr 1fr}}
 </style>
+
 <style id="v100-edital-pronto-css">
 .v100-edital-toolbar{display:grid;grid-template-columns:minmax(260px,1fr) auto;gap:10px;align-items:end;margin:14px 0}
 .v100-edital-toolbar label{display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:13px}
@@ -361,6 +366,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
  .v100-row{grid-template-columns:42px 1fr}.v100-priority{grid-column:1/-1}
 }
 </style>
+
 <style id="v101-css">
 .v101-materia{border:1px solid var(--border);border-radius:12px;padding:10px;margin:12px 0;background:rgba(0,0,0,.08)}.v101-materia-title{font-weight:800;font-size:17px;padding:5px 4px 10px}.v101-materia-title span{font-size:12px;color:var(--muted);font-weight:500;margin-left:6px}
 .v101-plan-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.v101-plan-summary>div{border:1px solid var(--border);background:var(--bg);border-radius:10px;padding:12px}.v101-plan-summary span{display:block;color:var(--muted);font-size:12px}.v101-plan-summary b{font-size:20px}
@@ -381,6 +387,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .hist-tipo-v10415{display:inline-flex;align-items:center;padding:3px 8px;border:1px solid var(--border);border-radius:999px;font-size:12px;font-weight:800;margin-right:7px}
 @media(max-width:560px){.hist-materia-v10415>summary{align-items:flex-start}.hist-materia-qtd-v10415{white-space:normal;text-align:right}}
 </style>
+
 <style id="v10427-questoes-materia-css">
 .qm27-grid{display:grid;grid-template-columns:minmax(220px,1fr) minmax(280px,1.5fr);gap:12px;margin-top:14px}
 .qm27-form{display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1.4fr) 130px 130px auto;gap:10px;align-items:end;margin-top:14px}
@@ -407,6 +414,8 @@ textarea:focus,select:focus{border-color:var(--primary)}
 @media(max-width:950px){.qm27-form{grid-template-columns:1fr 1fr}.qm27-form button{grid-column:1/-1}.qm27-summary{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.qm27-grid,.qm27-form,.qm27-summary{grid-template-columns:1fr}.qm27-assunto-head{display:block}.qm27-assunto-head span{display:block;margin-top:5px}}
 </style>
+
+
 <style id="v10429-historico-questoes-css">
 .qh29-materia{border:1px solid var(--border);border-radius:12px;background:var(--bg);margin-top:12px;overflow:hidden}
 .qh29-materia>summary{list-style:none;cursor:pointer;padding:14px;display:flex;align-items:center;gap:12px;background:#0d1627;font-weight:800}
@@ -421,6 +430,8 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .qh29-numeros b{display:block;color:var(--text);font-size:15px;margin-bottom:3px}
 @media(max-width:650px){.qh29-item{display:block}.qh29-numeros{text-align:left;margin-top:8px;white-space:normal}.qh29-resumo{display:none}}
 </style>
+
+
 <style id="v10432-editar-excluir-questoes-css">
 .qh32-actions{display:flex;gap:7px;justify-content:flex-end;margin-top:8px}
 .qh32-btn{border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:700;background:#152238;color:var(--text)}
@@ -435,12 +446,14 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .qh32-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
 @media(max-width:600px){.qh32-grid{grid-template-columns:1fr}.qh32-actions{justify-content:flex-start}}
 </style>
+
 <style id="v10435-gerenciar-edital-css">
 .nav button.nav-gerenciar-edital-v10435{border-color:#36598a;background:linear-gradient(90deg,rgba(53,169,255,.12),rgba(111,92,255,.10));color:#dcecff}
 .nav button.nav-gerenciar-edital-v10435.active{border-color:#43b7ff;background:linear-gradient(90deg,#163b63,#29275d);color:#fff}
 .ge35-hero{border:1px solid #36598a;background:linear-gradient(135deg,rgba(53,169,255,.10),rgba(111,92,255,.08))}
 .ge35-warning{margin-top:12px;padding:12px 14px;border:1px solid #6d5524;border-radius:10px;background:rgba(128,91,18,.12);color:#e8d6a3;font-size:13px}
 </style>
+
 <style id="v10440EditorCss">
 .v10440-materia{border:1px solid #26364f;border-radius:14px;background:#0b1321;margin:10px 0;overflow:hidden}
 .v10440-materia-head{display:flex;gap:10px;align-items:center;padding:12px;flex-wrap:wrap;background:#0e192a}
@@ -453,1022 +466,643 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .v10440-drop{outline:2px dashed #38bdf8;outline-offset:-3px}
 .v10440-empty{padding:18px;text-align:center;color:#9bb4d2;border:1px dashed #2b3a51;border-radius:12px}
 </style>
-<style id="v10466-visual-only">
-/* V10.4.84 — SOMENTE VISUAL. Nenhuma regra de negócio alterada. */
-:root{--bg:#091321;--surface:#101d31;--card:#111f34;--border:#2b405d;--text:#f8fafc;--muted:#9db0ca;--primary:#31b9ff;--accent:#7048ff;--success:#20c77a;--danger:#ef3340}
-body{background:linear-gradient(180deg,#08111e 0%,#0a1524 100%)}
-#app{grid-template-columns:220px minmax(0,1fr)}
-aside{background:linear-gradient(180deg,#5b20df 0%,#7b31f3 52%,#6624e7 100%);border-right:1px solid rgba(255,255,255,.13);padding:20px 10px 16px;gap:15px;box-shadow:10px 0 32px rgba(0,0,0,.14);position:sticky;top:0;height:100vh;overflow:auto}
-.brand{padding:4px 7px 12px;border-bottom:1px solid rgba(255,255,255,.14)}
-.brand h2{color:#fff;font-size:1.06rem;line-height:1.08}.brand .user,.brand .sync{color:#f1eaff}.brand .sync{opacity:.88}
-.nav{gap:5px}.nav button,.nav button.nav-gerenciar-edital-v10435{color:#eee8ff;border:0;background:transparent;border-radius:10px;padding:10px 12px;font-size:.78rem;box-shadow:none;transition:.15s ease}
-.nav button:hover{background:rgba(255,255,255,.11);color:#fff;transform:translateX(2px)}
-.nav button.active,.nav button.nav-gerenciar-edital-v10435.active{background:#fff;color:#5421d5;border:0;box-shadow:0 7px 18px rgba(34,12,91,.18)}
-.aside-bottom{padding:8px 6px 0}.aside-bottom .btn{border-color:rgba(255,255,255,.35);color:#fff;background:rgba(255,255,255,.08)}
-main{padding:32px clamp(20px,4vw,66px);max-width:1500px;width:100%;margin:0 auto}.top{margin-bottom:18px}.top h1{font-size:1.75rem;letter-spacing:-.035em}.version{background:#0c1728;border-color:#263c59;color:#91a9c8}
-.hero{position:relative;overflow:hidden;background:linear-gradient(120deg,#17183f 0%,#10283a 54%,#121d35 100%);border-color:#313363;border-radius:20px;padding:27px 30px;box-shadow:0 12px 32px rgba(0,0,0,.12)}
-.hero:after{content:'';position:absolute;width:210px;height:210px;border-radius:50%;right:-65px;top:-115px;background:rgba(112,72,255,.13)}
-.hero h2{font-size:1.7rem;letter-spacing:-.035em}.hero p{font-size:.93rem;color:#8fa2bf}
-.grid{gap:14px}.stat,.panel,.plan-box,.ciclo-proxima,.ciclo-posicao{background:#111f34;border-color:#2b405d;border-radius:15px;box-shadow:0 8px 22px rgba(0,0,0,.08)}
-.stat{padding:18px 19px;border-left:4px solid var(--primary)}.stat span{color:#8ea3bf}.stat strong{font-size:1.42rem}
-.btn{border-radius:10px}.btn-primary{background:linear-gradient(110deg,#397cff,#7048ff);box-shadow:0 7px 18px rgba(89,72,255,.18)}.btn-outline{background:#101d31;border-color:#334b6b}.btn-success{background:#0aa879}.btn-danger{background:#a91f2c}
-input,textarea,select{background:#13233a!important;border-color:#36506f!important;border-radius:9px!important;color:#fff!important}input:focus,textarea:focus,select:focus{border-color:#36bdfc!important;box-shadow:0 0 0 2px rgba(54,189,252,.10)}
-.materia-card,.ciclo-item,.edital-summary,.empty{border-color:#2c4260;background:#0c1728}.materia-head{background:#12253c}.topico-row{border-color:#223852}
-.placeholder{background:#101d31;border-color:#304660}
-@media(max-width:1000px){#app{grid-template-columns:190px minmax(0,1fr)}main{padding:24px 18px}}
-@media(max-width:800px){#app{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid rgba(255,255,255,.15)}.nav{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:18px 12px}.hero{padding:22px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-</style>
-<style id="v10472-ciclo-layout-limpo">
-/* V10.4.84 — Ciclo reorganizado sem alterar IDs, eventos ou JavaScript. */
 
-/* 1) TOPO: Configurar + Ordem */
-#page-ciclo .ciclo-grid{
-  display:grid !important;
-  grid-template-columns:minmax(320px, .82fr) minmax(520px, 1.55fr) !important;
-  gap:16px !important;
-  align-items:start !important;
-}
-#page-ciclo .ciclo-config-v10472,
-#page-ciclo .ciclo-order-v10472{
-  min-height:0 !important;
-  height:auto !important;
-  padding:18px !important;
-  background:#102036 !important;
-  border:1px solid #29435f !important;
-  border-radius:15px !important;
-  box-shadow:none !important;
-}
-#page-ciclo .ciclo-config-v10472 .ciclo-resumo{
-  display:grid !important;
-  grid-template-columns:repeat(3,1fr) !important;
-  gap:8px !important;
-  margin:14px 0 12px !important;
-}
-#page-ciclo .ciclo-config-v10472 .ciclo-resumo>div{
-  min-height:62px !important;
-  padding:10px !important;
-  background:#0b1728 !important;
-  border:1px solid #29435f !important;
-  border-radius:10px !important;
-}
+<style id="v10466-ciclo-dashboard-limpos">
+/* Dashboard: manter apenas saudação, resumo principal e Revisões. */
+#page-dashboard > .panel:nth-of-type(n+2){display:none !important;}
 
-/* 2) EXECUTAR CICLO: faixa horizontal independente */
-#page-ciclo .ciclo-exec-panel-v10472{
-  margin-top:16px !important;
-  padding:14px 18px !important;
-  min-height:0 !important;
-  background:#102036 !important;
-  border:1px solid #29435f !important;
-  border-radius:15px !important;
-}
-#page-ciclo .ciclo-exec-v10472{
-  margin:0 !important;
-  padding:0 !important;
-  border:0 !important;
-  background:transparent !important;
-}
-#page-ciclo .ciclo-exec-v10472 .ciclo-exec-grid{
-  display:grid !important;
-  grid-template-columns:minmax(0,1fr) 190px !important;
-  gap:10px !important;
-  margin-top:10px !important;
-}
-#page-ciclo .ciclo-exec-v10472 .ciclo-proxima,
-#page-ciclo .ciclo-exec-v10472 .ciclo-posicao{
-  min-height:0 !important;
-  padding:11px 13px !important;
-  background:#0b1728 !important;
-  border:1px solid #29435f !important;
-  border-radius:10px !important;
-}
-
-/* 3) SEMANA: largura total e SEMPRE vertical */
-#page-ciclo .ciclo-week-full-v10472{
-  margin-top:16px !important;
-  padding:18px !important;
-  min-height:0 !important;
-  background:#102036 !important;
-  border:1px solid #29435f !important;
-  border-radius:15px !important;
-}
-#page-ciclo .ciclo-week-full-v10472 #cicloSemanaV104{
-  margin:0 !important;
-  padding:0 !important;
-  border:0 !important;
-  background:transparent !important;
-}
-#page-ciclo #cicloSemanaGridV104{
-  display:grid !important;
-  grid-template-columns:1fr !important;
-  gap:10px !important;
-}
-
-/* 4) PLANEJAMENTO DE HOJE: abaixo da semana, largura total */
-#page-ciclo .ciclo-today-full-v10472,
-#page-ciclo .ciclo-real-full-v10472{
-  margin-top:16px !important;
-  padding:18px !important;
-  min-height:0 !important;
-  background:#102036 !important;
-  border:1px solid #29435f !important;
-  border-radius:15px !important;
-}
-#page-ciclo .ciclo-today-full-v10472 #cicloPlanejadoHojeV103{
-  margin:0 !important;
-  padding:0 !important;
-  border:0 !important;
-  background:transparent !important;
-}
-
-/* responsivo */
-@media(max-width:980px){
-  #page-ciclo .ciclo-grid{
-    grid-template-columns:1fr !important;
-  }
-}
-@media(max-width:620px){
-  #page-ciclo .ciclo-exec-v10472 .ciclo-exec-grid{
-    grid-template-columns:1fr !important;
-  }
-  #page-ciclo .ciclo-config-v10472 .ciclo-resumo{
-    grid-template-columns:1fr 1fr !important;
-  }
-}
-</style>
-<style id="v10473-ciclo-acabamento-compacto">
-/* V10.4.84 — acabamento/proporção. Somente CSS. */
-
-/* Executar ciclo: bem mais baixo */
-#page-ciclo .ciclo-exec-panel-v10472{
-  padding:12px 16px !important;
-}
-#page-ciclo .ciclo-exec-v10472 > h3{
-  margin:0 0 2px !important;
-}
-#page-ciclo .ciclo-exec-v10472 > .panel-sub{
-  margin:0 !important;
-  line-height:1.35 !important;
-}
-#page-ciclo .ciclo-exec-v10472 .ciclo-exec-grid{
-  grid-template-columns:minmax(0,1fr) 170px !important;
-  gap:8px !important;
-  margin-top:8px !important;
-}
-#page-ciclo .ciclo-exec-v10472 .ciclo-proxima,
-#page-ciclo .ciclo-exec-v10472 .ciclo-posicao{
-  padding:8px 12px !important;
-  min-height:72px !important;
-}
-#page-ciclo .ciclo-exec-v10472 .ciclo-proxima h3,
-#page-ciclo .ciclo-exec-v10472 .ciclo-posicao strong{
-  margin:2px 0 !important;
-}
-#page-ciclo .ciclo-exec-v10472 .ciclo-exec-actions{
-  margin-top:5px !important;
-}
-#page-ciclo .ciclo-exec-v10472 .btn{
-  min-height:32px !important;
-  padding:6px 10px !important;
-}
-
-/* Semana: painel usa largura total, conteúdo fica confortável e não esticado */
-#page-ciclo .ciclo-week-full-v10472{
-  padding:16px !important;
-}
-#page-ciclo .ciclo-week-full-v10472 #cicloSemanaV104{
-  width:100% !important;
-}
-#page-ciclo #cicloSemanaGridV104{
-  width:100% !important;
-  max-width:820px !important;
-  margin-left:auto !important;
-  margin-right:auto !important;
-  grid-template-columns:1fr !important;
-  gap:10px !important;
-}
-
-/* Cabeçalho/navegação da semana acompanha a largura dos cards */
-#page-ciclo #cicloSemanaV104 > h3,
-#page-ciclo #cicloSemanaV104 > p,
-#page-ciclo #cicloSemanaV104 > .panel-sub,
-#page-ciclo #cicloSemanaV104 > .actions,
-#page-ciclo #cicloSemanaV104 > div:not(#cicloSemanaGridV104):not(.status-line){
-  max-width:820px !important;
-  margin-left:auto !important;
-  margin-right:auto !important;
-}
-
-/* Cards/dias internos mais compactos */
-#page-ciclo #cicloSemanaGridV104 > *{
-  width:100% !important;
-  box-sizing:border-box !important;
-}
-#page-ciclo #cicloSemanaGridV104 .card,
-#page-ciclo #cicloSemanaGridV104 [class*="item"]{
-  border-radius:11px !important;
-}
-
-/* Planejamento de hoje e estudo real sem altura sobrando */
-#page-ciclo .ciclo-today-full-v10472,
-#page-ciclo .ciclo-real-full-v10472{
-  padding:16px !important;
-}
-
-/* Desktop muito largo: não deixa a área de cima espalhar demais */
-@media(min-width:1250px){
-  #page-ciclo .ciclo-grid{
-    grid-template-columns:370px minmax(0,1fr) !important;
-  }
-}
-
-/* Em telas menores, volta a usar toda a largura disponível */
-@media(max-width:900px){
-  #page-ciclo #cicloSemanaGridV104,
-  #page-ciclo #cicloSemanaV104 > h3,
-  #page-ciclo #cicloSemanaV104 > p,
-  #page-ciclo #cicloSemanaV104 > .panel-sub,
-  #page-ciclo #cicloSemanaV104 > .actions{
-    max-width:none !important;
-  }
-}
-</style>
-<style id="v10474-ciclo-mais-compacto">
-/* V10.4.84 — redução visual adicional. Somente CSS. */
-
-/* Área principal da semana bem mais estreita no desktop */
-#page-ciclo #cicloSemanaGridV104{
-  max-width:600px !important;
-  gap:7px !important;
-}
-#page-ciclo #cicloSemanaV104 > h3,
-#page-ciclo #cicloSemanaV104 > p,
-#page-ciclo #cicloSemanaV104 > .panel-sub,
-#page-ciclo #cicloSemanaV104 > .actions,
-#page-ciclo #cicloSemanaV104 > div:not(#cicloSemanaGridV104):not(.status-line){
-  max-width:600px !important;
-}
-
-/* Reduz altura e respiro da Semana */
-#page-ciclo .ciclo-week-full-v10472{
-  padding:12px 14px !important;
-}
-#page-ciclo #cicloSemanaGridV104 > *{
-  margin-bottom:0 !important;
-}
-#page-ciclo #cicloSemanaGridV104 .card,
-#page-ciclo #cicloSemanaGridV104 [class*="item"]{
-  padding-top:8px !important;
-  padding-bottom:8px !important;
-}
-
-/* Executar ciclo vira faixa realmente compacta */
-#page-ciclo .ciclo-exec-panel-v10472{
-  padding:9px 14px !important;
-}
-#page-ciclo .ciclo-exec-v10472 .ciclo-exec-grid{
-  grid-template-columns:minmax(0,1fr) 145px !important;
-  margin-top:5px !important;
-  gap:6px !important;
-}
-#page-ciclo .ciclo-exec-v10472 .ciclo-proxima,
-#page-ciclo .ciclo-exec-v10472 .ciclo-posicao{
-  min-height:54px !important;
-  padding:6px 10px !important;
-}
-#page-ciclo .ciclo-exec-v10472 .ciclo-proxima p,
-#page-ciclo .ciclo-exec-v10472 .ciclo-posicao p{
-  margin:2px 0 !important;
-}
-#page-ciclo .ciclo-exec-v10472 .btn{
-  min-height:28px !important;
-  padding:4px 9px !important;
-}
-
-/* Topo também um pouco mais enxuto */
-#page-ciclo .ciclo-top-v10472{
-  gap:12px !important;
-}
-#page-ciclo .ciclo-top-v10472 > *{
-  padding:14px !important;
-}
-
-/* Mantém responsivo */
-@media(max-width:760px){
-  #page-ciclo #cicloSemanaGridV104,
-  #page-ciclo #cicloSemanaV104 > h3,
-  #page-ciclo #cicloSemanaV104 > p,
-  #page-ciclo #cicloSemanaV104 > .panel-sub,
-  #page-ciclo #cicloSemanaV104 > .actions{
-    max-width:none !important;
-  }
-}
-</style>
-<style id="v10475-semana-4x4">
-/* V10.4.84 — Semana do ciclo: 4 dias em cima + próximos dias embaixo.
-   Somente visual/CSS. Nenhuma lógica foi alterada. */
-
-#page-ciclo .ciclo-week-full-v10472{
-  padding:14px !important;
-}
-
-/* devolve largura útil para caber 4 colunas */
-#page-ciclo #cicloSemanaGridV104{
-  width:100% !important;
-  max-width:none !important;
-  margin:0 !important;
-  display:grid !important;
-  grid-template-columns:repeat(4, minmax(0, 1fr)) !important;
-  gap:12px !important;
-  align-items:start !important;
-}
-
-/* cada dia vira uma coluna/card */
-#page-ciclo #cicloSemanaGridV104 > *{
-  width:auto !important;
-  min-width:0 !important;
-  margin:0 !important;
-  box-sizing:border-box !important;
-}
-
-/* cabeçalho e controles da semana também usam a largura toda */
-#page-ciclo #cicloSemanaV104 > h3,
-#page-ciclo #cicloSemanaV104 > p,
-#page-ciclo #cicloSemanaV104 > .panel-sub,
-#page-ciclo #cicloSemanaV104 > .actions,
-#page-ciclo #cicloSemanaV104 > div:not(#cicloSemanaGridV104):not(.status-line){
-  max-width:none !important;
-}
-
-/* cards de assuntos compactos dentro de cada dia */
-#page-ciclo #cicloSemanaGridV104 .card,
-#page-ciclo #cicloSemanaGridV104 [class*="item"]{
-  min-width:0 !important;
-  padding:9px !important;
-  border-radius:10px !important;
-}
-
-/* telas médias: 2 por linha */
-@media(max-width:1050px){
-  #page-ciclo #cicloSemanaGridV104{
-    grid-template-columns:repeat(2, minmax(0,1fr)) !important;
-  }
-}
-
-/* celular: 1 por linha */
-@media(max-width:620px){
-  #page-ciclo #cicloSemanaGridV104{
-    grid-template-columns:1fr !important;
-  }
-}
-</style>
-<style id="v10476-semana-4-3">
-/* 4 dias em cima e 3 embaixo, sem espaço reservado */
-#page-ciclo #cicloSemanaGridV104{
-  display:grid !important;
-  grid-template-columns:repeat(12, minmax(0,1fr)) !important;
-  gap:12px !important;
-}
-
-/* primeira linha: 4 dias */
-#page-ciclo #cicloSemanaGridV104 > :nth-child(-n+4){
-  grid-column:span 3 !important;
-}
-
-/* segunda linha: 3 dias preenchendo toda a largura */
-#page-ciclo #cicloSemanaGridV104 > :nth-child(n+5):nth-child(-n+7){
-  grid-column:span 4 !important;
-}
-
-/* responsivo */
-@media(max-width:1050px){
-  #page-ciclo #cicloSemanaGridV104{
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
-  }
-  #page-ciclo #cicloSemanaGridV104 > *{
-    grid-column:auto !important;
-  }
-}
-@media(max-width:620px){
-  #page-ciclo #cicloSemanaGridV104{
-    grid-template-columns:1fr !important;
-  }
-}
-</style>
-<style id="v10478-oculta-duplicados-sem-remover-dom">
-/* V10.4.84
-   Os blocos continuam EXISTINDO no DOM para o JavaScript.
-   Apenas não aparecem visualmente na tela Ciclo. */
-#page-ciclo .ciclo-today-full-v10472,
-#page-ciclo .ciclo-real-full-v10472{
-  display:none !important;
-}
-</style>
-
-
-<style id="v10485-themes-css">
-/* V10.4.86 - tema aplicado nas variáveis ORIGINAIS do sistema */
-.theme-gallery-v85{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:16px}
-.theme-choice-v85{padding:12px;text-align:left;border:2px solid var(--border);border-radius:14px;background:var(--panel);color:var(--text);cursor:pointer}
-.theme-choice-v85.active{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 22%,transparent)}
-.theme-preview-v85{display:block;height:62px;border-radius:10px;background:linear-gradient(135deg,var(--a) 0 35%,var(--b) 35% 63%,var(--c) 63% 82%,var(--d) 82%);border:1px solid rgba(127,127,127,.3)}
-.theme-choice-v85 strong,.theme-choice-v85 small{display:block}.theme-choice-v85 strong{margin-top:9px;font-size:16px}.theme-choice-v85 small{margin-top:3px;color:var(--muted)}
-.theme-font-v85{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}.theme-font-v85 label{display:block;font-weight:800}.theme-font-v85 select{width:100%;margin-top:6px}
-.theme-status-v85{margin-top:12px;color:var(--accent);font-weight:800;min-height:22px}
-@media(max-width:1000px){.theme-gallery-v85{grid-template-columns:repeat(2,1fr)}}@media(max-width:620px){.theme-gallery-v85,.theme-font-v85{grid-template-columns:1fr}}
+/* Ciclo: manter visualmente apenas Semana do ciclo, preservando o DOM legado para não quebrar a lógica. */
+#page-ciclo > .ciclo-grid{display:block !important;}
+#page-ciclo > .ciclo-grid > .panel:nth-child(2){display:none !important;}
+#page-ciclo > .ciclo-grid > .panel:first-child{background:transparent !important;border:0 !important;padding:0 !important;}
+#page-ciclo > .ciclo-grid > .panel:first-child > h3,
+#page-ciclo > .ciclo-grid > .panel:first-child > .panel-sub,
+#page-ciclo > .ciclo-grid > .panel:first-child > .ciclo-resumo,
+#page-ciclo > .ciclo-grid > .panel:first-child > .actions,
+#page-ciclo > .ciclo-grid > .panel:first-child > #statusCiclo{display:none !important;}
+#page-ciclo .ciclo-exec{margin-top:0 !important;}
+#page-ciclo .ciclo-exec > h3,
+#page-ciclo .ciclo-exec > .panel-sub,
+#page-ciclo .ciclo-exec > .ciclo-exec-grid,
+#page-ciclo .ciclo-exec > #cicloFila,
+#page-ciclo .ciclo-exec > #statusExecCiclo,
+#page-ciclo #cicloPlanejadoHojeV103,
+#page-ciclo #cicloSemanaV104 ~ .estudo-real{display:none !important;}
+#page-ciclo #cicloSemanaV104{margin-top:0 !important;border-top:0 !important;padding-top:0 !important;}
 </style>
 </head>
 <body>
 <section id="login">
 <div class="login-card">
-<h1>📚 Plano &amp; Ciclo de Estudos</h1><p>V3 — acesso individual</p>
-<div class="field"><label>E-MAIL</label><input autocomplete="email" id="loginEmailV3" placeholder="seuemail@exemplo.com" type="email"/></div>
-<div class="field"><label>PALAVRA-PASSE</label><input autocomplete="current-password" id="loginSenha" placeholder="Digite sua senha" type="password"/></div>
-<button class="btn btn-primary" id="btnEntrar" style="width:100%">Entrar</button>
+<h1>📚 Plano & Ciclo de Estudos</h1><p>V3 — acesso individual</p>
+<div class="field"><label>E-MAIL</label><input id="loginEmailV3" type="email" autocomplete="email" placeholder="seuemail@exemplo.com"></div>
+<div class="field"><label>PALAVRA-PASSE</label><input id="loginSenha" type="password" autocomplete="current-password" placeholder="Digite sua senha"></div>
+<button class="btn btn-primary" style="width:100%" id="btnEntrar">Entrar</button>
 <div id="loginStatus"></div>
 <p style="margin-top:14px;font-size:.75rem;color:var(--muted);text-align:center">Acesso somente para contas autorizadas.</p>
 </div></section>
-<section class="hidden" id="app">
+
+<section id="app" class="hidden">
 <aside>
-<div class="brand"><h2>📚 Plano &amp; Ciclo</h2><div class="user">👤 <span id="nomeUsuarioV3">Utilizador</span></div><div class="sync" id="syncStatus">☁️ Firebase conectado</div></div>
-<nav class="nav">
-<button class="active" data-page="dashboard">🏠 Dashboard</button>
-<button data-page="ciclo">▦ Ciclo</button>
-<button data-page="timer">◷ Timer</button>
-<button data-page="questoes">✓ Questões</button>
-<button data-page="edital">▥ Edital</button>
-<button class="nav-gerenciar-edital-v10435" data-page="gerenciarEdital">⚙️ Gerenciar Edital</button>
-<button data-page="progresso">📚 Progresso do Edital</button>
-<button data-page="historico">📜 Histórico</button>
-<button data-page="estatisticas">📊 Meu Desempenho</button>
-<button data-page="planejamento">↔ Planejamento</button>
-<button data-page="diagnostico">🛠 Diagnóstico</button>
-<button data-page="seguranca">◇ Segurança</button>
-<button class="nav-btn" data-page="editalPronto">📚 Edital pronto</button>
-<button class="nav-btn hidden" data-page="adminEditais" id="navAdminEditaisV10439">👑 Admin • Editais prontos</button>
-<button data-page="visual">🎨 Visual</button></nav>
-<div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
+  <div class="brand"><h2>📚 Plano & Ciclo</h2><div class="user">👤 <span id="nomeUsuarioV3">Utilizador</span></div><div id="syncStatus" class="sync">☁️ Firebase conectado</div></div>
+  <nav class="nav">
+    <button class="active" data-page="dashboard">🏠 Dashboard</button>
+    <button data-page="ciclo">▦ Ciclo</button>
+    <button data-page="timer">◷ Timer</button>
+    <button data-page="questoes">✓ Questões</button>
+    <button data-page="edital">▥ Edital</button>
+    <button data-page="gerenciarEdital" class="nav-gerenciar-edital-v10435">⚙️ Gerenciar Edital</button>
+    <button data-page="progresso">📚 Progresso do Edital</button>
+    <button data-page="historico">📜 Histórico</button>
+    <button data-page="estatisticas">📊 Meu Desempenho</button>
+    <button data-page="planejamento">↔ Planejamento</button>
+    <button data-page="diagnostico">🛠 Diagnóstico</button>
+    <button data-page="seguranca">◇ Segurança</button>
+  
+      <button class="nav-btn" data-page="editalPronto">📚 Edital pronto</button>
+      <button id="navAdminEditaisV10439" class="nav-btn hidden" data-page="adminEditais">👑 Admin • Editais prontos</button>
+</nav>
+  <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.93 • CICLO E DASHBOARD LIMPOS</span></div>
-<section class="page active" id="page-dashboard">
-<div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
-<div class="grid">
-<div class="stat"><span>🔥 Sequência</span><strong id="dashSeqV92">—</strong></div>
-<div class="stat"><span>⏱ Horas líquidas</span><strong id="dashHorasV92">—</strong></div>
-<div class="stat"><span>✅ Edital</span><strong id="dashEdital">0 / 0</strong></div>
-<div class="stat"><span>🎯 Questões</span><strong id="dashQuestoesV92">—</strong></div>
-</div>
-<div class="panel" style="margin-top:16px">
-<h2>🔁 Revisões</h2>
-<p class="panel-sub">Resumo automático do seu sistema D1, D7, D15 e D30.</p>
-<div class="dash-rev-v91" id="dashRevisoesV91">
-<div class="stat"><span>📅 Hoje</span><strong id="dashRevHojeV91">0</strong></div>
-<div class="stat"><span>⚠️ Atrasadas</span><strong id="dashRevAtrasadasV91">0</strong></div>
-<div class="stat"><span>⏳ Pendentes</span><strong id="dashRevPendentesV91">0</strong></div>
-<div class="stat"><span>✅ Concluídas</span><strong id="dashRevConcluidasV91">0</strong></div>
-</div>
-<div class="dash-rev-info-v91">
-<div><span>PRÓXIMA REVISÃO</span><b id="dashRevProximaV91">—</b></div>
-<div><span>TOTAL AGENDADO</span><b id="dashRevTotalV91">0</b></div>
-</div>
-<div class="status-line" id="dashRevStatusV91"></div>
-</div>
-<div class="panel" style="margin-top:16px">
-<h2>🎯 Questões</h2>
-<p class="panel-sub">Registre as questões resolvidas. Acertos e erros alimentam suas estatísticas automaticamente.</p>
-<div class="v94-qgrid">
-<label>Questões feitas
-          <input id="qFeitasV94" min="1" placeholder="Ex.: 20" step="1" type="number"/>
-</label>
-<label>Acertos
-          <input id="qAcertosV94" min="0" placeholder="Ex.: 16" step="1" type="number"/>
-</label>
-<label>Erros
-          <input id="qErrosV94" min="0" placeholder="Calculado" readonly="" step="1" type="number"/>
-</label>
-<button class="primary" id="qSalvarV94" type="button">✓ Registrar questões</button>
-</div>
-<div class="status-line" id="qStatusV94">Nenhuma questão registrada nesta sessão.</div>
-<div class="v94-summary">
-<div><span>Total</span><b id="qTotalV94">0</b></div>
-<div><span>Acertos</span><b id="qTotalAcertosV94">0</b></div>
-<div><span>Erros</span><b id="qTotalErrosV94">0</b></div>
-<div><span>Aproveitamento</span><b id="qPctV94">—</b></div>
-</div>
-</div>
-<div class="panel" style="margin-top:16px">
-<h2>⏱ Cronômetro de estudo</h2>
-<p class="panel-sub">Registra tempo líquido real. Pausas não entram nas horas líquidas.</p>
-<div class="v93-timer">
-<div class="v93-clock" id="timerDisplayV93">00:00:00</div>
-<div class="v931-total">Total acumulado: <b id="timerTotalV931">00:00:00</b></div>
-<div class="v93-actions">
-<button class="primary" id="timerStartV93" type="button">▶ Iniciar</button>
-<button id="timerPauseV93" type="button">⏸ Pausar</button>
-<button id="timerFinishV93" type="button">✓ Finalizar sessão</button>
-</div>
-<div class="status-line" id="timerStatusV93">Nenhuma sessão em andamento.</div>
-</div>
-</div>
-<div class="panel" style="margin-top:16px">
-<h2>📊 Estatísticas de estudo</h2>
-<p class="panel-sub">Calculadas a partir do estudo real e das revisões concluídas. Simulações não entram nas estatísticas.</p>
-<div class="stats-v92">
-<div class="stat"><span>📚 Tópicos estudados</span><strong id="statTopicosV92">0</strong></div>
-<div class="stat"><span>🔁 Revisões concluídas</span><strong id="statRevisoesV92">0</strong></div>
-<div class="stat"><span>🎯 Revisões no prazo</span><strong id="statNoPrazoV92">0%</strong></div>
-<div class="stat"><span>📅 Dias estudados</span><strong id="statDiasV92">0</strong></div>
-</div>
-<div class="stats-detail-v92">
-<div><span>D1 CONCLUÍDAS</span><b id="statD1V92">0</b></div>
-<div><span>D7 CONCLUÍDAS</span><b id="statD7V92">0</b></div>
-<div><span>D15 CONCLUÍDAS</span><b id="statD15V92">0</b></div>
-<div><span>D30 CONCLUÍDAS</span><b id="statD30V92">0</b></div>
-</div>
-<div class="v95-qstats">
-<div><span>🎯 Questões resolvidas</span><b id="statQuestoesV95">0</b></div>
-<div><span>✅ Acertos</span><b id="statAcertosV95">0</b></div>
-<div><span>❌ Erros</span><b id="statErrosV95">0</b></div>
-<div><span>📈 Aproveitamento</span><b id="statPctV95">—</b></div>
-</div>
-<div class="stats-bars-v92">
-<div class="stats-bar-head-v92"><span>Progresso das revisões</span><b id="statRevProgressoTxtV92">0 / 0</b></div>
-<div class="stats-track-v92"><i id="statRevProgressoV92"></i></div>
-</div>
-<div class="status-line" id="statStatusV92"></div>
-<div class="v922-sim">
-<b>🧪 Teste da sequência</b>
-<p>Escolha uma data para conferir a sequência usando os dados reais já registrados e os dias ativos atuais. O teste não grava nem altera nada.</p>
-<div class="v922-sim-row">
-<input id="seqTesteDataV922" type="date"/>
-<button class="primary" id="seqTesteBtnV922" type="button">Testar data</button>
-</div>
-<div class="status-line" id="seqTesteResultadoV922"></div>
-</div>
-</div>
-</section>
-<section class="page" id="page-ciclo">
-<div class="ciclo-grid">
-<div class="panel ciclo-config-v10472">
-<h3>▦ Configurar ciclo</h3>
-<p class="panel-sub">As disciplinas vêm do seu Edital. Aqui você escolhe quais entram no ciclo, define o tempo de cada uma e organiza a ordem. O Ciclo não cria disciplinas novas.</p>
-<div class="ciclo-resumo">
-<div><span>ATIVAS</span><strong id="cicloQtdAtivas">0</strong></div>
-<div><span>TEMPO TOTAL</span><strong id="cicloTempoTotal">0 min</strong></div>
-<div><span>DISCIPLINAS DO EDITAL</span><strong id="cicloQtdEdital">0</strong></div>
-</div>
-<div class="actions">
-<button class="btn btn-primary" id="btnSalvarCiclo">Salvar ciclo</button>
-<button class="btn btn-outline" id="btnRestaurarCiclo">Restaurar do Edital</button>
-</div>
-<div class="status-line" id="statusCiclo"></div>
-</div>
-<div class="panel ciclo-order-v10472">
-<h3>📚 Ordem do ciclo</h3>
-<p class="panel-sub">Use ↑ e ↓ para organizar. Desmarcar uma disciplina apenas a retira do ciclo; ela continua normalmente no Edital.</p>
-<div class="ciclo-list" id="listaCiclo"></div>
-<div class="ciclo-assuntos">
-<h3>↕ Ordem dos assuntos no ciclo</h3>
-<p class="panel-sub">Mova os assuntos com ↑ e ↓. A ordem é salva no Edital e passa a ser a ordem real de estudo, sem criar cópias e sem alterar a prioridade do Planejamento.</p>
-<div id="listaAssuntosCicloV1022"></div>
-<div class="status-line" id="statusAssuntosCicloV1022"></div>
-</div>
-</div>
-</div><div class="panel ciclo-exec-panel-v10472"><div class="ciclo-exec ciclo-exec-v10471 ciclo-exec-v10472">
-<h3>▶ Executar ciclo</h3>
-<p class="panel-sub">O ciclo continua de onde você parou. Ele não reinicia quando muda o dia.</p>
-<div class="ciclo-exec-grid">
-<div class="ciclo-proxima">
-<div class="tag">PRÓXIMA DISCIPLINA</div>
-<h3 id="cicloProximaNome">—</h3>
-<p id="cicloProximaTempo">Configure e salve o ciclo.</p>
-<div class="ciclo-exec-actions">
-<button aria-hidden="true" class="btn btn-primary" disabled="" id="btnConcluirEtapaCiclo" style="display:none" tabindex="-1">✓ Concluir e avançar</button>
-<button class="btn btn-outline" id="btnVoltarEtapaCiclo">← Voltar uma etapa</button>
-</div>
-</div>
-<div class="ciclo-posicao">
-<span class="muted">POSIÇÃO ATUAL</span>
-<strong id="cicloPosicaoAtual">—</strong>
-<span class="muted" id="cicloVoltas">0 volta(s) completa(s)</span>
-</div>
-</div>
-<div class="ciclo-fila" id="cicloFila"></div>
-<div class="status-line" id="statusExecCiclo"></div>
-</div></div><div class="panel ciclo-week-full-v10472"><div class="estudo-real ciclo-semana-v104" id="cicloSemanaV104">
-<h3>🗓️ Semana do ciclo</h3>
-<p class="panel-sub">Começa na data atual e só avança até a última data real de assuntos ou revisões espaçadas. Arraste os assuntos entre os dias para reorganizar sem criar cópias.</p>
-<div class="ciclo-semana-toolbar-v104">
-<div class="acoes"><button class="btn btn-outline" id="cicloSemanaAnteriorV104" type="button">← Semana</button><button class="btn btn-outline" id="cicloSemanaHojeV104" type="button">Hoje</button><button class="btn btn-outline" id="cicloSemanaProximaV104" type="button">Semana →</button></div>
-<b id="cicloSemanaPeriodoV104">—</b>
-</div>
-<div class="ciclo-semana-grid-v104" id="cicloSemanaGridV104"></div>
-<div class="status-line" id="cicloSemanaStatusV104"></div>
-</div></div><div class="panel ciclo-today-full-v10472"><div class="estudo-real" id="cicloPlanejadoHojeV103">
-<h3>📅 Planejamento de hoje</h3>
-<p class="panel-sub">Assuntos definidos no Planejamento para hoje. O Ciclo usa esta fila primeiro; se não houver assunto planejado pendente, segue a ordem normal do ciclo.</p>
-<div class="ciclo-hoje-lista" id="cicloPlanejadoHojeListaV103"></div>
-<div class="status-line" id="cicloPlanejadoHojeStatusV103"></div>
-</div></div><div class="panel ciclo-real-full-v10472"><div class="estudo-real">
-<h3>📖 Estudo real</h3>
-<p class="panel-sub">O Estudo real usa primeiro os assuntos pendentes planejados para hoje. Ao terminar a fila diária, ele encerra o planejamento do dia sem puxar automaticamente assuntos futuros.</p>
-<div class="estudo-real-box">
-<div class="rotulo">TÓPICO ATUAL</div>
-<h4 id="estudoRealTopico">—</h4>
-<p id="estudoRealInfo">Aguardando uma disciplina ativa no ciclo.</p>
-<button class="btn btn-primary" id="btnConcluirEstudoReal">✓ Concluir tópico estudado</button>
-<div class="status-line" id="statusEstudoReal"></div>
-</div>
-</div></div>
-</section>
-<section class="page" id="page-visual">
-<h1>🎨 Visual</h1>
-<p class="panel-sub">Escolha um tema pronto. Ele muda as cores do sistema inteiro sem alterar nenhuma função de estudo.</p>
-<div class="theme-gallery-v85">
-<button class="theme-choice-v85" data-theme="noturno"><span class="theme-preview-v85" style="--a:#08111f;--b:#112238;--c:#0b1728;--d:#20b7ff"></span><strong>🌙 Noturno</strong><small>Azul-marinho + ciano</small></button>
-<button class="theme-choice-v85" data-theme="violeta"><span class="theme-preview-v85" style="--a:#110b20;--b:#24163f;--c:#190f2e;--d:#9b6cff"></span><strong>💜 Violeta</strong><small>Roxo profundo + violeta</small></button>
-<button class="theme-choice-v85" data-theme="oceano"><span class="theme-preview-v85" style="--a:#061a20;--b:#0d3038;--c:#09242b;--d:#37c8e8"></span><strong>🌊 Oceano</strong><small>Azul-petróleo + azul-claro</small></button>
-<button class="theme-choice-v85" data-theme="esmeralda"><span class="theme-preview-v85" style="--a:#071a16;--b:#10342b;--c:#0a261f;--d:#2ed69b"></span><strong>🌲 Esmeralda</strong><small>Verde escuro + esmeralda</small></button>
-<button class="theme-choice-v85" data-theme="por-do-sol"><span class="theme-preview-v85" style="--a:#17120f;--b:#302219;--c:#211813;--d:#ff9854"></span><strong>🌅 Pôr do Sol</strong><small>Grafite + laranja</small></button>
-<button class="theme-choice-v85" data-theme="cafe"><span class="theme-preview-v85" style="--a:#17120e;--b:#2c2118;--c:#211810;--d:#d7aa68"></span><strong>☕ Café</strong><small>Marrom + bege dourado</small></button>
-<button class="theme-choice-v85" data-theme="claro"><span class="theme-preview-v85" style="--a:#eef4fa;--b:#ffffff;--c:#f7faff;--d:#2878d8"></span><strong>❄️ Claro</strong><small>Branco + cinza + azul</small></button>
-<button class="theme-choice-v85" data-theme="rosa"><span class="theme-preview-v85" style="--a:#fff1f7;--b:#ffffff;--c:#fff7fb;--d:#ec4899"></span><strong>🌸 Rosa</strong><small>Rosa suave + branco</small></button>
-</div>
-<div class="theme-font-v85">
-<label>Fonte<select id="v85Font"><option value="system">Padrão</option><option value="arial">Arial</option><option value="verdana">Verdana</option><option value="trebuchet">Trebuchet MS</option><option value="georgia">Georgia</option></select></label>
-<label>Tamanho<select id="v85Size"><option value="14">Pequena</option><option value="16">Padrão</option><option value="18">Grande</option></select></label>
-</div>
-<div class="theme-status-v85" id="v85Status"></div>
-</section><section class="page" id="page-timer">
-<h1>Timer</h1>
-<div class="panel">
-<h2>⏱ Timer de estudo</h2>
-<p class="panel-sub">Escolha o assunto estudado. O sistema registra assunto, matéria, data/hora e somente o tempo líquido real.</p>
-<div class="field" style="max-width:760px;margin-top:14px">
-<label>ASSUNTO ESTUDADO</label>
-<select id="timerAssuntoV10422">
-<option value="">Selecione um assunto do Planejamento</option>
-</select>
-</div>
-<div class="v93-timer" style="margin-top:14px">
-<div class="v93-clock" id="timerPageDisplayV10421">00:00:00</div>
-<div class="v931-total">Horas do edital atual: <b id="timerPageTotalV10421">00:00:00</b></div>
-<div class="v931-total" style="margin-top:4px">Total geral estudado: <b id="timerTotalGeralV10423">00:00:00</b></div>
-<div class="actions" style="margin-top:14px">
-<button class="btn btn-primary" id="timerPageStartV10421" type="button">▶ Iniciar</button>
-<button class="btn" id="timerPagePauseV10421" type="button">⏸ Pausar</button>
-<button class="btn" id="timerPageFinishV10421" type="button">✓ Finalizar sessão</button>
-</div>
-<div class="status-line" id="timerPageStatusV10421">Nenhuma sessão em andamento.</div>
-</div>
-</div>
-<div class="panel" style="margin-top:16px">
-<h2>✍️ Adicionar tempo manualmente</h2>
-<p class="panel-sub">Use quando você estudou fora do Timer. Isso soma horas líquidas, mas não conclui o assunto e não altera o Progresso do Edital.</p>
-<div style="display:grid;grid-template-columns:minmax(260px,2fr) 130px 130px auto;gap:12px;align-items:end">
-<div class="field" style="margin:0">
-<label>ASSUNTO</label>
-<select id="timerManualAssuntoV10422"><option value="">Selecione um assunto</option></select>
-</div>
-<div class="field" style="margin:0">
-<label>HORAS</label>
-<input id="timerManualHorasV10422" max="24" min="0" type="number" value="0"/>
-</div>
-<div class="field" style="margin:0">
-<label>MINUTOS</label>
-<input id="timerManualMinV10422" max="59" min="0" type="number" value="30"/>
-</div>
-<button class="btn btn-primary" id="timerManualSalvarV10422" type="button">＋ Adicionar tempo</button>
-</div>
-<div class="status-line" id="timerManualStatusV10422"></div>
-</div>
-<div class="panel" style="margin-top:16px">
-<h2>📚 Histórico de sessões</h2>
-<p class="panel-sub">Registros automáticos e manuais. Nenhum registro desta área marca assunto como concluído.</p>
-<div id="timerHistoricoV10422"><div class="placeholder">Carregando sessões...</div></div>
-</div>
-<div class="panel" style="margin-top:16px">
-<h2>📌 Como funciona</h2>
-<p class="panel-sub">Iniciar começa a contar. Pausar congela o tempo. Finalizar salva a sessão vinculada ao assunto escolhido. Se a página for fechada durante uma sessão, ela volta pausada para não contar tempo que não foi estudado.</p>
-</div>
-</section>
-<section class="page" id="page-questoes">
-<div class="panel">
-<h2>🎯 Registrar questões</h2>
-<p class="panel-sub">Escolha a matéria e o assunto do seu Edital. Os resultados ficam organizados automaticamente por matéria → assunto.</p>
-<div class="qm27-form">
-<label>MATÉRIA
-        <select id="qMateriaV10427"><option value="">Selecione a matéria</option></select>
-</label>
-<label>ASSUNTO
-        <select id="qAssuntoV10427"><option value="">Selecione o assunto</option></select>
-</label>
-<label>QUESTÕES FEITAS
-        <input id="qFeitasV10427" min="1" placeholder="Ex.: 20" step="1" type="number"/>
-</label>
-<label>ACERTOS
-        <input id="qAcertosV10427" min="0" placeholder="Ex.: 16" step="1" type="number"/>
-</label>
-<button class="btn btn-primary" id="qSalvarV10427" type="button">✓ Registrar</button>
-</div>
-<div class="status-line" id="qStatusV10427">Escolha a matéria e o assunto estudado.</div>
-<div class="qm27-summary">
-<div><span>🎯 Questões resolvidas</span><b id="q27Total">0</b></div>
-<div><span>✅ Acertos</span><b id="q27Acertos">0</b></div>
-<div><span>❌ Erros</span><b id="q27Erros">0</b></div>
-<div><span>📈 Aproveitamento</span><b id="q27Pct">—</b></div>
-</div>
-</div>
-<div class="panel" style="margin-top:16px">
-<h2>📚 Desempenho por matéria</h2>
-<p class="panel-sub">Abra uma matéria para ver cada assunto, quantidade de questões, acertos, erros e aproveitamento.</p>
-<div id="qMateriasListaV10427"><div class="qm27-empty">Nenhuma questão organizada por matéria ainda.</div></div>
-</div>
-<div class="panel" style="margin-top:16px">
-<h2>🧾 Histórico de questões</h2>
-<p class="panel-sub">Cada registro fica preservado separadamente e organizado por matéria. Este histórico não altera o Progresso do Edital.</p>
-<div id="qHistoricoV10429"><div class="qm27-empty">Nenhuma sessão de questões registrada neste histórico ainda.</div></div>
-</div>
-</section>
-<section class="page" id="page-gerenciarEdital">
-<div class="panel ge35-hero">
-<h2>⚙️ Gerenciar Edital</h2>
-<p class="panel-sub">Use esta área quando quiser apagar o edital atual e começar novamente do zero.</p>
-<div class="ge35-warning">⚠️ A limpeza remove somente os dados ativos do edital. Arquivos históricos preservados não são apagados.</div>
-</div>
-<div class="panel" style="margin-top:16px">
-<h2>🧹 Limpar edital atual</h2>
-<p class="panel-sub">Remove e verifica os dados ativos ligados ao edital atual para você começar outro do zero. Dias ativos, minutos/dia e intervalos D1/D7/D15/D30 são mantidos como configuração. Arquivos antigos também são preservados.</p>
-<div class="ge35-warning"><b>Será limpo:</b> Edital, Edital pronto, Planejamento, agenda, Ciclo, execução do ciclo, Revisões ativas, Progresso/Desempenho derivados e Questões do edital atual.</div>
-<div class="actions" style="margin-top:12px">
-<button class="btn btn-danger" id="btnLimpezaCompletaEditalV10436" type="button">🗑️ Limpar edital e dados ativos</button>
-</div>
-<div class="status-line" id="statusLimpezaCompletaV10436"></div>
-</div>
-</section>
-<section class="page" id="page-edital">
-<div class="edital-layout">
-<div class="panel">
-<h3>▥ Carregar edital</h3>
-<p class="panel-sub">Cole um edital verticalizado. Use uma linha com o nome da disciplina e, abaixo, os tópicos. Exemplo: <b>Língua Portuguesa</b> e depois <b>1. Interpretação de textos</b>.</p>
-<div class="field">
-<label>TEXTO DO EDITAL</label>
-<textarea id="textoEditalV2" placeholder="Língua Portuguesa
-1. Compreensão e interpretação de textos
-2. Ortografia
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.66 • CICLO E DASHBOARD LIMPOS</span></div>
+  <section id="page-dashboard" class="page active">
+    <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
+    <div class="grid">
+      <div class="stat"><span>🔥 Sequência</span><strong id="dashSeqV92">—</strong></div>
+      <div class="stat"><span>⏱ Horas líquidas</span><strong id="dashHorasV92">—</strong></div>
+      <div class="stat"><span>✅ Edital</span><strong id="dashEdital">0 / 0</strong></div>
+      <div class="stat"><span>🎯 Questões</span><strong id="dashQuestoesV92">—</strong></div>
+    </div>
+    <div class="panel" style="margin-top:16px">
+      <h2>🔁 Revisões</h2>
+      <p class="panel-sub">Resumo automático do seu sistema D1, D7, D15 e D30.</p>
+      <div id="dashRevisoesV91" class="dash-rev-v91">
+        <div class="stat"><span>📅 Hoje</span><strong id="dashRevHojeV91">0</strong></div>
+        <div class="stat"><span>⚠️ Atrasadas</span><strong id="dashRevAtrasadasV91">0</strong></div>
+        <div class="stat"><span>⏳ Pendentes</span><strong id="dashRevPendentesV91">0</strong></div>
+        <div class="stat"><span>✅ Concluídas</span><strong id="dashRevConcluidasV91">0</strong></div>
+      </div>
+      <div class="dash-rev-info-v91">
+        <div><span>PRÓXIMA REVISÃO</span><b id="dashRevProximaV91">—</b></div>
+        <div><span>TOTAL AGENDADO</span><b id="dashRevTotalV91">0</b></div>
+      </div>
+      <div id="dashRevStatusV91" class="status-line"></div>
+    </div>
 
-Raciocínio Lógico
-1. Estruturas lógicas
-2. Proposições" rows="14"></textarea>
-</div>
-<div class="actions">
-<button class="btn btn-primary" id="btnCarregarEditalV2">✨ Carregar edital</button>
-<button class="btn btn-danger" id="btnLimparEditalV2">🗑 Limpar edital</button>
-</div>
-<div class="status-line" id="statusEditalV2"></div>
-</div>
-<div class="panel">
-<h3>📋 Edital verticalizado</h3>
-<p class="panel-sub">Nesta V2 você já pode pesquisar, filtrar, adicionar conteúdo e marcar tópicos como concluídos.</p>
-<div class="edital-toolbar">
-<div class="field" style="margin:0">
-<label>FILTRAR DISCIPLINA</label>
-<select id="filtroMateriaEditalV2"><option value="TODAS">Todas as disciplinas</option></select>
-</div>
-<div class="field" style="margin:0">
-<label>LOCALIZAR ASSUNTO</label>
-<input id="buscaEditalV2" placeholder="Ex.: concordância, informática..." type="search"/>
-</div>
-</div>
-<div class="edital-summary">
-<span id="resumoEditalV2">Nenhum edital carregado.</span>
-<strong id="percentualEditalV2">0%</strong>
-</div>
-<div class="add-row">
-<input id="novaMateriaV2" placeholder="Nova disciplina"/>
-<button class="btn btn-outline" id="btnAdicionarMateriaV2">+ Disciplina</button>
-<span></span>
-</div>
-<div class="add-row">
-<select id="materiaNovoTopicoV2"><option value="">Selecione a disciplina</option></select>
-<input id="novoTopicoV2" placeholder="Novo tópico"/>
-<button class="btn btn-outline" id="btnAdicionarTopicoV2">+ Tópico</button>
-</div>
-<div id="listaEditalV2"></div>
-</div>
-</div>
+    <div class="panel" style="margin-top:16px">
+      <h2>🎯 Questões</h2>
+      <p class="panel-sub">Registre as questões resolvidas. Acertos e erros alimentam suas estatísticas automaticamente.</p>
+      <div class="v94-qgrid">
+        <label>Questões feitas
+          <input id="qFeitasV94" type="number" min="1" step="1" placeholder="Ex.: 20">
+        </label>
+        <label>Acertos
+          <input id="qAcertosV94" type="number" min="0" step="1" placeholder="Ex.: 16">
+        </label>
+        <label>Erros
+          <input id="qErrosV94" type="number" min="0" step="1" placeholder="Calculado" readonly>
+        </label>
+        <button class="primary" id="qSalvarV94" type="button">✓ Registrar questões</button>
+      </div>
+      <div id="qStatusV94" class="status-line">Nenhuma questão registrada nesta sessão.</div>
+      <div class="v94-summary">
+        <div><span>Total</span><b id="qTotalV94">0</b></div>
+        <div><span>Acertos</span><b id="qTotalAcertosV94">0</b></div>
+        <div><span>Erros</span><b id="qTotalErrosV94">0</b></div>
+        <div><span>Aproveitamento</span><b id="qPctV94">—</b></div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h2>⏱ Cronômetro de estudo</h2>
+      <p class="panel-sub">Registra tempo líquido real. Pausas não entram nas horas líquidas.</p>
+      <div class="v93-timer">
+        <div class="v93-clock" id="timerDisplayV93">00:00:00</div>
+        <div class="v931-total">Total acumulado: <b id="timerTotalV931">00:00:00</b></div>
+        <div class="v93-actions">
+          <button class="primary" id="timerStartV93" type="button">▶ Iniciar</button>
+          <button id="timerPauseV93" type="button">⏸ Pausar</button>
+          <button id="timerFinishV93" type="button">✓ Finalizar sessão</button>
+        </div>
+        <div id="timerStatusV93" class="status-line">Nenhuma sessão em andamento.</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h2>📊 Estatísticas de estudo</h2>
+      <p class="panel-sub">Calculadas a partir do estudo real e das revisões concluídas. Simulações não entram nas estatísticas.</p>
+      <div class="stats-v92">
+        <div class="stat"><span>📚 Tópicos estudados</span><strong id="statTopicosV92">0</strong></div>
+        <div class="stat"><span>🔁 Revisões concluídas</span><strong id="statRevisoesV92">0</strong></div>
+        <div class="stat"><span>🎯 Revisões no prazo</span><strong id="statNoPrazoV92">0%</strong></div>
+        <div class="stat"><span>📅 Dias estudados</span><strong id="statDiasV92">0</strong></div>
+      </div>
+      <div class="stats-detail-v92">
+        <div><span>D1 CONCLUÍDAS</span><b id="statD1V92">0</b></div>
+        <div><span>D7 CONCLUÍDAS</span><b id="statD7V92">0</b></div>
+        <div><span>D15 CONCLUÍDAS</span><b id="statD15V92">0</b></div>
+        <div><span>D30 CONCLUÍDAS</span><b id="statD30V92">0</b></div>
+      </div>
+      <div class="v95-qstats">
+        <div><span>🎯 Questões resolvidas</span><b id="statQuestoesV95">0</b></div>
+        <div><span>✅ Acertos</span><b id="statAcertosV95">0</b></div>
+        <div><span>❌ Erros</span><b id="statErrosV95">0</b></div>
+        <div><span>📈 Aproveitamento</span><b id="statPctV95">—</b></div>
+      </div>
+      <div class="stats-bars-v92">
+        <div class="stats-bar-head-v92"><span>Progresso das revisões</span><b id="statRevProgressoTxtV92">0 / 0</b></div>
+        <div class="stats-track-v92"><i id="statRevProgressoV92"></i></div>
+      </div>
+      <div id="statStatusV92" class="status-line"></div>
+
+      <div class="v922-sim">
+        <b>🧪 Teste da sequência</b>
+        <p>Escolha uma data para conferir a sequência usando os dados reais já registrados e os dias ativos atuais. O teste não grava nem altera nada.</p>
+        <div class="v922-sim-row">
+          <input id="seqTesteDataV922" type="date">
+          <button id="seqTesteBtnV922" class="primary" type="button">Testar data</button>
+        </div>
+        <div id="seqTesteResultadoV922" class="status-line"></div>
+      </div>
+    </div>
+  </section>
+  <section id="page-ciclo" class="page">
+  <div class="ciclo-grid">
+    <div class="panel">
+      <h3>▦ Configurar ciclo</h3>
+      <p class="panel-sub">As disciplinas vêm do seu Edital. Aqui você escolhe quais entram no ciclo, define o tempo de cada uma e organiza a ordem. O Ciclo não cria disciplinas novas.</p>
+      <div class="ciclo-resumo">
+        <div><span>ATIVAS</span><strong id="cicloQtdAtivas">0</strong></div>
+        <div><span>TEMPO TOTAL</span><strong id="cicloTempoTotal">0 min</strong></div>
+        <div><span>DISCIPLINAS DO EDITAL</span><strong id="cicloQtdEdital">0</strong></div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" id="btnSalvarCiclo">Salvar ciclo</button>
+        <button class="btn btn-outline" id="btnRestaurarCiclo">Restaurar do Edital</button>
+      </div>
+      <div id="statusCiclo" class="status-line"></div>
+
+      <div class="ciclo-exec">
+        <h3>▶ Executar ciclo</h3>
+        <p class="panel-sub">O ciclo continua de onde você parou. Ele não reinicia quando muda o dia.</p>
+        <div class="ciclo-exec-grid">
+          <div class="ciclo-proxima">
+            <div class="tag">PRÓXIMA DISCIPLINA</div>
+            <h3 id="cicloProximaNome">—</h3>
+            <p id="cicloProximaTempo">Configure e salve o ciclo.</p>
+            <div class="ciclo-exec-actions">
+              <button class="btn btn-primary" id="btnConcluirEtapaCiclo" style="display:none" aria-hidden="true" tabindex="-1" disabled>✓ Concluir e avançar</button>
+              <button class="btn btn-outline" id="btnVoltarEtapaCiclo">← Voltar uma etapa</button>
+            </div>
+          </div>
+          <div class="ciclo-posicao">
+            <span class="muted">POSIÇÃO ATUAL</span>
+            <strong id="cicloPosicaoAtual">—</strong>
+            <span class="muted" id="cicloVoltas">0 volta(s) completa(s)</span>
+          </div>
+        </div>
+        <div id="cicloFila" class="ciclo-fila"></div>
+        <div id="statusExecCiclo" class="status-line"></div>
+
+        <div class="estudo-real ciclo-semana-v104" id="cicloSemanaV104">
+          <h3>🗓️ Semana do ciclo</h3>
+          <p class="panel-sub">Começa na data atual e só avança até a última data real de assuntos ou revisões espaçadas. Arraste os assuntos entre os dias para reorganizar sem criar cópias.</p>
+          <div class="ciclo-semana-toolbar-v104">
+            <div class="acoes"><button class="btn btn-outline" id="cicloSemanaAnteriorV104" type="button">← Semana</button><button class="btn btn-outline" id="cicloSemanaHojeV104" type="button">Hoje</button><button class="btn btn-outline" id="cicloSemanaProximaV104" type="button">Semana →</button></div>
+            <b id="cicloSemanaPeriodoV104">—</b>
+          </div>
+          <div id="cicloSemanaGridV104" class="ciclo-semana-grid-v104"></div>
+          <div id="cicloSemanaStatusV104" class="status-line"></div>
+        </div>
+
+        <div class="estudo-real" id="cicloPlanejadoHojeV103">
+          <h3>📅 Planejamento de hoje</h3>
+          <p class="panel-sub">Assuntos definidos no Planejamento para hoje. O Ciclo usa esta fila primeiro; se não houver assunto planejado pendente, segue a ordem normal do ciclo.</p>
+          <div id="cicloPlanejadoHojeListaV103" class="ciclo-hoje-lista"></div>
+          <div id="cicloPlanejadoHojeStatusV103" class="status-line"></div>
+        </div>
+
+        <div class="estudo-real">
+          <h3>📖 Estudo real</h3>
+          <p class="panel-sub">O Estudo real usa primeiro os assuntos pendentes planejados para hoje. Ao terminar a fila diária, ele encerra o planejamento do dia sem puxar automaticamente assuntos futuros.</p>
+          <div class="estudo-real-box">
+            <div class="rotulo">TÓPICO ATUAL</div>
+            <h4 id="estudoRealTopico">—</h4>
+            <p id="estudoRealInfo">Aguardando uma disciplina ativa no ciclo.</p>
+            <button class="btn btn-primary" id="btnConcluirEstudoReal">✓ Concluir tópico estudado</button>
+            <div id="statusEstudoReal" class="status-line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>📚 Ordem do ciclo</h3>
+      <p class="panel-sub">Use ↑ e ↓ para organizar. Desmarcar uma disciplina apenas a retira do ciclo; ela continua normalmente no Edital.</p>
+      <div id="listaCiclo" class="ciclo-list"></div>
+
+      <div class="ciclo-assuntos">
+        <h3>↕ Ordem dos assuntos no ciclo</h3>
+        <p class="panel-sub">Mova os assuntos com ↑ e ↓. A ordem é salva no Edital e passa a ser a ordem real de estudo, sem criar cópias e sem alterar a prioridade do Planejamento.</p>
+        <div id="listaAssuntosCicloV1022"></div>
+        <div id="statusAssuntosCicloV1022" class="status-line"></div>
+      </div>
+    </div>
+  </div>
 </section>
-<section class="page" id="page-progresso">
-<div class="panel">
-<h2>📚 Progresso do Edital</h2>
-<p class="panel-sub">Calculado pelos assuntos originais do Planejamento. Revisões D1/D7/D15/D30 não entram como novos assuntos.</p>
-<div class="stats-v92">
-<div class="stat"><span>📚 Total de assuntos</span><strong id="progTotalV10416">0</strong></div>
-<div class="stat"><span>✅ Concluídos</span><strong id="progConclV10416">0</strong></div>
-<div class="stat"><span>⏳ Pendentes</span><strong id="progPendV10416">0</strong></div>
-<div class="stat"><span>📊 Progresso geral</span><strong id="progPctV10416">0%</strong></div>
-</div>
-<div class="stats-bar-v92" style="margin-top:14px">
-<div class="stats-bar-head-v92"><span>Conclusão dos assuntos</span><b id="progTxtV10416">0 / 0</b></div>
-<div class="stats-track-v92"><i id="progBarV10416"></i></div>
-</div>
-<div class="prog-prior-v10416" id="progPrioridadesV10416"></div>
-<div class="status-line" id="progFonteV10417"></div>
-</div>
-<div class="panel" style="margin-top:16px">
-<h2>📚 Progresso por matéria</h2>
-<p class="panel-sub">Cada matéria mostra somente seus assuntos originais, preservando a numeração e a prioridade do Planejamento.</p>
-<div id="progMateriasV10416"></div>
-</div>
-<div class="panel" style="margin-top:16px">
-<h2>🎯 Questões</h2>
-<p class="panel-sub">Resumo dos registros já salvos pelo módulo Questões. Nesta versão os dados atuais são gerais; não serão inventados dados por matéria.</p>
-<div class="stats-v92">
-<div class="stat"><span>🎯 Resolvidas</span><strong id="progQTotalV10416">0</strong></div>
-<div class="stat"><span>✅ Acertos</span><strong id="progQAcV10416">0</strong></div>
-<div class="stat"><span>❌ Erros</span><strong id="progQErV10416">0</strong></div>
-<div class="stat"><span>📈 Aproveitamento</span><strong id="progQPctV10416">—</strong></div>
-</div>
-</div>
+  <section id="page-timer" class="page">
+  <h1>Timer</h1>
+
+  <div class="panel">
+    <h2>⏱ Timer de estudo</h2>
+    <p class="panel-sub">Escolha o assunto estudado. O sistema registra assunto, matéria, data/hora e somente o tempo líquido real.</p>
+
+    <div class="field" style="max-width:760px;margin-top:14px">
+      <label>ASSUNTO ESTUDADO</label>
+      <select id="timerAssuntoV10422">
+        <option value="">Selecione um assunto do Planejamento</option>
+      </select>
+    </div>
+
+    <div class="v93-timer" style="margin-top:14px">
+      <div class="v93-clock" id="timerPageDisplayV10421">00:00:00</div>
+      <div class="v931-total">Horas do edital atual: <b id="timerPageTotalV10421">00:00:00</b></div>
+      <div class="v931-total" style="margin-top:4px">Total geral estudado: <b id="timerTotalGeralV10423">00:00:00</b></div>
+      <div class="actions" style="margin-top:14px">
+        <button class="btn btn-primary" id="timerPageStartV10421" type="button">▶ Iniciar</button>
+        <button class="btn" id="timerPagePauseV10421" type="button">⏸ Pausar</button>
+        <button class="btn" id="timerPageFinishV10421" type="button">✓ Finalizar sessão</button>
+      </div>
+      <div id="timerPageStatusV10421" class="status-line">Nenhuma sessão em andamento.</div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h2>✍️ Adicionar tempo manualmente</h2>
+    <p class="panel-sub">Use quando você estudou fora do Timer. Isso soma horas líquidas, mas não conclui o assunto e não altera o Progresso do Edital.</p>
+    <div style="display:grid;grid-template-columns:minmax(260px,2fr) 130px 130px auto;gap:12px;align-items:end">
+      <div class="field" style="margin:0">
+        <label>ASSUNTO</label>
+        <select id="timerManualAssuntoV10422"><option value="">Selecione um assunto</option></select>
+      </div>
+      <div class="field" style="margin:0">
+        <label>HORAS</label>
+        <input id="timerManualHorasV10422" type="number" min="0" max="24" value="0">
+      </div>
+      <div class="field" style="margin:0">
+        <label>MINUTOS</label>
+        <input id="timerManualMinV10422" type="number" min="0" max="59" value="30">
+      </div>
+      <button class="btn btn-primary" id="timerManualSalvarV10422" type="button">＋ Adicionar tempo</button>
+    </div>
+    <div id="timerManualStatusV10422" class="status-line"></div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h2>📚 Histórico de sessões</h2>
+    <p class="panel-sub">Registros automáticos e manuais. Nenhum registro desta área marca assunto como concluído.</p>
+    <div id="timerHistoricoV10422"><div class="placeholder">Carregando sessões...</div></div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h2>📌 Como funciona</h2>
+    <p class="panel-sub">Iniciar começa a contar. Pausar congela o tempo. Finalizar salva a sessão vinculada ao assunto escolhido. Se a página for fechada durante uma sessão, ela volta pausada para não contar tempo que não foi estudado.</p>
+  </div>
 </section>
-<section class="page" id="page-historico">
-<div class="panel">
-<h2>📜 Histórico de revisões</h2>
-<p class="panel-sub">Mostra somente revisões realmente concluídas. Simulações não entram no histórico e nenhuma ação nesta tela altera Planejamento, Ciclo ou revisões.</p>
-<div id="resumoHistoricoV90"></div>
-<div id="historicoRevisoesV90" style="margin-top:14px"></div>
-</div>
-<div class="panel" style="margin-top:16px">
-<h2>📊 Estatísticas</h2>
-<p class="panel-sub">As estatísticas existentes continuam usando o motor atual. Esta restauração não cria um segundo motor nem duplica dados.</p>
-<div class="status-line">Os indicadores completos permanecem na estrutura já existente do sistema; esta etapa restaura primeiro o Histórico sem alterar o núcleo aprovado.</div>
-</div>
+  
+<section id="page-questoes" class="page">
+  <div class="panel">
+    <h2>🎯 Registrar questões</h2>
+    <p class="panel-sub">Escolha a matéria e o assunto do seu Edital. Os resultados ficam organizados automaticamente por matéria → assunto.</p>
+
+    <div class="qm27-form">
+      <label>MATÉRIA
+        <select id="qMateriaV10427"><option value="">Selecione a matéria</option></select>
+      </label>
+      <label>ASSUNTO
+        <select id="qAssuntoV10427"><option value="">Selecione o assunto</option></select>
+      </label>
+      <label>QUESTÕES FEITAS
+        <input id="qFeitasV10427" type="number" min="1" step="1" placeholder="Ex.: 20">
+      </label>
+      <label>ACERTOS
+        <input id="qAcertosV10427" type="number" min="0" step="1" placeholder="Ex.: 16">
+      </label>
+      <button class="btn btn-primary" id="qSalvarV10427" type="button">✓ Registrar</button>
+    </div>
+    <div id="qStatusV10427" class="status-line">Escolha a matéria e o assunto estudado.</div>
+
+    <div class="qm27-summary">
+      <div><span>🎯 Questões resolvidas</span><b id="q27Total">0</b></div>
+      <div><span>✅ Acertos</span><b id="q27Acertos">0</b></div>
+      <div><span>❌ Erros</span><b id="q27Erros">0</b></div>
+      <div><span>📈 Aproveitamento</span><b id="q27Pct">—</b></div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h2>📚 Desempenho por matéria</h2>
+    <p class="panel-sub">Abra uma matéria para ver cada assunto, quantidade de questões, acertos, erros e aproveitamento.</p>
+    <div id="qMateriasListaV10427"><div class="qm27-empty">Nenhuma questão organizada por matéria ainda.</div></div>
+  </div>
+
+  <div class="panel" style="margin-top:16px">
+    <h2>🧾 Histórico de questões</h2>
+    <p class="panel-sub">Cada registro fica preservado separadamente e organizado por matéria. Este histórico não altera o Progresso do Edital.</p>
+    <div id="qHistoricoV10429"><div class="qm27-empty">Nenhuma sessão de questões registrada neste histórico ainda.</div></div>
+  </div>
 </section>
-<section class="page" id="page-estatisticas">
-<div class="panel">
-<h2>📊 Meu Desempenho</h2>
-<p class="panel-sub">Indicadores calculados a partir dos dados reais já existentes. Esta tela não altera Planejamento, Ciclo, Histórico ou revisões.</p>
-<div class="stats-v92">
-<div class="stat"><span>📚 Tópicos estudados</span><strong id="estatTopicosV10414">0</strong></div>
-<div class="stat"><span>🔁 Revisões concluídas</span><strong id="estatRevisoesV10414">0</strong></div>
-<div class="stat"><span>🎯 Revisões no prazo</span><strong id="estatPrazoV10414">0%</strong></div>
-<div class="stat"><span>📅 Dias estudados</span><strong id="estatDiasV10414">0</strong></div>
-</div>
-<div class="stats-detail-v92" style="margin-top:12px">
-<div><span>D1 CONCLUÍDAS</span><b id="estatD1V10414">0</b></div>
-<div><span>D7 CONCLUÍDAS</span><b id="estatD7V10414">0</b></div>
-<div><span>D15 CONCLUÍDAS</span><b id="estatD15V10414">0</b></div>
-<div><span>D30 CONCLUÍDAS</span><b id="estatD30V10414">0</b></div>
-</div>
-<div class="stats-bars-v92" style="margin-top:14px">
-<div class="stats-bar-head-v92"><span>Progresso das revisões</span><b id="estatRevTxtV10414">0 / 0</b></div>
-<div class="stats-track-v92"><i id="estatRevBarV10414"></i></div>
-</div>
-<div class="status-line" id="estatStatusV10414"></div>
-</div>
-<div class="panel" style="margin-top:16px">
-<h2>🎯 Estatísticas de questões</h2>
-<p class="panel-sub">Lê os registros já salvos pelo módulo Questões. Nenhum registro é criado ou modificado nesta tela.</p>
-<div class="v95-qstats">
-<div><span>🎯 Questões resolvidas</span><b id="estatQuestoesV10414">0</b></div>
-<div><span>✅ Acertos</span><b id="estatAcertosV10414">0</b></div>
-<div><span>❌ Erros</span><b id="estatErrosV10414">0</b></div>
-<div><span>📈 Aproveitamento</span><b id="estatPctV10414">—</b></div>
-</div>
-</div>
-</section>
-<section class="page" id="page-planejamento">
+
+
+  <section id="page-gerenciarEdital" class="page">
+    <div class="panel ge35-hero">
+      <h2>⚙️ Gerenciar Edital</h2>
+      <p class="panel-sub">Use esta área quando quiser apagar o edital atual e começar novamente do zero.</p>
+      <div class="ge35-warning">⚠️ A limpeza remove somente os dados ativos do edital. Arquivos históricos preservados não são apagados.</div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <h2>🧹 Limpar edital atual</h2>
+      <p class="panel-sub">Remove e verifica os dados ativos ligados ao edital atual para você começar outro do zero. Dias ativos, minutos/dia e intervalos D1/D7/D15/D30 são mantidos como configuração. Arquivos antigos também são preservados.</p>
+      <div class="ge35-warning"><b>Será limpo:</b> Edital, Edital pronto, Planejamento, agenda, Ciclo, execução do ciclo, Revisões ativas, Progresso/Desempenho derivados e Questões do edital atual.</div>
+      <div class="actions" style="margin-top:12px">
+        <button class="btn btn-danger" id="btnLimpezaCompletaEditalV10436" type="button">🗑️ Limpar edital e dados ativos</button>
+      </div>
+      <div id="statusLimpezaCompletaV10436" class="status-line"></div>
+    </div>
+  </section>
+
+  <section id="page-edital" class="page">
+    <div class="edital-layout">
+      <div class="panel">
+        <h3>▥ Carregar edital</h3>
+        <p class="panel-sub">Cole um edital verticalizado. Use uma linha com o nome da disciplina e, abaixo, os tópicos. Exemplo: <b>Língua Portuguesa</b> e depois <b>1. Interpretação de textos</b>.</p>
+        <div class="field">
+          <label>TEXTO DO EDITAL</label>
+          <textarea id="textoEditalV2" rows="14" placeholder="Língua Portuguesa&#10;1. Compreensão e interpretação de textos&#10;2. Ortografia&#10;&#10;Raciocínio Lógico&#10;1. Estruturas lógicas&#10;2. Proposições"></textarea>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="btnCarregarEditalV2">✨ Carregar edital</button>
+          <button class="btn btn-danger" id="btnLimparEditalV2">🗑 Limpar edital</button>
+        </div>
+        <div id="statusEditalV2" class="status-line"></div>
+      </div>
+
+      <div class="panel">
+        <h3>📋 Edital verticalizado</h3>
+        <p class="panel-sub">Nesta V2 você já pode pesquisar, filtrar, adicionar conteúdo e marcar tópicos como concluídos.</p>
+
+        <div class="edital-toolbar">
+          <div class="field" style="margin:0">
+            <label>FILTRAR DISCIPLINA</label>
+            <select id="filtroMateriaEditalV2"><option value="TODAS">Todas as disciplinas</option></select>
+          </div>
+          <div class="field" style="margin:0">
+            <label>LOCALIZAR ASSUNTO</label>
+            <input id="buscaEditalV2" type="search" placeholder="Ex.: concordância, informática...">
+          </div>
+        </div>
+
+        <div class="edital-summary">
+          <span id="resumoEditalV2">Nenhum edital carregado.</span>
+          <strong id="percentualEditalV2">0%</strong>
+        </div>
+
+        <div class="add-row">
+          <input id="novaMateriaV2" placeholder="Nova disciplina">
+          <button class="btn btn-outline" id="btnAdicionarMateriaV2">+ Disciplina</button>
+          <span></span>
+        </div>
+        <div class="add-row">
+          <select id="materiaNovoTopicoV2"><option value="">Selecione a disciplina</option></select>
+          <input id="novoTopicoV2" placeholder="Novo tópico">
+          <button class="btn btn-outline" id="btnAdicionarTopicoV2">+ Tópico</button>
+        </div>
+
+        <div id="listaEditalV2"></div>
+      </div>
+    </div>
+  </section>
+  <section id="page-progresso" class="page">
+    <div class="panel">
+      <h2>📚 Progresso do Edital</h2>
+      <p class="panel-sub">Calculado pelos assuntos originais do Planejamento. Revisões D1/D7/D15/D30 não entram como novos assuntos.</p>
+      <div class="stats-v92">
+        <div class="stat"><span>📚 Total de assuntos</span><strong id="progTotalV10416">0</strong></div>
+        <div class="stat"><span>✅ Concluídos</span><strong id="progConclV10416">0</strong></div>
+        <div class="stat"><span>⏳ Pendentes</span><strong id="progPendV10416">0</strong></div>
+        <div class="stat"><span>📊 Progresso geral</span><strong id="progPctV10416">0%</strong></div>
+      </div>
+      <div class="stats-bar-v92" style="margin-top:14px">
+        <div class="stats-bar-head-v92"><span>Conclusão dos assuntos</span><b id="progTxtV10416">0 / 0</b></div>
+        <div class="stats-track-v92"><i id="progBarV10416"></i></div>
+      </div>
+      <div id="progPrioridadesV10416" class="prog-prior-v10416"></div>
+      <div id="progFonteV10417" class="status-line"></div>
+    </div>
+    <div class="panel" style="margin-top:16px">
+      <h2>📚 Progresso por matéria</h2>
+      <p class="panel-sub">Cada matéria mostra somente seus assuntos originais, preservando a numeração e a prioridade do Planejamento.</p>
+      <div id="progMateriasV10416"></div>
+    </div>
+    <div class="panel" style="margin-top:16px">
+      <h2>🎯 Questões</h2>
+      <p class="panel-sub">Resumo dos registros já salvos pelo módulo Questões. Nesta versão os dados atuais são gerais; não serão inventados dados por matéria.</p>
+      <div class="stats-v92">
+        <div class="stat"><span>🎯 Resolvidas</span><strong id="progQTotalV10416">0</strong></div>
+        <div class="stat"><span>✅ Acertos</span><strong id="progQAcV10416">0</strong></div>
+        <div class="stat"><span>❌ Erros</span><strong id="progQErV10416">0</strong></div>
+        <div class="stat"><span>📈 Aproveitamento</span><strong id="progQPctV10416">—</strong></div>
+      </div>
+    </div>
+  </section>
+  <section id="page-historico" class="page">
+    <div class="panel">
+      <h2>📜 Histórico de revisões</h2>
+      <p class="panel-sub">Mostra somente revisões realmente concluídas. Simulações não entram no histórico e nenhuma ação nesta tela altera Planejamento, Ciclo ou revisões.</p>
+      <div id="resumoHistoricoV90"></div>
+      <div id="historicoRevisoesV90" style="margin-top:14px"></div>
+    </div>
+    <div class="panel" style="margin-top:16px">
+      <h2>📊 Estatísticas</h2>
+      <p class="panel-sub">As estatísticas existentes continuam usando o motor atual. Esta restauração não cria um segundo motor nem duplica dados.</p>
+      <div class="status-line">Os indicadores completos permanecem na estrutura já existente do sistema; esta etapa restaura primeiro o Histórico sem alterar o núcleo aprovado.</div>
+    </div>
+  </section>
+
+  <section id="page-estatisticas" class="page">
+    <div class="panel">
+      <h2>📊 Meu Desempenho</h2>
+      <p class="panel-sub">Indicadores calculados a partir dos dados reais já existentes. Esta tela não altera Planejamento, Ciclo, Histórico ou revisões.</p>
+      <div class="stats-v92">
+        <div class="stat"><span>📚 Tópicos estudados</span><strong id="estatTopicosV10414">0</strong></div>
+        <div class="stat"><span>🔁 Revisões concluídas</span><strong id="estatRevisoesV10414">0</strong></div>
+        <div class="stat"><span>🎯 Revisões no prazo</span><strong id="estatPrazoV10414">0%</strong></div>
+        <div class="stat"><span>📅 Dias estudados</span><strong id="estatDiasV10414">0</strong></div>
+      </div>
+      <div class="stats-detail-v92" style="margin-top:12px">
+        <div><span>D1 CONCLUÍDAS</span><b id="estatD1V10414">0</b></div>
+        <div><span>D7 CONCLUÍDAS</span><b id="estatD7V10414">0</b></div>
+        <div><span>D15 CONCLUÍDAS</span><b id="estatD15V10414">0</b></div>
+        <div><span>D30 CONCLUÍDAS</span><b id="estatD30V10414">0</b></div>
+      </div>
+      <div class="stats-bars-v92" style="margin-top:14px">
+        <div class="stats-bar-head-v92"><span>Progresso das revisões</span><b id="estatRevTxtV10414">0 / 0</b></div>
+        <div class="stats-track-v92"><i id="estatRevBarV10414"></i></div>
+      </div>
+      <div id="estatStatusV10414" class="status-line"></div>
+    </div>
+    <div class="panel" style="margin-top:16px">
+      <h2>🎯 Estatísticas de questões</h2>
+      <p class="panel-sub">Lê os registros já salvos pelo módulo Questões. Nenhum registro é criado ou modificado nesta tela.</p>
+      <div class="v95-qstats">
+        <div><span>🎯 Questões resolvidas</span><b id="estatQuestoesV10414">0</b></div>
+        <div><span>✅ Acertos</span><b id="estatAcertosV10414">0</b></div>
+        <div><span>❌ Erros</span><b id="estatErrosV10414">0</b></div>
+        <div><span>📈 Aproveitamento</span><b id="estatPctV10414">—</b></div>
+      </div>
+    </div>
+  </section>
+  <section id="page-planejamento" class="page">
 <h1>Planejamento</h1>
 <div class="panel" id="planConfigDiasAtivosV10412" style="margin-bottom:16px">
-<h2>📆 Dias ativos de estudo</h2>
-<p class="panel-sub">Escolha os dias da semana em que o Planejamento pode distribuir assuntos. Esta configuração já existia no motor do sistema e voltou a ficar visível aqui.</p>
-<div class="plan-dias">
-<label class="plan-dia"><input data-plan-dia="1" type="checkbox"/> Segunda-feira</label>
-<label class="plan-dia"><input data-plan-dia="2" type="checkbox"/> Terça-feira</label>
-<label class="plan-dia"><input data-plan-dia="3" type="checkbox"/> Quarta-feira</label>
-<label class="plan-dia"><input data-plan-dia="4" type="checkbox"/> Quinta-feira</label>
-<label class="plan-dia"><input data-plan-dia="5" type="checkbox"/> Sexta-feira</label>
-<label class="plan-dia"><input data-plan-dia="6" type="checkbox"/> Sábado</label>
-<label class="plan-dia"><input data-plan-dia="0" type="checkbox"/> Domingo</label>
-</div>
-<div class="plan-resumo">
-<div><span>DIAS ATIVOS</span><strong id="planResumoDias">0</strong></div>
-<div><span>MINUTOS/DIA</span><strong id="planResumoMin">120 min</strong></div>
-<div><span>REVISÕES</span><strong id="planResumoRev">4</strong></div>
-</div>
-<div aria-hidden="true" style="display:none">
-<input id="planMinutosDia" max="1440" min="10" type="number" value="120"/>
-<input checked="" data-plan-rev="1" type="checkbox"/>
-<input checked="" data-plan-rev="7" type="checkbox"/>
-<input checked="" data-plan-rev="15" type="checkbox"/>
-<input checked="" data-plan-rev="30" type="checkbox"/>
-</div>
-<div class="actions" style="margin-top:12px"><button class="btn btn-primary" id="btnSalvarPlanejamento" type="button">💾 Salvar dias ativos</button></div>
-<div class="status-line" id="statusPlanejamento"></div>
+  <h2>📆 Dias ativos de estudo</h2>
+  <p class="panel-sub">Escolha os dias da semana em que o Planejamento pode distribuir assuntos. Esta configuração já existia no motor do sistema e voltou a ficar visível aqui.</p>
+  <div class="plan-dias">
+    <label class="plan-dia"><input type="checkbox" data-plan-dia="1"> Segunda-feira</label>
+    <label class="plan-dia"><input type="checkbox" data-plan-dia="2"> Terça-feira</label>
+    <label class="plan-dia"><input type="checkbox" data-plan-dia="3"> Quarta-feira</label>
+    <label class="plan-dia"><input type="checkbox" data-plan-dia="4"> Quinta-feira</label>
+    <label class="plan-dia"><input type="checkbox" data-plan-dia="5"> Sexta-feira</label>
+    <label class="plan-dia"><input type="checkbox" data-plan-dia="6"> Sábado</label>
+    <label class="plan-dia"><input type="checkbox" data-plan-dia="0"> Domingo</label>
+  </div>
+  <div class="plan-resumo">
+    <div><span>DIAS ATIVOS</span><strong id="planResumoDias">0</strong></div>
+    <div><span>MINUTOS/DIA</span><strong id="planResumoMin">120 min</strong></div>
+    <div><span>REVISÕES</span><strong id="planResumoRev">4</strong></div>
+  </div>
+  <div style="display:none" aria-hidden="true">
+    <input id="planMinutosDia" type="number" min="10" max="1440" value="120">
+    <input type="checkbox" data-plan-rev="1" checked>
+    <input type="checkbox" data-plan-rev="7" checked>
+    <input type="checkbox" data-plan-rev="15" checked>
+    <input type="checkbox" data-plan-rev="30" checked>
+  </div>
+  <div class="actions" style="margin-top:12px"><button class="btn btn-primary" id="btnSalvarPlanejamento" type="button">💾 Salvar dias ativos</button></div>
+  <div id="statusPlanejamento" class="status-line"></div>
 </div>
 <div class="panel"><h2>🗓 Planejamento por prioridade</h2><p class="panel-sub">Assuntos recebidos do Edital pronto. P1 aparece primeiro, depois P2 e P3.</p>
 <div class="v101-plan-summary"><div><span>🔴 P1</span><b id="planP1V101">0</b></div><div><span>🟡 P2</span><b id="planP2V101">0</b></div><div><span>🟢 P3</span><b id="planP3V101">0</b></div><div><span>📚 Total</span><b id="planTotalV101">0</b></div></div>
-<div class="status-line" id="planejamentoV101Status">Nenhum edital enviado ao Planejamento ainda.</div>
+<div id="planejamentoV101Status" class="status-line">Nenhum edital enviado ao Planejamento ainda.</div>
 <div class="v102-toolbar">
-<label>Data inicial do planejamento<input id="planDataInicialV102" type="date"/></label>
+<label>Data inicial do planejamento<input id="planDataInicialV102" type="date"></label>
 <label>Assuntos por dia
 <select id="planQtdDiaV102">
 <option value="1">1 assunto</option>
-<option selected="" value="2">2 assuntos</option>
+<option value="2" selected>2 assuntos</option>
 <option value="3">3 assuntos</option>
 <option value="4">4 assuntos</option>
 <option value="5">5 assuntos</option>
 </select>
 </label>
 <button id="planGerarV102" type="button">📅 Montar planejamento</button>
-<button id="planRegenerarPendentesV1045" title="Redistribui somente assuntos ainda não concluídos" type="button">🔄 Regenerar pendentes</button>
+<button id="planRegenerarPendentesV1045" type="button" title="Redistribui somente assuntos ainda não concluídos">🔄 Regenerar pendentes</button>
 </div>
-<div class="status-line" id="planejamentoV102Status"></div>
-<div class="v101-plan-list" id="planejamentoV101Lista"></div></div></section>
-<section class="page" id="page-diagnostico">
+<div id="planejamentoV102Status" class="status-line"></div>
+<div id="planejamentoV101Lista" class="v101-plan-list"></div></div></section>
+  <section id="page-diagnostico" class="page">
 <div class="panel">
 <h2>🛠 Diagnóstico da V3</h2>
 <p class="panel-sub">Ferramenta temporária de desenvolvimento. Não mostra senha nem tokens.</p>
 <div class="plan-aviso" style="margin:14px 0">
-<b>🧹 Reset de teste — usuário atual</b><br/>
+  <b>🧹 Reset de teste — usuário atual</b><br>
   Limpa somente a execução/voltas e o motor de revisões deste UID.
-  Edital, tópicos, configuração do Ciclo e Planejamento são preservados.<br/><br/>
-<button class="btn btn-danger" id="btnResetTesteV841" type="button">🧹 Zerar histórico de teste</button>
-<div class="status-line" id="statusResetTesteV841"></div>
+  Edital, tópicos, configuração do Ciclo e Planejamento são preservados.<br><br>
+  <button class="btn btn-danger" id="btnResetTesteV841" type="button">🧹 Zerar histórico de teste</button>
+  <div id="statusResetTesteV841" class="status-line"></div>
 </div>
 <button class="btn btn-primary" id="btnExecutarDiagnostico">Executar diagnóstico</button>
 <div id="diagResumo" style="margin-top:16px;font-weight:700"></div>
 <div id="diagLista" style="margin-top:12px;display:grid;gap:8px"></div>
 </div></section>
-<section class="page" id="page-seguranca"><div class="placeholder"><b>Segurança</b><br/>V1 usa Firebase Authentication para a conta Eduardo. Gestão de Utilizadores e Motivação foram deixadas de fora.</div></section>
-<section class="page" id="page-editalPronto" style="display:none">
-<div class="panel">
-<h2>📚 Edital pronto</h2>
-<p class="panel-sub">Escolha um edital pronto publicado pelo administrador, ajuste suas prioridades e envie para o Planejamento.</p>
-<div class="v100-edital-toolbar">
-<label>Concurso / edital
-        <select id="editalProntoSelectV100">
-<option value="">Selecione um edital</option>
-</select>
-</label>
-<button class="primary" id="carregarEditalV100" type="button">📥 Carregar edital</button>
-</div>
-<div class="status-line" id="editalProntoStatusV100">Nenhum edital selecionado.</div>
-<div id="editalProntoConteudoV100" style="display:none">
-<div class="v100-head">
-<div>
-<h3 id="editalProntoTituloV100">Edital</h3>
-<p class="panel-sub">A prioridade fica em cada assunto. P1 = mais importante.</p>
-</div>
-<div class="v100-legend">
-<span>🔴 P1 Alta</span><span>🟡 P2 Média</span><span>🟢 P3 Normal</span>
-</div>
-</div>
-<div class="v100-list" id="editalProntoListaV100"></div>
-<div class="v100-actions">
-<button id="restaurarPrioridadesV100" type="button">↩ Restaurar prioridades</button>
-<button class="primary" id="enviarPlanejamentoV100" type="button">➡ Enviar para Planejamento</button>
-</div>
-<div class="status-line" id="envioPlanejamentoStatusV100"></div>
-</div>
-</div>
-</section>
-<section class="page" id="page-adminEditais">
-<div class="panel" style="border-color:#6d5524;background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(99,102,241,.06))">
-<h2>👑 Administração • Editais prontos</h2>
-<p class="panel-sub">Área exclusiva do administrador. Crie, edite, publique ou exclua modelos que aparecerão na aba “Edital pronto” dos usuários.</p>
-<div class="status-line" id="adminEditaisStatusV10439">Verificando permissão de administrador...</div>
-</div>
-<div class="hidden" id="adminEditaisAreaV10439">
-<div class="panel" style="margin-top:16px">
-<h2>📝 Criar / editar edital pronto</h2>
-<div class="field"><label>NOME DO CONCURSO / EDITAL</label><input id="adminEditalTituloV10439" placeholder="Ex.: PMPE — Soldado 2026"/></div>
-<details class="materia-card" open="" style="margin:12px 0">
-<summary style="cursor:pointer;font-weight:800;padding:4px 0">📋 Importar edital por texto</summary>
-<p class="panel-sub" style="margin-top:8px">Cole o edital verticalizado. Depois clique em “Transformar em editor visual”.</p>
-<div class="field"><label>TEXTO DO EDITAL</label><textarea id="adminEditalTextoV10439" placeholder="Língua Portuguesa
-1. Interpretação de textos
-2. Ortografia
+<section id="page-seguranca" class="page"><div class="placeholder"><b>Segurança</b><br>V1 usa Firebase Authentication para a conta Eduardo. Gestão de Utilizadores e Motivação foram deixadas de fora.</div></section>
 
-Direito Constitucional
-1. Direitos e garantias fundamentais" rows="10"></textarea></div>
-<div class="actions"><button class="btn btn-outline" id="adminImportarTextoV10440" type="button">✨ Transformar em editor visual</button></div>
-</details>
-<div class="materia-card" style="margin:12px 0">
-<div class="materia-head"><div><h4>🧩 Editor visual do edital</h4><div class="materia-count" id="adminResumoVisualV10440">0 matéria(s) • 0 assunto(s)</div></div></div>
-<div class="actions" style="margin:12px 0">
-<input id="adminNovaMateriaV10440" placeholder="Nome da nova matéria" style="min-width:260px;flex:1"/>
-<button class="btn btn-outline" id="adminAdicionarMateriaV10440" type="button">＋ Adicionar matéria</button>
-</div>
-<div id="adminEditorVisualV10440"></div>
-</div>
-<label style="display:flex;gap:8px;align-items:center;margin:10px 0 14px"><input checked="" id="adminEditalPublicadoV10439" style="width:auto" type="checkbox"/> Publicado para os usuários</label>
-<div class="actions"><button class="btn btn-primary" id="adminSalvarEditalV10439" type="button">💾 Salvar edital pronto</button><button class="btn btn-outline" id="adminNovoEditalV10439" type="button">＋ Novo / limpar formulário</button></div>
-<div class="status-line" id="adminFormStatusV10439"></div>
-</div>
-<div class="panel" style="margin-top:16px"><h2>📚 Editais cadastrados</h2><p class="panel-sub">Somente editais publicados aparecem para usuários comuns.</p><div id="adminListaEditaisV10439"></div></div>
-</div>
+<section id="page-editalPronto" class="page" style="display:none">
+  <div class="panel">
+    <h2>📚 Edital pronto</h2>
+    <p class="panel-sub">Escolha um edital pronto publicado pelo administrador, ajuste suas prioridades e envie para o Planejamento.</p>
+
+    <div class="v100-edital-toolbar">
+      <label>Concurso / edital
+        <select id="editalProntoSelectV100">
+          <option value="">Selecione um edital</option>
+          
+        </select>
+      </label>
+      <button class="primary" id="carregarEditalV100" type="button">📥 Carregar edital</button>
+    </div>
+
+    <div id="editalProntoStatusV100" class="status-line">Nenhum edital selecionado.</div>
+
+    <div id="editalProntoConteudoV100" style="display:none">
+      <div class="v100-head">
+        <div>
+          <h3 id="editalProntoTituloV100">Edital</h3>
+          <p class="panel-sub">A prioridade fica em cada assunto. P1 = mais importante.</p>
+        </div>
+        <div class="v100-legend">
+          <span>🔴 P1 Alta</span><span>🟡 P2 Média</span><span>🟢 P3 Normal</span>
+        </div>
+      </div>
+
+      <div id="editalProntoListaV100" class="v100-list"></div>
+
+      <div class="v100-actions">
+        <button id="restaurarPrioridadesV100" type="button">↩ Restaurar prioridades</button>
+        <button class="primary" id="enviarPlanejamentoV100" type="button">➡ Enviar para Planejamento</button>
+      </div>
+      <div id="envioPlanejamentoStatusV100" class="status-line"></div>
+    </div>
+  </div>
 </section>
+
+
+<section id="page-adminEditais" class="page">
+  <div class="panel" style="border-color:#6d5524;background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(99,102,241,.06))">
+    <h2>👑 Administração • Editais prontos</h2>
+    <p class="panel-sub">Área exclusiva do administrador. Crie, edite, publique ou exclua modelos que aparecerão na aba “Edital pronto” dos usuários.</p>
+    <div id="adminEditaisStatusV10439" class="status-line">Verificando permissão de administrador...</div>
+  </div>
+  <div id="adminEditaisAreaV10439" class="hidden">
+    <div class="panel" style="margin-top:16px">
+      <h2>📝 Criar / editar edital pronto</h2>
+      <div class="field"><label>NOME DO CONCURSO / EDITAL</label><input id="adminEditalTituloV10439" placeholder="Ex.: PMPE — Soldado 2026"></div>
+      <details class="materia-card" style="margin:12px 0" open>
+        <summary style="cursor:pointer;font-weight:800;padding:4px 0">📋 Importar edital por texto</summary>
+        <p class="panel-sub" style="margin-top:8px">Cole o edital verticalizado. Depois clique em “Transformar em editor visual”.</p>
+        <div class="field"><label>TEXTO DO EDITAL</label><textarea id="adminEditalTextoV10439" rows="10" placeholder="Língua Portuguesa&#10;1. Interpretação de textos&#10;2. Ortografia&#10;&#10;Direito Constitucional&#10;1. Direitos e garantias fundamentais"></textarea></div>
+        <div class="actions"><button class="btn btn-outline" id="adminImportarTextoV10440" type="button">✨ Transformar em editor visual</button></div>
+      </details>
+
+      <div class="materia-card" style="margin:12px 0">
+        <div class="materia-head"><div><h4>🧩 Editor visual do edital</h4><div class="materia-count" id="adminResumoVisualV10440">0 matéria(s) • 0 assunto(s)</div></div></div>
+        <div class="actions" style="margin:12px 0">
+          <input id="adminNovaMateriaV10440" placeholder="Nome da nova matéria" style="min-width:260px;flex:1">
+          <button class="btn btn-outline" id="adminAdicionarMateriaV10440" type="button">＋ Adicionar matéria</button>
+        </div>
+        <div id="adminEditorVisualV10440"></div>
+      </div>
+
+      <label style="display:flex;gap:8px;align-items:center;margin:10px 0 14px"><input id="adminEditalPublicadoV10439" type="checkbox" checked style="width:auto"> Publicado para os usuários</label>
+      <div class="actions"><button class="btn btn-primary" id="adminSalvarEditalV10439" type="button">💾 Salvar edital pronto</button><button class="btn btn-outline" id="adminNovoEditalV10439" type="button">＋ Novo / limpar formulário</button></div>
+      <div id="adminFormStatusV10439" class="status-line"></div>
+    </div>
+    <div class="panel" style="margin-top:16px"><h2>📚 Editais cadastrados</h2><p class="panel-sub">Somente editais publicados aparecem para usuários comuns.</p><div id="adminListaEditaisV10439"></div></div>
+  </div>
+</section>
+
 </main>
 </section>
 <script>
@@ -4060,6 +3694,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{v100Bind();v100
 setTimeout(()=>{v100Bind();v100CarregarSalvo();},2100);
 
 </script>
+
 <script id="v10413-historico-ui">
 (function(){
   document.addEventListener('click', function(e){
@@ -4075,6 +3710,7 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();},2100);
   },700);
 })();
 </script>
+
 <script id="v10414-estatisticas-ui">
 (function(){
   function renderEstatisticasV10414(){
@@ -4115,6 +3751,7 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();},2100);
   window.renderEstatisticasV10414=renderEstatisticasV10414;
 })();
 </script>
+
 <script id="v10416-progresso-ui">
 (function(){
  function esc(x){return String(x??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));}
@@ -4463,6 +4100,8 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();},2100);
   setTimeout(bind27,2200);
 })();
 </script>
+
+
 <script id="v10439-admin-editais-prontos">
 // V10.4.39 — Catálogo global de editais prontos + administração por perfil.
 let v10439IsAdmin=false, v10439EditandoId=null, v10439Catalogo={};
@@ -4595,6 +4234,8 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
   setTimeout(bind,1200);
 })();
 </script>
+
+
 <!-- V10.4.51 — TROFÉU DE CONCLUSÃO: camada isolada; não altera persistência/checklist -->
 <style id="v10444-trofeu-css">
 #v10444Victory{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;pointer-events:none;background:rgba(4,9,18,.22)}
@@ -4604,7 +4245,7 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 .v10444-box strong{display:block;font-size:1.35rem;color:#fff}.v10444-box span{display:block;margin-top:7px;color:#b9c8dd;font-size:.92rem}
 @keyframes v10444Pop{0%{transform:scale(.72);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}@keyframes v10444Fade{from{opacity:0}to{opacity:1}}
 </style>
-<div aria-live="polite" id="v10444Victory" role="status"><div class="v10444-box"><div class="v10444-trophy">🏆</div><strong id="v10444VictoryTitle">Parabéns!</strong><span id="v10444VictoryText">Mais uma etapa concluída!</span></div></div>
+<div id="v10444Victory" role="status" aria-live="polite"><div class="v10444-box"><div class="v10444-trophy">🏆</div><strong id="v10444VictoryTitle">Parabéns!</strong><span id="v10444VictoryText">Mais uma etapa concluída!</span></div></div>
 <script id="v10444-trofeu-js">
 (function(){
  let timer=null;
@@ -4630,6 +4271,8 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
 })();
 </script>
+
+
 <!-- =========================================================
  V10.4.51 — MOBILE: CARDS DO CICLO MAIS LARGOS E LEGÍVEIS
  Somente layout responsivo. Não altera Firebase, checklist,
@@ -4685,6 +4328,7 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
   }
 }
 </style>
+
 <script id="v10445-mobile-card-fix">
 (function () {
   function ajustarCardsMobile() {
@@ -4726,6 +4370,8 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
   });
 })();
 </script>
+
+
 <!-- =========================================================
  V10.4.51 — CORREÇÃO REAL DOS CARDS "PLANEJAMENTO DE HOJE"
  No celular: checkbox + número + prioridade na 1ª linha;
@@ -4800,6 +4446,8 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
   }
 }
 </style>
+
+
 <!-- =========================================================
  V10.4.51 — PENDENTES DE HOJE: CORREÇÃO INDEPENDENTE DO VIEWPORT
  A coluna do Ciclo pode ser estreita mesmo em tela > 768px.
@@ -4864,6 +4512,8 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
   line-height:1.35 !important;
 }
 </style>
+
+
 <!-- V10.4.58 — D1 usa a data LOCAL da conclusão (corrige virada UTC/Brasil) -->
 <script id="v10452-d1-core-fix">
 (function(){
@@ -4883,6 +4533,7 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
  setTimeout(function(){reconstruir().catch(function(){})},2500);setTimeout(function(){reconstruir().catch(function(){})},4500);
 })();
 </script>
+
 <!-- V10.4.58 — migração automática de revisões antigas +1 dia -->
 <script id="v10456-migracao-revisoes-antigas">
 (function(){
@@ -4971,6 +4622,8 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
   window.migrarRevisoesAntigasV10456=migrarV10456;
 })();
 </script>
+
+
 <!-- V10.4.58 — normalização visual/persistente das revisões antigas do ADM -->
 <script id="v10457-adm-review-date-normalizer">
 (function(){
@@ -5083,849 +4736,6 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
     setTimeout(executar57,4000);
   });
   window.v10457NormalizarRevisoesADM=executar57;
-})();
-</script>
-<script id="v10481-visual-nav-fix">
-(function(){
- function abrirVisualV10481(){
-   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-   var pg=document.getElementById('page-visual');
-   if(pg)pg.classList.add('active');
-   document.querySelectorAll('nav.nav button[data-page], nav button[data-page]').forEach(function(b){
-     b.classList.toggle('active',b.getAttribute('data-page')==='visual');
-   });
-   try{
-     if(window.auth&&auth.currentUser)localStorage.setItem('nova_v3_ultima_pagina_'+auth.currentUser.uid,'visual');
-   }catch(_){}
- }
- document.addEventListener('click',function(e){
-   var b=e.target.closest('button[data-page="visual"]');
-   if(!b)return;
-   e.preventDefault();
-   e.stopImmediatePropagation();
-   abrirVisualV10481();
- },true);
-})();
-</script>
-
-
-\n<style id="v10486-theme-coherence-css">\n/* V10.4.86 — cada tema controla todas as superfícies; remove azul fixo herdado. */\n:root{--theme-bg:var(--bg);--theme-panel:var(--panel);--theme-card:var(--card);--theme-text:var(--text);--theme-muted:var(--muted);--theme-border:var(--border);--theme-accent:var(--accent);--theme-primary:var(--primary);--theme-soft:var(--card);}\nhtml,body,#app,main,.main,.content,.page{background:var(--theme-bg)!important;color:var(--theme-text)!important}\n.panel,.card,.stat-card,.dash-stat,.metric-card,.dashboard-hero,.dash-hero,.estudo-real-box,.v93-timer,\n#page-ciclo .ciclo-grid>.panel,#page-ciclo .ciclo-proxima,#page-ciclo .ciclo-posicao,\n[class*="panel"],[class*="card"]{background:var(--theme-panel)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}\ninput,select,textarea,.ciclo-resumo>div,.dashboard-grid .card,.dash-grid .card{background:var(--theme-card)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}\ninput::placeholder,textarea::placeholder{color:var(--theme-muted)!important}\np,small,.small,.panel-sub,.status-line,.muted,[class*="sub"]{color:var(--theme-muted)!important}\nh1,h2,h3,h4,strong,b,label,.rotulo{color:var(--theme-text)!important}\n.btn-outline{background:transparent!important;border-color:var(--theme-border)!important;color:var(--theme-text)!important}\n.btn-primary,button.primary{background:var(--theme-primary)!important;color:var(--theme-on-primary,#fff)!important;border-color:var(--theme-primary)!important}\n/* blocos que nas versões antigas ficaram azul-marinho fixo */\n#page-dashboard [class*="proxima"],#page-dashboard [class*="agendado"],\n#page-ciclo [class*="proxima"],#page-ciclo [class*="posicao"],\n.v93-timer,[class*="total-agendado"],[class*="proxima-revisao"]{background:var(--theme-card)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}\n/* evita faixas brancas criadas por regras antigas na tela Ciclo */\n#page-ciclo p,#page-ciclo small,#page-ciclo .panel-sub,#page-ciclo [class*="desc"],#page-ciclo [class*="info"]{background:transparent!important}\n</style>\n<script id="v10485-themes-js">
-(function(){
-const T={
-noturno:{bg:"#07111f",panel:"#112238",card:"#0b1728",text:"#f8fbff",muted:"#91acd0",border:"#29445f",accent:"#25b8ff",primary:"#6d4aff",sidebar:"#6d28d9"},
-violeta:{bg:"#10091f",panel:"#24163f",card:"#190f2e",text:"#fffaff",muted:"#cbb7f6",border:"#513777",accent:"#b794ff",primary:"#7c3aed",sidebar:"#4c1d95"},
-oceano:{bg:"#06191b",panel:"#0b3438",card:"#0d292c",text:"#f1ffff",muted:"#9ad8d9",border:"#286064",accent:"#49d5d2",primary:"#159a9c",sidebar:"#083f43"},
-esmeralda:{bg:"#061712",panel:"#0d3a2d",card:"#0a2b22",text:"#f2fff9",muted:"#a5d7c4",border:"#28614e",accent:"#37d89d",primary:"#118b64",sidebar:"#074b38"},
-"por-do-sol":{bg:"#17120f",panel:"#302219",card:"#211813",text:"#fff8f2",muted:"#d8bba8",border:"#5a4031",accent:"#ff9854",primary:"#ea580c",sidebar:"#7c2d12"},
-cafe:{bg:"#18110c",panel:"#34251a",card:"#261b13",text:"#fff8ec",muted:"#d9c3a4",border:"#674b33",accent:"#e0b46f",primary:"#a66f38",sidebar:"#4b2f1d"},
-claro:{bg:"#f3f5f7",panel:"#ffffff",card:"#f7f8fa",text:"#172033",muted:"#667085",border:"#d7dde5",accent:"#64748b",primary:"#334155",sidebar:"#202938"},
-rosa:{bg:"#fff1f7",panel:"#ffffff",card:"#fff7fb",text:"#3f1729",muted:"#8f5b73",border:"#f2bfd4",accent:"#f472b6",primary:"#ec4899",sidebar:"#b42362"}
-};
-const F={system:'system-ui,-apple-system,"Segoe UI",sans-serif',arial:'Arial,sans-serif',verdana:'Verdana,sans-serif',trebuchet:'"Trebuchet MS",sans-serif',georgia:'Georgia,serif'};
-const aliases={
- bg:["--bg","--background","--body-bg","--page-bg","--cor-fundo"],
- panel:["--panel","--panel-bg","--surface","--surface-1","--bg2","--cor-painel"],
- card:["--card","--card-bg","--surface-2","--bg3","--cor-card"],
- text:["--text","--text-color","--fg","--foreground","--cor-texto"],
- muted:["--muted","--text-muted","--subtext","--cor-texto-secundario"],
- border:["--border","--border-color","--line","--cor-borda"],
- accent:["--accent","--cyan","--secondary","--cor-destaque"],
- primary:["--primary","--brand","--purple","--cor-primaria"],
- sidebar:["--sidebar","--sidebar-bg","--nav-bg","--cor-menu"]
-};
-function uid(){try{return auth&&auth.currentUser?auth.currentUser.uid:"local"}catch(e){return"local"}}
-function store(){return"nova_theme_v85_"+uid()}
-try{if(localStorage){for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf("nova_theme_v85_")===0){try{const v=JSON.parse(localStorage.getItem(k));if(v&&v.theme==="oled"){v.theme="rosa";localStorage.setItem(k,JSON.stringify(v));}}catch(_){}}}}}catch(_){}
-function setVars(t){
- const r=document.documentElement.style;
- Object.entries(aliases).forEach(([k,names])=>names.forEach(n=>r.setProperty(n,t[k],"important")));
- // Directly target the real major containers too, avoiding the old problem where only some cards changed.
- r.setProperty("--theme-bg",t.bg,"important");r.setProperty("--theme-panel",t.panel,"important");r.setProperty("--theme-card",t.card,"important");r.setProperty("--theme-text",t.text,"important");r.setProperty("--theme-muted",t.muted,"important");r.setProperty("--theme-border",t.border,"important");r.setProperty("--theme-accent",t.accent,"important");r.setProperty("--theme-primary",t.primary,"important");r.setProperty("--theme-soft",t.card,"important");
- document.body.style.setProperty("background",t.bg,"important");document.body.style.setProperty("color",t.text,"important");
- document.querySelectorAll("main,.main,.content,.page,#app").forEach(e=>{e.style.setProperty("background",t.bg,"important");e.style.setProperty("color",t.text,"important")});
- document.querySelectorAll("aside,.sidebar").forEach(e=>e.style.setProperty("background",t.sidebar,"important"));
- document.querySelectorAll(".panel,.hero,[class*='panel']").forEach(e=>{e.style.setProperty("background",t.panel,"important");e.style.setProperty("color",t.text,"important");e.style.setProperty("border-color",t.border,"important")});
- document.querySelectorAll(".stat,.card,[class*='card'],input,select,textarea,.v93-timer,.ciclo-proxima,.ciclo-posicao").forEach(e=>{e.style.setProperty("background",t.card,"important");e.style.setProperty("color",t.text,"important");e.style.setProperty("border-color",t.border,"important")});
- document.querySelectorAll("#page-ciclo p,#page-ciclo small,#page-ciclo .panel-sub,#page-ciclo [class*='desc'],#page-ciclo [class*='info']").forEach(e=>e.style.setProperty("background","transparent","important"));
-}
-function apply(name,quiet){
- const t=T[name]||T.noturno; document.documentElement.dataset.themeV85=name; setVars(t);localStorage.setItem(store(),name);
- document.querySelectorAll(".theme-choice-v85").forEach(b=>b.classList.toggle("active",b.dataset.theme===name));
- if(!quiet){const s=document.getElementById("v85Status");if(s)s.textContent="✓ Tema aplicado no sistema inteiro";}
-}
-function font(){
- const f=document.getElementById("v85Font"),z=document.getElementById("v85Size");if(!f||!z)return;
- document.documentElement.style.setProperty("--app-font",F[f.value]||F.system,"important");
- document.body.style.setProperty("font-family",F[f.value]||F.system,"important");
- document.body.style.setProperty("font-size",z.value+"px","important");
- localStorage.setItem(store()+"_font",JSON.stringify({f:f.value,z:z.value}));
-}
-function init(){
- apply(localStorage.getItem(store())||"noturno",true);
- try{let x=JSON.parse(localStorage.getItem(store()+"_font")||"{}");v85Font.value=x.f||"system";v85Size.value=x.z||"16"}catch(e){}
- font();
- document.querySelectorAll(".theme-choice-v85").forEach(b=>b.onclick=()=>apply(b.dataset.theme));
- v85Font.onchange=font;v85Size.onchange=font;
- // Reapply after SPA redraws.
- new MutationObserver(()=>{clearTimeout(window.__v85t);window.__v85t=setTimeout(()=>apply(localStorage.getItem(store())||"noturno",true),40)}).observe(document.body,{childList:true,subtree:true});
-}
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
-})();
-</script>
-\n<style id="v10487-light-theme-fix">
-/* V10.4.87 — acabamento exclusivo do tema Claro. Não altera lógica. */
-html[data-theme-v85="claro"] body,
-html[data-theme-v85="claro"] #app,
-html[data-theme-v85="claro"] main,
-html[data-theme-v85="claro"] .main,
-html[data-theme-v85="claro"] .content,
-html[data-theme-v85="claro"] .page{background:#f4f7fb!important;color:#10233f!important}
-html[data-theme-v85="claro"] .panel,
-html[data-theme-v85="claro"] .card,
-html[data-theme-v85="claro"] [class*="panel"],
-html[data-theme-v85="claro"] [class*="card"]{background:#fff!important;color:#10233f!important;border-color:#cfdae8!important}
-html[data-theme-v85="claro"] input,
-html[data-theme-v85="claro"] select,
-html[data-theme-v85="claro"] textarea{background:#f8fbff!important;color:#10233f!important;border-color:#c8d5e5!important}
-html[data-theme-v85="claro"] input::placeholder,
-html[data-theme-v85="claro"] textarea::placeholder{color:#718096!important}
-html[data-theme-v85="claro"] h1,
-html[data-theme-v85="claro"] h2,
-html[data-theme-v85="claro"] h3,
-html[data-theme-v85="claro"] h4,
-html[data-theme-v85="claro"] strong,
-html[data-theme-v85="claro"] b,
-html[data-theme-v85="claro"] label{color:#10233f!important}
-html[data-theme-v85="claro"] p,
-html[data-theme-v85="claro"] small,
-html[data-theme-v85="claro"] .panel-sub,
-html[data-theme-v85="claro"] .status-line,
-html[data-theme-v85="claro"] .muted{color:#5f7696!important}
-/* substitui os antigos blocos azul-marinho por superfícies claras */
-html[data-theme-v85="claro"] #page-dashboard [class*="proxima"],
-html[data-theme-v85="claro"] #page-dashboard [class*="agendado"],
-html[data-theme-v85="claro"] #page-ciclo [class*="proxima"],
-html[data-theme-v85="claro"] #page-ciclo [class*="posicao"],
-html[data-theme-v85="claro"] .v93-timer,
-html[data-theme-v85="claro"] [class*="total-agendado"],
-html[data-theme-v85="claro"] [class*="proxima-revisao"]{background:#eef4fb!important;color:#10233f!important;border-color:#c7d7e9!important}
-/* progresso por matéria: remove cinza pesado */
-html[data-theme-v85="claro"] #page-progresso .card,
-html[data-theme-v85="claro"] #page-progresso [class*="materia"],
-html[data-theme-v85="claro"] [class*="progresso"] [class*="card"],
-html[data-theme-v85="claro"] [class*="progress"] [class*="card"]{background:#f8fbff!important;color:#10233f!important;border-color:#cbd9e8!important}
-html[data-theme-v85="claro"] progress,
-html[data-theme-v85="claro"] [class*="progress-bar"],
-html[data-theme-v85="claro"] [class*="barra"]{background-color:#e1e9f2!important}
-/* semana do ciclo: cabeçalhos claros e cartões legíveis */
-html[data-theme-v85="claro"] #cicloSemanaV104 [data-dia],
-html[data-theme-v85="claro"] #cicloSemanaV104 [class*="dia"]{background:#fff!important;color:#10233f!important;border-color:#cbd9e8!important}
-html[data-theme-v85="claro"] #cicloSemanaV104 [class*="header"],
-html[data-theme-v85="claro"] #cicloSemanaV104 [class*="cabec"]{background:#eaf2fb!important;color:#10233f!important}
-/* botões neutros não ficam azul-marinho; primário continua destacado */
-html[data-theme-v85="claro"] button:not(.btn-primary):not(.primary):not(.danger),
-html[data-theme-v85="claro"] .btn-outline{background:#fff!important;color:#173a64!important;border-color:#b9cbe0!important}
-html[data-theme-v85="claro"] .btn-primary,
-html[data-theme-v85="claro"] button.primary{background:#2f73c9!important;color:#fff!important;border-color:#2f73c9!important}
-html[data-theme-v85="claro"] .danger,
-html[data-theme-v85="claro"] .btn-danger{color:#fff!important}
-</style>
-
-<style id="v10489-theme-pages-polish">
-/* V10.4.89 — paletas aplicadas em TODAS as páginas; OLED removido e Rosa adicionado. */
-html[data-theme-v85="rosa"]{--theme-bg:#fff1f7!important;--theme-panel:#fff!important;--theme-card:#fff7fb!important;--theme-text:#3f1729!important;--theme-muted:#8f5b73!important;--theme-border:#f2bfd4!important;--theme-accent:#f472b6!important;--theme-primary:#ec4899!important;--theme-soft:#fde2ee!important;--sidebar:#b42362!important;--sidebar-text:#fff!important}
-/* Qualquer bloco legado azul-escuro passa a seguir a paleta atual em todas as telas. */
-.page .panel,.page [class*="card"],.page [class*="box"],.page [class*="stat"],.page [class*="metric"],.page [class*="summary"],.page [class*="resumo"],.page [class*="proxima"],.page [class*="agendado"],.page [class*="posicao"],.page [class*="empty"],.page [class*="vazio"],.v93-timer{border-color:var(--theme-border)!important}
-.page [class*="proxima"],.page [class*="agendado"],.page [class*="posicao"],.page [class*="empty"],.page [class*="vazio"],.v93-timer{background:var(--theme-card)!important;color:var(--theme-text)!important}
-.page input,.page select,.page textarea{background:var(--theme-card)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}
-.page input::placeholder,.page textarea::placeholder{color:var(--theme-muted)!important;opacity:1}
-.page button:not(.danger):not(.btn-danger){border-color:var(--theme-border)!important}
-/* Claro: texto realmente escuro e superfícies claras em todas as páginas. */
-html[data-theme-v85="claro"]{--theme-bg:#f3f5f7!important;--theme-panel:#fff!important;--theme-card:#f7f8fa!important;--theme-text:#111827!important;--theme-muted:#526077!important;--theme-border:#d5deea!important;--theme-accent:#2878d8!important;--theme-primary:#2878d8!important;--theme-soft:#edf3fa!important;--sidebar:#edf3fa!important;--sidebar-text:#111827!important}
-html[data-theme-v85="claro"] body,html[data-theme-v85="claro"] .page,html[data-theme-v85="claro"] .panel,html[data-theme-v85="claro"] [class*="card"]{color:#111827!important}
-html[data-theme-v85="claro"] .page [class*="proxima"],html[data-theme-v85="claro"] .page [class*="agendado"],html[data-theme-v85="claro"] .page [class*="posicao"],html[data-theme-v85="claro"] .page [class*="empty"],html[data-theme-v85="claro"] .page [class*="vazio"],html[data-theme-v85="claro"] .v93-timer{background:#f7f8fa!important;color:#111827!important}
-</style>
-<style id="v10488-unified-theme-polish">
-/* V10.4.88 — acabamento visual unificado em TODAS as telas e temas. Sem alterar lógica. */
-html,body,#app,main,.main,.content,.page{background:var(--theme-bg)!important;color:var(--theme-text)!important}
-body{font-family:var(--app-font,Inter,system-ui,-apple-system,"Segoe UI",sans-serif)!important}
-
-/* texto: sempre acompanha o tema */
-h1,h2,h3,h4,h5,h6,strong,b,label,.rotulo,.title,.section-title,.page-title,
-nav button,.nav button,.stat strong,.metric strong{color:var(--theme-text)!important}
-p,small,.small,.panel-sub,.status-line,.muted,.hint,.help,.subtitle,[class*="sub"]{color:var(--theme-muted)!important}
-
-/* superfícies principais */
-.panel,.hero,.card,.stat,.stat-card,.dash-stat,.metric-card,.dashboard-hero,.dash-hero,
-.estudo-real-box,.v93-timer,[class*="panel"],[class*="card"]{
-  background:var(--theme-panel)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important;
-}
-input,select,textarea,.ciclo-resumo>div,.ciclo-proxima,.ciclo-posicao,
-#page-dashboard [class*="proxima"],#page-dashboard [class*="agendado"],
-#page-ciclo [class*="proxima"],#page-ciclo [class*="posicao"],
-[class*="total-agendado"],[class*="proxima-revisao"]{
-  background:var(--theme-card)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important;
-}
-input::placeholder,textarea::placeholder{color:var(--theme-muted)!important;opacity:.78}
-
-/* remove azul-marinho fixo herdado de blocos internos */
-#page-dashboard .panel>div,#page-historico .panel>div,#page-estatisticas .panel>div,
-#page-seguranca .panel>div,#page-edital .panel>div,#page-gerenciarEdital .panel>div,
-#page-progresso .panel>div,#page-ciclo .panel>div{
-  border-color:var(--theme-border)!important;
-}
-
-/* botões */
-.btn-primary,button.primary{background:var(--theme-primary)!important;color:#fff!important;border-color:var(--theme-primary)!important}
-.btn-outline,button:not(.btn-primary):not(.primary):not(.danger):not(.btn-danger){
-  border-color:var(--theme-border)!important;
-}
-.btn-outline{background:var(--theme-card)!important;color:var(--theme-text)!important}
-.danger,.btn-danger{color:#fff!important}
-
-/* sidebar coerente */
-aside,.sidebar{background:var(--sidebar)!important}
-aside .nav button,.sidebar .nav button{color:var(--sidebar-text,var(--theme-text))!important}
-aside .nav button.active,.sidebar .nav button.active{
-  background:var(--theme-primary)!important;color:#fff!important;border-color:var(--theme-primary)!important;
-}
-
-/* barras/progresso e semana */
-progress,[class*="progress-bar"],[class*="barra"]{background-color:var(--theme-soft)!important}
-#cicloSemanaV104 [data-dia],#cicloSemanaV104 [class*="dia"]{
-  background:var(--theme-panel)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important;
-}
-#cicloSemanaV104 [class*="header"],#cicloSemanaV104 [class*="cabec"]{
-  background:var(--theme-card)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important;
-}
-
-/* CLARO — fonte preta/grafite e superfícies realmente claras */
-html[data-theme-v85="claro"]{--theme-bg:#f3f6fa!important;--theme-panel:#ffffff!important;--theme-card:#f7f9fc!important;--theme-text:#111827!important;--theme-muted:#52627a!important;--theme-border:#d5deea!important;--theme-accent:#3b82f6!important;--theme-primary:#2563eb!important;--theme-soft:#e8eef6!important;--sidebar:#edf3fa!important;--sidebar-text:#172033!important}
-html[data-theme-v85="claro"] h1,html[data-theme-v85="claro"] h2,html[data-theme-v85="claro"] h3,html[data-theme-v85="claro"] h4,
-html[data-theme-v85="claro"] strong,html[data-theme-v85="claro"] b,html[data-theme-v85="claro"] label{color:#111827!important}
-html[data-theme-v85="claro"] p,html[data-theme-v85="claro"] small,html[data-theme-v85="claro"] .muted,html[data-theme-v85="claro"] .panel-sub{color:#52627a!important}
-html[data-theme-v85="claro"] #page-dashboard [class*="proxima"],html[data-theme-v85="claro"] #page-dashboard [class*="agendado"],
-html[data-theme-v85="claro"] #page-ciclo [class*="proxima"],html[data-theme-v85="claro"] #page-ciclo [class*="posicao"],
-html[data-theme-v85="claro"] .v93-timer,html[data-theme-v85="claro"] [class*="total-agendado"],html[data-theme-v85="claro"] [class*="proxima-revisao"]{
-  background:#f7f9fc!important;color:#111827!important;border-color:#d5deea!important;
-}
-html[data-theme-v85="claro"] aside,html[data-theme-v85="claro"] .sidebar{background:#edf3fa!important;border-color:#d5deea!important}
-html[data-theme-v85="claro"] aside .brand,html[data-theme-v85="claro"] aside .brand *{color:#111827!important}
-html[data-theme-v85="claro"] aside .nav button:not(.active){background:transparent!important;color:#24344d!important}
-
-/* CAFÉ — substitui qualquer azul interno por chocolate/caramelo */
-html[data-theme-v85="cafe"]{--theme-bg:#17100c!important;--theme-panel:#332317!important;--theme-card:#24180f!important;--theme-text:#fff7ea!important;--theme-muted:#d8bea0!important;--theme-border:#68472d!important;--theme-accent:#e1ad67!important;--theme-primary:#b86427!important;--theme-soft:#4a321f!important;--sidebar:#6f2e12!important;--sidebar-text:#fff7ea!important}
-
-/* OCEANO — sem blocos azul-marinho; tudo em petróleo/ciano */
-html[data-theme-v85="oceano"]{--theme-bg:#04181d!important;--theme-panel:#0a353c!important;--theme-card:#082830!important;--theme-text:#f1feff!important;--theme-muted:#9fd7dc!important;--theme-border:#25606a!important;--theme-accent:#43d3dc!important;--theme-primary:#0797a8!important;--theme-soft:#104650!important;--sidebar:#06333c!important;--sidebar-text:#f1feff!important}
-
-/* ESMERALDA — sem azul fixo */
-html[data-theme-v85="esmeralda"]{--theme-bg:#051711!important;--theme-panel:#0b3a2b!important;--theme-card:#08291f!important;--theme-text:#f2fff8!important;--theme-muted:#a8d9c5!important;--theme-border:#28644e!important;--theme-accent:#38d99d!important;--theme-primary:#0f9a68!important;--theme-soft:#124b38!important;--sidebar:#06442f!important;--sidebar-text:#f2fff8!important}
-
-/* demais temas também ganham superfícies coerentes */
-html[data-theme-v85="noturno"]{--sidebar-text:#f8fbff!important;--theme-soft:#172d45!important}
-html[data-theme-v85="violeta"]{--sidebar-text:#fffaff!important;--theme-soft:#352052!important}
-html[data-theme-v85="por-do-sol"]{--sidebar-text:#fff8f2!important;--theme-soft:#452d20!important}
-html[data-theme-v85="rosa"]{--theme-bg:#fff1f7!important;--theme-panel:#ffffff!important;--theme-card:#fff7fb!important;--theme-text:#3f1729!important;--theme-muted:#8f5b73!important;--theme-border:#f2bfd4!important;--theme-accent:#f472b6!important;--theme-primary:#ec4899!important;--theme-soft:#fde2ee!important;--sidebar:#b42362!important;--sidebar-text:#ffffff!important}
-
-/* Ciclo: descrições nunca viram faixas brancas */
-#page-ciclo p,#page-ciclo small,#page-ciclo .panel-sub,#page-ciclo [class*="desc"],#page-ciclo [class*="info"]{background:transparent!important}
-</style>
-
-
-<style id="v10490-no-legacy-blue">
-/* V10.4.90 — remove azul-marinho herdado de TODAS as páginas sem alterar a lógica. */
-html body .version{
-  background:var(--theme-soft)!important;
-  color:var(--theme-text)!important;
-  border-color:var(--theme-border)!important;
-}
-
-/* caixas antigas que ainda carregavam #0c1728 / #101d31 / azul-marinho */
-html body .page .edital-summary,
-html body .page .placeholder,
-html body .page .empty,
-html body .page .materia-card,
-html body .page .ciclo-item,
-html body .page .qm27-empty,
-html body .page .qh29-empty,
-html body .page .v10440-empty,
-html body .page [class*="empty"],
-html body .page [class*="placeholder"],
-html body .page [class*="vazio"]{
-  background:var(--theme-card)!important;
-  color:var(--theme-text)!important;
-  border-color:var(--theme-border)!important;
-}
-
-/* cabeçalhos e superfícies internas também seguem a família cromática do tema */
-html body .page .materia-head,
-html body .page .qm27-materia>summary,
-html body .page .qh29-materia>summary,
-html body .page .v10440-materia,
-html body .page .v10440-materia-head{
-  background:var(--theme-soft)!important;
-  color:var(--theme-text)!important;
-  border-color:var(--theme-border)!important;
-}
-
-/* Ciclo: sobrescreve regras antigas de alta especificidade que ainda eram azuis */
-html body #page-ciclo .ciclo-config-v10472,
-html body #page-ciclo .ciclo-exec-panel-v10472,
-html body #page-ciclo .ciclo-week-full-v10472{
-  background:var(--theme-panel)!important;
-  color:var(--theme-text)!important;
-  border-color:var(--theme-border)!important;
-}
-html body #page-ciclo .ciclo-config-v10472 .ciclo-resumo>div,
-html body #page-ciclo .ciclo-exec-v10472 .ciclo-proxima,
-html body #page-ciclo .ciclo-exec-v10472 .ciclo-posicao,
-html body #page-ciclo .ciclo-card-v104{
-  background:var(--theme-card)!important;
-  color:var(--theme-text)!important;
-  border-color:var(--theme-border)!important;
-}
-
-/* barras, avisos e resumos: nada de azul fixo fora do tema Noturno */
-html body .page .hero,
-html body .page [class*="summary"],
-html body .page [class*="resumo"],
-html body .page [class*="status-box"],
-html body .page [class*="info-box"]{
-  background:var(--theme-soft)!important;
-  color:var(--theme-text)!important;
-  border-color:var(--theme-border)!important;
-}
-
-/* texto secundário dentro das caixas usa a cor secundária do próprio tema */
-html body .page .placeholder,
-html body .page .empty,
-html body .page [class*="empty"],
-html body .page [class*="placeholder"]{
-  color:var(--theme-muted)!important;
-}
-
-/* CLARO: nenhuma faixa azul; cinzas claros + texto escuro */
-html[data-theme-v85="claro"] body .version,
-html[data-theme-v85="claro"] body .page .edital-summary,
-html[data-theme-v85="claro"] body .page .placeholder,
-html[data-theme-v85="claro"] body .page .empty,
-html[data-theme-v85="claro"] body .page [class*="empty"],
-html[data-theme-v85="claro"] body .page [class*="placeholder"],
-html[data-theme-v85="claro"] body .page [class*="summary"],
-html[data-theme-v85="claro"] body .page [class*="resumo"]{
-  background:#f7f9fc!important;
-  color:#111827!important;
-  border-color:#d5deea!important;
-}
-
-/* ROSA: caixas antes azuis passam a rosa muito claro */
-html[data-theme-v85="rosa"] body .version,
-html[data-theme-v85="rosa"] body .page .edital-summary,
-html[data-theme-v85="rosa"] body .page .placeholder,
-html[data-theme-v85="rosa"] body .page .empty,
-html[data-theme-v85="rosa"] body .page [class*="empty"],
-html[data-theme-v85="rosa"] body .page [class*="placeholder"],
-html[data-theme-v85="rosa"] body .page [class*="summary"],
-html[data-theme-v85="rosa"] body .page [class*="resumo"]{
-  background:#fde2ee!important;
-  color:#3f1729!important;
-  border-color:#f2bfd4!important;
-}
-
-/* Esmeralda/Oceano/Café/Pôr do Sol/Violeta usam apenas superfícies do próprio tema. */
-</style>
-
-
-<style id="v10491-complete-theme-color-audit">
-/* ============================================================
-   V10.4.91 — AUDITORIA COMPLETA
-   Remove superfícies azul-marinho herdadas em todas as páginas.
-   Mantém a lógica e deixa cada tema controlar painel/cartão/vazio.
-   ============================================================ */
-
-/* Tokens semânticos finais */
-html body{
-  --surface-page:var(--theme-bg);
-  --surface-panel:var(--theme-panel);
-  --surface-card:var(--theme-card);
-  --surface-soft:var(--theme-soft);
-  --surface-border:var(--theme-border);
-  --surface-text:var(--theme-text);
-  --surface-muted:var(--theme-muted);
-}
-
-/* Elementos estruturais e caixas genéricas */
-html body .page :is(
-  .panel,.card,.box,.section,.widget,.module,.tile,
-  [class*="panel"],[class*="card"],[class*="box"],
-  [class*="container"],[class*="section"]
-){
-  border-color:var(--surface-border);
-}
-
-/* VAZIOS / PLACEHOLDERS / RESUMOS / STATUS — eram os maiores focos de azul */
-html body .page :is(
-  .empty,.placeholder,.edital-summary,.hero,
-  [class*="empty"],[class*="placeholder"],[class*="vazio"],
-  [class*="summary"],[class*="resumo"],[class*="status"],
-  [class*="notice"],[class*="message"]
-){
-  background:var(--surface-soft)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-
-/* Cards internos */
-html body .page :is(
-  .materia-card,.materia-head,.ciclo-item,.ciclo-card-v104,
-  .qm27-materia,.qh29-materia,.v10440-materia,.v10440-materia-head
-){
-  background:var(--surface-card)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-
-/* Ciclo: regras antigas tinham azul com seletores muito específicos */
-html body #page-ciclo :is(
-  .ciclo-config-v10472,.ciclo-exec-panel-v10472,.ciclo-week-full-v10472,
-  .ciclo-proxima,.ciclo-posicao,.ciclo-resumo>div
-){
-  background:var(--surface-panel)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-html body #page-ciclo .ciclo-card-v104{
-  background:var(--surface-card)!important;
-}
-
-/* Histórico / segurança / timer / edital: áreas de informação não ficam azuis fixas */
-html body :is(
-  #page-historico,#page-seguranca,#page-timer,#page-edital,
-  #page-dashboard,#page-progresso,#page-desempenho,#page-planejamento,
-  #page-diagnostico,#page-edital-pronto,#page-admin
-) :is(
-  [class*="empty"],[class*="placeholder"],[class*="summary"],
-  [class*="resumo"],[class*="status"],[class*="info"]
-){
-  background:var(--surface-soft)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-
-/* selo superior acompanha o tema */
-html body .version{
-  background:var(--surface-soft)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-
-/* ---------------- CLARO ---------------- */
-html[data-theme-v85="claro"] body{
-  --surface-page:#f3f6fa;
-  --surface-panel:#ffffff;
-  --surface-card:#f8fafc;
-  --surface-soft:#f1f5f9;
-  --surface-border:#cbd5e1;
-  --surface-text:#111827;
-  --surface-muted:#64748b;
-}
-html[data-theme-v85="claro"] body .page :is(
-  .empty,.placeholder,.edital-summary,.hero,
-  [class*="empty"],[class*="placeholder"],[class*="vazio"],
-  [class*="summary"],[class*="resumo"],[class*="status"],
-  [class*="notice"],[class*="message"]
-){
-  background:#f1f5f9!important;
-  color:#111827!important;
-  border-color:#cbd5e1!important;
-}
-
-/* ---------------- ROSA ---------------- */
-html[data-theme-v85="rosa"] body{
-  --surface-page:#fff1f7;
-  --surface-panel:#fffafd;
-  --surface-card:#fff5f9;
-  --surface-soft:#fde2ee;
-  --surface-border:#f2b8cf;
-  --surface-text:#45172b;
-  --surface-muted:#a24b70;
-}
-html[data-theme-v85="rosa"] body .page :is(
-  .empty,.placeholder,.edital-summary,.hero,
-  [class*="empty"],[class*="placeholder"],[class*="vazio"],
-  [class*="summary"],[class*="resumo"],[class*="status"],
-  [class*="notice"],[class*="message"]
-){
-  background:#fde2ee!important;
-  color:#45172b!important;
-  border-color:#f2b8cf!important;
-}
-
-/* ---------------- ESMERALDA ---------------- */
-html[data-theme-v85="esmeralda"] body{
-  --surface-soft:#0d3b30;
-  --surface-card:#0b342b;
-  --surface-border:#256b58;
-  --surface-text:#f3fff9;
-  --surface-muted:#9ee8d1;
-}
-
-/* ---------------- CAFÉ ---------------- */
-html[data-theme-v85="cafe"] body{
-  --surface-soft:#2a1d16;
-  --surface-card:#201711;
-  --surface-border:#6b4b34;
-  --surface-text:#fff7ed;
-  --surface-muted:#e9c39f;
-}
-
-/* ---------------- OCEANO ---------------- */
-html[data-theme-v85="oceano"] body{
-  --surface-soft:#0b3940;
-  --surface-card:#082f35;
-  --surface-border:#286874;
-  --surface-text:#f0ffff;
-  --surface-muted:#8ed9df;
-}
-
-/* ---------------- VIOLETA ---------------- */
-html[data-theme-v85="violeta"] body{
-  --surface-soft:#30214a;
-  --surface-card:#281c3d;
-  --surface-border:#70539b;
-  --surface-text:#fbf7ff;
-  --surface-muted:#d4c0ee;
-}
-
-/* ---------------- PÔR DO SOL ---------------- */
-html[data-theme-v85="pordosol"] body,
-html[data-theme-v85="por-do-sol"] body{
-  --surface-soft:#48251d;
-  --surface-card:#3a1f19;
-  --surface-border:#8a4b38;
-  --surface-text:#fff7ed;
-  --surface-muted:#f4b99d;
-}
-
-/* Inputs e selects nunca recebem fundo azul-marinho por herança */
-html body .page :is(input,select,textarea){
-  background:var(--surface-card)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-html body .page :is(input,textarea)::placeholder{
-  color:var(--surface-muted)!important;
-  opacity:1;
-}
-
-/* Exceção: botões continuam usando a cor de ação do tema, não são "superfícies azuis". */
-</style>
-
-
-<style id="v10492-deep-theme-fix">
-/* V10.4.92
-   Corrige especificamente as áreas ainda fora do tema:
-   Progresso por matéria, Planejamento por data, Histórico de sessões
-   e cabeçalhos/linhas derivados dessas estruturas.
-*/
-
-/* ---------- PROGRESSO POR MATÉRIA ---------- */
-html body #page-progresso .prog-prior-card-v10416,
-html body #page-progresso .prog-mat-v10416{
-  background:var(--surface-card)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-html body #page-progresso .prog-mat-head-v10416,
-html body #page-progresso .prog-mat-head-v10416 b,
-html body #page-progresso .prog-mat-head-v10416 span,
-html body #page-progresso .prog-mat-meta-v10416,
-html body #page-progresso .prog-mat-meta-v10416 span{
-  color:var(--surface-text)!important;
-}
-html body #page-progresso .prog-track-v10416{
-  background:var(--surface-soft)!important;
-}
-
-/* ---------- PLANEJAMENTO / AGENDA POR DATA ---------- */
-html body #page-planejamento .v102-day{
-  background:var(--surface-panel)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-html body #page-planejamento .v102-day-head{
-  background:var(--surface-soft)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-html body #page-planejamento .v102-day-head span{
-  color:var(--surface-text)!important;
-}
-html body #page-planejamento .v102-topic{
-  background:var(--surface-card)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-html body #page-planejamento .v102-topic :is(.v102-num,.v102-main,strong,b,small){
-  color:var(--surface-text)!important;
-}
-html body #page-planejamento .v102-actions button{
-  background:var(--surface-soft)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-html body #page-planejamento .v102-actions input{
-  background:var(--surface-card)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-
-/* ---------- HISTÓRICO DE SESSÕES DO TIMER ---------- */
-html body #timerHistoricoV10422 > div{
-  background:var(--surface-panel)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-html body #timerHistoricoV10422 > div > button{
-  background:var(--surface-soft)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-html body #timerHistoricoV10422 .v102-topic{
-  background:var(--surface-card)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-html body #timerHistoricoV10422 .v102-topic :is(.v102-num,.v102-main,strong,small){
-  color:var(--surface-text)!important;
-}
-
-/* ---------- SEMANA DO CICLO ---------- */
-html body #page-ciclo .ciclo-dia-v104{
-  background:var(--surface-panel)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-html body #page-ciclo .ciclo-dia-head-v104{
-  background:var(--surface-soft)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-html body #page-ciclo .ciclo-dia-head-v104 :is(b,small){
-  color:var(--surface-text)!important;
-}
-html body #page-ciclo .ciclo-card-v104{
-  background:var(--surface-card)!important;
-  color:var(--surface-text)!important;
-  border-color:var(--surface-border)!important;
-}
-html body #page-ciclo .ciclo-card-v104 :is(strong,small,b,span){
-  color:var(--surface-text)!important;
-}
-
-/* ---------- CLARO ---------- */
-html[data-theme-v85="claro"] body{
-  --surface-page:#f4f6f8;
-  --surface-panel:#ffffff;
-  --surface-card:#f8fafc;
-  --surface-soft:#eef2f6;
-  --surface-border:#cbd5e1;
-  --surface-text:#111827;
-  --surface-muted:#5f6b7a;
-}
-
-/* ---------- ROSA ---------- */
-html[data-theme-v85="rosa"] body{
-  --surface-page:#fff2f7;
-  --surface-panel:#fffafd;
-  --surface-card:#fff3f8;
-  --surface-soft:#fbdce9;
-  --surface-border:#efb1ca;
-  --surface-text:#4a142a;
-  --surface-muted:#9e496b;
-}
-
-/* ---------- ESMERALDA ---------- */
-html[data-theme-v85="esmeralda"] body{
-  --surface-panel:#0d4638;
-  --surface-card:#0a392f;
-  --surface-soft:#123f35;
-  --surface-border:#28705e;
-  --surface-text:#f4fff9;
-  --surface-muted:#a4e5d2;
-}
-
-/* ---------- CAFÉ ---------- */
-html[data-theme-v85="cafe"] body{
-  --surface-panel:#3a291d;
-  --surface-card:#2b2018;
-  --surface-soft:#493323;
-  --surface-border:#74543b;
-  --surface-text:#fff7ed;
-  --surface-muted:#e7c4a5;
-}
-
-/* ---------- OCEANO ---------- */
-html[data-theme-v85="oceano"] body{
-  --surface-panel:#0b4148;
-  --surface-card:#09343a;
-  --surface-soft:#10515a;
-  --surface-border:#2b7380;
-  --surface-text:#f1ffff;
-  --surface-muted:#9be2e7;
-}
-
-/* ---------- VIOLETA ---------- */
-html[data-theme-v85="violeta"] body{
-  --surface-panel:#38274f;
-  --surface-card:#2c203e;
-  --surface-soft:#493462;
-  --surface-border:#7657a0;
-  --surface-text:#fcf8ff;
-  --surface-muted:#d8c7ef;
-}
-
-/* ---------- PÔR DO SOL ---------- */
-html[data-theme-v85="pordosol"] body,
-html[data-theme-v85="por-do-sol"] body{
-  --surface-panel:#4a2b21;
-  --surface-card:#382119;
-  --surface-soft:#5a3426;
-  --surface-border:#8b5741;
-  --surface-text:#fff8f1;
-  --surface-muted:#f1bea5;
-}
-
-/* Texto secundário das áreas corrigidas acompanha o tema sem perder contraste */
-html body :is(
-  #page-progresso .prog-mat-v10416,
-  #page-planejamento .v102-day,
-  #timerHistoricoV10422,
-  #page-ciclo .ciclo-dia-v104
-) small{
-  color:var(--surface-muted)!important;
-}
-</style>
-
-
-<style id="v10493-interface-cleanup">
-/* ============================================================
-   V10.4.93 — LIMPEZA DA INTERFACE
-   CICLO: mantém visível somente "Semana do ciclo".
-   DASHBOARD: remove ferramentas duplicadas que já têm abas próprias.
-   IMPORTANTE: elementos são ocultados visualmente; motores/IDs/JS
-   permanecem intactos para não quebrar planejamento/revisões/dados.
-   ============================================================ */
-
-/* ---------- CICLO ----------
-   Esconde os blocos superiores de configuração, ordem e execução.
-   Mantém a semana do ciclo e sua navegação.
-*/
-#page-ciclo .ciclo-top-v10472,
-#page-ciclo .ciclo-config-v10472,
-#page-ciclo .ciclo-order-v10472,
-#page-ciclo .ciclo-exec-panel-v10472 {
-  display:none !important;
-}
-
-/* Caso a versão tenha wrappers diferentes, identifica os blocos
-   anteriores à semana pelo conjunto de classes já usado no sistema. */
-#page-ciclo :is(
-  [class*="ciclo-config"],
-  [class*="ciclo-order"],
-  [class*="ciclo-ordem"],
-  [class*="ciclo-exec"]
-){
-  display:none !important;
-}
-
-/* Garante que Semana do Ciclo continue visível */
-#page-ciclo :is(
-  .ciclo-week-full-v10472,
-  [class*="ciclo-week"],
-  [class*="semana-ciclo"]
-){
-  display:block !important;
-}
-
-/* ---------- DASHBOARD ----------
-   Cronômetro, Questões e Estatísticas completas já existem
-   respectivamente em Timer, Questões e Meu Desempenho.
-*/
-#page-dashboard :is(
-  #dashTimerV104,
-  #dashQuestoesV104,
-  #dashEstatisticasV104,
-  [class*="dashboard-timer"],
-  [class*="dash-timer"],
-  [class*="dashboard-quest"],
-  [class*="dash-quest"],
-  [class*="dashboard-estat"],
-  [class*="dash-estat"]
-){
-  display:none !important;
-}
-</style>
-
-<script id="v10493-semantic-cleanup">
-(function(){
-  function norm(s){
-    return (s||"").replace(/\s+/g," ").trim().toLowerCase();
-  }
-
-  function hideByHeading(page, terms){
-    if(!page) return;
-    const nodes = page.querySelectorAll("h1,h2,h3,h4,strong,b");
-    nodes.forEach(function(n){
-      const t = norm(n.textContent);
-      const match = terms.some(function(term){ return t.includes(term); });
-      if(!match) return;
-
-      /* sobe até o bloco visual mais provável, sem tocar na página inteira */
-      let box = n;
-      for(let i=0;i<5 && box && box.parentElement!==page;i++){
-        if(box.matches && box.matches(".panel,.card,.box,.section,[class*='panel'],[class*='card'],[class*='section']")){
-          break;
-        }
-        box = box.parentElement;
-      }
-      if(box && box!==page) box.style.setProperty("display","none","important");
-    });
-  }
-
-  function applyV10493(){
-    const ciclo = document.getElementById("page-ciclo");
-    const dash  = document.getElementById("page-dashboard");
-
-    /* Ciclo: só removemos as seções pedidas; Semana do ciclo não entra aqui */
-    hideByHeading(ciclo, [
-      "configurar ciclo",
-      "ordem do ciclo",
-      "ordem dos assuntos no ciclo",
-      "executar ciclo"
-    ]);
-
-    /* Dashboard: remove apenas as três ferramentas duplicadas */
-    hideByHeading(dash, [
-      "cronômetro de estudo",
-      "timer de estudo",
-      "questões",
-      "estatísticas de estudo"
-    ]);
-  }
-
-  document.addEventListener("DOMContentLoaded", applyV10493);
-  window.addEventListener("load", applyV10493);
-
-  /* reaplica após renderizações dinâmicas */
-  const obs = new MutationObserver(function(){
-    clearTimeout(window.__v10493t);
-    window.__v10493t = setTimeout(applyV10493, 40);
-  });
-  document.addEventListener("DOMContentLoaded", function(){
-    obs.observe(document.body,{childList:true,subtree:true});
-  });
 })();
 </script>
 

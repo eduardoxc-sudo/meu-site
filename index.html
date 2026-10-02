@@ -501,7 +501,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.57 • D1 DATA LOCAL CORRIGIDA</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.58 • D1 DATA LOCAL CORRIGIDA</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -2903,14 +2903,20 @@ function v104RevisoesDatas(){
  // terminado de sincronizar o motor. D1 = dia seguinte à data real da conclusão.
  (Array.isArray(agendaV102?.itens)?agendaV102.itens:[]).forEach(a=>{
    if(!a?.concluidoEm||!a.disciplina||!a.nome)return;
-   const m=String(a.concluidoEm).match(/^(\d{4}-\d{2}-\d{2})/);
-   const base=m?m[1]:v104DateISO(new Date(a.concluidoEm));
+   // V10.4.58: concluidoEm é salvo em UTC (ISO). À noite no Brasil,
+   // 01/10 22h vira 02/10 em UTC. Portanto NÃO podemos pegar os 10
+   // primeiros caracteres do timestamp. Convertemos o instante para
+   // a data LOCAL do navegador.
+   const txtConclusao=String(a.concluidoEm||'');
+   const base=/^\d{4}-\d{2}-\d{2}$/.test(txtConclusao)
+     ? txtConclusao
+     : v104DateISO(new Date(a.concluidoEm));
    if(!base)return;
    const o={disciplina:a.disciplina,topico:a.nome};
    [1,7,15,30].forEach(n=>{
      const tipo='D'+n, chave=revChave(a.disciplina,a.nome);
      const gravada=revisoesMotor?.origens?.[chave]?.revisoes?.[tipo];
-     // V10.4.57: revisão PENDENTE sempre usa a data correta calculada
+     // V10.4.58: revisão PENDENTE sempre usa a data correta calculada
      // pela data LOCAL real da conclusão. Isso neutraliza registros antigos
      // do Firebase que ficaram +1 dia. Revisão já concluída preserva seu registro.
      const correta=revDataISO(base,n);
@@ -4404,7 +4410,7 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 </style>
 
 
-<!-- V10.4.57 — D1 usa a data LOCAL da conclusão (corrige virada UTC/Brasil) -->
+<!-- V10.4.58 — D1 usa a data LOCAL da conclusão (corrige virada UTC/Brasil) -->
 <script id="v10452-d1-core-fix">
 (function(){
  function baseISO(v){if(!v)return '';var txt=String(v);if(/^\d{4}-\d{2}-\d{2}$/.test(txt))return txt;var d=new Date(v);return isNaN(d)?'':v104DateISO(d)}
@@ -4424,7 +4430,7 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 })();
 </script>
 
-<!-- V10.4.57 — migração automática de revisões antigas +1 dia -->
+<!-- V10.4.58 — migração automática de revisões antigas +1 dia -->
 <script id="v10456-migracao-revisoes-antigas">
 (function(){
   function dataLocalConclusaoV10456(a){
@@ -4514,7 +4520,7 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 </script>
 
 
-<!-- V10.4.57 — normalização visual/persistente das revisões antigas do ADM -->
+<!-- V10.4.58 — normalização visual/persistente das revisões antigas do ADM -->
 <script id="v10457-adm-review-date-normalizer">
 (function(){
   function isoLocal57(v){
@@ -4575,7 +4581,7 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
         if(window.REVISOES_MOTOR_REF) await REVISOES_MOTOR_REF.set(revisoesMotor);
       }
       return mudou;
-    }catch(e){ console.error('V10.4.57 normalização:',e); return false; }
+    }catch(e){ console.error('V10.4.58 normalização:',e); return false; }
   }
 
   function corrigirCards57(){

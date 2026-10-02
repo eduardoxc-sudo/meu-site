@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.18 • TIMER PLANEJAMENTO CORRIGIDO</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.19 • GERENCIAR EDITAL AUTH CORRIGIDO</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -7029,7 +7029,15 @@ html body :is(
   questoes:'usuarios/{uid}/questoesV94',
   estatisticas:'usuarios/{uid}/estatisticasV93'
  };
- const user=()=>((typeof auth!=='undefined'&&auth)?auth.currentUser:null);
+ const user=()=>{
+   try{
+     if(typeof auth!=='undefined' && auth && auth.currentUser) return auth.currentUser;
+     // V10.5.19 — fallback seguro: abrirApp() já confirmou o usuário,
+     // mas o Firebase Auth pode levar alguns ms para refletir currentUser ao trocar de aba.
+     if(typeof usuarioAtualV3!=='undefined' && usuarioAtualV3) return usuarioAtualV3;
+   }catch(_){}
+   return null;
+ };
  const root=uid=>db.ref('usuarios/'+uid+'/editaisSeparadosV10509');
  const path=(tpl,uid)=>tpl.replace('{uid}',uid);
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -7115,6 +7123,8 @@ html body :is(
    if(e.target.closest('[data-page="gerenciarEdital"]'))setTimeout(()=>render().catch(console.error),80);
  });
  window.v10509GerenciarRender=render;
+ // V10.5.19 — se o Auth terminar de restaurar depois da tela, redesenha a lista sem exigir F5.
+ try{auth.onAuthStateChanged(u=>{if(u)setTimeout(()=>render().catch(console.error),0);});}catch(_){}
  window.addEventListener('load',()=>setTimeout(()=>render().catch(console.error),700));
 })();
 </script>\n

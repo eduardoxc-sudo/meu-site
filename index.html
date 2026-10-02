@@ -454,7 +454,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .v10440-empty{padding:18px;text-align:center;color:#9bb4d2;border:1px dashed #2b3a51;border-radius:12px}
 </style>
 <style id="v10466-visual-only">
-/* V10.4.83 — SOMENTE VISUAL. Nenhuma regra de negócio alterada. */
+/* V10.4.84 — SOMENTE VISUAL. Nenhuma regra de negócio alterada. */
 :root{--bg:#091321;--surface:#101d31;--card:#111f34;--border:#2b405d;--text:#f8fafc;--muted:#9db0ca;--primary:#31b9ff;--accent:#7048ff;--success:#20c77a;--danger:#ef3340}
 body{background:linear-gradient(180deg,#08111e 0%,#0a1524 100%)}
 #app{grid-template-columns:220px minmax(0,1fr)}
@@ -479,7 +479,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 @media(max-width:800px){#app{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid rgba(255,255,255,.15)}.nav{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:18px 12px}.hero{padding:22px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 <style id="v10472-ciclo-layout-limpo">
-/* V10.4.83 — Ciclo reorganizado sem alterar IDs, eventos ou JavaScript. */
+/* V10.4.84 — Ciclo reorganizado sem alterar IDs, eventos ou JavaScript. */
 
 /* 1) TOPO: Configurar + Ordem */
 #page-ciclo .ciclo-grid{
@@ -596,7 +596,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 }
 </style>
 <style id="v10473-ciclo-acabamento-compacto">
-/* V10.4.83 — acabamento/proporção. Somente CSS. */
+/* V10.4.84 — acabamento/proporção. Somente CSS. */
 
 /* Executar ciclo: bem mais baixo */
 #page-ciclo .ciclo-exec-panel-v10472{
@@ -693,7 +693,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 }
 </style>
 <style id="v10474-ciclo-mais-compacto">
-/* V10.4.83 — redução visual adicional. Somente CSS. */
+/* V10.4.84 — redução visual adicional. Somente CSS. */
 
 /* Área principal da semana bem mais estreita no desktop */
 #page-ciclo #cicloSemanaGridV104{
@@ -764,7 +764,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 }
 </style>
 <style id="v10475-semana-4x4">
-/* V10.4.83 — Semana do ciclo: 4 dias em cima + próximos dias embaixo.
+/* V10.4.84 — Semana do ciclo: 4 dias em cima + próximos dias embaixo.
    Somente visual/CSS. Nenhuma lógica foi alterada. */
 
 #page-ciclo .ciclo-week-full-v10472{
@@ -855,7 +855,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 }
 </style>
 <style id="v10478-oculta-duplicados-sem-remover-dom">
-/* V10.4.83
+/* V10.4.84
    Os blocos continuam EXISTINDO no DOM para o JavaScript.
    Apenas não aparecem visualmente na tela Ciclo. */
 #page-ciclo .ciclo-today-full-v10472,
@@ -865,45 +865,52 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 </style>
 
 
-<style id="v10483-visual-css">
+<style id="v10484-themes-css">
 :root{
- --v82-bg:#07111f;--v82-sidebar:#6d28d9;--v82-panel:#112238;--v82-card:#081526;
- --v82-text:#ffffff;--v82-muted:#9fc5ff;--v82-border:#29445f;--v82-primary:#6d4aff;
- --v82-accent:#25b8ff;--v82-font:system-ui,-apple-system,"Segoe UI",sans-serif;--v82-size:16px;
+ --t-bg:#07111f;--t-sidebar:#6d28d9;--t-panel:#112238;--t-card:#081526;
+ --t-text:#ffffff;--t-muted:#9fc5ff;--t-border:#29445f;--t-primary:#6d4aff;--t-accent:#25b8ff;
+ --t-font:system-ui,-apple-system,"Segoe UI",sans-serif;--t-size:16px;
 }
-html body.v82-theme{background:var(--v82-bg)!important;color:var(--v82-text)!important;font-family:var(--v82-font)!important;font-size:var(--v82-size)!important}
-body.v82-theme #app,body.v82-theme main,body.v82-theme .main,body.v82-theme .content,body.v82-theme .page,
-body.v82-theme .top{background-color:var(--v82-bg)!important;color:var(--v82-text)!important}
-body.v82-theme aside,body.v82-theme .aside,body.v82-theme .sidebar,
-body.v82-theme aside nav,body.v82-theme .aside-bottom{background:var(--v82-sidebar)!important}
-body.v82-theme .panel,body.v82-theme .hero,body.v82-theme .stat,
-body.v82-theme [class*="panel"],body.v82-theme [class*="section"],
-body.v82-theme [class*="box"]{background-color:var(--v82-panel)!important;color:var(--v82-text)!important;border-color:var(--v82-border)!important}
-body.v82-theme .card,body.v82-theme [class*="card"],body.v82-theme [class*="item"],
-body.v82-theme [class*="topic"],body.v82-theme [class*="review"],
-body.v82-theme [class*="day"],body.v82-theme [class*="semana"],
-body.v82-theme [class*="week"]{background-color:var(--v82-card)!important;color:var(--v82-text)!important;border-color:var(--v82-border)!important}
-body.v82-theme h1,body.v82-theme h2,body.v82-theme h3,body.v82-theme h4,
-body.v82-theme strong,body.v82-theme label,body.v82-theme td,body.v82-theme th{color:var(--v82-text)!important}
-body.v82-theme p,body.v82-theme small,body.v82-theme .panel-sub,
-body.v82-theme [class*="muted"],body.v82-theme [class*="meta"],body.v82-theme [class*="sub"]{color:var(--v82-muted)!important}
-body.v82-theme input:not([type=color]),body.v82-theme select,body.v82-theme textarea{
- background:var(--v82-card)!important;color:var(--v82-text)!important;border-color:var(--v82-border)!important}
-body.v82-theme button:not(.nav-item):not([data-page]){
- border-color:var(--v82-border)!important
-}
-body.v82-theme .btn-primary,body.v82-theme button.primary{background:var(--v82-primary)!important;color:#fff!important}
-body.v82-theme input[type=checkbox]{accent-color:var(--v82-accent)!important}
-body.v82-theme a,body.v82-theme .accent,body.v82-theme .link{color:var(--v82-accent)!important}
-body.v82-theme hr,body.v82-theme table,body.v82-theme td,body.v82-theme th{border-color:var(--v82-border)!important}
+body.theme-v84{background:var(--t-bg)!important;color:var(--t-text)!important;font-family:var(--t-font)!important;font-size:var(--t-size)!important}
+body.theme-v84 #app,body.theme-v84 main,body.theme-v84 .main,body.theme-v84 .content,body.theme-v84 .page{background:var(--t-bg)!important;color:var(--t-text)!important}
+body.theme-v84 aside,body.theme-v84 .sidebar{background:var(--t-sidebar)!important}
+body.theme-v84 .panel,body.theme-v84 .hero,body.theme-v84 .stat,
+body.theme-v84 [class*="panel"],body.theme-v84 [class*="section"],body.theme-v84 [class*="box"]{
+ background:var(--t-panel)!important;color:var(--t-text)!important;border-color:var(--t-border)!important}
+body.theme-v84 .card,body.theme-v84 [class*="card"],body.theme-v84 [class*="item"],
+body.theme-v84 [class*="topic"],body.theme-v84 [class*="review"],body.theme-v84 [class*="day"],
+body.theme-v84 [class*="week"],body.theme-v84 [class*="semana"]{
+ background:var(--t-card)!important;color:var(--t-text)!important;border-color:var(--t-border)!important}
+body.theme-v84 h1,body.theme-v84 h2,body.theme-v84 h3,body.theme-v84 h4,
+body.theme-v84 strong,body.theme-v84 label,body.theme-v84 td,body.theme-v84 th{color:var(--t-text)!important}
+body.theme-v84 p,body.theme-v84 small,body.theme-v84 .muted,body.theme-v84 .meta,
+body.theme-v84 .sub,body.theme-v84 .panel-sub{color:var(--t-muted)!important}
+body.theme-v84 input:not([type=checkbox]),body.theme-v84 select,body.theme-v84 textarea{
+ background:var(--t-card)!important;color:var(--t-text)!important;border-color:var(--t-border)!important}
+body.theme-v84 .btn-primary,body.theme-v84 button.primary{background:var(--t-primary)!important;color:#fff!important}
+body.theme-v84 input[type=checkbox]{accent-color:var(--t-accent)!important}
+body.theme-v84 a,body.theme-v84 .accent,body.theme-v84 .link{color:var(--t-accent)!important}
+body.theme-v84 hr,body.theme-v84 table,body.theme-v84 td,body.theme-v84 th{border-color:var(--t-border)!important}
 
-.visual-grid-v10482{display:grid;grid-template-columns:1.35fr .65fr;gap:16px;margin-top:16px}
-.visual-grid-v10482 .panel{padding:18px}
-.visual-colors-v10482{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.visual-colors-v10482 label,.visual-grid-v10482>div>label{display:grid;gap:7px;margin:8px 0;font-weight:700}
-.visual-colors-v10482 input[type=color]{width:100%;height:50px;padding:4px;border-radius:9px;cursor:pointer}
-.v82-preview{padding:18px;border:1px solid var(--v82-border);border-radius:12px}
-@media(max-width:850px){.visual-grid-v10482,.visual-colors-v10482{grid-template-columns:1fr}}
+.theme-lead{margin-bottom:18px}
+.theme-gallery-v84{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.theme-choice-v84{
+ text-align:left;padding:13px;border:2px solid var(--t-border);border-radius:14px;background:var(--t-panel);
+ color:var(--t-text);cursor:pointer;transition:.15s transform,.15s border-color;min-height:168px
+}
+.theme-choice-v84:hover{transform:translateY(-2px);border-color:var(--t-accent)}
+.theme-choice-v84.active{border-color:var(--t-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--t-accent) 20%,transparent)}
+.theme-choice-v84 strong,.theme-choice-v84 small,.theme-choice-v84 .theme-action-v84{display:block}
+.theme-choice-v84 strong{font-size:17px;margin-top:10px}
+.theme-choice-v84 small{margin-top:4px}
+.theme-action-v84{margin-top:10px;color:var(--t-accent);font-weight:800;font-size:13px}
+.theme-preview-v84{height:62px;border-radius:10px;display:block;border:1px solid rgba(255,255,255,.15);
+ background:linear-gradient(135deg,var(--p1) 0 35%,var(--p2) 35% 62%,var(--p3) 62% 82%,var(--p4) 82%)}
+.theme-font-v84{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;padding:16px;border:1px solid var(--t-border);border-radius:14px;background:var(--t-panel)}
+.theme-font-v84 label{display:block;margin-bottom:7px;font-weight:800}.theme-font-v84 select{width:100%;padding:11px;border-radius:9px}
+.theme-status-v84{min-height:24px;margin-top:10px;color:var(--t-accent);font-weight:700}
+@media(max-width:1050px){.theme-gallery-v84{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){.theme-gallery-v84,.theme-font-v84{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -938,7 +945,7 @@ body.v82-theme hr,body.v82-theme table,body.v82-theme td,body.v82-theme th{borde
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.83 • REDESIGN VISUAL</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.84 • REDESIGN VISUAL</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -1111,57 +1118,63 @@ body.v82-theme hr,body.v82-theme table,body.v82-theme td,body.v82-theme th{borde
 </div></div>
 </section>
 <section class="page" id="page-visual">
-<h1>Visual</h1>
-<p class="panel-sub">Personalize as cores de toda a interface. Essas opções alteram somente a aparência.</p>
-<div class="visual-grid-v10482">
-<div class="panel">
-<h2>🎨 Cores da interface</h2>
-<div class="visual-colors-v10482">
-<label>Fundo geral<input id="v82Bg" type="color" value="#07111f"/></label>
-<label>Menu lateral<input id="v82Sidebar" type="color" value="#6d28d9"/></label>
-<label>Painéis<input id="v82Panel" type="color" value="#112238"/></label>
-<label>Cards internos<input id="v82Card" type="color" value="#081526"/></label>
-<label>Texto principal<input id="v82Text" type="color" value="#ffffff"/></label>
-<label>Texto secundário<input id="v82Muted" type="color" value="#9fc5ff"/></label>
-<label>Bordas<input id="v82Border" type="color" value="#29445f"/></label>
-<label>Cor principal<input id="v82Primary" type="color" value="#6d4aff"/></label>
-<label>Destaque<input id="v82Accent" type="color" value="#25b8ff"/></label>
+<h1>🎨 Visual</h1>
+<p class="theme-lead">Escolha um tema pronto. A mudança altera somente a aparência do sistema.</p>
+<div class="theme-gallery-v84">
+<button class="theme-choice-v84" data-theme="noturno" type="button">
+<span class="theme-preview-v84" style="--p1:#07111f;--p2:#112238;--p3:#081526;--p4:#25b8ff"></span>
+<strong>🌙 Noturno</strong><small>Azul-marinho + ciano</small><span class="theme-action-v84">Aplicar tema</span>
+</button>
+<button class="theme-choice-v84" data-theme="violeta" type="button">
+<span class="theme-preview-v84" style="--p1:#10091f;--p2:#20123b;--p3:#160d2b;--p4:#9b6cff"></span>
+<strong>💜 Violeta</strong><small>Roxo profundo + violeta</small><span class="theme-action-v84">Aplicar tema</span>
+</button>
+<button class="theme-choice-v84" data-theme="oceano" type="button">
+<span class="theme-preview-v84" style="--p1:#061a20;--p2:#0c2d35;--p3:#08232a;--p4:#37c8e8"></span>
+<strong>🌊 Oceano</strong><small>Azul-petróleo + azul-claro</small><span class="theme-action-v84">Aplicar tema</span>
+</button>
+<button class="theme-choice-v84" data-theme="esmeralda" type="button">
+<span class="theme-preview-v84" style="--p1:#071a16;--p2:#10342b;--p3:#0a261f;--p4:#2ed69b"></span>
+<strong>🌲 Esmeralda</strong><small>Verde escuro + esmeralda</small><span class="theme-action-v84">Aplicar tema</span>
+</button>
+<button class="theme-choice-v84" data-theme="por-do-sol" type="button">
+<span class="theme-preview-v84" style="--p1:#17120f;--p2:#2a201a;--p3:#211813;--p4:#ff9854"></span>
+<strong>🌅 Pôr do Sol</strong><small>Grafite quente + laranja</small><span class="theme-action-v84">Aplicar tema</span>
+</button>
+<button class="theme-choice-v84" data-theme="cafe" type="button">
+<span class="theme-preview-v84" style="--p1:#17120e;--p2:#2c2118;--p3:#211810;--p4:#d7aa68"></span>
+<strong>☕ Café</strong><small>Marrom + bege dourado</small><span class="theme-action-v84">Aplicar tema</span>
+</button>
+<button class="theme-choice-v84" data-theme="claro" type="button">
+<span class="theme-preview-v84" style="--p1:#eef4fa;--p2:#ffffff;--p3:#f7faff;--p4:#2878d8"></span>
+<strong>❄️ Claro</strong><small>Branco + cinza + azul</small><span class="theme-action-v84">Aplicar tema</span>
+</button>
+<button class="theme-choice-v84" data-theme="oled" type="button">
+<span class="theme-preview-v84" style="--p1:#000000;--p2:#0a0a0d;--p3:#050507;--p4:#7c5cff"></span>
+<strong>🖤 OLED</strong><small>Preto verdadeiro + violeta</small><span class="theme-action-v84">Aplicar tema</span>
+</button>
 </div>
-</div>
-<div class="panel">
-<h2>🔤 Fonte</h2>
-<label>Fonte
-      <select id="v82Font">
+<div class="theme-font-v84">
+<div>
+<label for="v84Font">Fonte</label>
+<select id="v84Font">
 <option value="system">Padrão do sistema</option>
 <option value="arial">Arial</option>
 <option value="verdana">Verdana</option>
 <option value="trebuchet">Trebuchet MS</option>
 <option value="georgia">Georgia</option>
 </select>
-</label>
-<label>Tamanho
-      <select id="v82Size">
+</div>
+<div>
+<label for="v84Size">Tamanho da fonte</label>
+<select id="v84Size">
 <option value="14">Pequena</option>
-<option selected="" value="16">Padrão</option>
+<option value="16">Padrão</option>
 <option value="18">Grande</option>
 </select>
-</label>
-</div>
-<div class="panel">
-<h2>👁 Prévia</h2>
-<div class="v82-preview">
-<strong>Exemplo de card</strong>
-<p>Texto secundário e bordas acompanham suas escolhas.</p>
-<button class="btn btn-primary" type="button">Botão de exemplo</button>
 </div>
 </div>
-<div class="panel">
-<h2>↩ Restaurar</h2>
-<p class="panel-sub">Volta somente o visual para as cores originais.</p>
-<button class="btn btn-outline" id="v82Reset" type="button">Restaurar visual padrão</button>
-<div class="status-line" id="v82Status"></div>
-</div>
-</div>
+<div class="theme-status-v84" id="v84Status"></div>
 </section><section class="page" id="page-timer">
 <h1>Timer</h1>
 <div class="panel">
@@ -5170,57 +5183,47 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
  },true);
 })();
 </script>
-<script id="v10482-visual-js">
+
+
+
+<script id="v10484-themes-js">
 (function(){
- const D={bg:'#07111f',sidebar:'#6d28d9',panel:'#112238',card:'#081526',text:'#ffffff',
- muted:'#9fc5ff',border:'#29445f',primary:'#6d4aff',accent:'#25b8ff',font:'system',size:'16'};
- const F={system:'system-ui,-apple-system,"Segoe UI",sans-serif',arial:'Arial,sans-serif',
- verdana:'Verdana,sans-serif',trebuchet:'"Trebuchet MS",sans-serif',georgia:'Georgia,serif'};
- const ids={bg:'v82Bg',sidebar:'v82Sidebar',panel:'v82Panel',card:'v82Card',text:'v82Text',
- muted:'v82Muted',border:'v82Border',primary:'v82Primary',accent:'v82Accent',font:'v82Font',size:'v82Size'};
- function k(){return 'nova_v3_visual_completo_'+(window.auth&&auth.currentUser?auth.currentUser.uid:'local')}
- function read(){try{return Object.assign({},D,JSON.parse(localStorage.getItem(k())||'{}'))}catch(e){return {...D}}}
- function apply(v){
-   const r=document.documentElement.style;
-   ['bg','sidebar','panel','card','text','muted','border','primary','accent'].forEach(x=>r.setProperty('--v82-'+x,v[x]));
-   r.setProperty('--v82-font',F[v.font]||F.system);r.setProperty('--v82-size',(v.size||16)+'px');
-   document.body.classList.add('v82-theme');
+ const themes={
+  noturno:{bg:'#07111f',sidebar:'#6d28d9',panel:'#112238',card:'#081526',text:'#ffffff',muted:'#9fc5ff',border:'#29445f',primary:'#6d4aff',accent:'#25b8ff'},
+  violeta:{bg:'#10091f',sidebar:'#4c1d95',panel:'#20123b',card:'#160d2b',text:'#fffaff',muted:'#cbb7f6',border:'#513777',primary:'#7c3aed',accent:'#b794ff'},
+  oceano:{bg:'#061a20',sidebar:'#075985',panel:'#0c2d35',card:'#08232a',text:'#f3fdff',muted:'#9edbe7',border:'#24505a',primary:'#0891b2',accent:'#37c8e8'},
+  esmeralda:{bg:'#071a16',sidebar:'#065f46',panel:'#10342b',card:'#0a261f',text:'#f2fff9',muted:'#a7d9c7',border:'#28594a',primary:'#059669',accent:'#2ed69b'},
+  'por-do-sol':{bg:'#17120f',sidebar:'#7c2d12',panel:'#2a201a',card:'#211813',text:'#fff8f2',muted:'#d8bba8',border:'#5a4031',primary:'#ea580c',accent:'#ff9854'},
+  cafe:{bg:'#17120e',sidebar:'#5b3a22',panel:'#2c2118',card:'#211810',text:'#fffaf2',muted:'#d7c3a8',border:'#594633',primary:'#9a6a3a',accent:'#d7aa68'},
+  claro:{bg:'#eef4fa',sidebar:'#2459a6',panel:'#ffffff',card:'#f7faff',text:'#10243e',muted:'#607894',border:'#c7d5e5',primary:'#2878d8',accent:'#168bd2'},
+  oled:{bg:'#000000',sidebar:'#15101f',panel:'#0a0a0d',card:'#050507',text:'#ffffff',muted:'#a9a5b3',border:'#292532',primary:'#6548e8',accent:'#8e73ff'}
+ };
+ const fonts={system:'system-ui,-apple-system,"Segoe UI",sans-serif',arial:'Arial,sans-serif',verdana:'Verdana,sans-serif',trebuchet:'"Trebuchet MS",sans-serif',georgia:'Georgia,serif'};
+ function key(){return 'nova_v3_theme_v84_'+(window.auth&&auth.currentUser?auth.currentUser.uid:'local')}
+ function fkey(){return key()+'_font'}
+ function apply(name){
+  const t=themes[name]||themes.noturno,r=document.documentElement.style;
+  Object.keys(t).forEach(k=>r.setProperty('--t-'+k,t[k]));
+  document.body.classList.add('theme-v84');
+  document.querySelectorAll('.theme-choice-v84').forEach(b=>b.classList.toggle('active',b.dataset.theme===name));
+  localStorage.setItem(key(),name);
+  const s=document.getElementById('v84Status');if(s)s.textContent='✓ Tema aplicado: '+document.querySelector('.theme-choice-v84[data-theme="'+name+'"] strong').textContent;
  }
- function fill(v){Object.keys(ids).forEach(x=>{const e=document.getElementById(ids[x]);if(e)e.value=v[x]})}
- function save(){
-   const v={};Object.keys(ids).forEach(x=>{const e=document.getElementById(ids[x]);v[x]=e?e.value:D[x]});
-   localStorage.setItem(k(),JSON.stringify(v));apply(v);
-   const s=document.getElementById('v82Status');if(s)s.textContent='Visual salvo automaticamente.';
+ function applyFont(){
+  const f=document.getElementById('v84Font'),z=document.getElementById('v84Size'); if(!f||!z)return;
+  document.documentElement.style.setProperty('--t-font',fonts[f.value]||fonts.system);
+  document.documentElement.style.setProperty('--t-size',z.value+'px');
+  localStorage.setItem(fkey(),JSON.stringify({font:f.value,size:z.value}));
  }
  function init(){
-   const v=read();fill(v);apply(v);
-   Object.values(ids).forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',save);e.addEventListener('change',save)}});
-   const b=document.getElementById('v82Reset');if(b)b.onclick=function(){localStorage.setItem(k(),JSON.stringify(D));fill(D);apply(D);document.getElementById('v82Status').textContent='Visual padrão restaurado.'};
+  let saved=localStorage.getItem(key())||'noturno'; apply(saved);
+  try{const x=JSON.parse(localStorage.getItem(fkey())||'{}');document.getElementById('v84Font').value=x.font||'system';document.getElementById('v84Size').value=x.size||'16'}catch(e){}
+  applyFont();
+  document.querySelectorAll('.theme-choice-v84').forEach(b=>b.addEventListener('click',()=>apply(b.dataset.theme)));
+  ['v84Font','v84Size'].forEach(id=>document.getElementById(id)?.addEventListener('change',applyFont));
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
-
-<script id="v10483-paint-fix">
-(function(){
- const oldApply=window.__v82Apply;
- function paint(){
-   if(!document.body.classList.contains('v82-theme'))return;
-   const cs=getComputedStyle(document.documentElement);
-   const v=n=>cs.getPropertyValue(n).trim();
-   const panel=v('--v82-panel'),card=v('--v82-card'),border=v('--v82-border');
-   const text=v('--v82-text'),muted=v('--v82-muted'),side=v('--v82-sidebar'),bg=v('--v82-bg');
-   document.querySelectorAll('main,.main,.content,.page,.top').forEach(e=>{e.style.setProperty('background-color',bg,'important');e.style.setProperty('color',text,'important')});
-   document.querySelectorAll('aside,.aside,.sidebar').forEach(e=>e.style.setProperty('background',side,'important'));
-   document.querySelectorAll('.panel,.hero,.stat').forEach(e=>{e.style.setProperty('background-color',panel,'important');e.style.setProperty('border-color',border,'important');e.style.setProperty('color',text,'important')});
-   document.querySelectorAll('.card,[class*="card"]').forEach(e=>{e.style.setProperty('background-color',card,'important');e.style.setProperty('border-color',border,'important');e.style.setProperty('color',text,'important')});
- }
- document.addEventListener('input',e=>{if(e.target.closest('#page-visual'))requestAnimationFrame(paint)});
- document.addEventListener('change',e=>{if(e.target.closest('#page-visual'))requestAnimationFrame(paint)});
- document.addEventListener('click',e=>{if(e.target.closest('[data-page]'))setTimeout(paint,0)});
- window.addEventListener('load',()=>setTimeout(paint,0));
- new MutationObserver(()=>{clearTimeout(window.__v83t);window.__v83t=setTimeout(paint,20)}).observe(document.body,{subtree:true,childList:true});
-})();
-</script>
 </body>
-</html><!-- teste deploy -->
+</html>

@@ -1541,6 +1541,21 @@ async function abrirApp(user){
  // Agora aguardamos a agenda do UID aqui, dentro do fluxo oficial do login.
  await v101CarregarPlan();
 
+ // CORREÇÃO CIRÚRGICA — HORAS APÓS LOGIN
+ // Os timers antigos eram inicializados por setTimeout e podiam executar antes
+ // de o Firebase Auth restaurar o usuário. Nesse caso, o Dashboard ficava em
+ // 00h00min até uma troca de edital forçar nova leitura. Aqui a mesma carga é
+ // executada somente depois de Auth + Planejamento/agenda estarem prontos.
+ try{
+   await v93Carregar();
+   await v10423Carregar();
+   v10422AtualizarTimer();
+   await v10520ReconciliarHorasEditalAtivo();
+   v10423DetectarMudancaEdital();
+ }catch(e){
+   console.warn('Correção horas após login: mantendo dados já carregados.',e);
+ }
+
  const ultima=localStorage.getItem('nova_v3_ultima_pagina_'+user.uid)||'dashboard';
  if(!abrirPaginaV3(ultima,false))abrirPaginaV3('dashboard',false);
 }

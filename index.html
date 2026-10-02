@@ -2710,7 +2710,8 @@ async function v10422CarregarHistorico(){
 async function v10434ExcluirSessao(id){
  const r=v10422SessoesRef(); if(!r||!id)return;
  try{
-   const s=await r.child(id).once('value'), x=s.val();
+   const s=await r.child(id).once('value'), xCloud=s.val();
+   const x=xCloud || v10506LocalLer().find(z=>String(z.id)===String(id));
    if(!x)return;
    const nome=x.assuntoNome||'Assunto';
    const materia=x.disciplina||'Sem matéria';
@@ -2718,7 +2719,7 @@ async function v10434ExcluirSessao(id){
    const ok=confirm('Excluir esta sessão do histórico?\n\n'+materia+' — '+nome+'\nTempo registrado: '+tempo+
      '\n\nSerá apagado somente este registro do Histórico de sessões.\nAs horas do edital atual NÃO serão alteradas.');
    if(!ok)return;
-   await r.child(id).remove();
+   if(xCloud)await r.child(id).remove();
    v10506LocalExcluir(id);
    await v10422CarregarHistorico();
  }catch(e){
@@ -2747,23 +2748,40 @@ async function v10422AdicionarManual(){
  if(!a){if(st)st.textContent='⚠ Selecione o assunto estudado.';return;}
  if(segundos<=0){if(st)st.textContent='⚠ Informe um tempo maior que zero.';return;}
  try{
+   // V10.5.07: cria o registro LOCAL PRIMEIRO. Assim ele aparece no histórico
+   // imediatamente, sem depender do retorno do Firebase.
+   const localId='manual_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
+   const localReg={
+     id:localId,tipo:'manual',segundos,
+     assuntoId:a.id,assuntoNome:a.nome||'',disciplina:a.disciplina||'',numero:a.numero||null,
+     criadoEm:Date.now(),pendenteNuvem:true
+   };
+   v10506LocalSalvar(localReg);
+   await v10422CarregarHistorico();
+
    timerV93.totalSegundos=Math.max(0,Number(timerV93.totalSegundos)||0)+segundos;
    await v93Salvar({tempoManualAdicionadoEm:firebase.database.ServerValue.TIMESTAMP});
-   const sessaoSalva=await v10422SalvarSessao({
-     tipo:'manual',segundos,
-     assuntoId:a.id,assuntoNome:a.nome||'',disciplina:a.disciplina||'',numero:a.numero||null
-   });
-   // V10.5.06: mantém um espelho local do registro já confirmado na nuvem.
-   v10506LocalSalvar(sessaoSalva);
    v93Render();
-   // Aguarda o Firebase confirmar o novo registro e só então redesenha o histórico.
+
+   // Depois tenta sincronizar o MESMO registro com o Firebase.
+   try{
+     const nuvem=await v10422SalvarSessao({
+       tipo:'manual',segundos,
+       assuntoId:a.id,assuntoNome:a.nome||'',disciplina:a.disciplina||'',numero:a.numero||null
+     });
+     // troca o temporário local pelo ID real da nuvem, evitando duplicata
+     v10506LocalExcluir(localId);
+     v10506LocalSalvar({...nuvem,pendenteNuvem:false});
+   }catch(syncErr){
+     console.error('V10.5.07 sincronização manual:',syncErr);
+     // O registro local é preservado; não desaparece da tela.
+   }
+
    await v10422CarregarHistorico();
-   // Segunda atualização curta evita o caso em que a UI antiga redesenha o painel logo após o clique.
-   setTimeout(()=>v10422CarregarHistorico().catch(console.error),150);
    if(st)st.textContent='✅ '+v93Fmt(segundos)+' adicionados a '+(a.nome||'assunto')+' e registrados no Histórico de sessões.';
  }catch(e){
-   console.error('V10.4.22 manual:',e);
-   if(st)st.textContent='⚠ Não foi possível salvar o tempo manual.';
+   console.error('V10.5.07 manual:',e);
+   if(st)st.textContent='⚠ Não foi possível adicionar o tempo manual.';
  }
 }
 function v10422AtualizarTimer(){

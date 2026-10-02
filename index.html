@@ -454,7 +454,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .v10440-empty{padding:18px;text-align:center;color:#9bb4d2;border:1px dashed #2b3a51;border-radius:12px}
 </style>
 <style id="v10466-visual-only">
-/* V10.4.82 — SOMENTE VISUAL. Nenhuma regra de negócio alterada. */
+/* V10.4.83 — SOMENTE VISUAL. Nenhuma regra de negócio alterada. */
 :root{--bg:#091321;--surface:#101d31;--card:#111f34;--border:#2b405d;--text:#f8fafc;--muted:#9db0ca;--primary:#31b9ff;--accent:#7048ff;--success:#20c77a;--danger:#ef3340}
 body{background:linear-gradient(180deg,#08111e 0%,#0a1524 100%)}
 #app{grid-template-columns:220px minmax(0,1fr)}
@@ -479,7 +479,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 @media(max-width:800px){#app{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid rgba(255,255,255,.15)}.nav{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:18px 12px}.hero{padding:22px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 <style id="v10472-ciclo-layout-limpo">
-/* V10.4.82 — Ciclo reorganizado sem alterar IDs, eventos ou JavaScript. */
+/* V10.4.83 — Ciclo reorganizado sem alterar IDs, eventos ou JavaScript. */
 
 /* 1) TOPO: Configurar + Ordem */
 #page-ciclo .ciclo-grid{
@@ -596,7 +596,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 }
 </style>
 <style id="v10473-ciclo-acabamento-compacto">
-/* V10.4.82 — acabamento/proporção. Somente CSS. */
+/* V10.4.83 — acabamento/proporção. Somente CSS. */
 
 /* Executar ciclo: bem mais baixo */
 #page-ciclo .ciclo-exec-panel-v10472{
@@ -693,7 +693,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 }
 </style>
 <style id="v10474-ciclo-mais-compacto">
-/* V10.4.82 — redução visual adicional. Somente CSS. */
+/* V10.4.83 — redução visual adicional. Somente CSS. */
 
 /* Área principal da semana bem mais estreita no desktop */
 #page-ciclo #cicloSemanaGridV104{
@@ -764,7 +764,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 }
 </style>
 <style id="v10475-semana-4x4">
-/* V10.4.82 — Semana do ciclo: 4 dias em cima + próximos dias embaixo.
+/* V10.4.83 — Semana do ciclo: 4 dias em cima + próximos dias embaixo.
    Somente visual/CSS. Nenhuma lógica foi alterada. */
 
 #page-ciclo .ciclo-week-full-v10472{
@@ -855,7 +855,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 }
 </style>
 <style id="v10478-oculta-duplicados-sem-remover-dom">
-/* V10.4.82
+/* V10.4.83
    Os blocos continuam EXISTINDO no DOM para o JavaScript.
    Apenas não aparecem visualmente na tela Ciclo. */
 #page-ciclo .ciclo-today-full-v10472,
@@ -865,31 +865,38 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 </style>
 
 
-<style id="v10482-visual-css">
+<style id="v10483-visual-css">
 :root{
  --v82-bg:#07111f;--v82-sidebar:#6d28d9;--v82-panel:#112238;--v82-card:#081526;
  --v82-text:#ffffff;--v82-muted:#9fc5ff;--v82-border:#29445f;--v82-primary:#6d4aff;
  --v82-accent:#25b8ff;--v82-font:system-ui,-apple-system,"Segoe UI",sans-serif;--v82-size:16px;
 }
-body.v82-theme{background:var(--v82-bg)!important;color:var(--v82-text)!important;font-family:var(--v82-font)!important;font-size:var(--v82-size)!important}
-body.v82-theme #app,body.v82-theme main,body.v82-theme .page{background:var(--v82-bg)!important;color:var(--v82-text)!important}
-body.v82-theme aside,body.v82-theme .sidebar{background:var(--v82-sidebar)!important}
+html body.v82-theme{background:var(--v82-bg)!important;color:var(--v82-text)!important;font-family:var(--v82-font)!important;font-size:var(--v82-size)!important}
+body.v82-theme #app,body.v82-theme main,body.v82-theme .main,body.v82-theme .content,body.v82-theme .page,
+body.v82-theme .top{background-color:var(--v82-bg)!important;color:var(--v82-text)!important}
+body.v82-theme aside,body.v82-theme .aside,body.v82-theme .sidebar,
+body.v82-theme aside nav,body.v82-theme .aside-bottom{background:var(--v82-sidebar)!important}
 body.v82-theme .panel,body.v82-theme .hero,body.v82-theme .stat,
-body.v82-theme .day,body.v82-theme .day-card,body.v82-theme .week-day,
-body.v82-theme section[class*="panel"]{background:var(--v82-panel)!important;color:var(--v82-text)!important;border-color:var(--v82-border)!important}
-body.v82-theme .card,body.v82-theme .topic-card,body.v82-theme .review-card,
-body.v82-theme .item,body.v82-theme .v82-preview{background:var(--v82-card)!important;color:var(--v82-text)!important;border-color:var(--v82-border)!important}
-body.v82-theme h1,body.v82-theme h2,body.v82-theme h3,body.v82-theme strong,
-body.v82-theme label,body.v82-theme .page-title{color:var(--v82-text)!important}
+body.v82-theme [class*="panel"],body.v82-theme [class*="section"],
+body.v82-theme [class*="box"]{background-color:var(--v82-panel)!important;color:var(--v82-text)!important;border-color:var(--v82-border)!important}
+body.v82-theme .card,body.v82-theme [class*="card"],body.v82-theme [class*="item"],
+body.v82-theme [class*="topic"],body.v82-theme [class*="review"],
+body.v82-theme [class*="day"],body.v82-theme [class*="semana"],
+body.v82-theme [class*="week"]{background-color:var(--v82-card)!important;color:var(--v82-text)!important;border-color:var(--v82-border)!important}
+body.v82-theme h1,body.v82-theme h2,body.v82-theme h3,body.v82-theme h4,
+body.v82-theme strong,body.v82-theme label,body.v82-theme td,body.v82-theme th{color:var(--v82-text)!important}
 body.v82-theme p,body.v82-theme small,body.v82-theme .panel-sub,
-body.v82-theme .muted,body.v82-theme .sub,body.v82-theme .meta{color:var(--v82-muted)!important}
+body.v82-theme [class*="muted"],body.v82-theme [class*="meta"],body.v82-theme [class*="sub"]{color:var(--v82-muted)!important}
 body.v82-theme input:not([type=color]),body.v82-theme select,body.v82-theme textarea{
  background:var(--v82-card)!important;color:var(--v82-text)!important;border-color:var(--v82-border)!important}
+body.v82-theme button:not(.nav-item):not([data-page]){
+ border-color:var(--v82-border)!important
+}
 body.v82-theme .btn-primary,body.v82-theme button.primary{background:var(--v82-primary)!important;color:#fff!important}
 body.v82-theme input[type=checkbox]{accent-color:var(--v82-accent)!important}
 body.v82-theme a,body.v82-theme .accent,body.v82-theme .link{color:var(--v82-accent)!important}
-body.v82-theme .panel,body.v82-theme .card,body.v82-theme .stat,body.v82-theme .hero,
-body.v82-theme input,body.v82-theme select,body.v82-theme textarea{border-color:var(--v82-border)!important}
+body.v82-theme hr,body.v82-theme table,body.v82-theme td,body.v82-theme th{border-color:var(--v82-border)!important}
+
 .visual-grid-v10482{display:grid;grid-template-columns:1.35fr .65fr;gap:16px;margin-top:16px}
 .visual-grid-v10482 .panel{padding:18px}
 .visual-colors-v10482{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
@@ -931,7 +938,7 @@ body.v82-theme input,body.v82-theme select,body.v82-theme textarea{border-color:
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.82 • REDESIGN VISUAL</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.83 • REDESIGN VISUAL</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -5141,7 +5148,6 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
   window.v10457NormalizarRevisoesADM=executar57;
 })();
 </script>
-
 <script id="v10481-visual-nav-fix">
 (function(){
  function abrirVisualV10481(){
@@ -5164,7 +5170,6 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
  },true);
 })();
 </script>
-
 <script id="v10482-visual-js">
 (function(){
  const D={bg:'#07111f',sidebar:'#6d28d9',panel:'#112238',card:'#081526',text:'#ffffff',
@@ -5193,6 +5198,28 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
    const b=document.getElementById('v82Reset');if(b)b.onclick=function(){localStorage.setItem(k(),JSON.stringify(D));fill(D);apply(D);document.getElementById('v82Status').textContent='Visual padrão restaurado.'};
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+
+<script id="v10483-paint-fix">
+(function(){
+ const oldApply=window.__v82Apply;
+ function paint(){
+   if(!document.body.classList.contains('v82-theme'))return;
+   const cs=getComputedStyle(document.documentElement);
+   const v=n=>cs.getPropertyValue(n).trim();
+   const panel=v('--v82-panel'),card=v('--v82-card'),border=v('--v82-border');
+   const text=v('--v82-text'),muted=v('--v82-muted'),side=v('--v82-sidebar'),bg=v('--v82-bg');
+   document.querySelectorAll('main,.main,.content,.page,.top').forEach(e=>{e.style.setProperty('background-color',bg,'important');e.style.setProperty('color',text,'important')});
+   document.querySelectorAll('aside,.aside,.sidebar').forEach(e=>e.style.setProperty('background',side,'important'));
+   document.querySelectorAll('.panel,.hero,.stat').forEach(e=>{e.style.setProperty('background-color',panel,'important');e.style.setProperty('border-color',border,'important');e.style.setProperty('color',text,'important')});
+   document.querySelectorAll('.card,[class*="card"]').forEach(e=>{e.style.setProperty('background-color',card,'important');e.style.setProperty('border-color',border,'important');e.style.setProperty('color',text,'important')});
+ }
+ document.addEventListener('input',e=>{if(e.target.closest('#page-visual'))requestAnimationFrame(paint)});
+ document.addEventListener('change',e=>{if(e.target.closest('#page-visual'))requestAnimationFrame(paint)});
+ document.addEventListener('click',e=>{if(e.target.closest('[data-page]'))setTimeout(paint,0)});
+ window.addEventListener('load',()=>setTimeout(paint,0));
+ new MutationObserver(()=>{clearTimeout(window.__v83t);window.__v83t=setTimeout(paint,20)}).observe(document.body,{subtree:true,childList:true});
 })();
 </script>
 </body>

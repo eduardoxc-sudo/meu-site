@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.91 • AUDITORIA COMPLETA DE CORES</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.92 • CORREÇÃO PROFUNDA DOS TEMAS</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -5620,6 +5620,192 @@ html body .page :is(input,textarea)::placeholder{
 }
 
 /* Exceção: botões continuam usando a cor de ação do tema, não são "superfícies azuis". */
+</style>
+
+
+<style id="v10492-deep-theme-fix">
+/* V10.4.92
+   Corrige especificamente as áreas ainda fora do tema:
+   Progresso por matéria, Planejamento por data, Histórico de sessões
+   e cabeçalhos/linhas derivados dessas estruturas.
+*/
+
+/* ---------- PROGRESSO POR MATÉRIA ---------- */
+html body #page-progresso .prog-prior-card-v10416,
+html body #page-progresso .prog-mat-v10416{
+  background:var(--surface-card)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+html body #page-progresso .prog-mat-head-v10416,
+html body #page-progresso .prog-mat-head-v10416 b,
+html body #page-progresso .prog-mat-head-v10416 span,
+html body #page-progresso .prog-mat-meta-v10416,
+html body #page-progresso .prog-mat-meta-v10416 span{
+  color:var(--surface-text)!important;
+}
+html body #page-progresso .prog-track-v10416{
+  background:var(--surface-soft)!important;
+}
+
+/* ---------- PLANEJAMENTO / AGENDA POR DATA ---------- */
+html body #page-planejamento .v102-day{
+  background:var(--surface-panel)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+html body #page-planejamento .v102-day-head{
+  background:var(--surface-soft)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+html body #page-planejamento .v102-day-head span{
+  color:var(--surface-text)!important;
+}
+html body #page-planejamento .v102-topic{
+  background:var(--surface-card)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+html body #page-planejamento .v102-topic :is(.v102-num,.v102-main,strong,b,small){
+  color:var(--surface-text)!important;
+}
+html body #page-planejamento .v102-actions button{
+  background:var(--surface-soft)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+html body #page-planejamento .v102-actions input{
+  background:var(--surface-card)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+
+/* ---------- HISTÓRICO DE SESSÕES DO TIMER ---------- */
+html body #timerHistoricoV10422 > div{
+  background:var(--surface-panel)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+html body #timerHistoricoV10422 > div > button{
+  background:var(--surface-soft)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+html body #timerHistoricoV10422 .v102-topic{
+  background:var(--surface-card)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+html body #timerHistoricoV10422 .v102-topic :is(.v102-num,.v102-main,strong,small){
+  color:var(--surface-text)!important;
+}
+
+/* ---------- SEMANA DO CICLO ---------- */
+html body #page-ciclo .ciclo-dia-v104{
+  background:var(--surface-panel)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+html body #page-ciclo .ciclo-dia-head-v104{
+  background:var(--surface-soft)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+html body #page-ciclo .ciclo-dia-head-v104 :is(b,small){
+  color:var(--surface-text)!important;
+}
+html body #page-ciclo .ciclo-card-v104{
+  background:var(--surface-card)!important;
+  color:var(--surface-text)!important;
+  border-color:var(--surface-border)!important;
+}
+html body #page-ciclo .ciclo-card-v104 :is(strong,small,b,span){
+  color:var(--surface-text)!important;
+}
+
+/* ---------- CLARO ---------- */
+html[data-theme-v85="claro"] body{
+  --surface-page:#f4f6f8;
+  --surface-panel:#ffffff;
+  --surface-card:#f8fafc;
+  --surface-soft:#eef2f6;
+  --surface-border:#cbd5e1;
+  --surface-text:#111827;
+  --surface-muted:#5f6b7a;
+}
+
+/* ---------- ROSA ---------- */
+html[data-theme-v85="rosa"] body{
+  --surface-page:#fff2f7;
+  --surface-panel:#fffafd;
+  --surface-card:#fff3f8;
+  --surface-soft:#fbdce9;
+  --surface-border:#efb1ca;
+  --surface-text:#4a142a;
+  --surface-muted:#9e496b;
+}
+
+/* ---------- ESMERALDA ---------- */
+html[data-theme-v85="esmeralda"] body{
+  --surface-panel:#0d4638;
+  --surface-card:#0a392f;
+  --surface-soft:#123f35;
+  --surface-border:#28705e;
+  --surface-text:#f4fff9;
+  --surface-muted:#a4e5d2;
+}
+
+/* ---------- CAFÉ ---------- */
+html[data-theme-v85="cafe"] body{
+  --surface-panel:#3a291d;
+  --surface-card:#2b2018;
+  --surface-soft:#493323;
+  --surface-border:#74543b;
+  --surface-text:#fff7ed;
+  --surface-muted:#e7c4a5;
+}
+
+/* ---------- OCEANO ---------- */
+html[data-theme-v85="oceano"] body{
+  --surface-panel:#0b4148;
+  --surface-card:#09343a;
+  --surface-soft:#10515a;
+  --surface-border:#2b7380;
+  --surface-text:#f1ffff;
+  --surface-muted:#9be2e7;
+}
+
+/* ---------- VIOLETA ---------- */
+html[data-theme-v85="violeta"] body{
+  --surface-panel:#38274f;
+  --surface-card:#2c203e;
+  --surface-soft:#493462;
+  --surface-border:#7657a0;
+  --surface-text:#fcf8ff;
+  --surface-muted:#d8c7ef;
+}
+
+/* ---------- PÔR DO SOL ---------- */
+html[data-theme-v85="pordosol"] body,
+html[data-theme-v85="por-do-sol"] body{
+  --surface-panel:#4a2b21;
+  --surface-card:#382119;
+  --surface-soft:#5a3426;
+  --surface-border:#8b5741;
+  --surface-text:#fff8f1;
+  --surface-muted:#f1bea5;
+}
+
+/* Texto secundário das áreas corrigidas acompanha o tema sem perder contraste */
+html body :is(
+  #page-progresso .prog-mat-v10416,
+  #page-planejamento .v102-day,
+  #timerHistoricoV10422,
+  #page-ciclo .ciclo-dia-v104
+) small{
+  color:var(--surface-muted)!important;
+}
 </style>
 
 </body>

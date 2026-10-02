@@ -1,12 +1,13 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Plano & Ciclo de Estudos — V10.2.2 DEV • CICLO MOVER ASSUNTOS</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
+<title>Plano &amp; Ciclo de Estudos — V10.2.2 DEV • CICLO MOVER ASSUNTOS</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -186,8 +187,6 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .prog-mat-meta-v10416{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;color:var(--muted);font-size:13px}
 @media(max-width:760px){.prog-prior-v10416{grid-template-columns:1fr}.prog-mat-head-v10416{align-items:flex-start;flex-direction:column}}
 </style>
-
-
 <style id="v871-ajuste-contadores">
 #resumoRevisoesHojeV87,
 #resumoRevisoesAgendadas,
@@ -221,7 +220,6 @@ textarea:focus,select:focus{border-color:var(--primary)}
  }
 }
 </style>
-
 <style id="v90-historico-css">
 #resumoHistoricoV90{
   display:grid;
@@ -260,7 +258,6 @@ textarea:focus,select:focus{border-color:var(--primary)}
   #resumoHistoricoV90{grid-template-columns:1fr}
 }
 </style>
-
 <style id="v903-historico-2x2-fixo">
 #resumoHistoricoV90{
   width:100% !important;
@@ -289,7 +286,6 @@ textarea:focus,select:focus{border-color:var(--primary)}
   }
 }
 </style>
-
 <style id="v91-dashboard-revisoes-css">
 .dash-rev-v91{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
 .dash-rev-v91 .stat{min-width:0}
@@ -347,7 +343,6 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .v95-qstats b{font-size:18px}
 @media(max-width:760px){.v95-qstats{grid-template-columns:1fr 1fr}}
 </style>
-
 <style id="v100-edital-pronto-css">
 .v100-edital-toolbar{display:grid;grid-template-columns:minmax(260px,1fr) auto;gap:10px;align-items:end;margin:14px 0}
 .v100-edital-toolbar label{display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:13px}
@@ -366,7 +361,6 @@ textarea:focus,select:focus{border-color:var(--primary)}
  .v100-row{grid-template-columns:42px 1fr}.v100-priority{grid-column:1/-1}
 }
 </style>
-
 <style id="v101-css">
 .v101-materia{border:1px solid var(--border);border-radius:12px;padding:10px;margin:12px 0;background:rgba(0,0,0,.08)}.v101-materia-title{font-weight:800;font-size:17px;padding:5px 4px 10px}.v101-materia-title span{font-size:12px;color:var(--muted);font-weight:500;margin-left:6px}
 .v101-plan-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.v101-plan-summary>div{border:1px solid var(--border);background:var(--bg);border-radius:10px;padding:12px}.v101-plan-summary span{display:block;color:var(--muted);font-size:12px}.v101-plan-summary b{font-size:20px}
@@ -387,7 +381,6 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .hist-tipo-v10415{display:inline-flex;align-items:center;padding:3px 8px;border:1px solid var(--border);border-radius:999px;font-size:12px;font-weight:800;margin-right:7px}
 @media(max-width:560px){.hist-materia-v10415>summary{align-items:flex-start}.hist-materia-qtd-v10415{white-space:normal;text-align:right}}
 </style>
-
 <style id="v10427-questoes-materia-css">
 .qm27-grid{display:grid;grid-template-columns:minmax(220px,1fr) minmax(280px,1.5fr);gap:12px;margin-top:14px}
 .qm27-form{display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1.4fr) 130px 130px auto;gap:10px;align-items:end;margin-top:14px}
@@ -414,8 +407,6 @@ textarea:focus,select:focus{border-color:var(--primary)}
 @media(max-width:950px){.qm27-form{grid-template-columns:1fr 1fr}.qm27-form button{grid-column:1/-1}.qm27-summary{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.qm27-grid,.qm27-form,.qm27-summary{grid-template-columns:1fr}.qm27-assunto-head{display:block}.qm27-assunto-head span{display:block;margin-top:5px}}
 </style>
-
-
 <style id="v10429-historico-questoes-css">
 .qh29-materia{border:1px solid var(--border);border-radius:12px;background:var(--bg);margin-top:12px;overflow:hidden}
 .qh29-materia>summary{list-style:none;cursor:pointer;padding:14px;display:flex;align-items:center;gap:12px;background:#0d1627;font-weight:800}
@@ -430,8 +421,6 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .qh29-numeros b{display:block;color:var(--text);font-size:15px;margin-bottom:3px}
 @media(max-width:650px){.qh29-item{display:block}.qh29-numeros{text-align:left;margin-top:8px;white-space:normal}.qh29-resumo{display:none}}
 </style>
-
-
 <style id="v10432-editar-excluir-questoes-css">
 .qh32-actions{display:flex;gap:7px;justify-content:flex-end;margin-top:8px}
 .qh32-btn{border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:700;background:#152238;color:var(--text)}
@@ -446,14 +435,12 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .qh32-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
 @media(max-width:600px){.qh32-grid{grid-template-columns:1fr}.qh32-actions{justify-content:flex-start}}
 </style>
-
 <style id="v10435-gerenciar-edital-css">
 .nav button.nav-gerenciar-edital-v10435{border-color:#36598a;background:linear-gradient(90deg,rgba(53,169,255,.12),rgba(111,92,255,.10));color:#dcecff}
 .nav button.nav-gerenciar-edital-v10435.active{border-color:#43b7ff;background:linear-gradient(90deg,#163b63,#29275d);color:#fff}
 .ge35-hero{border:1px solid #36598a;background:linear-gradient(135deg,rgba(53,169,255,.10),rgba(111,92,255,.08))}
 .ge35-warning{margin-top:12px;padding:12px 14px;border:1px solid #6d5524;border-radius:10px;background:rgba(128,91,18,.12);color:#e8d6a3;font-size:13px}
 </style>
-
 <style id="v10440EditorCss">
 .v10440-materia{border:1px solid #26364f;border-radius:14px;background:#0b1321;margin:10px 0;overflow:hidden}
 .v10440-materia-head{display:flex;gap:10px;align-items:center;padding:12px;flex-wrap:wrap;background:#0e192a}
@@ -466,9 +453,8 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .v10440-drop{outline:2px dashed #38bdf8;outline-offset:-3px}
 .v10440-empty{padding:18px;text-align:center;color:#9bb4d2;border:1px dashed #2b3a51;border-radius:12px}
 </style>
-
 <style id="v10466-visual-only">
-/* V10.4.69 — SOMENTE VISUAL. Nenhuma regra de negócio alterada. */
+/* V10.4.70 — SOMENTE VISUAL. Nenhuma regra de negócio alterada. */
 :root{--bg:#091321;--surface:#101d31;--card:#111f34;--border:#2b405d;--text:#f8fafc;--muted:#9db0ca;--primary:#31b9ff;--accent:#7048ff;--success:#20c77a;--danger:#ef3340}
 body{background:linear-gradient(180deg,#08111e 0%,#0a1524 100%)}
 #app{grid-template-columns:220px minmax(0,1fr)}
@@ -492,9 +478,8 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 @media(max-width:1000px){#app{grid-template-columns:190px minmax(0,1fr)}main{padding:24px 18px}}
 @media(max-width:800px){#app{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid rgba(255,255,255,.15)}.nav{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:18px 12px}.hero{padding:22px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
-
 <style id="v10467-ciclo-visual-only">
-/* V10.4.69 — SOMENTE VISUAL DA ÁREA CICLO.
+/* V10.4.70 — SOMENTE VISUAL DA ÁREA CICLO.
    Não altera Firebase, login, UID, planejamento, revisões, checklists,
    drag/drop, IDs, handlers ou funções JavaScript. */
 
@@ -561,10 +546,8 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
   }
 }
 </style>
-
-
 <style id="v10468-ciclo-compacto-visual-only">
-/* V10.4.69 — REDESIGN SOMENTE VISUAL DO BLOCO SUPERIOR DO CICLO.
+/* V10.4.70 — REDESIGN SOMENTE VISUAL DO BLOCO SUPERIOR DO CICLO.
    Nenhum JavaScript, ID, evento, Firebase, checklist, revisão ou motor foi alterado. */
 
 /* painel esquerdo mais compacto */
@@ -623,10 +606,8 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
   }
 }
 </style>
-
-
 <style id="v10469-visual-azul-compacto">
-/* V10.4.69 — PADRÃO VISUAL AZUL/CIANO
+/* V10.4.70 — PADRÃO VISUAL AZUL/CIANO
    SOMENTE CSS. Nenhuma função, ID, evento ou dado foi alterado. */
 
 :root{
@@ -730,619 +711,708 @@ input,select,textarea{
 }
 </style>
 
+<style id="v10470-ciclo-layout-real">
+/* V10.4.70 — layout real da tela Ciclo.
+   IDs, botões, eventos e JavaScript foram preservados. */
+
+/* Topo: configuração compacta + ordem como área principal */
+#page-ciclo .ciclo-grid{
+  display:grid!important;
+  grid-template-columns:minmax(320px, .78fr) minmax(520px, 1.55fr)!important;
+  gap:16px!important;
+  align-items:start!important;
+}
+#page-ciclo .ciclo-grid > .panel{
+  min-height:0!important;
+  height:auto!important;
+  padding:18px!important;
+}
+
+/* Configuração */
+#page-ciclo .ciclo-resumo{
+  gap:8px!important;
+  margin:14px 0 12px!important;
+}
+#page-ciclo .ciclo-resumo > div{
+  padding:10px 11px!important;
+  min-height:62px!important;
+}
+#page-ciclo .actions{
+  gap:8px!important;
+  margin:0!important;
+}
+
+/* Executar ciclo: uma faixa compacta em vez de caixas altas */
+#page-ciclo .ciclo-exec{
+  margin-top:18px!important;
+  padding-top:16px!important;
+  border-top:1px solid #29435f!important;
+}
+#page-ciclo .ciclo-exec > h3{margin:0 0 4px!important;}
+#page-ciclo .ciclo-exec > .panel-sub{margin:0 0 10px!important;}
+#page-ciclo .ciclo-exec-grid{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 145px!important;
+  gap:8px!important;
+}
+#page-ciclo .ciclo-proxima,
+#page-ciclo .ciclo-posicao{
+  min-height:0!important;
+  padding:11px 13px!important;
+  background:#0b1728!important;
+  border:1px solid #29435f!important;
+  border-radius:11px!important;
+}
+#page-ciclo .ciclo-proxima h3{
+  margin:3px 0!important;
+  font-size:1rem!important;
+}
+#page-ciclo .ciclo-proxima p{font-size:.76rem!important;}
+#page-ciclo .ciclo-posicao strong{
+  font-size:1rem!important;
+  margin:3px 0!important;
+}
+#page-ciclo .ciclo-exec-actions{margin-top:8px!important;}
+#page-ciclo .ciclo-exec-actions .btn{min-height:34px!important;padding:7px 10px!important;}
+
+/* Ordem do ciclo */
+#page-ciclo .ciclo-list{gap:7px!important;}
+#page-ciclo .ciclo-item{
+  padding:9px 10px!important;
+  border-radius:10px!important;
+}
+#page-ciclo .ciclo-assuntos{
+  margin-top:16px!important;
+  padding-top:14px!important;
+  border-top:1px solid #29435f!important;
+}
+
+/* Parte inferior: Semana continua vertical, mas agora ganha largura útil.
+   Planejamento de hoje / Estudo real ficam ao lado em telas grandes. */
+#page-ciclo .ciclo-lower-v10470{
+  display:grid!important;
+  grid-template-columns:minmax(430px,1.15fr) minmax(320px,.85fr)!important;
+  gap:16px!important;
+  margin-top:16px!important;
+  align-items:start!important;
+}
+#page-ciclo .ciclo-lower-v10470 > .panel{
+  padding:18px!important;
+  min-height:0!important;
+}
+#page-ciclo .ciclo-week-panel-v10470 #cicloSemanaV104{
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+}
+#page-ciclo .ciclo-side-panel-v10470 .estudo-real{
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+}
+#page-ciclo .ciclo-side-panel-v10470 .estudo-real + .estudo-real{
+  margin-top:18px!important;
+  padding-top:18px!important;
+  border-top:1px solid #29435f!important;
+}
+
+/* Não transforma Semana do ciclo em 7 colunas. */
+#page-ciclo #cicloSemanaGridV104{
+  grid-template-columns:1fr!important;
+}
+
+@media(max-width:1050px){
+  #page-ciclo .ciclo-grid,
+  #page-ciclo .ciclo-lower-v10470{
+    grid-template-columns:1fr!important;
+  }
+}
+@media(max-width:620px){
+  #page-ciclo .ciclo-exec-grid{grid-template-columns:1fr!important;}
+  #page-ciclo .ciclo-resumo{grid-template-columns:1fr 1fr!important;}
+}
+</style>
 </head>
 <body>
 <section id="login">
 <div class="login-card">
-<h1>📚 Plano & Ciclo de Estudos</h1><p>V3 — acesso individual</p>
-<div class="field"><label>E-MAIL</label><input id="loginEmailV3" type="email" autocomplete="email" placeholder="seuemail@exemplo.com"></div>
-<div class="field"><label>PALAVRA-PASSE</label><input id="loginSenha" type="password" autocomplete="current-password" placeholder="Digite sua senha"></div>
-<button class="btn btn-primary" style="width:100%" id="btnEntrar">Entrar</button>
+<h1>📚 Plano &amp; Ciclo de Estudos</h1><p>V3 — acesso individual</p>
+<div class="field"><label>E-MAIL</label><input autocomplete="email" id="loginEmailV3" placeholder="seuemail@exemplo.com" type="email"/></div>
+<div class="field"><label>PALAVRA-PASSE</label><input autocomplete="current-password" id="loginSenha" placeholder="Digite sua senha" type="password"/></div>
+<button class="btn btn-primary" id="btnEntrar" style="width:100%">Entrar</button>
 <div id="loginStatus"></div>
 <p style="margin-top:14px;font-size:.75rem;color:var(--muted);text-align:center">Acesso somente para contas autorizadas.</p>
 </div></section>
-
-<section id="app" class="hidden">
+<section class="hidden" id="app">
 <aside>
-  <div class="brand"><h2>📚 Plano & Ciclo</h2><div class="user">👤 <span id="nomeUsuarioV3">Utilizador</span></div><div id="syncStatus" class="sync">☁️ Firebase conectado</div></div>
-  <nav class="nav">
-    <button class="active" data-page="dashboard">🏠 Dashboard</button>
-    <button data-page="ciclo">▦ Ciclo</button>
-    <button data-page="timer">◷ Timer</button>
-    <button data-page="questoes">✓ Questões</button>
-    <button data-page="edital">▥ Edital</button>
-    <button data-page="gerenciarEdital" class="nav-gerenciar-edital-v10435">⚙️ Gerenciar Edital</button>
-    <button data-page="progresso">📚 Progresso do Edital</button>
-    <button data-page="historico">📜 Histórico</button>
-    <button data-page="estatisticas">📊 Meu Desempenho</button>
-    <button data-page="planejamento">↔ Planejamento</button>
-    <button data-page="diagnostico">🛠 Diagnóstico</button>
-    <button data-page="seguranca">◇ Segurança</button>
-  
-      <button class="nav-btn" data-page="editalPronto">📚 Edital pronto</button>
-      <button id="navAdminEditaisV10439" class="nav-btn hidden" data-page="adminEditais">👑 Admin • Editais prontos</button>
+<div class="brand"><h2>📚 Plano &amp; Ciclo</h2><div class="user">👤 <span id="nomeUsuarioV3">Utilizador</span></div><div class="sync" id="syncStatus">☁️ Firebase conectado</div></div>
+<nav class="nav">
+<button class="active" data-page="dashboard">🏠 Dashboard</button>
+<button data-page="ciclo">▦ Ciclo</button>
+<button data-page="timer">◷ Timer</button>
+<button data-page="questoes">✓ Questões</button>
+<button data-page="edital">▥ Edital</button>
+<button class="nav-gerenciar-edital-v10435" data-page="gerenciarEdital">⚙️ Gerenciar Edital</button>
+<button data-page="progresso">📚 Progresso do Edital</button>
+<button data-page="historico">📜 Histórico</button>
+<button data-page="estatisticas">📊 Meu Desempenho</button>
+<button data-page="planejamento">↔ Planejamento</button>
+<button data-page="diagnostico">🛠 Diagnóstico</button>
+<button data-page="seguranca">◇ Segurança</button>
+<button class="nav-btn" data-page="editalPronto">📚 Edital pronto</button>
+<button class="nav-btn hidden" data-page="adminEditais" id="navAdminEditaisV10439">👑 Admin • Editais prontos</button>
 </nav>
-  <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
+<div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.69 • REDESIGN VISUAL</span></div>
-  <section id="page-dashboard" class="page active">
-    <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
-    <div class="grid">
-      <div class="stat"><span>🔥 Sequência</span><strong id="dashSeqV92">—</strong></div>
-      <div class="stat"><span>⏱ Horas líquidas</span><strong id="dashHorasV92">—</strong></div>
-      <div class="stat"><span>✅ Edital</span><strong id="dashEdital">0 / 0</strong></div>
-      <div class="stat"><span>🎯 Questões</span><strong id="dashQuestoesV92">—</strong></div>
-    </div>
-    <div class="panel" style="margin-top:16px">
-      <h2>🔁 Revisões</h2>
-      <p class="panel-sub">Resumo automático do seu sistema D1, D7, D15 e D30.</p>
-      <div id="dashRevisoesV91" class="dash-rev-v91">
-        <div class="stat"><span>📅 Hoje</span><strong id="dashRevHojeV91">0</strong></div>
-        <div class="stat"><span>⚠️ Atrasadas</span><strong id="dashRevAtrasadasV91">0</strong></div>
-        <div class="stat"><span>⏳ Pendentes</span><strong id="dashRevPendentesV91">0</strong></div>
-        <div class="stat"><span>✅ Concluídas</span><strong id="dashRevConcluidasV91">0</strong></div>
-      </div>
-      <div class="dash-rev-info-v91">
-        <div><span>PRÓXIMA REVISÃO</span><b id="dashRevProximaV91">—</b></div>
-        <div><span>TOTAL AGENDADO</span><b id="dashRevTotalV91">0</b></div>
-      </div>
-      <div id="dashRevStatusV91" class="status-line"></div>
-    </div>
-
-    <div class="panel" style="margin-top:16px">
-      <h2>🎯 Questões</h2>
-      <p class="panel-sub">Registre as questões resolvidas. Acertos e erros alimentam suas estatísticas automaticamente.</p>
-      <div class="v94-qgrid">
-        <label>Questões feitas
-          <input id="qFeitasV94" type="number" min="1" step="1" placeholder="Ex.: 20">
-        </label>
-        <label>Acertos
-          <input id="qAcertosV94" type="number" min="0" step="1" placeholder="Ex.: 16">
-        </label>
-        <label>Erros
-          <input id="qErrosV94" type="number" min="0" step="1" placeholder="Calculado" readonly>
-        </label>
-        <button class="primary" id="qSalvarV94" type="button">✓ Registrar questões</button>
-      </div>
-      <div id="qStatusV94" class="status-line">Nenhuma questão registrada nesta sessão.</div>
-      <div class="v94-summary">
-        <div><span>Total</span><b id="qTotalV94">0</b></div>
-        <div><span>Acertos</span><b id="qTotalAcertosV94">0</b></div>
-        <div><span>Erros</span><b id="qTotalErrosV94">0</b></div>
-        <div><span>Aproveitamento</span><b id="qPctV94">—</b></div>
-      </div>
-    </div>
-
-    <div class="panel" style="margin-top:16px">
-      <h2>⏱ Cronômetro de estudo</h2>
-      <p class="panel-sub">Registra tempo líquido real. Pausas não entram nas horas líquidas.</p>
-      <div class="v93-timer">
-        <div class="v93-clock" id="timerDisplayV93">00:00:00</div>
-        <div class="v931-total">Total acumulado: <b id="timerTotalV931">00:00:00</b></div>
-        <div class="v93-actions">
-          <button class="primary" id="timerStartV93" type="button">▶ Iniciar</button>
-          <button id="timerPauseV93" type="button">⏸ Pausar</button>
-          <button id="timerFinishV93" type="button">✓ Finalizar sessão</button>
-        </div>
-        <div id="timerStatusV93" class="status-line">Nenhuma sessão em andamento.</div>
-      </div>
-    </div>
-
-    <div class="panel" style="margin-top:16px">
-      <h2>📊 Estatísticas de estudo</h2>
-      <p class="panel-sub">Calculadas a partir do estudo real e das revisões concluídas. Simulações não entram nas estatísticas.</p>
-      <div class="stats-v92">
-        <div class="stat"><span>📚 Tópicos estudados</span><strong id="statTopicosV92">0</strong></div>
-        <div class="stat"><span>🔁 Revisões concluídas</span><strong id="statRevisoesV92">0</strong></div>
-        <div class="stat"><span>🎯 Revisões no prazo</span><strong id="statNoPrazoV92">0%</strong></div>
-        <div class="stat"><span>📅 Dias estudados</span><strong id="statDiasV92">0</strong></div>
-      </div>
-      <div class="stats-detail-v92">
-        <div><span>D1 CONCLUÍDAS</span><b id="statD1V92">0</b></div>
-        <div><span>D7 CONCLUÍDAS</span><b id="statD7V92">0</b></div>
-        <div><span>D15 CONCLUÍDAS</span><b id="statD15V92">0</b></div>
-        <div><span>D30 CONCLUÍDAS</span><b id="statD30V92">0</b></div>
-      </div>
-      <div class="v95-qstats">
-        <div><span>🎯 Questões resolvidas</span><b id="statQuestoesV95">0</b></div>
-        <div><span>✅ Acertos</span><b id="statAcertosV95">0</b></div>
-        <div><span>❌ Erros</span><b id="statErrosV95">0</b></div>
-        <div><span>📈 Aproveitamento</span><b id="statPctV95">—</b></div>
-      </div>
-      <div class="stats-bars-v92">
-        <div class="stats-bar-head-v92"><span>Progresso das revisões</span><b id="statRevProgressoTxtV92">0 / 0</b></div>
-        <div class="stats-track-v92"><i id="statRevProgressoV92"></i></div>
-      </div>
-      <div id="statStatusV92" class="status-line"></div>
-
-      <div class="v922-sim">
-        <b>🧪 Teste da sequência</b>
-        <p>Escolha uma data para conferir a sequência usando os dados reais já registrados e os dias ativos atuais. O teste não grava nem altera nada.</p>
-        <div class="v922-sim-row">
-          <input id="seqTesteDataV922" type="date">
-          <button id="seqTesteBtnV922" class="primary" type="button">Testar data</button>
-        </div>
-        <div id="seqTesteResultadoV922" class="status-line"></div>
-      </div>
-    </div>
-  </section>
-  <section id="page-ciclo" class="page">
-  <div class="ciclo-grid">
-    <div class="panel">
-      <h3>▦ Configurar ciclo</h3>
-      <p class="panel-sub">As disciplinas vêm do seu Edital. Aqui você escolhe quais entram no ciclo, define o tempo de cada uma e organiza a ordem. O Ciclo não cria disciplinas novas.</p>
-      <div class="ciclo-resumo">
-        <div><span>ATIVAS</span><strong id="cicloQtdAtivas">0</strong></div>
-        <div><span>TEMPO TOTAL</span><strong id="cicloTempoTotal">0 min</strong></div>
-        <div><span>DISCIPLINAS DO EDITAL</span><strong id="cicloQtdEdital">0</strong></div>
-      </div>
-      <div class="actions">
-        <button class="btn btn-primary" id="btnSalvarCiclo">Salvar ciclo</button>
-        <button class="btn btn-outline" id="btnRestaurarCiclo">Restaurar do Edital</button>
-      </div>
-      <div id="statusCiclo" class="status-line"></div>
-
-      <div class="ciclo-exec">
-        <h3>▶ Executar ciclo</h3>
-        <p class="panel-sub">O ciclo continua de onde você parou. Ele não reinicia quando muda o dia.</p>
-        <div class="ciclo-exec-grid">
-          <div class="ciclo-proxima">
-            <div class="tag">PRÓXIMA DISCIPLINA</div>
-            <h3 id="cicloProximaNome">—</h3>
-            <p id="cicloProximaTempo">Configure e salve o ciclo.</p>
-            <div class="ciclo-exec-actions">
-              <button class="btn btn-primary" id="btnConcluirEtapaCiclo" style="display:none" aria-hidden="true" tabindex="-1" disabled>✓ Concluir e avançar</button>
-              <button class="btn btn-outline" id="btnVoltarEtapaCiclo">← Voltar uma etapa</button>
-            </div>
-          </div>
-          <div class="ciclo-posicao">
-            <span class="muted">POSIÇÃO ATUAL</span>
-            <strong id="cicloPosicaoAtual">—</strong>
-            <span class="muted" id="cicloVoltas">0 volta(s) completa(s)</span>
-          </div>
-        </div>
-        <div id="cicloFila" class="ciclo-fila"></div>
-        <div id="statusExecCiclo" class="status-line"></div>
-
-        <div class="estudo-real ciclo-semana-v104" id="cicloSemanaV104">
-          <h3>🗓️ Semana do ciclo</h3>
-          <p class="panel-sub">Começa na data atual e só avança até a última data real de assuntos ou revisões espaçadas. Arraste os assuntos entre os dias para reorganizar sem criar cópias.</p>
-          <div class="ciclo-semana-toolbar-v104">
-            <div class="acoes"><button class="btn btn-outline" id="cicloSemanaAnteriorV104" type="button">← Semana</button><button class="btn btn-outline" id="cicloSemanaHojeV104" type="button">Hoje</button><button class="btn btn-outline" id="cicloSemanaProximaV104" type="button">Semana →</button></div>
-            <b id="cicloSemanaPeriodoV104">—</b>
-          </div>
-          <div id="cicloSemanaGridV104" class="ciclo-semana-grid-v104"></div>
-          <div id="cicloSemanaStatusV104" class="status-line"></div>
-        </div>
-
-        <div class="estudo-real" id="cicloPlanejadoHojeV103">
-          <h3>📅 Planejamento de hoje</h3>
-          <p class="panel-sub">Assuntos definidos no Planejamento para hoje. O Ciclo usa esta fila primeiro; se não houver assunto planejado pendente, segue a ordem normal do ciclo.</p>
-          <div id="cicloPlanejadoHojeListaV103" class="ciclo-hoje-lista"></div>
-          <div id="cicloPlanejadoHojeStatusV103" class="status-line"></div>
-        </div>
-
-        <div class="estudo-real">
-          <h3>📖 Estudo real</h3>
-          <p class="panel-sub">O Estudo real usa primeiro os assuntos pendentes planejados para hoje. Ao terminar a fila diária, ele encerra o planejamento do dia sem puxar automaticamente assuntos futuros.</p>
-          <div class="estudo-real-box">
-            <div class="rotulo">TÓPICO ATUAL</div>
-            <h4 id="estudoRealTopico">—</h4>
-            <p id="estudoRealInfo">Aguardando uma disciplina ativa no ciclo.</p>
-            <button class="btn btn-primary" id="btnConcluirEstudoReal">✓ Concluir tópico estudado</button>
-            <div id="statusEstudoReal" class="status-line"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h3>📚 Ordem do ciclo</h3>
-      <p class="panel-sub">Use ↑ e ↓ para organizar. Desmarcar uma disciplina apenas a retira do ciclo; ela continua normalmente no Edital.</p>
-      <div id="listaCiclo" class="ciclo-list"></div>
-
-      <div class="ciclo-assuntos">
-        <h3>↕ Ordem dos assuntos no ciclo</h3>
-        <p class="panel-sub">Mova os assuntos com ↑ e ↓. A ordem é salva no Edital e passa a ser a ordem real de estudo, sem criar cópias e sem alterar a prioridade do Planejamento.</p>
-        <div id="listaAssuntosCicloV1022"></div>
-        <div id="statusAssuntosCicloV1022" class="status-line"></div>
-      </div>
-    </div>
-  </div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.70 • REDESIGN VISUAL</span></div>
+<section class="page active" id="page-dashboard">
+<div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
+<div class="grid">
+<div class="stat"><span>🔥 Sequência</span><strong id="dashSeqV92">—</strong></div>
+<div class="stat"><span>⏱ Horas líquidas</span><strong id="dashHorasV92">—</strong></div>
+<div class="stat"><span>✅ Edital</span><strong id="dashEdital">0 / 0</strong></div>
+<div class="stat"><span>🎯 Questões</span><strong id="dashQuestoesV92">—</strong></div>
+</div>
+<div class="panel" style="margin-top:16px">
+<h2>🔁 Revisões</h2>
+<p class="panel-sub">Resumo automático do seu sistema D1, D7, D15 e D30.</p>
+<div class="dash-rev-v91" id="dashRevisoesV91">
+<div class="stat"><span>📅 Hoje</span><strong id="dashRevHojeV91">0</strong></div>
+<div class="stat"><span>⚠️ Atrasadas</span><strong id="dashRevAtrasadasV91">0</strong></div>
+<div class="stat"><span>⏳ Pendentes</span><strong id="dashRevPendentesV91">0</strong></div>
+<div class="stat"><span>✅ Concluídas</span><strong id="dashRevConcluidasV91">0</strong></div>
+</div>
+<div class="dash-rev-info-v91">
+<div><span>PRÓXIMA REVISÃO</span><b id="dashRevProximaV91">—</b></div>
+<div><span>TOTAL AGENDADO</span><b id="dashRevTotalV91">0</b></div>
+</div>
+<div class="status-line" id="dashRevStatusV91"></div>
+</div>
+<div class="panel" style="margin-top:16px">
+<h2>🎯 Questões</h2>
+<p class="panel-sub">Registre as questões resolvidas. Acertos e erros alimentam suas estatísticas automaticamente.</p>
+<div class="v94-qgrid">
+<label>Questões feitas
+          <input id="qFeitasV94" min="1" placeholder="Ex.: 20" step="1" type="number"/>
+</label>
+<label>Acertos
+          <input id="qAcertosV94" min="0" placeholder="Ex.: 16" step="1" type="number"/>
+</label>
+<label>Erros
+          <input id="qErrosV94" min="0" placeholder="Calculado" readonly="" step="1" type="number"/>
+</label>
+<button class="primary" id="qSalvarV94" type="button">✓ Registrar questões</button>
+</div>
+<div class="status-line" id="qStatusV94">Nenhuma questão registrada nesta sessão.</div>
+<div class="v94-summary">
+<div><span>Total</span><b id="qTotalV94">0</b></div>
+<div><span>Acertos</span><b id="qTotalAcertosV94">0</b></div>
+<div><span>Erros</span><b id="qTotalErrosV94">0</b></div>
+<div><span>Aproveitamento</span><b id="qPctV94">—</b></div>
+</div>
+</div>
+<div class="panel" style="margin-top:16px">
+<h2>⏱ Cronômetro de estudo</h2>
+<p class="panel-sub">Registra tempo líquido real. Pausas não entram nas horas líquidas.</p>
+<div class="v93-timer">
+<div class="v93-clock" id="timerDisplayV93">00:00:00</div>
+<div class="v931-total">Total acumulado: <b id="timerTotalV931">00:00:00</b></div>
+<div class="v93-actions">
+<button class="primary" id="timerStartV93" type="button">▶ Iniciar</button>
+<button id="timerPauseV93" type="button">⏸ Pausar</button>
+<button id="timerFinishV93" type="button">✓ Finalizar sessão</button>
+</div>
+<div class="status-line" id="timerStatusV93">Nenhuma sessão em andamento.</div>
+</div>
+</div>
+<div class="panel" style="margin-top:16px">
+<h2>📊 Estatísticas de estudo</h2>
+<p class="panel-sub">Calculadas a partir do estudo real e das revisões concluídas. Simulações não entram nas estatísticas.</p>
+<div class="stats-v92">
+<div class="stat"><span>📚 Tópicos estudados</span><strong id="statTopicosV92">0</strong></div>
+<div class="stat"><span>🔁 Revisões concluídas</span><strong id="statRevisoesV92">0</strong></div>
+<div class="stat"><span>🎯 Revisões no prazo</span><strong id="statNoPrazoV92">0%</strong></div>
+<div class="stat"><span>📅 Dias estudados</span><strong id="statDiasV92">0</strong></div>
+</div>
+<div class="stats-detail-v92">
+<div><span>D1 CONCLUÍDAS</span><b id="statD1V92">0</b></div>
+<div><span>D7 CONCLUÍDAS</span><b id="statD7V92">0</b></div>
+<div><span>D15 CONCLUÍDAS</span><b id="statD15V92">0</b></div>
+<div><span>D30 CONCLUÍDAS</span><b id="statD30V92">0</b></div>
+</div>
+<div class="v95-qstats">
+<div><span>🎯 Questões resolvidas</span><b id="statQuestoesV95">0</b></div>
+<div><span>✅ Acertos</span><b id="statAcertosV95">0</b></div>
+<div><span>❌ Erros</span><b id="statErrosV95">0</b></div>
+<div><span>📈 Aproveitamento</span><b id="statPctV95">—</b></div>
+</div>
+<div class="stats-bars-v92">
+<div class="stats-bar-head-v92"><span>Progresso das revisões</span><b id="statRevProgressoTxtV92">0 / 0</b></div>
+<div class="stats-track-v92"><i id="statRevProgressoV92"></i></div>
+</div>
+<div class="status-line" id="statStatusV92"></div>
+<div class="v922-sim">
+<b>🧪 Teste da sequência</b>
+<p>Escolha uma data para conferir a sequência usando os dados reais já registrados e os dias ativos atuais. O teste não grava nem altera nada.</p>
+<div class="v922-sim-row">
+<input id="seqTesteDataV922" type="date"/>
+<button class="primary" id="seqTesteBtnV922" type="button">Testar data</button>
+</div>
+<div class="status-line" id="seqTesteResultadoV922"></div>
+</div>
+</div>
 </section>
-  <section id="page-timer" class="page">
-  <h1>Timer</h1>
+<section class="page" id="page-ciclo">
+<div class="ciclo-grid">
+<div class="panel">
+<h3>▦ Configurar ciclo</h3>
+<p class="panel-sub">As disciplinas vêm do seu Edital. Aqui você escolhe quais entram no ciclo, define o tempo de cada uma e organiza a ordem. O Ciclo não cria disciplinas novas.</p>
+<div class="ciclo-resumo">
+<div><span>ATIVAS</span><strong id="cicloQtdAtivas">0</strong></div>
+<div><span>TEMPO TOTAL</span><strong id="cicloTempoTotal">0 min</strong></div>
+<div><span>DISCIPLINAS DO EDITAL</span><strong id="cicloQtdEdital">0</strong></div>
+</div>
+<div class="actions">
+<button class="btn btn-primary" id="btnSalvarCiclo">Salvar ciclo</button>
+<button class="btn btn-outline" id="btnRestaurarCiclo">Restaurar do Edital</button>
+</div>
+<div class="status-line" id="statusCiclo"></div>
+<div class="ciclo-exec">
+<h3>▶ Executar ciclo</h3>
+<p class="panel-sub">O ciclo continua de onde você parou. Ele não reinicia quando muda o dia.</p>
+<div class="ciclo-exec-grid">
+<div class="ciclo-proxima">
+<div class="tag">PRÓXIMA DISCIPLINA</div>
+<h3 id="cicloProximaNome">—</h3>
+<p id="cicloProximaTempo">Configure e salve o ciclo.</p>
+<div class="ciclo-exec-actions">
+<button aria-hidden="true" class="btn btn-primary" disabled="" id="btnConcluirEtapaCiclo" style="display:none" tabindex="-1">✓ Concluir e avançar</button>
+<button class="btn btn-outline" id="btnVoltarEtapaCiclo">← Voltar uma etapa</button>
+</div>
+</div>
+<div class="ciclo-posicao">
+<span class="muted">POSIÇÃO ATUAL</span>
+<strong id="cicloPosicaoAtual">—</strong>
+<span class="muted" id="cicloVoltas">0 volta(s) completa(s)</span>
+</div>
+</div>
+<div class="ciclo-fila" id="cicloFila"></div>
+<div class="status-line" id="statusExecCiclo"></div>
 
-  <div class="panel">
-    <h2>⏱ Timer de estudo</h2>
-    <p class="panel-sub">Escolha o assunto estudado. O sistema registra assunto, matéria, data/hora e somente o tempo líquido real.</p>
 
-    <div class="field" style="max-width:760px;margin-top:14px">
-      <label>ASSUNTO ESTUDADO</label>
-      <select id="timerAssuntoV10422">
-        <option value="">Selecione um assunto do Planejamento</option>
-      </select>
-    </div>
-
-    <div class="v93-timer" style="margin-top:14px">
-      <div class="v93-clock" id="timerPageDisplayV10421">00:00:00</div>
-      <div class="v931-total">Horas do edital atual: <b id="timerPageTotalV10421">00:00:00</b></div>
-      <div class="v931-total" style="margin-top:4px">Total geral estudado: <b id="timerTotalGeralV10423">00:00:00</b></div>
-      <div class="actions" style="margin-top:14px">
-        <button class="btn btn-primary" id="timerPageStartV10421" type="button">▶ Iniciar</button>
-        <button class="btn" id="timerPagePauseV10421" type="button">⏸ Pausar</button>
-        <button class="btn" id="timerPageFinishV10421" type="button">✓ Finalizar sessão</button>
-      </div>
-      <div id="timerPageStatusV10421" class="status-line">Nenhuma sessão em andamento.</div>
-    </div>
-  </div>
-
-  <div class="panel" style="margin-top:16px">
-    <h2>✍️ Adicionar tempo manualmente</h2>
-    <p class="panel-sub">Use quando você estudou fora do Timer. Isso soma horas líquidas, mas não conclui o assunto e não altera o Progresso do Edital.</p>
-    <div style="display:grid;grid-template-columns:minmax(260px,2fr) 130px 130px auto;gap:12px;align-items:end">
-      <div class="field" style="margin:0">
-        <label>ASSUNTO</label>
-        <select id="timerManualAssuntoV10422"><option value="">Selecione um assunto</option></select>
-      </div>
-      <div class="field" style="margin:0">
-        <label>HORAS</label>
-        <input id="timerManualHorasV10422" type="number" min="0" max="24" value="0">
-      </div>
-      <div class="field" style="margin:0">
-        <label>MINUTOS</label>
-        <input id="timerManualMinV10422" type="number" min="0" max="59" value="30">
-      </div>
-      <button class="btn btn-primary" id="timerManualSalvarV10422" type="button">＋ Adicionar tempo</button>
-    </div>
-    <div id="timerManualStatusV10422" class="status-line"></div>
-  </div>
-
-  <div class="panel" style="margin-top:16px">
-    <h2>📚 Histórico de sessões</h2>
-    <p class="panel-sub">Registros automáticos e manuais. Nenhum registro desta área marca assunto como concluído.</p>
-    <div id="timerHistoricoV10422"><div class="placeholder">Carregando sessões...</div></div>
-  </div>
-
-  <div class="panel" style="margin-top:16px">
-    <h2>📌 Como funciona</h2>
-    <p class="panel-sub">Iniciar começa a contar. Pausar congela o tempo. Finalizar salva a sessão vinculada ao assunto escolhido. Se a página for fechada durante uma sessão, ela volta pausada para não contar tempo que não foi estudado.</p>
-  </div>
+<div class="estudo-real">
+<h3>📖 Estudo real</h3>
+<p class="panel-sub">O Estudo real usa primeiro os assuntos pendentes planejados para hoje. Ao terminar a fila diária, ele encerra o planejamento do dia sem puxar automaticamente assuntos futuros.</p>
+<div class="estudo-real-box">
+<div class="rotulo">TÓPICO ATUAL</div>
+<h4 id="estudoRealTopico">—</h4>
+<p id="estudoRealInfo">Aguardando uma disciplina ativa no ciclo.</p>
+<button class="btn btn-primary" id="btnConcluirEstudoReal">✓ Concluir tópico estudado</button>
+<div class="status-line" id="statusEstudoReal"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="panel">
+<h3>📚 Ordem do ciclo</h3>
+<p class="panel-sub">Use ↑ e ↓ para organizar. Desmarcar uma disciplina apenas a retira do ciclo; ela continua normalmente no Edital.</p>
+<div class="ciclo-list" id="listaCiclo"></div>
+<div class="ciclo-assuntos">
+<h3>↕ Ordem dos assuntos no ciclo</h3>
+<p class="panel-sub">Mova os assuntos com ↑ e ↓. A ordem é salva no Edital e passa a ser a ordem real de estudo, sem criar cópias e sem alterar a prioridade do Planejamento.</p>
+<div id="listaAssuntosCicloV1022"></div>
+<div class="status-line" id="statusAssuntosCicloV1022"></div>
+</div>
+</div>
+</div><div class="ciclo-lower-v10470"><div class="panel ciclo-week-panel-v10470"><div class="estudo-real ciclo-semana-v104" id="cicloSemanaV104">
+<h3>🗓️ Semana do ciclo</h3>
+<p class="panel-sub">Começa na data atual e só avança até a última data real de assuntos ou revisões espaçadas. Arraste os assuntos entre os dias para reorganizar sem criar cópias.</p>
+<div class="ciclo-semana-toolbar-v104">
+<div class="acoes"><button class="btn btn-outline" id="cicloSemanaAnteriorV104" type="button">← Semana</button><button class="btn btn-outline" id="cicloSemanaHojeV104" type="button">Hoje</button><button class="btn btn-outline" id="cicloSemanaProximaV104" type="button">Semana →</button></div>
+<b id="cicloSemanaPeriodoV104">—</b>
+</div>
+<div class="ciclo-semana-grid-v104" id="cicloSemanaGridV104"></div>
+<div class="status-line" id="cicloSemanaStatusV104"></div>
+</div></div><div class="panel ciclo-side-panel-v10470"><div class="estudo-real" id="cicloPlanejadoHojeV103">
+<h3>📅 Planejamento de hoje</h3>
+<p class="panel-sub">Assuntos definidos no Planejamento para hoje. O Ciclo usa esta fila primeiro; se não houver assunto planejado pendente, segue a ordem normal do ciclo.</p>
+<div class="ciclo-hoje-lista" id="cicloPlanejadoHojeListaV103"></div>
+<div class="status-line" id="cicloPlanejadoHojeStatusV103"></div>
+</div></div></div>
 </section>
-  
-<section id="page-questoes" class="page">
-  <div class="panel">
-    <h2>🎯 Registrar questões</h2>
-    <p class="panel-sub">Escolha a matéria e o assunto do seu Edital. Os resultados ficam organizados automaticamente por matéria → assunto.</p>
-
-    <div class="qm27-form">
-      <label>MATÉRIA
+<section class="page" id="page-timer">
+<h1>Timer</h1>
+<div class="panel">
+<h2>⏱ Timer de estudo</h2>
+<p class="panel-sub">Escolha o assunto estudado. O sistema registra assunto, matéria, data/hora e somente o tempo líquido real.</p>
+<div class="field" style="max-width:760px;margin-top:14px">
+<label>ASSUNTO ESTUDADO</label>
+<select id="timerAssuntoV10422">
+<option value="">Selecione um assunto do Planejamento</option>
+</select>
+</div>
+<div class="v93-timer" style="margin-top:14px">
+<div class="v93-clock" id="timerPageDisplayV10421">00:00:00</div>
+<div class="v931-total">Horas do edital atual: <b id="timerPageTotalV10421">00:00:00</b></div>
+<div class="v931-total" style="margin-top:4px">Total geral estudado: <b id="timerTotalGeralV10423">00:00:00</b></div>
+<div class="actions" style="margin-top:14px">
+<button class="btn btn-primary" id="timerPageStartV10421" type="button">▶ Iniciar</button>
+<button class="btn" id="timerPagePauseV10421" type="button">⏸ Pausar</button>
+<button class="btn" id="timerPageFinishV10421" type="button">✓ Finalizar sessão</button>
+</div>
+<div class="status-line" id="timerPageStatusV10421">Nenhuma sessão em andamento.</div>
+</div>
+</div>
+<div class="panel" style="margin-top:16px">
+<h2>✍️ Adicionar tempo manualmente</h2>
+<p class="panel-sub">Use quando você estudou fora do Timer. Isso soma horas líquidas, mas não conclui o assunto e não altera o Progresso do Edital.</p>
+<div style="display:grid;grid-template-columns:minmax(260px,2fr) 130px 130px auto;gap:12px;align-items:end">
+<div class="field" style="margin:0">
+<label>ASSUNTO</label>
+<select id="timerManualAssuntoV10422"><option value="">Selecione um assunto</option></select>
+</div>
+<div class="field" style="margin:0">
+<label>HORAS</label>
+<input id="timerManualHorasV10422" max="24" min="0" type="number" value="0"/>
+</div>
+<div class="field" style="margin:0">
+<label>MINUTOS</label>
+<input id="timerManualMinV10422" max="59" min="0" type="number" value="30"/>
+</div>
+<button class="btn btn-primary" id="timerManualSalvarV10422" type="button">＋ Adicionar tempo</button>
+</div>
+<div class="status-line" id="timerManualStatusV10422"></div>
+</div>
+<div class="panel" style="margin-top:16px">
+<h2>📚 Histórico de sessões</h2>
+<p class="panel-sub">Registros automáticos e manuais. Nenhum registro desta área marca assunto como concluído.</p>
+<div id="timerHistoricoV10422"><div class="placeholder">Carregando sessões...</div></div>
+</div>
+<div class="panel" style="margin-top:16px">
+<h2>📌 Como funciona</h2>
+<p class="panel-sub">Iniciar começa a contar. Pausar congela o tempo. Finalizar salva a sessão vinculada ao assunto escolhido. Se a página for fechada durante uma sessão, ela volta pausada para não contar tempo que não foi estudado.</p>
+</div>
+</section>
+<section class="page" id="page-questoes">
+<div class="panel">
+<h2>🎯 Registrar questões</h2>
+<p class="panel-sub">Escolha a matéria e o assunto do seu Edital. Os resultados ficam organizados automaticamente por matéria → assunto.</p>
+<div class="qm27-form">
+<label>MATÉRIA
         <select id="qMateriaV10427"><option value="">Selecione a matéria</option></select>
-      </label>
-      <label>ASSUNTO
+</label>
+<label>ASSUNTO
         <select id="qAssuntoV10427"><option value="">Selecione o assunto</option></select>
-      </label>
-      <label>QUESTÕES FEITAS
-        <input id="qFeitasV10427" type="number" min="1" step="1" placeholder="Ex.: 20">
-      </label>
-      <label>ACERTOS
-        <input id="qAcertosV10427" type="number" min="0" step="1" placeholder="Ex.: 16">
-      </label>
-      <button class="btn btn-primary" id="qSalvarV10427" type="button">✓ Registrar</button>
-    </div>
-    <div id="qStatusV10427" class="status-line">Escolha a matéria e o assunto estudado.</div>
-
-    <div class="qm27-summary">
-      <div><span>🎯 Questões resolvidas</span><b id="q27Total">0</b></div>
-      <div><span>✅ Acertos</span><b id="q27Acertos">0</b></div>
-      <div><span>❌ Erros</span><b id="q27Erros">0</b></div>
-      <div><span>📈 Aproveitamento</span><b id="q27Pct">—</b></div>
-    </div>
-  </div>
-
-  <div class="panel" style="margin-top:16px">
-    <h2>📚 Desempenho por matéria</h2>
-    <p class="panel-sub">Abra uma matéria para ver cada assunto, quantidade de questões, acertos, erros e aproveitamento.</p>
-    <div id="qMateriasListaV10427"><div class="qm27-empty">Nenhuma questão organizada por matéria ainda.</div></div>
-  </div>
-
-  <div class="panel" style="margin-top:16px">
-    <h2>🧾 Histórico de questões</h2>
-    <p class="panel-sub">Cada registro fica preservado separadamente e organizado por matéria. Este histórico não altera o Progresso do Edital.</p>
-    <div id="qHistoricoV10429"><div class="qm27-empty">Nenhuma sessão de questões registrada neste histórico ainda.</div></div>
-  </div>
+</label>
+<label>QUESTÕES FEITAS
+        <input id="qFeitasV10427" min="1" placeholder="Ex.: 20" step="1" type="number"/>
+</label>
+<label>ACERTOS
+        <input id="qAcertosV10427" min="0" placeholder="Ex.: 16" step="1" type="number"/>
+</label>
+<button class="btn btn-primary" id="qSalvarV10427" type="button">✓ Registrar</button>
+</div>
+<div class="status-line" id="qStatusV10427">Escolha a matéria e o assunto estudado.</div>
+<div class="qm27-summary">
+<div><span>🎯 Questões resolvidas</span><b id="q27Total">0</b></div>
+<div><span>✅ Acertos</span><b id="q27Acertos">0</b></div>
+<div><span>❌ Erros</span><b id="q27Erros">0</b></div>
+<div><span>📈 Aproveitamento</span><b id="q27Pct">—</b></div>
+</div>
+</div>
+<div class="panel" style="margin-top:16px">
+<h2>📚 Desempenho por matéria</h2>
+<p class="panel-sub">Abra uma matéria para ver cada assunto, quantidade de questões, acertos, erros e aproveitamento.</p>
+<div id="qMateriasListaV10427"><div class="qm27-empty">Nenhuma questão organizada por matéria ainda.</div></div>
+</div>
+<div class="panel" style="margin-top:16px">
+<h2>🧾 Histórico de questões</h2>
+<p class="panel-sub">Cada registro fica preservado separadamente e organizado por matéria. Este histórico não altera o Progresso do Edital.</p>
+<div id="qHistoricoV10429"><div class="qm27-empty">Nenhuma sessão de questões registrada neste histórico ainda.</div></div>
+</div>
 </section>
+<section class="page" id="page-gerenciarEdital">
+<div class="panel ge35-hero">
+<h2>⚙️ Gerenciar Edital</h2>
+<p class="panel-sub">Use esta área quando quiser apagar o edital atual e começar novamente do zero.</p>
+<div class="ge35-warning">⚠️ A limpeza remove somente os dados ativos do edital. Arquivos históricos preservados não são apagados.</div>
+</div>
+<div class="panel" style="margin-top:16px">
+<h2>🧹 Limpar edital atual</h2>
+<p class="panel-sub">Remove e verifica os dados ativos ligados ao edital atual para você começar outro do zero. Dias ativos, minutos/dia e intervalos D1/D7/D15/D30 são mantidos como configuração. Arquivos antigos também são preservados.</p>
+<div class="ge35-warning"><b>Será limpo:</b> Edital, Edital pronto, Planejamento, agenda, Ciclo, execução do ciclo, Revisões ativas, Progresso/Desempenho derivados e Questões do edital atual.</div>
+<div class="actions" style="margin-top:12px">
+<button class="btn btn-danger" id="btnLimpezaCompletaEditalV10436" type="button">🗑️ Limpar edital e dados ativos</button>
+</div>
+<div class="status-line" id="statusLimpezaCompletaV10436"></div>
+</div>
+</section>
+<section class="page" id="page-edital">
+<div class="edital-layout">
+<div class="panel">
+<h3>▥ Carregar edital</h3>
+<p class="panel-sub">Cole um edital verticalizado. Use uma linha com o nome da disciplina e, abaixo, os tópicos. Exemplo: <b>Língua Portuguesa</b> e depois <b>1. Interpretação de textos</b>.</p>
+<div class="field">
+<label>TEXTO DO EDITAL</label>
+<textarea id="textoEditalV2" placeholder="Língua Portuguesa
+1. Compreensão e interpretação de textos
+2. Ortografia
 
-
-  <section id="page-gerenciarEdital" class="page">
-    <div class="panel ge35-hero">
-      <h2>⚙️ Gerenciar Edital</h2>
-      <p class="panel-sub">Use esta área quando quiser apagar o edital atual e começar novamente do zero.</p>
-      <div class="ge35-warning">⚠️ A limpeza remove somente os dados ativos do edital. Arquivos históricos preservados não são apagados.</div>
-    </div>
-
-    <div class="panel" style="margin-top:16px">
-      <h2>🧹 Limpar edital atual</h2>
-      <p class="panel-sub">Remove e verifica os dados ativos ligados ao edital atual para você começar outro do zero. Dias ativos, minutos/dia e intervalos D1/D7/D15/D30 são mantidos como configuração. Arquivos antigos também são preservados.</p>
-      <div class="ge35-warning"><b>Será limpo:</b> Edital, Edital pronto, Planejamento, agenda, Ciclo, execução do ciclo, Revisões ativas, Progresso/Desempenho derivados e Questões do edital atual.</div>
-      <div class="actions" style="margin-top:12px">
-        <button class="btn btn-danger" id="btnLimpezaCompletaEditalV10436" type="button">🗑️ Limpar edital e dados ativos</button>
-      </div>
-      <div id="statusLimpezaCompletaV10436" class="status-line"></div>
-    </div>
-  </section>
-
-  <section id="page-edital" class="page">
-    <div class="edital-layout">
-      <div class="panel">
-        <h3>▥ Carregar edital</h3>
-        <p class="panel-sub">Cole um edital verticalizado. Use uma linha com o nome da disciplina e, abaixo, os tópicos. Exemplo: <b>Língua Portuguesa</b> e depois <b>1. Interpretação de textos</b>.</p>
-        <div class="field">
-          <label>TEXTO DO EDITAL</label>
-          <textarea id="textoEditalV2" rows="14" placeholder="Língua Portuguesa&#10;1. Compreensão e interpretação de textos&#10;2. Ortografia&#10;&#10;Raciocínio Lógico&#10;1. Estruturas lógicas&#10;2. Proposições"></textarea>
-        </div>
-        <div class="actions">
-          <button class="btn btn-primary" id="btnCarregarEditalV2">✨ Carregar edital</button>
-          <button class="btn btn-danger" id="btnLimparEditalV2">🗑 Limpar edital</button>
-        </div>
-        <div id="statusEditalV2" class="status-line"></div>
-      </div>
-
-      <div class="panel">
-        <h3>📋 Edital verticalizado</h3>
-        <p class="panel-sub">Nesta V2 você já pode pesquisar, filtrar, adicionar conteúdo e marcar tópicos como concluídos.</p>
-
-        <div class="edital-toolbar">
-          <div class="field" style="margin:0">
-            <label>FILTRAR DISCIPLINA</label>
-            <select id="filtroMateriaEditalV2"><option value="TODAS">Todas as disciplinas</option></select>
-          </div>
-          <div class="field" style="margin:0">
-            <label>LOCALIZAR ASSUNTO</label>
-            <input id="buscaEditalV2" type="search" placeholder="Ex.: concordância, informática...">
-          </div>
-        </div>
-
-        <div class="edital-summary">
-          <span id="resumoEditalV2">Nenhum edital carregado.</span>
-          <strong id="percentualEditalV2">0%</strong>
-        </div>
-
-        <div class="add-row">
-          <input id="novaMateriaV2" placeholder="Nova disciplina">
-          <button class="btn btn-outline" id="btnAdicionarMateriaV2">+ Disciplina</button>
-          <span></span>
-        </div>
-        <div class="add-row">
-          <select id="materiaNovoTopicoV2"><option value="">Selecione a disciplina</option></select>
-          <input id="novoTopicoV2" placeholder="Novo tópico">
-          <button class="btn btn-outline" id="btnAdicionarTopicoV2">+ Tópico</button>
-        </div>
-
-        <div id="listaEditalV2"></div>
-      </div>
-    </div>
-  </section>
-  <section id="page-progresso" class="page">
-    <div class="panel">
-      <h2>📚 Progresso do Edital</h2>
-      <p class="panel-sub">Calculado pelos assuntos originais do Planejamento. Revisões D1/D7/D15/D30 não entram como novos assuntos.</p>
-      <div class="stats-v92">
-        <div class="stat"><span>📚 Total de assuntos</span><strong id="progTotalV10416">0</strong></div>
-        <div class="stat"><span>✅ Concluídos</span><strong id="progConclV10416">0</strong></div>
-        <div class="stat"><span>⏳ Pendentes</span><strong id="progPendV10416">0</strong></div>
-        <div class="stat"><span>📊 Progresso geral</span><strong id="progPctV10416">0%</strong></div>
-      </div>
-      <div class="stats-bar-v92" style="margin-top:14px">
-        <div class="stats-bar-head-v92"><span>Conclusão dos assuntos</span><b id="progTxtV10416">0 / 0</b></div>
-        <div class="stats-track-v92"><i id="progBarV10416"></i></div>
-      </div>
-      <div id="progPrioridadesV10416" class="prog-prior-v10416"></div>
-      <div id="progFonteV10417" class="status-line"></div>
-    </div>
-    <div class="panel" style="margin-top:16px">
-      <h2>📚 Progresso por matéria</h2>
-      <p class="panel-sub">Cada matéria mostra somente seus assuntos originais, preservando a numeração e a prioridade do Planejamento.</p>
-      <div id="progMateriasV10416"></div>
-    </div>
-    <div class="panel" style="margin-top:16px">
-      <h2>🎯 Questões</h2>
-      <p class="panel-sub">Resumo dos registros já salvos pelo módulo Questões. Nesta versão os dados atuais são gerais; não serão inventados dados por matéria.</p>
-      <div class="stats-v92">
-        <div class="stat"><span>🎯 Resolvidas</span><strong id="progQTotalV10416">0</strong></div>
-        <div class="stat"><span>✅ Acertos</span><strong id="progQAcV10416">0</strong></div>
-        <div class="stat"><span>❌ Erros</span><strong id="progQErV10416">0</strong></div>
-        <div class="stat"><span>📈 Aproveitamento</span><strong id="progQPctV10416">—</strong></div>
-      </div>
-    </div>
-  </section>
-  <section id="page-historico" class="page">
-    <div class="panel">
-      <h2>📜 Histórico de revisões</h2>
-      <p class="panel-sub">Mostra somente revisões realmente concluídas. Simulações não entram no histórico e nenhuma ação nesta tela altera Planejamento, Ciclo ou revisões.</p>
-      <div id="resumoHistoricoV90"></div>
-      <div id="historicoRevisoesV90" style="margin-top:14px"></div>
-    </div>
-    <div class="panel" style="margin-top:16px">
-      <h2>📊 Estatísticas</h2>
-      <p class="panel-sub">As estatísticas existentes continuam usando o motor atual. Esta restauração não cria um segundo motor nem duplica dados.</p>
-      <div class="status-line">Os indicadores completos permanecem na estrutura já existente do sistema; esta etapa restaura primeiro o Histórico sem alterar o núcleo aprovado.</div>
-    </div>
-  </section>
-
-  <section id="page-estatisticas" class="page">
-    <div class="panel">
-      <h2>📊 Meu Desempenho</h2>
-      <p class="panel-sub">Indicadores calculados a partir dos dados reais já existentes. Esta tela não altera Planejamento, Ciclo, Histórico ou revisões.</p>
-      <div class="stats-v92">
-        <div class="stat"><span>📚 Tópicos estudados</span><strong id="estatTopicosV10414">0</strong></div>
-        <div class="stat"><span>🔁 Revisões concluídas</span><strong id="estatRevisoesV10414">0</strong></div>
-        <div class="stat"><span>🎯 Revisões no prazo</span><strong id="estatPrazoV10414">0%</strong></div>
-        <div class="stat"><span>📅 Dias estudados</span><strong id="estatDiasV10414">0</strong></div>
-      </div>
-      <div class="stats-detail-v92" style="margin-top:12px">
-        <div><span>D1 CONCLUÍDAS</span><b id="estatD1V10414">0</b></div>
-        <div><span>D7 CONCLUÍDAS</span><b id="estatD7V10414">0</b></div>
-        <div><span>D15 CONCLUÍDAS</span><b id="estatD15V10414">0</b></div>
-        <div><span>D30 CONCLUÍDAS</span><b id="estatD30V10414">0</b></div>
-      </div>
-      <div class="stats-bars-v92" style="margin-top:14px">
-        <div class="stats-bar-head-v92"><span>Progresso das revisões</span><b id="estatRevTxtV10414">0 / 0</b></div>
-        <div class="stats-track-v92"><i id="estatRevBarV10414"></i></div>
-      </div>
-      <div id="estatStatusV10414" class="status-line"></div>
-    </div>
-    <div class="panel" style="margin-top:16px">
-      <h2>🎯 Estatísticas de questões</h2>
-      <p class="panel-sub">Lê os registros já salvos pelo módulo Questões. Nenhum registro é criado ou modificado nesta tela.</p>
-      <div class="v95-qstats">
-        <div><span>🎯 Questões resolvidas</span><b id="estatQuestoesV10414">0</b></div>
-        <div><span>✅ Acertos</span><b id="estatAcertosV10414">0</b></div>
-        <div><span>❌ Erros</span><b id="estatErrosV10414">0</b></div>
-        <div><span>📈 Aproveitamento</span><b id="estatPctV10414">—</b></div>
-      </div>
-    </div>
-  </section>
-  <section id="page-planejamento" class="page">
+Raciocínio Lógico
+1. Estruturas lógicas
+2. Proposições" rows="14"></textarea>
+</div>
+<div class="actions">
+<button class="btn btn-primary" id="btnCarregarEditalV2">✨ Carregar edital</button>
+<button class="btn btn-danger" id="btnLimparEditalV2">🗑 Limpar edital</button>
+</div>
+<div class="status-line" id="statusEditalV2"></div>
+</div>
+<div class="panel">
+<h3>📋 Edital verticalizado</h3>
+<p class="panel-sub">Nesta V2 você já pode pesquisar, filtrar, adicionar conteúdo e marcar tópicos como concluídos.</p>
+<div class="edital-toolbar">
+<div class="field" style="margin:0">
+<label>FILTRAR DISCIPLINA</label>
+<select id="filtroMateriaEditalV2"><option value="TODAS">Todas as disciplinas</option></select>
+</div>
+<div class="field" style="margin:0">
+<label>LOCALIZAR ASSUNTO</label>
+<input id="buscaEditalV2" placeholder="Ex.: concordância, informática..." type="search"/>
+</div>
+</div>
+<div class="edital-summary">
+<span id="resumoEditalV2">Nenhum edital carregado.</span>
+<strong id="percentualEditalV2">0%</strong>
+</div>
+<div class="add-row">
+<input id="novaMateriaV2" placeholder="Nova disciplina"/>
+<button class="btn btn-outline" id="btnAdicionarMateriaV2">+ Disciplina</button>
+<span></span>
+</div>
+<div class="add-row">
+<select id="materiaNovoTopicoV2"><option value="">Selecione a disciplina</option></select>
+<input id="novoTopicoV2" placeholder="Novo tópico"/>
+<button class="btn btn-outline" id="btnAdicionarTopicoV2">+ Tópico</button>
+</div>
+<div id="listaEditalV2"></div>
+</div>
+</div>
+</section>
+<section class="page" id="page-progresso">
+<div class="panel">
+<h2>📚 Progresso do Edital</h2>
+<p class="panel-sub">Calculado pelos assuntos originais do Planejamento. Revisões D1/D7/D15/D30 não entram como novos assuntos.</p>
+<div class="stats-v92">
+<div class="stat"><span>📚 Total de assuntos</span><strong id="progTotalV10416">0</strong></div>
+<div class="stat"><span>✅ Concluídos</span><strong id="progConclV10416">0</strong></div>
+<div class="stat"><span>⏳ Pendentes</span><strong id="progPendV10416">0</strong></div>
+<div class="stat"><span>📊 Progresso geral</span><strong id="progPctV10416">0%</strong></div>
+</div>
+<div class="stats-bar-v92" style="margin-top:14px">
+<div class="stats-bar-head-v92"><span>Conclusão dos assuntos</span><b id="progTxtV10416">0 / 0</b></div>
+<div class="stats-track-v92"><i id="progBarV10416"></i></div>
+</div>
+<div class="prog-prior-v10416" id="progPrioridadesV10416"></div>
+<div class="status-line" id="progFonteV10417"></div>
+</div>
+<div class="panel" style="margin-top:16px">
+<h2>📚 Progresso por matéria</h2>
+<p class="panel-sub">Cada matéria mostra somente seus assuntos originais, preservando a numeração e a prioridade do Planejamento.</p>
+<div id="progMateriasV10416"></div>
+</div>
+<div class="panel" style="margin-top:16px">
+<h2>🎯 Questões</h2>
+<p class="panel-sub">Resumo dos registros já salvos pelo módulo Questões. Nesta versão os dados atuais são gerais; não serão inventados dados por matéria.</p>
+<div class="stats-v92">
+<div class="stat"><span>🎯 Resolvidas</span><strong id="progQTotalV10416">0</strong></div>
+<div class="stat"><span>✅ Acertos</span><strong id="progQAcV10416">0</strong></div>
+<div class="stat"><span>❌ Erros</span><strong id="progQErV10416">0</strong></div>
+<div class="stat"><span>📈 Aproveitamento</span><strong id="progQPctV10416">—</strong></div>
+</div>
+</div>
+</section>
+<section class="page" id="page-historico">
+<div class="panel">
+<h2>📜 Histórico de revisões</h2>
+<p class="panel-sub">Mostra somente revisões realmente concluídas. Simulações não entram no histórico e nenhuma ação nesta tela altera Planejamento, Ciclo ou revisões.</p>
+<div id="resumoHistoricoV90"></div>
+<div id="historicoRevisoesV90" style="margin-top:14px"></div>
+</div>
+<div class="panel" style="margin-top:16px">
+<h2>📊 Estatísticas</h2>
+<p class="panel-sub">As estatísticas existentes continuam usando o motor atual. Esta restauração não cria um segundo motor nem duplica dados.</p>
+<div class="status-line">Os indicadores completos permanecem na estrutura já existente do sistema; esta etapa restaura primeiro o Histórico sem alterar o núcleo aprovado.</div>
+</div>
+</section>
+<section class="page" id="page-estatisticas">
+<div class="panel">
+<h2>📊 Meu Desempenho</h2>
+<p class="panel-sub">Indicadores calculados a partir dos dados reais já existentes. Esta tela não altera Planejamento, Ciclo, Histórico ou revisões.</p>
+<div class="stats-v92">
+<div class="stat"><span>📚 Tópicos estudados</span><strong id="estatTopicosV10414">0</strong></div>
+<div class="stat"><span>🔁 Revisões concluídas</span><strong id="estatRevisoesV10414">0</strong></div>
+<div class="stat"><span>🎯 Revisões no prazo</span><strong id="estatPrazoV10414">0%</strong></div>
+<div class="stat"><span>📅 Dias estudados</span><strong id="estatDiasV10414">0</strong></div>
+</div>
+<div class="stats-detail-v92" style="margin-top:12px">
+<div><span>D1 CONCLUÍDAS</span><b id="estatD1V10414">0</b></div>
+<div><span>D7 CONCLUÍDAS</span><b id="estatD7V10414">0</b></div>
+<div><span>D15 CONCLUÍDAS</span><b id="estatD15V10414">0</b></div>
+<div><span>D30 CONCLUÍDAS</span><b id="estatD30V10414">0</b></div>
+</div>
+<div class="stats-bars-v92" style="margin-top:14px">
+<div class="stats-bar-head-v92"><span>Progresso das revisões</span><b id="estatRevTxtV10414">0 / 0</b></div>
+<div class="stats-track-v92"><i id="estatRevBarV10414"></i></div>
+</div>
+<div class="status-line" id="estatStatusV10414"></div>
+</div>
+<div class="panel" style="margin-top:16px">
+<h2>🎯 Estatísticas de questões</h2>
+<p class="panel-sub">Lê os registros já salvos pelo módulo Questões. Nenhum registro é criado ou modificado nesta tela.</p>
+<div class="v95-qstats">
+<div><span>🎯 Questões resolvidas</span><b id="estatQuestoesV10414">0</b></div>
+<div><span>✅ Acertos</span><b id="estatAcertosV10414">0</b></div>
+<div><span>❌ Erros</span><b id="estatErrosV10414">0</b></div>
+<div><span>📈 Aproveitamento</span><b id="estatPctV10414">—</b></div>
+</div>
+</div>
+</section>
+<section class="page" id="page-planejamento">
 <h1>Planejamento</h1>
 <div class="panel" id="planConfigDiasAtivosV10412" style="margin-bottom:16px">
-  <h2>📆 Dias ativos de estudo</h2>
-  <p class="panel-sub">Escolha os dias da semana em que o Planejamento pode distribuir assuntos. Esta configuração já existia no motor do sistema e voltou a ficar visível aqui.</p>
-  <div class="plan-dias">
-    <label class="plan-dia"><input type="checkbox" data-plan-dia="1"> Segunda-feira</label>
-    <label class="plan-dia"><input type="checkbox" data-plan-dia="2"> Terça-feira</label>
-    <label class="plan-dia"><input type="checkbox" data-plan-dia="3"> Quarta-feira</label>
-    <label class="plan-dia"><input type="checkbox" data-plan-dia="4"> Quinta-feira</label>
-    <label class="plan-dia"><input type="checkbox" data-plan-dia="5"> Sexta-feira</label>
-    <label class="plan-dia"><input type="checkbox" data-plan-dia="6"> Sábado</label>
-    <label class="plan-dia"><input type="checkbox" data-plan-dia="0"> Domingo</label>
-  </div>
-  <div class="plan-resumo">
-    <div><span>DIAS ATIVOS</span><strong id="planResumoDias">0</strong></div>
-    <div><span>MINUTOS/DIA</span><strong id="planResumoMin">120 min</strong></div>
-    <div><span>REVISÕES</span><strong id="planResumoRev">4</strong></div>
-  </div>
-  <div style="display:none" aria-hidden="true">
-    <input id="planMinutosDia" type="number" min="10" max="1440" value="120">
-    <input type="checkbox" data-plan-rev="1" checked>
-    <input type="checkbox" data-plan-rev="7" checked>
-    <input type="checkbox" data-plan-rev="15" checked>
-    <input type="checkbox" data-plan-rev="30" checked>
-  </div>
-  <div class="actions" style="margin-top:12px"><button class="btn btn-primary" id="btnSalvarPlanejamento" type="button">💾 Salvar dias ativos</button></div>
-  <div id="statusPlanejamento" class="status-line"></div>
+<h2>📆 Dias ativos de estudo</h2>
+<p class="panel-sub">Escolha os dias da semana em que o Planejamento pode distribuir assuntos. Esta configuração já existia no motor do sistema e voltou a ficar visível aqui.</p>
+<div class="plan-dias">
+<label class="plan-dia"><input data-plan-dia="1" type="checkbox"/> Segunda-feira</label>
+<label class="plan-dia"><input data-plan-dia="2" type="checkbox"/> Terça-feira</label>
+<label class="plan-dia"><input data-plan-dia="3" type="checkbox"/> Quarta-feira</label>
+<label class="plan-dia"><input data-plan-dia="4" type="checkbox"/> Quinta-feira</label>
+<label class="plan-dia"><input data-plan-dia="5" type="checkbox"/> Sexta-feira</label>
+<label class="plan-dia"><input data-plan-dia="6" type="checkbox"/> Sábado</label>
+<label class="plan-dia"><input data-plan-dia="0" type="checkbox"/> Domingo</label>
+</div>
+<div class="plan-resumo">
+<div><span>DIAS ATIVOS</span><strong id="planResumoDias">0</strong></div>
+<div><span>MINUTOS/DIA</span><strong id="planResumoMin">120 min</strong></div>
+<div><span>REVISÕES</span><strong id="planResumoRev">4</strong></div>
+</div>
+<div aria-hidden="true" style="display:none">
+<input id="planMinutosDia" max="1440" min="10" type="number" value="120"/>
+<input checked="" data-plan-rev="1" type="checkbox"/>
+<input checked="" data-plan-rev="7" type="checkbox"/>
+<input checked="" data-plan-rev="15" type="checkbox"/>
+<input checked="" data-plan-rev="30" type="checkbox"/>
+</div>
+<div class="actions" style="margin-top:12px"><button class="btn btn-primary" id="btnSalvarPlanejamento" type="button">💾 Salvar dias ativos</button></div>
+<div class="status-line" id="statusPlanejamento"></div>
 </div>
 <div class="panel"><h2>🗓 Planejamento por prioridade</h2><p class="panel-sub">Assuntos recebidos do Edital pronto. P1 aparece primeiro, depois P2 e P3.</p>
 <div class="v101-plan-summary"><div><span>🔴 P1</span><b id="planP1V101">0</b></div><div><span>🟡 P2</span><b id="planP2V101">0</b></div><div><span>🟢 P3</span><b id="planP3V101">0</b></div><div><span>📚 Total</span><b id="planTotalV101">0</b></div></div>
-<div id="planejamentoV101Status" class="status-line">Nenhum edital enviado ao Planejamento ainda.</div>
+<div class="status-line" id="planejamentoV101Status">Nenhum edital enviado ao Planejamento ainda.</div>
 <div class="v102-toolbar">
-<label>Data inicial do planejamento<input id="planDataInicialV102" type="date"></label>
+<label>Data inicial do planejamento<input id="planDataInicialV102" type="date"/></label>
 <label>Assuntos por dia
 <select id="planQtdDiaV102">
 <option value="1">1 assunto</option>
-<option value="2" selected>2 assuntos</option>
+<option selected="" value="2">2 assuntos</option>
 <option value="3">3 assuntos</option>
 <option value="4">4 assuntos</option>
 <option value="5">5 assuntos</option>
 </select>
 </label>
 <button id="planGerarV102" type="button">📅 Montar planejamento</button>
-<button id="planRegenerarPendentesV1045" type="button" title="Redistribui somente assuntos ainda não concluídos">🔄 Regenerar pendentes</button>
+<button id="planRegenerarPendentesV1045" title="Redistribui somente assuntos ainda não concluídos" type="button">🔄 Regenerar pendentes</button>
 </div>
-<div id="planejamentoV102Status" class="status-line"></div>
-<div id="planejamentoV101Lista" class="v101-plan-list"></div></div></section>
-  <section id="page-diagnostico" class="page">
+<div class="status-line" id="planejamentoV102Status"></div>
+<div class="v101-plan-list" id="planejamentoV101Lista"></div></div></section>
+<section class="page" id="page-diagnostico">
 <div class="panel">
 <h2>🛠 Diagnóstico da V3</h2>
 <p class="panel-sub">Ferramenta temporária de desenvolvimento. Não mostra senha nem tokens.</p>
 <div class="plan-aviso" style="margin:14px 0">
-  <b>🧹 Reset de teste — usuário atual</b><br>
+<b>🧹 Reset de teste — usuário atual</b><br/>
   Limpa somente a execução/voltas e o motor de revisões deste UID.
-  Edital, tópicos, configuração do Ciclo e Planejamento são preservados.<br><br>
-  <button class="btn btn-danger" id="btnResetTesteV841" type="button">🧹 Zerar histórico de teste</button>
-  <div id="statusResetTesteV841" class="status-line"></div>
+  Edital, tópicos, configuração do Ciclo e Planejamento são preservados.<br/><br/>
+<button class="btn btn-danger" id="btnResetTesteV841" type="button">🧹 Zerar histórico de teste</button>
+<div class="status-line" id="statusResetTesteV841"></div>
 </div>
 <button class="btn btn-primary" id="btnExecutarDiagnostico">Executar diagnóstico</button>
 <div id="diagResumo" style="margin-top:16px;font-weight:700"></div>
 <div id="diagLista" style="margin-top:12px;display:grid;gap:8px"></div>
 </div></section>
-<section id="page-seguranca" class="page"><div class="placeholder"><b>Segurança</b><br>V1 usa Firebase Authentication para a conta Eduardo. Gestão de Utilizadores e Motivação foram deixadas de fora.</div></section>
-
-<section id="page-editalPronto" class="page" style="display:none">
-  <div class="panel">
-    <h2>📚 Edital pronto</h2>
-    <p class="panel-sub">Escolha um edital pronto publicado pelo administrador, ajuste suas prioridades e envie para o Planejamento.</p>
-
-    <div class="v100-edital-toolbar">
-      <label>Concurso / edital
+<section class="page" id="page-seguranca"><div class="placeholder"><b>Segurança</b><br/>V1 usa Firebase Authentication para a conta Eduardo. Gestão de Utilizadores e Motivação foram deixadas de fora.</div></section>
+<section class="page" id="page-editalPronto" style="display:none">
+<div class="panel">
+<h2>📚 Edital pronto</h2>
+<p class="panel-sub">Escolha um edital pronto publicado pelo administrador, ajuste suas prioridades e envie para o Planejamento.</p>
+<div class="v100-edital-toolbar">
+<label>Concurso / edital
         <select id="editalProntoSelectV100">
-          <option value="">Selecione um edital</option>
-          
-        </select>
-      </label>
-      <button class="primary" id="carregarEditalV100" type="button">📥 Carregar edital</button>
-    </div>
-
-    <div id="editalProntoStatusV100" class="status-line">Nenhum edital selecionado.</div>
-
-    <div id="editalProntoConteudoV100" style="display:none">
-      <div class="v100-head">
-        <div>
-          <h3 id="editalProntoTituloV100">Edital</h3>
-          <p class="panel-sub">A prioridade fica em cada assunto. P1 = mais importante.</p>
-        </div>
-        <div class="v100-legend">
-          <span>🔴 P1 Alta</span><span>🟡 P2 Média</span><span>🟢 P3 Normal</span>
-        </div>
-      </div>
-
-      <div id="editalProntoListaV100" class="v100-list"></div>
-
-      <div class="v100-actions">
-        <button id="restaurarPrioridadesV100" type="button">↩ Restaurar prioridades</button>
-        <button class="primary" id="enviarPlanejamentoV100" type="button">➡ Enviar para Planejamento</button>
-      </div>
-      <div id="envioPlanejamentoStatusV100" class="status-line"></div>
-    </div>
-  </div>
+<option value="">Selecione um edital</option>
+</select>
+</label>
+<button class="primary" id="carregarEditalV100" type="button">📥 Carregar edital</button>
+</div>
+<div class="status-line" id="editalProntoStatusV100">Nenhum edital selecionado.</div>
+<div id="editalProntoConteudoV100" style="display:none">
+<div class="v100-head">
+<div>
+<h3 id="editalProntoTituloV100">Edital</h3>
+<p class="panel-sub">A prioridade fica em cada assunto. P1 = mais importante.</p>
+</div>
+<div class="v100-legend">
+<span>🔴 P1 Alta</span><span>🟡 P2 Média</span><span>🟢 P3 Normal</span>
+</div>
+</div>
+<div class="v100-list" id="editalProntoListaV100"></div>
+<div class="v100-actions">
+<button id="restaurarPrioridadesV100" type="button">↩ Restaurar prioridades</button>
+<button class="primary" id="enviarPlanejamentoV100" type="button">➡ Enviar para Planejamento</button>
+</div>
+<div class="status-line" id="envioPlanejamentoStatusV100"></div>
+</div>
+</div>
 </section>
+<section class="page" id="page-adminEditais">
+<div class="panel" style="border-color:#6d5524;background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(99,102,241,.06))">
+<h2>👑 Administração • Editais prontos</h2>
+<p class="panel-sub">Área exclusiva do administrador. Crie, edite, publique ou exclua modelos que aparecerão na aba “Edital pronto” dos usuários.</p>
+<div class="status-line" id="adminEditaisStatusV10439">Verificando permissão de administrador...</div>
+</div>
+<div class="hidden" id="adminEditaisAreaV10439">
+<div class="panel" style="margin-top:16px">
+<h2>📝 Criar / editar edital pronto</h2>
+<div class="field"><label>NOME DO CONCURSO / EDITAL</label><input id="adminEditalTituloV10439" placeholder="Ex.: PMPE — Soldado 2026"/></div>
+<details class="materia-card" open="" style="margin:12px 0">
+<summary style="cursor:pointer;font-weight:800;padding:4px 0">📋 Importar edital por texto</summary>
+<p class="panel-sub" style="margin-top:8px">Cole o edital verticalizado. Depois clique em “Transformar em editor visual”.</p>
+<div class="field"><label>TEXTO DO EDITAL</label><textarea id="adminEditalTextoV10439" placeholder="Língua Portuguesa
+1. Interpretação de textos
+2. Ortografia
 
-
-<section id="page-adminEditais" class="page">
-  <div class="panel" style="border-color:#6d5524;background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(99,102,241,.06))">
-    <h2>👑 Administração • Editais prontos</h2>
-    <p class="panel-sub">Área exclusiva do administrador. Crie, edite, publique ou exclua modelos que aparecerão na aba “Edital pronto” dos usuários.</p>
-    <div id="adminEditaisStatusV10439" class="status-line">Verificando permissão de administrador...</div>
-  </div>
-  <div id="adminEditaisAreaV10439" class="hidden">
-    <div class="panel" style="margin-top:16px">
-      <h2>📝 Criar / editar edital pronto</h2>
-      <div class="field"><label>NOME DO CONCURSO / EDITAL</label><input id="adminEditalTituloV10439" placeholder="Ex.: PMPE — Soldado 2026"></div>
-      <details class="materia-card" style="margin:12px 0" open>
-        <summary style="cursor:pointer;font-weight:800;padding:4px 0">📋 Importar edital por texto</summary>
-        <p class="panel-sub" style="margin-top:8px">Cole o edital verticalizado. Depois clique em “Transformar em editor visual”.</p>
-        <div class="field"><label>TEXTO DO EDITAL</label><textarea id="adminEditalTextoV10439" rows="10" placeholder="Língua Portuguesa&#10;1. Interpretação de textos&#10;2. Ortografia&#10;&#10;Direito Constitucional&#10;1. Direitos e garantias fundamentais"></textarea></div>
-        <div class="actions"><button class="btn btn-outline" id="adminImportarTextoV10440" type="button">✨ Transformar em editor visual</button></div>
-      </details>
-
-      <div class="materia-card" style="margin:12px 0">
-        <div class="materia-head"><div><h4>🧩 Editor visual do edital</h4><div class="materia-count" id="adminResumoVisualV10440">0 matéria(s) • 0 assunto(s)</div></div></div>
-        <div class="actions" style="margin:12px 0">
-          <input id="adminNovaMateriaV10440" placeholder="Nome da nova matéria" style="min-width:260px;flex:1">
-          <button class="btn btn-outline" id="adminAdicionarMateriaV10440" type="button">＋ Adicionar matéria</button>
-        </div>
-        <div id="adminEditorVisualV10440"></div>
-      </div>
-
-      <label style="display:flex;gap:8px;align-items:center;margin:10px 0 14px"><input id="adminEditalPublicadoV10439" type="checkbox" checked style="width:auto"> Publicado para os usuários</label>
-      <div class="actions"><button class="btn btn-primary" id="adminSalvarEditalV10439" type="button">💾 Salvar edital pronto</button><button class="btn btn-outline" id="adminNovoEditalV10439" type="button">＋ Novo / limpar formulário</button></div>
-      <div id="adminFormStatusV10439" class="status-line"></div>
-    </div>
-    <div class="panel" style="margin-top:16px"><h2>📚 Editais cadastrados</h2><p class="panel-sub">Somente editais publicados aparecem para usuários comuns.</p><div id="adminListaEditaisV10439"></div></div>
-  </div>
+Direito Constitucional
+1. Direitos e garantias fundamentais" rows="10"></textarea></div>
+<div class="actions"><button class="btn btn-outline" id="adminImportarTextoV10440" type="button">✨ Transformar em editor visual</button></div>
+</details>
+<div class="materia-card" style="margin:12px 0">
+<div class="materia-head"><div><h4>🧩 Editor visual do edital</h4><div class="materia-count" id="adminResumoVisualV10440">0 matéria(s) • 0 assunto(s)</div></div></div>
+<div class="actions" style="margin:12px 0">
+<input id="adminNovaMateriaV10440" placeholder="Nome da nova matéria" style="min-width:260px;flex:1"/>
+<button class="btn btn-outline" id="adminAdicionarMateriaV10440" type="button">＋ Adicionar matéria</button>
+</div>
+<div id="adminEditorVisualV10440"></div>
+</div>
+<label style="display:flex;gap:8px;align-items:center;margin:10px 0 14px"><input checked="" id="adminEditalPublicadoV10439" style="width:auto" type="checkbox"/> Publicado para os usuários</label>
+<div class="actions"><button class="btn btn-primary" id="adminSalvarEditalV10439" type="button">💾 Salvar edital pronto</button><button class="btn btn-outline" id="adminNovoEditalV10439" type="button">＋ Novo / limpar formulário</button></div>
+<div class="status-line" id="adminFormStatusV10439"></div>
+</div>
+<div class="panel" style="margin-top:16px"><h2>📚 Editais cadastrados</h2><p class="panel-sub">Somente editais publicados aparecem para usuários comuns.</p><div id="adminListaEditaisV10439"></div></div>
+</div>
 </section>
-
 </main>
 </section>
 <script>
@@ -3934,7 +4004,6 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{v100Bind();v100
 setTimeout(()=>{v100Bind();v100CarregarSalvo();},2100);
 
 </script>
-
 <script id="v10413-historico-ui">
 (function(){
   document.addEventListener('click', function(e){
@@ -3950,7 +4019,6 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();},2100);
   },700);
 })();
 </script>
-
 <script id="v10414-estatisticas-ui">
 (function(){
   function renderEstatisticasV10414(){
@@ -3991,7 +4059,6 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();},2100);
   window.renderEstatisticasV10414=renderEstatisticasV10414;
 })();
 </script>
-
 <script id="v10416-progresso-ui">
 (function(){
  function esc(x){return String(x??'').replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));}
@@ -4340,8 +4407,6 @@ setTimeout(()=>{v100Bind();v100CarregarSalvo();},2100);
   setTimeout(bind27,2200);
 })();
 </script>
-
-
 <script id="v10439-admin-editais-prontos">
 // V10.4.39 — Catálogo global de editais prontos + administração por perfil.
 let v10439IsAdmin=false, v10439EditandoId=null, v10439Catalogo={};
@@ -4474,8 +4539,6 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
   setTimeout(bind,1200);
 })();
 </script>
-
-
 <!-- V10.4.51 — TROFÉU DE CONCLUSÃO: camada isolada; não altera persistência/checklist -->
 <style id="v10444-trofeu-css">
 #v10444Victory{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;pointer-events:none;background:rgba(4,9,18,.22)}
@@ -4485,7 +4548,7 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 .v10444-box strong{display:block;font-size:1.35rem;color:#fff}.v10444-box span{display:block;margin-top:7px;color:#b9c8dd;font-size:.92rem}
 @keyframes v10444Pop{0%{transform:scale(.72);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}@keyframes v10444Fade{from{opacity:0}to{opacity:1}}
 </style>
-<div id="v10444Victory" role="status" aria-live="polite"><div class="v10444-box"><div class="v10444-trophy">🏆</div><strong id="v10444VictoryTitle">Parabéns!</strong><span id="v10444VictoryText">Mais uma etapa concluída!</span></div></div>
+<div aria-live="polite" id="v10444Victory" role="status"><div class="v10444-box"><div class="v10444-trophy">🏆</div><strong id="v10444VictoryTitle">Parabéns!</strong><span id="v10444VictoryText">Mais uma etapa concluída!</span></div></div>
 <script id="v10444-trofeu-js">
 (function(){
  let timer=null;
@@ -4511,8 +4574,6 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
 })();
 </script>
-
-
 <!-- =========================================================
  V10.4.51 — MOBILE: CARDS DO CICLO MAIS LARGOS E LEGÍVEIS
  Somente layout responsivo. Não altera Firebase, checklist,
@@ -4568,7 +4629,6 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
   }
 }
 </style>
-
 <script id="v10445-mobile-card-fix">
 (function () {
   function ajustarCardsMobile() {
@@ -4610,8 +4670,6 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
   });
 })();
 </script>
-
-
 <!-- =========================================================
  V10.4.51 — CORREÇÃO REAL DOS CARDS "PLANEJAMENTO DE HOJE"
  No celular: checkbox + número + prioridade na 1ª linha;
@@ -4686,8 +4744,6 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
   }
 }
 </style>
-
-
 <!-- =========================================================
  V10.4.51 — PENDENTES DE HOJE: CORREÇÃO INDEPENDENTE DO VIEWPORT
  A coluna do Ciclo pode ser estreita mesmo em tela > 768px.
@@ -4752,8 +4808,6 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
   line-height:1.35 !important;
 }
 </style>
-
-
 <!-- V10.4.58 — D1 usa a data LOCAL da conclusão (corrige virada UTC/Brasil) -->
 <script id="v10452-d1-core-fix">
 (function(){
@@ -4773,7 +4827,6 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
  setTimeout(function(){reconstruir().catch(function(){})},2500);setTimeout(function(){reconstruir().catch(function(){})},4500);
 })();
 </script>
-
 <!-- V10.4.58 — migração automática de revisões antigas +1 dia -->
 <script id="v10456-migracao-revisoes-antigas">
 (function(){
@@ -4862,8 +4915,6 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
   window.migrarRevisoesAntigasV10456=migrarV10456;
 })();
 </script>
-
-
 <!-- V10.4.58 — normalização visual/persistente das revisões antigas do ADM -->
 <script id="v10457-adm-review-date-normalizer">
 (function(){
@@ -4978,6 +5029,5 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
   window.v10457NormalizarRevisoesADM=executar57;
 })();
 </script>
-
 </body>
 </html>

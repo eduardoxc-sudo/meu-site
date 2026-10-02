@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.14 • DASHBOARD COMPLETO</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.15 • DASHBOARD FIX DEFINITIVO</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -5978,22 +5978,16 @@ html body :is(
    Cronômetro, Questões e Estatísticas completas já existem
    respectivamente em Timer, Questões e Meu Desempenho.
 */
-#page-dashboard :is(
-  #dashTimerV104,
-  #dashQuestoesV104,
-  #dashEstatisticasV104,
-  [class*="dashboard-timer"],
-  [class*="dash-timer"],
-  [class*="dashboard-quest"],
-  [class*="dash-quest"],
-  [class*="dashboard-estat"],
-  [class*="dash-estat"]
-){
-  display:none !important;
-}
+/* V10.5.15: regra antiga que ocultava partes do Dashboard removida definitivamente. */
 </style>
-<style id="v10514-dashboard-restaurado">
-#page-dashboard > .panel{visibility:visible !important;}
+<style id="v10515-dashboard-estavel">
+/* Dashboard: os quatro blocos principais permanecem no fluxo normal.
+   Nenhuma rotina antiga pode ocultá-los após a troca de abas. */
+#page-dashboard{visibility:visible;}
+#page-dashboard > .hero,
+#page-dashboard > .grid,
+#page-dashboard > .panel{visibility:visible !important;opacity:1 !important;}
+#page-dashboard > .panel{display:block !important;}
 </style>
 
 <script id="v10493-semantic-cleanup">
@@ -6034,15 +6028,7 @@ html body :is(
       "executar ciclo"
     ]);
 
-    /* V10.5.14 — Dashboard completo restaurado.
-       Não ocultar Questões, Cronômetro nem Estatísticas. */
-    if(dash){
-      Array.from(dash.children).forEach(function(box){
-        const h=box.querySelector && box.querySelector("h1,h2,h3,h4");
-        const t=norm(h && h.textContent);
-        if(["questões","cronômetro de estudo","estatísticas de estudo"].some(function(term){return t.includes(term);})) box.style.removeProperty("display");
-      });
-    }
+    /* V10.5.15: Dashboard não é mais manipulado por esta rotina. */
   }
 
   document.addEventListener("DOMContentLoaded", applyV10493);

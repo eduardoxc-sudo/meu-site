@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.15 • DASHBOARD FIX DEFINITIVO</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.16 • SEQUÊNCIA FONTE ÚNICA</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -2852,13 +2852,30 @@ function v922DiaAtivo(d){
  return ativos.includes(d.getDay());
 }
 function v922DatasAtividadeReal(){
- const origens=Object.values(revisoesMotor?.origens||{}).filter(o=>o&&revOrigemExisteNoEdital(o));
- const hist=v90HistoricoReal();
- const s=new Set(origens.map(o=>String(o.dataEstudo||'').slice(0,10)).filter(Boolean));
- hist.forEach(x=>{
-   const d=new Date(x.concluidaEm);
+ // V10.5.16: FONTE ÚNICA da sequência.
+ // Antes esta função ignorava assuntos concluídos da agenda; outro renderizador
+ // enxergava esses assuntos e mostrava 1, mas esta rotina rodava depois e voltava para 0.
+ const s=new Set();
+ const addData=v=>{
+   if(!v)return;
+   const txt=String(v);
+   const m=txt.match(/^(\d{4}-\d{2}-\d{2})/);
+   if(m){s.add(m[1]);return;}
+   const d=new Date(v);
    if(!isNaN(d))s.add(v922IsoLocal(d));
- });
+ };
+ try{
+   const origens=Object.values(revisoesMotor?.origens||{}).filter(o=>o&&revOrigemExisteNoEdital(o));
+   origens.forEach(o=>addData(o.dataEstudo));
+ }catch(_){}
+ try{
+   const agenda=(typeof agendaV102!=='undefined'&&Array.isArray(agendaV102?.itens))?agendaV102.itens:[];
+   agenda.filter(a=>a&&(a.concluidoEm||a.concluido===true||a.status==='concluido'))
+         .forEach(a=>addData(a.concluidoEm||a.dataEstudo||a.data));
+ }catch(_){}
+ try{
+   v90HistoricoReal().forEach(x=>addData(x.concluidaEm));
+ }catch(_){}
  return s;
 }
 function v922CalcularSequencia(datasAtividade, referencia){
@@ -7470,5 +7487,23 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
 })();
 </script>
 
+
+<script id="v10516-sequencia-fonte-unica">
+(function(){
+ function atualizar(){
+   try{
+     if(typeof v922DatasAtividadeReal!=="function"||typeof v922CalcularSequencia!=="function")return;
+     const el=document.getElementById('dashSeqV92');
+     if(!el)return;
+     const seq=v922CalcularSequencia(v922DatasAtividadeReal(),new Date());
+     const valor=Number.isFinite(Number(seq))?String(Number(seq)):'0';
+     if(el.textContent!==valor)el.textContent=valor;
+   }catch(e){console.warn('V10.5.16 sequência',e);}
+ }
+ document.addEventListener('click',e=>{if(e.target.closest?.('[data-page="dashboard"]')){setTimeout(atualizar,0);setTimeout(atualizar,100);setTimeout(atualizar,700);}},true);
+ window.addEventListener('load',()=>{setTimeout(atualizar,900);setTimeout(atualizar,2200);});
+ window.v10516AtualizarSequencia=atualizar;
+})();
+</script>
 </body>
 </html>

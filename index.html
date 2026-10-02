@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.04 • EDITAL ATIVO SINCRONIZADO</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.05 • HISTÓRICO MANUAL CORRIGIDO</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -2621,12 +2621,18 @@ function v10422PopularAssuntos(){
  });
 }
 async function v10422SalvarSessao(dados){
- const r=v10422SessoesRef(); if(!r)return;
+ const r=v10422SessoesRef();
+ if(!r) throw new Error('Usuário não autenticado para salvar sessão.');
  const novo=r.push();
- await novo.set({
+ const registro={
    ...dados,
    criadoEm:firebase.database.ServerValue.TIMESTAMP
- });
+ };
+ await novo.set(registro);
+ // Confirma que o registro realmente foi persistido antes de atualizar o histórico.
+ const confirmado=await novo.once('value');
+ if(!confirmado.exists()) throw new Error('Sessão não foi persistida no histórico.');
+ return {id:novo.key,...(confirmado.val()||{})};
 }
 async function v10422CarregarHistorico(){
  const box=$('timerHistoricoV10422'); if(!box)return;
@@ -2716,13 +2722,16 @@ async function v10422AdicionarManual(){
  try{
    timerV93.totalSegundos=Math.max(0,Number(timerV93.totalSegundos)||0)+segundos;
    await v93Salvar({tempoManualAdicionadoEm:firebase.database.ServerValue.TIMESTAMP});
-   await v10422SalvarSessao({
+   const sessaoSalva=await v10422SalvarSessao({
      tipo:'manual',segundos,
      assuntoId:a.id,assuntoNome:a.nome||'',disciplina:a.disciplina||'',numero:a.numero||null
    });
    v93Render();
+   // Aguarda o Firebase confirmar o novo registro e só então redesenha o histórico.
    await v10422CarregarHistorico();
-   if(st)st.textContent='✅ '+v93Fmt(segundos)+' adicionados a '+(a.nome||'assunto')+'.';
+   // Segunda atualização curta evita o caso em que a UI antiga redesenha o painel logo após o clique.
+   setTimeout(()=>v10422CarregarHistorico().catch(console.error),150);
+   if(st)st.textContent='✅ '+v93Fmt(segundos)+' adicionados a '+(a.nome||'assunto')+' e registrados no Histórico de sessões.';
  }catch(e){
    console.error('V10.4.22 manual:',e);
    if(st)st.textContent='⚠ Não foi possível salvar o tempo manual.';
@@ -6891,153 +6900,6 @@ html body :is(
   }catch(_){}
 
   window.sincronizarQuestoesEditalAtivoV10504=sincronizar;
-})();
-</script>
-
-<script id="v10505-questoes-fonte-real">
-(function(){
-  /*
-    V10.5.05 — correção da origem dos selects de Questões.
-    Prioridade:
-    1) Planejamento/agenda já carregado (mesma lista usada pelo Timer/Ciclo)
-    2) agenda no Firebase
-    3) estadoV2.editalVerticalizado
-    4) Edital pronto
-    Não altera registros, histórico, revisões ou ciclo.
-  */
-  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
-
-  let grupos = {};
-
-  function agruparAgenda(itens){
-    const out = {};
-    (Array.isArray(itens) ? itens : []).forEach(a=>{
-      const m = String(a?.disciplina || '').trim();
-      const t = String(a?.nome || a?.titulo || '').trim();
-      if(!m || !t) return;
-      if(!out[m]) out[m] = [];
-      if(!out[m].some(x => x.titulo === t)){
-        out[m].push({id:String(a?.id || ''), titulo:t});
-      }
-    });
-    return out;
-  }
-
-  function agruparEstado(){
-    const out = {};
-    try{
-      const ev = window.estadoV2?.editalVerticalizado || {};
-      Object.entries(ev).forEach(([m, arr])=>{
-        const nome = String(m || '').trim();
-        if(!nome) return;
-        out[nome] = (Array.isArray(arr) ? arr : [])
-          .map(x=>({id:String(x?.id||''), titulo:String(x?.titulo||'').trim()}))
-          .filter(x=>x.titulo);
-      });
-    }catch(_){}
-    return out;
-  }
-
-  function agruparPayload(payload){
-    const out = {};
-    (Array.isArray(payload?.assuntos) ? payload.assuntos : []).forEach(a=>{
-      const m = String(a?.disciplina || '').trim();
-      const t = String(a?.nome || a?.titulo || '').trim();
-      if(!m || !t) return;
-      (out[m] ??= []).push({id:String(a?.id||''), titulo:t});
-    });
-    return out;
-  }
-
-  async function obterFonte(){
-    // Mesma fonte prática já usada pelo Timer/Ciclo.
-    try{
-      const g = agruparAgenda(window.agendaV102?.itens || (typeof agendaV102!=='undefined' ? agendaV102?.itens : []));
-      if(Object.keys(g).length) return g;
-    }catch(_){}
-
-    const u = window.auth?.currentUser;
-    if(u){
-      try{
-        const s = await db.ref('usuarios/'+u.uid+'/planejamento/agendaV102').once('value');
-        const d = s.val();
-        const itens = Array.isArray(d?.itens) ? d.itens : (Array.isArray(d) ? d : []);
-        const g = agruparAgenda(itens);
-        if(Object.keys(g).length) return g;
-      }catch(e){ console.warn('V10.5.05 agenda Firebase', e); }
-    }
-
-    const ge = agruparEstado();
-    if(Object.keys(ge).length) return ge;
-
-    if(u){
-      try{
-        const s = await db.ref('usuarios/'+u.uid+'/editalProntoV100').once('value');
-        const g = agruparPayload(s.val());
-        if(Object.keys(g).length) return g;
-      }catch(e){ console.warn('V10.5.05 edital pronto', e); }
-    }
-    return {};
-  }
-
-  function preencherAssuntos(){
-    const mat = document.getElementById('qMateriaV10427');
-    const ass = document.getElementById('qAssuntoV10427');
-    if(!mat || !ass) return;
-
-    const atual = ass.value;
-    const arr = grupos[mat.value] || [];
-    ass.innerHTML = '<option value="">Selecione o assunto</option>' +
-      arr.map(x=>'<option value="'+esc(x.titulo)+'">'+esc(x.titulo)+'</option>').join('');
-    if(arr.some(x=>x.titulo===atual)) ass.value = atual;
-  }
-
-  async function sincronizar(){
-    const mat = document.getElementById('qMateriaV10427');
-    if(!mat) return;
-
-    grupos = await obterFonte();
-    const atual = mat.value;
-    const mats = Object.keys(grupos);
-
-    mat.innerHTML = '<option value="">Selecione a matéria</option>' +
-      mats.map(m=>'<option value="'+esc(m)+'">'+esc(m)+'</option>').join('');
-
-    if(mats.includes(atual)) mat.value = atual;
-    preencherAssuntos();
-
-    const st = document.getElementById('qStatusV10427');
-    if(st){
-      st.textContent = mats.length
-        ? '✓ '+mats.length+' matéria(s) carregada(s) do edital/planejamento ativo.'
-        : '⚠ Nenhuma matéria encontrada no edital/planejamento ativo.';
-    }
-  }
-
-  // O código antigo também escuta a troca de matéria e pode limpar o assunto.
-  // Reaplicamos depois que todos os listeners antigos terminarem.
-  document.addEventListener('change', function(e){
-    if(e.target?.id === 'qMateriaV10427'){
-      setTimeout(preencherAssuntos, 0);
-      setTimeout(preencherAssuntos, 80);
-    }
-  });
-
-  document.addEventListener('click', function(e){
-    if(e.target.closest?.('[data-page="questoes"]')){
-      [180, 450, 900].forEach(ms=>setTimeout(()=>sincronizar().catch(console.error), ms));
-    }
-  });
-
-  try{
-    auth.onAuthStateChanged(u=>{
-      if(u) [900, 1800, 3000].forEach(ms=>setTimeout(()=>sincronizar().catch(console.error), ms));
-    });
-  }catch(_){}
-
-  window.sincronizarQuestoesV10505 = sincronizar;
 })();
 </script>
 

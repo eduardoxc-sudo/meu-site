@@ -454,7 +454,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
 .v10440-empty{padding:18px;text-align:center;color:#9bb4d2;border:1px dashed #2b3a51;border-radius:12px}
 </style>
 <style id="v10466-visual-only">
-/* V10.4.73 — SOMENTE VISUAL. Nenhuma regra de negócio alterada. */
+/* V10.4.74 — SOMENTE VISUAL. Nenhuma regra de negócio alterada. */
 :root{--bg:#091321;--surface:#101d31;--card:#111f34;--border:#2b405d;--text:#f8fafc;--muted:#9db0ca;--primary:#31b9ff;--accent:#7048ff;--success:#20c77a;--danger:#ef3340}
 body{background:linear-gradient(180deg,#08111e 0%,#0a1524 100%)}
 #app{grid-template-columns:220px minmax(0,1fr)}
@@ -479,7 +479,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 @media(max-width:800px){#app{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid rgba(255,255,255,.15)}.nav{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:18px 12px}.hero{padding:22px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 <style id="v10472-ciclo-layout-limpo">
-/* V10.4.73 — Ciclo reorganizado sem alterar IDs, eventos ou JavaScript. */
+/* V10.4.74 — Ciclo reorganizado sem alterar IDs, eventos ou JavaScript. */
 
 /* 1) TOPO: Configurar + Ordem */
 #page-ciclo .ciclo-grid{
@@ -595,9 +595,8 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
   }
 }
 </style>
-
 <style id="v10473-ciclo-acabamento-compacto">
-/* V10.4.73 — acabamento/proporção. Somente CSS. */
+/* V10.4.74 — acabamento/proporção. Somente CSS. */
 
 /* Executar ciclo: bem mais baixo */
 #page-ciclo .ciclo-exec-panel-v10472{
@@ -693,6 +692,78 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
   }
 }
 </style>
+
+<style id="v10474-ciclo-mais-compacto">
+/* V10.4.74 — redução visual adicional. Somente CSS. */
+
+/* Área principal da semana bem mais estreita no desktop */
+#page-ciclo #cicloSemanaGridV104{
+  max-width:600px !important;
+  gap:7px !important;
+}
+#page-ciclo #cicloSemanaV104 > h3,
+#page-ciclo #cicloSemanaV104 > p,
+#page-ciclo #cicloSemanaV104 > .panel-sub,
+#page-ciclo #cicloSemanaV104 > .actions,
+#page-ciclo #cicloSemanaV104 > div:not(#cicloSemanaGridV104):not(.status-line){
+  max-width:600px !important;
+}
+
+/* Reduz altura e respiro da Semana */
+#page-ciclo .ciclo-week-full-v10472{
+  padding:12px 14px !important;
+}
+#page-ciclo #cicloSemanaGridV104 > *{
+  margin-bottom:0 !important;
+}
+#page-ciclo #cicloSemanaGridV104 .card,
+#page-ciclo #cicloSemanaGridV104 [class*="item"]{
+  padding-top:8px !important;
+  padding-bottom:8px !important;
+}
+
+/* Executar ciclo vira faixa realmente compacta */
+#page-ciclo .ciclo-exec-panel-v10472{
+  padding:9px 14px !important;
+}
+#page-ciclo .ciclo-exec-v10472 .ciclo-exec-grid{
+  grid-template-columns:minmax(0,1fr) 145px !important;
+  margin-top:5px !important;
+  gap:6px !important;
+}
+#page-ciclo .ciclo-exec-v10472 .ciclo-proxima,
+#page-ciclo .ciclo-exec-v10472 .ciclo-posicao{
+  min-height:54px !important;
+  padding:6px 10px !important;
+}
+#page-ciclo .ciclo-exec-v10472 .ciclo-proxima p,
+#page-ciclo .ciclo-exec-v10472 .ciclo-posicao p{
+  margin:2px 0 !important;
+}
+#page-ciclo .ciclo-exec-v10472 .btn{
+  min-height:28px !important;
+  padding:4px 9px !important;
+}
+
+/* Topo também um pouco mais enxuto */
+#page-ciclo .ciclo-top-v10472{
+  gap:12px !important;
+}
+#page-ciclo .ciclo-top-v10472 > *{
+  padding:14px !important;
+}
+
+/* Mantém responsivo */
+@media(max-width:760px){
+  #page-ciclo #cicloSemanaGridV104,
+  #page-ciclo #cicloSemanaV104 > h3,
+  #page-ciclo #cicloSemanaV104 > p,
+  #page-ciclo #cicloSemanaV104 > .panel-sub,
+  #page-ciclo #cicloSemanaV104 > .actions{
+    max-width:none !important;
+  }
+}
+</style>
 </head>
 <body>
 <section id="login">
@@ -726,7 +797,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.73 • REDESIGN VISUAL</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.74 • REDESIGN VISUAL</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">

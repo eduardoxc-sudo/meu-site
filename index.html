@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.07 • HISTÓRICO MANUAL LOCAL PRIMEIRO</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.08 • AUDITORIA E CORREÇÕES</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -2662,12 +2662,24 @@ async function v10422CarregarHistorico(){
  const r=v10422SessoesRef();
  if(!r){box.innerHTML='<div class="placeholder">Faça login para visualizar o histórico.</div>';return;}
  try{
-   const s=await r.limitToLast(50).once('value'), arr=[];
-   s.forEach(c=>arr.push({id:c.key,...(c.val()||{})}));
-   // V10.5.06: mescla o espelho local das sessões manuais.
+   const arr=[];
+   // V10.5.08: o histórico local não pode ficar bloqueado esperando a nuvem.
+   // Primeiro prepara os registros locais; depois tenta buscar Firebase com timeout.
+   const locais=v10506LocalLer();
+   let s=null;
+   try{
+     s=await Promise.race([
+       r.limitToLast(50).once('value'),
+       new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout-historico')),1800))
+     ]);
+   }catch(e){
+     console.warn('V10.5.08 histórico: usando cache local enquanto Firebase não responde.',e);
+   }
+   if(s) s.forEach(c=>arr.push({id:c.key,...(c.val()||{})}));
+   // Mescla o espelho local das sessões manuais.
    // Assim o registro aparece imediatamente mesmo se outro render antigo sobrescrever a tela.
    const ids=new Set(arr.map(x=>String(x.id)));
-   v10506LocalLer().forEach(x=>{if(x&&x.id&&!ids.has(String(x.id)))arr.push(x)});
+   locais.forEach(x=>{if(x&&x.id&&!ids.has(String(x.id)))arr.push(x)});
    arr.sort((a,b)=>(Number(b.criadoEm)||0)-(Number(a.criadoEm)||0));
    if(!arr.length){box.innerHTML='<div class="placeholder">Nenhuma sessão registrada ainda.</div>';return;}
    const grupos={};
@@ -2757,7 +2769,8 @@ async function v10422AdicionarManual(){
      criadoEm:Date.now(),pendenteNuvem:true
    };
    v10506LocalSalvar(localReg);
-   await v10422CarregarHistorico();
+   // Renderiza em paralelo; o clique continua mesmo se a nuvem estiver lenta.
+   v10422CarregarHistorico().catch(console.error);
 
    timerV93.totalSegundos=Math.max(0,Number(timerV93.totalSegundos)||0)+segundos;
    await v93Salvar({tempoManualAdicionadoEm:firebase.database.ServerValue.TIMESTAMP});
@@ -2777,7 +2790,7 @@ async function v10422AdicionarManual(){
      // O registro local é preservado; não desaparece da tela.
    }
 
-   await v10422CarregarHistorico();
+   v10422CarregarHistorico().catch(console.error);
    if(st)st.textContent='✅ '+v93Fmt(segundos)+' adicionados a '+(a.nome||'assunto')+' e registrados no Histórico de sessões.';
  }catch(e){
    console.error('V10.5.07 manual:',e);
@@ -5193,7 +5206,28 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 </script>
 
 
-\n<style id="v10486-theme-coherence-css">\n/* V10.4.86 — cada tema controla todas as superfícies; remove azul fixo herdado. */\n:root{--theme-bg:var(--bg);--theme-panel:var(--panel);--theme-card:var(--card);--theme-text:var(--text);--theme-muted:var(--muted);--theme-border:var(--border);--theme-accent:var(--accent);--theme-primary:var(--primary);--theme-soft:var(--card);}\nhtml,body,#app,main,.main,.content,.page{background:var(--theme-bg)!important;color:var(--theme-text)!important}\n.panel,.card,.stat-card,.dash-stat,.metric-card,.dashboard-hero,.dash-hero,.estudo-real-box,.v93-timer,\n#page-ciclo .ciclo-grid>.panel,#page-ciclo .ciclo-proxima,#page-ciclo .ciclo-posicao,\n[class*="panel"],[class*="card"]{background:var(--theme-panel)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}\ninput,select,textarea,.ciclo-resumo>div,.dashboard-grid .card,.dash-grid .card{background:var(--theme-card)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}\ninput::placeholder,textarea::placeholder{color:var(--theme-muted)!important}\np,small,.small,.panel-sub,.status-line,.muted,[class*="sub"]{color:var(--theme-muted)!important}\nh1,h2,h3,h4,strong,b,label,.rotulo{color:var(--theme-text)!important}\n.btn-outline{background:transparent!important;border-color:var(--theme-border)!important;color:var(--theme-text)!important}\n.btn-primary,button.primary{background:var(--theme-primary)!important;color:var(--theme-on-primary,#fff)!important;border-color:var(--theme-primary)!important}\n/* blocos que nas versões antigas ficaram azul-marinho fixo */\n#page-dashboard [class*="proxima"],#page-dashboard [class*="agendado"],\n#page-ciclo [class*="proxima"],#page-ciclo [class*="posicao"],\n.v93-timer,[class*="total-agendado"],[class*="proxima-revisao"]{background:var(--theme-card)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}\n/* evita faixas brancas criadas por regras antigas na tela Ciclo */\n#page-ciclo p,#page-ciclo small,#page-ciclo .panel-sub,#page-ciclo [class*="desc"],#page-ciclo [class*="info"]{background:transparent!important}\n</style>\n<script id="v10485-themes-js">
+
+<style id="v10486-theme-coherence-css">
+/* V10.4.86 — cada tema controla todas as superfícies; remove azul fixo herdado. */
+:root{--theme-bg:var(--bg);--theme-panel:var(--panel);--theme-card:var(--card);--theme-text:var(--text);--theme-muted:var(--muted);--theme-border:var(--border);--theme-accent:var(--accent);--theme-primary:var(--primary);--theme-soft:var(--card);}
+html,body,#app,main,.main,.content,.page{background:var(--theme-bg)!important;color:var(--theme-text)!important}
+.panel,.card,.stat-card,.dash-stat,.metric-card,.dashboard-hero,.dash-hero,.estudo-real-box,.v93-timer,
+#page-ciclo .ciclo-grid>.panel,#page-ciclo .ciclo-proxima,#page-ciclo .ciclo-posicao,
+[class*="panel"],[class*="card"]{background:var(--theme-panel)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}
+input,select,textarea,.ciclo-resumo>div,.dashboard-grid .card,.dash-grid .card{background:var(--theme-card)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}
+input::placeholder,textarea::placeholder{color:var(--theme-muted)!important}
+p,small,.small,.panel-sub,.status-line,.muted,[class*="sub"]{color:var(--theme-muted)!important}
+h1,h2,h3,h4,strong,b,label,.rotulo{color:var(--theme-text)!important}
+.btn-outline{background:transparent!important;border-color:var(--theme-border)!important;color:var(--theme-text)!important}
+.btn-primary,button.primary{background:var(--theme-primary)!important;color:var(--theme-on-primary,#fff)!important;border-color:var(--theme-primary)!important}
+/* blocos que nas versões antigas ficaram azul-marinho fixo */
+#page-dashboard [class*="proxima"],#page-dashboard [class*="agendado"],
+#page-ciclo [class*="proxima"],#page-ciclo [class*="posicao"],
+.v93-timer,[class*="total-agendado"],[class*="proxima-revisao"]{background:var(--theme-card)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}
+/* evita faixas brancas criadas por regras antigas na tela Ciclo */
+#page-ciclo p,#page-ciclo small,#page-ciclo .panel-sub,#page-ciclo [class*="desc"],#page-ciclo [class*="info"]{background:transparent!important}
+</style>
+<script id="v10485-themes-js">
 (function(){
 const T={
 noturno:{bg:"#07111f",panel:"#112238",card:"#0b1728",text:"#f8fbff",muted:"#91acd0",border:"#29445f",accent:"#25b8ff",primary:"#6d4aff",sidebar:"#6d28d9"},
@@ -5256,7 +5290,8 @@ function init(){
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
 </script>
-\n<style id="v10487-light-theme-fix">
+
+<style id="v10487-light-theme-fix">
 /* V10.4.87 — acabamento exclusivo do tema Claro. Não altera lógica. */
 html[data-theme-v85="claro"] body,
 html[data-theme-v85="claro"] #app,
@@ -6013,7 +6048,95 @@ html body :is(
 })();
 </script>
 
-\n<!-- V10.4.94 — SINCRONIZAÇÃO DASHBOARD ↔ CICLO/REVISÕES -->\n<script id="v10494-dashboard-sync">\n(function(){\n  function norm(v){\n    return String(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/\\s+/g,' ').trim();\n  }\n  function agendaConcluidos(){\n    return (Array.isArray(window.agendaV102?.itens)?window.agendaV102.itens:[]).filter(function(a){return a&&a.concluidoEm&&a.disciplina&&a.nome;});\n  }\n  function chave(d,t){return norm(d)+'||'+norm(t);}\n\n  function atualizarContadorEdital(){\n    var edital=window.estadoV2?.editalVerticalizado||{};\n    var concl=new Set(agendaConcluidos().map(function(a){return chave(a.disciplina,a.nome);}));\n    var total=0, feitos=0;\n    Object.keys(edital).forEach(function(d){\n      (edital[d]||[]).forEach(function(t){\n        total++;\n        if(t?.t || concl.has(chave(d,t?.titulo))) feitos++;\n      });\n    });\n    var el=document.getElementById('dashEdital');\n    if(el) el.textContent=feitos+' / '+total;\n  }\n\n  function dataLocal(v){\n    if(!v)return '';\n    var d=new Date(v);\n    if(!isNaN(d) && typeof window.v104DateISO==='function') return v104DateISO(d);\n    var m=String(v).match(/^(\\d{4}-\\d{2}-\\d{2})/);\n    return m?m[1]:'';\n  }\n\n  async function garantirRevisoesDosConcluidos(){\n    if(!window.auth?.currentUser || !window.REVISOES_MOTOR_REF || !window.revisoesMotor)return false;\n    if(!revisoesMotor.origens || typeof revisoesMotor.origens!=='object') revisoesMotor.origens={};\n    var mudou=false;\n    agendaConcluidos().forEach(function(a){\n      var base=dataLocal(a.concluidoEm); if(!base)return;\n      var k=typeof window.revChave==='function'?revChave(a.disciplina,a.nome):chave(a.disciplina,a.nome);\n      var o=revisoesMotor.origens[k];\n      if(!o){\n        o=revisoesMotor.origens[k]={disciplina:a.disciplina,topico:a.nome,dataEstudo:base,revisoes:{},criadoEm:a.concluidoEm};\n        mudou=true;\n      }\n      if(!o.revisoes || typeof o.revisoes!=='object'){o.revisoes={};mudou=true;}\n      [1,7,15,30].forEach(function(n){\n        var tipo='D'+n, dt=typeof window.revDataISO==='function'?revDataISO(base,n):'';\n        if(!o.revisoes[tipo]){o.revisoes[tipo]={dias:n,data:dt,concluida:false};mudou=true;}\n        else if(!o.revisoes[tipo].concluida && dt && o.revisoes[tipo].data!==dt){o.revisoes[tipo].data=dt;o.revisoes[tipo].dias=n;mudou=true;}\n      });\n    });\n    if(mudou){\n      revisoesMotor.atualizadoEm=new Date().toISOString();\n      try{localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));}catch(_){}\n      try{await REVISOES_MOTOR_REF.set(revisoesMotor);}catch(e){console.warn('V10.4.94 sync Firebase',e);}\n    }\n    return mudou;\n  }\n\n  async function sincronizarDashboardV10494(){\n    atualizarContadorEdital();\n    await garantirRevisoesDosConcluidos();\n    if(typeof window.renderizarDashboardRevisoesV91==='function') renderizarDashboardRevisoesV91();\n    if(typeof window.renderizarEstatisticasV92==='function') renderizarEstatisticasV92();\n    atualizarContadorEdital(); // renderizações antigas não podem devolver 0/0\n  }\n  window.sincronizarDashboardV10494=sincronizarDashboardV10494;\n\n  document.addEventListener('click',function(e){\n    if(e.target.closest('[data-page="dashboard"]')) setTimeout(function(){sincronizarDashboardV10494().catch(console.error);},120);\n  });\n  window.addEventListener('load',function(){\n    [600,1800,3500].forEach(function(ms){setTimeout(function(){sincronizarDashboardV10494().catch(function(){});},ms);});\n  });\n\n  // atualizarEditalV2 recalculava o Dashboard apenas pelo campo t e podia voltar a 0/0.\n  var antigaAtualizar=window.atualizarEditalV2;\n  if(typeof antigaAtualizar==='function'){\n    window.atualizarEditalV2=function(){\n      var r=antigaAtualizar.apply(this,arguments);\n      setTimeout(atualizarContadorEdital,0);\n      return r;\n    };\n  }\n})();\n</script>\n
+
+<!-- V10.4.94 — SINCRONIZAÇÃO DASHBOARD ↔ CICLO/REVISÕES -->
+<script id="v10494-dashboard-sync">
+(function(){
+  function norm(v){
+    return String(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/\\s+/g,' ').trim();
+  }
+  function agendaConcluidos(){
+    return (Array.isArray(window.agendaV102?.itens)?window.agendaV102.itens:[]).filter(function(a){return a&&a.concluidoEm&&a.disciplina&&a.nome;});
+  }
+  function chave(d,t){return norm(d)+'||'+norm(t);}
+
+  function atualizarContadorEdital(){
+    var edital=window.estadoV2?.editalVerticalizado||{};
+    var concl=new Set(agendaConcluidos().map(function(a){return chave(a.disciplina,a.nome);}));
+    var total=0, feitos=0;
+    Object.keys(edital).forEach(function(d){
+      (edital[d]||[]).forEach(function(t){
+        total++;
+        if(t?.t || concl.has(chave(d,t?.titulo))) feitos++;
+      });
+    });
+    var el=document.getElementById('dashEdital');
+    if(el) el.textContent=feitos+' / '+total;
+  }
+
+  function dataLocal(v){
+    if(!v)return '';
+    var d=new Date(v);
+    if(!isNaN(d) && typeof window.v104DateISO==='function') return v104DateISO(d);
+    var m=String(v).match(/^(\\d{4}-\\d{2}-\\d{2})/);
+    return m?m[1]:'';
+  }
+
+  async function garantirRevisoesDosConcluidos(){
+    if(!window.auth?.currentUser || !window.REVISOES_MOTOR_REF || !window.revisoesMotor)return false;
+    if(!revisoesMotor.origens || typeof revisoesMotor.origens!=='object') revisoesMotor.origens={};
+    var mudou=false;
+    agendaConcluidos().forEach(function(a){
+      var base=dataLocal(a.concluidoEm); if(!base)return;
+      var k=typeof window.revChave==='function'?revChave(a.disciplina,a.nome):chave(a.disciplina,a.nome);
+      var o=revisoesMotor.origens[k];
+      if(!o){
+        o=revisoesMotor.origens[k]={disciplina:a.disciplina,topico:a.nome,dataEstudo:base,revisoes:{},criadoEm:a.concluidoEm};
+        mudou=true;
+      }
+      if(!o.revisoes || typeof o.revisoes!=='object'){o.revisoes={};mudou=true;}
+      [1,7,15,30].forEach(function(n){
+        var tipo='D'+n, dt=typeof window.revDataISO==='function'?revDataISO(base,n):'';
+        if(!o.revisoes[tipo]){o.revisoes[tipo]={dias:n,data:dt,concluida:false};mudou=true;}
+        else if(!o.revisoes[tipo].concluida && dt && o.revisoes[tipo].data!==dt){o.revisoes[tipo].data=dt;o.revisoes[tipo].dias=n;mudou=true;}
+      });
+    });
+    if(mudou){
+      revisoesMotor.atualizadoEm=new Date().toISOString();
+      try{localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));}catch(_){}
+      try{await REVISOES_MOTOR_REF.set(revisoesMotor);}catch(e){console.warn('V10.4.94 sync Firebase',e);}
+    }
+    return mudou;
+  }
+
+  async function sincronizarDashboardV10494(){
+    atualizarContadorEdital();
+    await garantirRevisoesDosConcluidos();
+    if(typeof window.renderizarDashboardRevisoesV91==='function') renderizarDashboardRevisoesV91();
+    if(typeof window.renderizarEstatisticasV92==='function') renderizarEstatisticasV92();
+    atualizarContadorEdital(); // renderizações antigas não podem devolver 0/0
+  }
+  window.sincronizarDashboardV10494=sincronizarDashboardV10494;
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('[data-page="dashboard"]')) setTimeout(function(){sincronizarDashboardV10494().catch(console.error);},120);
+  });
+  window.addEventListener('load',function(){
+    [600,1800,3500].forEach(function(ms){setTimeout(function(){sincronizarDashboardV10494().catch(function(){});},ms);});
+  });
+
+  // atualizarEditalV2 recalculava o Dashboard apenas pelo campo t e podia voltar a 0/0.
+  var antigaAtualizar=window.atualizarEditalV2;
+  if(typeof antigaAtualizar==='function'){
+    window.atualizarEditalV2=function(){
+      var r=antigaAtualizar.apply(this,arguments);
+      setTimeout(atualizarContadorEdital,0);
+      return r;
+    };
+  }
+})();
+</script>
+
 <!-- V10.4.95 — CORREÇÃO: Dashboard lê as variáveis reais do sistema (let), não window.* -->
 <script id="v10495-dashboard-real-data">
 (function(){
@@ -6469,7 +6592,49 @@ html body :is(
 })();
 </script>
 
-\n<style id="v10499-edital-verticalizado-css">\n.ev499-title-row{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.ev499-geral{min-width:180px;border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:var(--card2,rgba(0,0,0,.06));display:flex;flex-direction:column;gap:4px}.ev499-geral span{font-size:.72rem;color:var(--muted);font-weight:800}.ev499-geral strong{font-size:1.05rem}.ev499-track{height:10px;border-radius:999px;background:var(--card2,rgba(127,127,127,.15));overflow:hidden;margin:12px 0 16px}.ev499-track i{display:block;height:100%;width:0;background:var(--primary);border-radius:inherit;transition:width .2s ease}.ev499-tools{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}.ev499-tools label{display:grid;gap:6px;font-size:.76rem;font-weight:800}.ev499-tools select,.ev499-tools input{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg,var(--card));color:var(--text);font:inherit}.ev499-list{display:grid;gap:14px}.ev499-materia{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}.ev499-materia-head{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 14px;background:var(--card2,rgba(127,127,127,.08));font-weight:800}.ev499-materia-head small{color:var(--muted);font-weight:700}.ev499-materia-track{height:5px;background:var(--card2,rgba(127,127,127,.12))}.ev499-materia-track i{display:block;height:100%;background:var(--primary)}.ev499-topico{display:grid;grid-template-columns:44px 1fr 105px;gap:10px;align-items:center;padding:11px 14px;border-top:1px solid var(--border)}.ev499-num{font-weight:800;color:var(--muted)}.ev499-topico label{display:flex;align-items:center;gap:8px;justify-content:flex-start;font-weight:700;cursor:pointer}.ev499-topico input[type=checkbox]{width:19px;height:19px;accent-color:var(--primary)}.ev499-topico.ev499-feito .ev499-nome{text-decoration:line-through;opacity:.62}.ev499-empty{padding:28px;text-align:center;border:1px dashed var(--border);border-radius:12px;color:var(--muted)}@media(max-width:760px){.ev499-title-row{display:block}.ev499-geral{margin-top:12px}.ev499-tools{grid-template-columns:1fr}.ev499-topico{grid-template-columns:36px 1fr}.ev499-topico label{grid-column:2}}\n</style>\n<script id="v10499-edital-verticalizado-js">\n(function(){\n  var marcados={}, ref=null, uid=null, iniciado=false;\n  function esc(v){return String(v??'').replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}\n  function norm(v){return String(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/\\s+/g,' ').trim()}\n  function chave(m,t){return norm(m)+'||'+norm(t)}\n  function fonte(){return (window.estadoV2&&window.estadoV2.editalVerticalizado)||{}}\n  function elementos(){return {f:document.getElementById('ev499Filtro'),q:document.getElementById('ev499Busca'),l:document.getElementById('ev499Lista'),s:document.getElementById('ev499Status')}}\n  function atualizarFiltro(){\n    var e=elementos(), mats=Object.keys(fonte()), atual=e.f?.value||''; if(!e.f)return;\n    e.f.innerHTML='<option value="">Todas as disciplinas</option>'+mats.map(m=>'<option value="'+esc(m)+'">'+esc(m)+'</option>').join('');\n    if(mats.includes(atual))e.f.value=atual;\n  }\n  function render(){\n    var e=elementos(); if(!e.l)return; var dados=fonte(), mats=Object.keys(dados); atualizarFiltro();\n    var filtro=e.f?.value||'', busca=norm(e.q?.value||''); var total=0, feitos=0;\n    mats.forEach(m=>(dados[m]||[]).forEach(t=>{total++;if(marcados[chave(m,t.titulo)])feitos++}));\n    var pct=total?Math.round(feitos*100/total):0, gt=document.getElementById('ev499GeralTxt'), gb=document.getElementById('ev499GeralBar'); if(gt)gt.textContent=feitos+' / '+total+' • '+pct+'%';if(gb)gb.style.width=pct+'%';\n    var vis=mats.filter(m=>!filtro||m===filtro).map(function(m){\n      var tops=(dados[m]||[]).filter(t=>!busca||norm(t.titulo).includes(busca)); if(!tops.length)return '';\n      var all=dados[m]||[], fm=all.filter(t=>marcados[chave(m,t.titulo)]).length, pm=all.length?Math.round(fm*100/all.length):0;\n      return '<section class="ev499-materia"><div class="ev499-materia-head"><span>📚 '+esc(m)+'</span><small>'+fm+' / '+all.length+' • '+pm+'%</small></div><div class="ev499-materia-track"><i style="width:'+pm+'%"></i></div>'+tops.map(function(t,i){var k=chave(m,t.titulo),ok=!!marcados[k],numero=(all.indexOf(t)+1);return '<div class="ev499-topico '+(ok?'ev499-feito':'')+'"><span class="ev499-num">'+String(numero).padStart(2,'0')+'</span><span class="ev499-nome">'+esc(t.titulo)+'</span><label><input type="checkbox" data-ev499-key="'+esc(k)+'" '+(ok?'checked':'')+'> Estudado</label></div>'}).join('')+'</section>'\n    }).join('');\n    e.l.innerHTML=vis||'<div class="ev499-empty">Nenhum assunto encontrado.</div>';\n    if(e.s)e.s.textContent=total?('✓ '+mats.length+' matéria(s) • '+total+' assunto(s) carregados do Edital.'):'Nenhum assunto no Edital ainda.';\n  }\n  async function iniciar(){\n    var u=window.auth&&auth.currentUser;if(!u)return; if(iniciado&&uid===u.uid){render();return} iniciado=true;uid=u.uid;ref=db.ref('usuarios/'+uid+'/editalVerticalizadoChecklistV10499');\n    try{var snap=await ref.once('value');marcados=snap.val()||{};render()}catch(err){console.warn('V10.4.99 checklist',err);render()}\n  }\n  async function marcar(k,valor){marcados[k]=!!valor;if(!valor)delete marcados[k];render();try{if(ref)await ref.set(marcados)}catch(err){console.warn('V10.4.99 salvar checklist',err)}}\n  document.addEventListener('change',function(ev){if(ev.target.id==='ev499Filtro')render();var cb=ev.target.closest('[data-ev499-key]');if(cb)marcar(cb.dataset.ev499Key,cb.checked)});\n  document.addEventListener('input',function(ev){if(ev.target.id==='ev499Busca')render()});\n  document.addEventListener('click',function(ev){if(ev.target.closest('[data-page="editalVerticalizadoAcompanhamento"]'))setTimeout(iniciar,40)});\n  var antigaAtualizar=window.atualizarEditalV2;if(typeof antigaAtualizar==='function'){window.atualizarEditalV2=function(){var r=antigaAtualizar.apply(this,arguments);setTimeout(function(){if(document.getElementById('page-editalVerticalizadoAcompanhamento')?.classList.contains('active'))render()},0);return r}}\n  window.renderEditalVerticalizadoV10499=render;\n})();\n</script>\n
+
+<style id="v10499-edital-verticalizado-css">
+.ev499-title-row{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.ev499-geral{min-width:180px;border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:var(--card2,rgba(0,0,0,.06));display:flex;flex-direction:column;gap:4px}.ev499-geral span{font-size:.72rem;color:var(--muted);font-weight:800}.ev499-geral strong{font-size:1.05rem}.ev499-track{height:10px;border-radius:999px;background:var(--card2,rgba(127,127,127,.15));overflow:hidden;margin:12px 0 16px}.ev499-track i{display:block;height:100%;width:0;background:var(--primary);border-radius:inherit;transition:width .2s ease}.ev499-tools{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}.ev499-tools label{display:grid;gap:6px;font-size:.76rem;font-weight:800}.ev499-tools select,.ev499-tools input{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg,var(--card));color:var(--text);font:inherit}.ev499-list{display:grid;gap:14px}.ev499-materia{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}.ev499-materia-head{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 14px;background:var(--card2,rgba(127,127,127,.08));font-weight:800}.ev499-materia-head small{color:var(--muted);font-weight:700}.ev499-materia-track{height:5px;background:var(--card2,rgba(127,127,127,.12))}.ev499-materia-track i{display:block;height:100%;background:var(--primary)}.ev499-topico{display:grid;grid-template-columns:44px 1fr 105px;gap:10px;align-items:center;padding:11px 14px;border-top:1px solid var(--border)}.ev499-num{font-weight:800;color:var(--muted)}.ev499-topico label{display:flex;align-items:center;gap:8px;justify-content:flex-start;font-weight:700;cursor:pointer}.ev499-topico input[type=checkbox]{width:19px;height:19px;accent-color:var(--primary)}.ev499-topico.ev499-feito .ev499-nome{text-decoration:line-through;opacity:.62}.ev499-empty{padding:28px;text-align:center;border:1px dashed var(--border);border-radius:12px;color:var(--muted)}@media(max-width:760px){.ev499-title-row{display:block}.ev499-geral{margin-top:12px}.ev499-tools{grid-template-columns:1fr}.ev499-topico{grid-template-columns:36px 1fr}.ev499-topico label{grid-column:2}}
+</style>
+<script id="v10499-edital-verticalizado-js">
+(function(){
+  var marcados={}, ref=null, uid=null, iniciado=false;
+  function esc(v){return String(v??'').replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]})}
+  function norm(v){return String(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/\\s+/g,' ').trim()}
+  function chave(m,t){return norm(m)+'||'+norm(t)}
+  function fonte(){return (window.estadoV2&&window.estadoV2.editalVerticalizado)||{}}
+  function elementos(){return {f:document.getElementById('ev499Filtro'),q:document.getElementById('ev499Busca'),l:document.getElementById('ev499Lista'),s:document.getElementById('ev499Status')}}
+  function atualizarFiltro(){
+    var e=elementos(), mats=Object.keys(fonte()), atual=e.f?.value||''; if(!e.f)return;
+    e.f.innerHTML='<option value="">Todas as disciplinas</option>'+mats.map(m=>'<option value="'+esc(m)+'">'+esc(m)+'</option>').join('');
+    if(mats.includes(atual))e.f.value=atual;
+  }
+  function render(){
+    var e=elementos(); if(!e.l)return; var dados=fonte(), mats=Object.keys(dados); atualizarFiltro();
+    var filtro=e.f?.value||'', busca=norm(e.q?.value||''); var total=0, feitos=0;
+    mats.forEach(m=>(dados[m]||[]).forEach(t=>{total++;if(marcados[chave(m,t.titulo)])feitos++}));
+    var pct=total?Math.round(feitos*100/total):0, gt=document.getElementById('ev499GeralTxt'), gb=document.getElementById('ev499GeralBar'); if(gt)gt.textContent=feitos+' / '+total+' • '+pct+'%';if(gb)gb.style.width=pct+'%';
+    var vis=mats.filter(m=>!filtro||m===filtro).map(function(m){
+      var tops=(dados[m]||[]).filter(t=>!busca||norm(t.titulo).includes(busca)); if(!tops.length)return '';
+      var all=dados[m]||[], fm=all.filter(t=>marcados[chave(m,t.titulo)]).length, pm=all.length?Math.round(fm*100/all.length):0;
+      return '<section class="ev499-materia"><div class="ev499-materia-head"><span>📚 '+esc(m)+'</span><small>'+fm+' / '+all.length+' • '+pm+'%</small></div><div class="ev499-materia-track"><i style="width:'+pm+'%"></i></div>'+tops.map(function(t,i){var k=chave(m,t.titulo),ok=!!marcados[k],numero=(all.indexOf(t)+1);return '<div class="ev499-topico '+(ok?'ev499-feito':'')+'"><span class="ev499-num">'+String(numero).padStart(2,'0')+'</span><span class="ev499-nome">'+esc(t.titulo)+'</span><label><input type="checkbox" data-ev499-key="'+esc(k)+'" '+(ok?'checked':'')+'> Estudado</label></div>'}).join('')+'</section>'
+    }).join('');
+    e.l.innerHTML=vis||'<div class="ev499-empty">Nenhum assunto encontrado.</div>';
+    if(e.s)e.s.textContent=total?('✓ '+mats.length+' matéria(s) • '+total+' assunto(s) carregados do Edital.'):'Nenhum assunto no Edital ainda.';
+  }
+  async function iniciar(){
+    var u=window.auth&&auth.currentUser;if(!u)return; if(iniciado&&uid===u.uid){render();return} iniciado=true;uid=u.uid;ref=db.ref('usuarios/'+uid+'/editalVerticalizadoChecklistV10499');
+    try{var snap=await ref.once('value');marcados=snap.val()||{};render()}catch(err){console.warn('V10.4.99 checklist',err);render()}
+  }
+  async function marcar(k,valor){marcados[k]=!!valor;if(!valor)delete marcados[k];render();try{if(ref)await ref.set(marcados)}catch(err){console.warn('V10.4.99 salvar checklist',err)}}
+  document.addEventListener('change',function(ev){if(ev.target.id==='ev499Filtro')render();var cb=ev.target.closest('[data-ev499-key]');if(cb)marcar(cb.dataset.ev499Key,cb.checked)});
+  document.addEventListener('input',function(ev){if(ev.target.id==='ev499Busca')render()});
+  document.addEventListener('click',function(ev){if(ev.target.closest('[data-page="editalVerticalizadoAcompanhamento"]'))setTimeout(iniciar,40)});
+  var antigaAtualizar=window.atualizarEditalV2;if(typeof antigaAtualizar==='function'){window.atualizarEditalV2=function(){var r=antigaAtualizar.apply(this,arguments);setTimeout(function(){if(document.getElementById('page-editalVerticalizadoAcompanhamento')?.classList.contains('active'))render()},0);return r}}
+  window.renderEditalVerticalizadoV10499=render;
+})();
+</script>
+
 
 <script id="v10500-fonte-real-edital-pronto">
 /* V10.5.00
@@ -6818,7 +6983,21 @@ html body :is(
 })();
 </script>
 
-\n<script id="v10503-editais-separados">\n(function(){\n const PATHS=[\n  'nova_app_v3/users/{uid}/app','nova_app_v3/users/{uid}/ciclo','nova_app_v3/users/{uid}/cicloExecucao','nova_app_v3/users/{uid}/revisoesMotor',\n  'usuarios/{uid}/editalProntoV100','usuarios/{uid}/planejamento/importacaoEditalV100','usuarios/{uid}/planejamento/agendaV102',\n  'usuarios/{uid}/questoesV94','usuarios/{uid}/estatisticasV93'\n ];\n const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c]));\n function user(){try{return auth.currentUser}catch(_){return null}}\n function root(uid){return db.ref('usuarios/'+uid+'/gerenciadorEditaisV10503')}\n function pth(t,uid){return t.replace('{uid}',uid)}\n async function lerAtivos(uid){const o={};for(const t of PATHS){const p=pth(t,uid);o[p]=(await db.ref(p).once('value')).val()??null}return o}\n async function gravarAtivos(uid,dados){const up={};for(const t of PATHS){const p=pth(t,uid);up[p]=(dados&&Object.prototype.hasOwnProperty.call(dados,p))?dados[p]:null}await db.ref().update(up)}\n async function garantir(){const u=user();if(!u)return null;const r=root(u.uid),s=await r.once('value');let d=s.val()||{};if(!d.ativoId){
+
+<script id="v10503-editais-separados">
+(function(){
+ const PATHS=[
+  'nova_app_v3/users/{uid}/app','nova_app_v3/users/{uid}/ciclo','nova_app_v3/users/{uid}/cicloExecucao','nova_app_v3/users/{uid}/revisoesMotor',
+  'usuarios/{uid}/editalProntoV100','usuarios/{uid}/planejamento/importacaoEditalV100','usuarios/{uid}/planejamento/agendaV102',
+  'usuarios/{uid}/questoesV94','usuarios/{uid}/estatisticasV93'
+ ];
+ const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;','\'':'&#39;'}[c]));
+ function user(){try{return auth.currentUser}catch(_){return null}}
+ function root(uid){return db.ref('usuarios/'+uid+'/gerenciadorEditaisV10503')}
+ function pth(t,uid){return t.replace('{uid}',uid)}
+ async function lerAtivos(uid){const o={};for(const t of PATHS){const p=pth(t,uid);o[p]=(await db.ref(p).once('value')).val()??null}return o}
+ async function gravarAtivos(uid,dados){const up={};for(const t of PATHS){const p=pth(t,uid);up[p]=(dados&&Object.prototype.hasOwnProperty.call(dados,p))?dados[p]:null}await db.ref().update(up)}
+ async function garantir(){const u=user();if(!u)return null;const r=root(u.uid),s=await r.once('value');let d=s.val()||{};if(!d.ativoId){
   const id=r.child('editais').push().key;
   const dadosAtuais=await lerAtivos(u.uid);
   d={ativoId:id,editais:{[id]:{
@@ -6827,7 +7006,16 @@ html body :is(
     dados:dadosAtuais
   }}};
   await r.set(d)
-}return d}\n async function salvarAtual(d){const u=user();if(!u||!d?.ativoId)return;const dados=await lerAtivos(u.uid);await root(u.uid).child('editais/'+d.ativoId+'/dados').set(dados);await root(u.uid).child('editais/'+d.ativoId+'/salvoEm').set(firebase.database.ServerValue.TIMESTAMP)}\n async function render(){const box=document.getElementById('listaEditaisV10503');if(!box)return;const d=await garantir();if(!d){box.innerHTML='<div class="status-line">Faça login para gerenciar editais.</div>';return}const arr=Object.entries(d.editais||{});box.innerHTML=arr.map(([id,x])=>'<div style="border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:9px;display:flex;align-items:center;justify-content:space-between;gap:12px"><div><b>'+esc(x.nome||'Edital')+'</b> '+(id===d.ativoId?'<span style="border:1px solid var(--accent);border-radius:999px;padding:2px 7px;font-size:11px">ATIVO</span>':'')+'</div><div>'+(id!==d.ativoId?'<button class="btn btn-outline" data-ativar-edital-v10503="'+esc(id)+'" type="button">↔ Ativar</button>':'')+'</div></div>').join('')}\n async function novo(){const u=user(),st=document.getElementById('statusEditaisV10503');if(!u)return;const nome=(prompt('Nome do novo edital:','Novo edital')||'').trim();if(!nome)return;st.textContent='Salvando edital atual...';const d=await garantir();await salvarAtual(d);const r=root(u.uid),id=r.child('editais').push().key;await r.child('editais/'+id).set({nome,criadoEm:firebase.database.ServerValue.TIMESTAMP,dados:{}});await r.child('ativoId').set(id);await gravarAtivos(u.uid,{});try{localStorage.removeItem('nova_v3_'+u.uid);localStorage.removeItem('nova_v3_ciclo_'+u.uid);localStorage.removeItem('nova_v3_ciclo_exec_'+u.uid);localStorage.removeItem('nova_v3_revisoes_motor_'+u.uid)}catch(_){}st.textContent='✅ Novo edital criado e ativado. Recarregando...';setTimeout(()=>location.reload(),500)}\n async function ativar(id){const u=user(),st=document.getElementById('statusEditaisV10503');if(!u)return;const d=await garantir();if(id===d.ativoId)return;st.textContent='Trocando de edital...';await salvarAtual(d);const alvo=(d.editais||{})[id];await gravarAtivos(u.uid,alvo?.dados||{});await root(u.uid).child('ativoId').set(id);try{localStorage.removeItem('nova_v3_'+u.uid);localStorage.removeItem('nova_v3_ciclo_'+u.uid);localStorage.removeItem('nova_v3_ciclo_exec_'+u.uid);localStorage.removeItem('nova_v3_revisoes_motor_'+u.uid)}catch(_){}st.textContent='✅ Edital ativado. Recarregando...';setTimeout(()=>location.reload(),500)}\n async function renomear(){const u=user();if(!u)return;const d=await garantir(),x=d.editais?.[d.ativoId];const nome=(prompt('Novo nome do edital ativo:',x?.nome||'Edital')||'').trim();if(!nome)return;await root(u.uid).child('editais/'+d.ativoId+'/nome').set(nome);await render()}\n document.addEventListener('click',e=>{if(e.target.closest('#novoEditalV10503'))novo().catch(console.error);if(e.target.closest('#renomearEditalV10503'))renomear().catch(console.error);const b=e.target.closest('[data-ativar-edital-v10503]');if(b)ativar(b.dataset.ativarEditalV10503).catch(console.error);if(e.target.closest('[data-page="gerenciarEdital"]'))setTimeout(()=>render().catch(console.error),80)});\n window.addEventListener('load',()=>setTimeout(()=>render().catch(console.error),900));\n})();\n</script>\n
+}return d}
+ async function salvarAtual(d){const u=user();if(!u||!d?.ativoId)return;const dados=await lerAtivos(u.uid);await root(u.uid).child('editais/'+d.ativoId+'/dados').set(dados);await root(u.uid).child('editais/'+d.ativoId+'/salvoEm').set(firebase.database.ServerValue.TIMESTAMP)}
+ async function render(){const box=document.getElementById('listaEditaisV10503');if(!box)return;const d=await garantir();if(!d){box.innerHTML='<div class="status-line">Faça login para gerenciar editais.</div>';return}const arr=Object.entries(d.editais||{});box.innerHTML=arr.map(([id,x])=>'<div style="border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:9px;display:flex;align-items:center;justify-content:space-between;gap:12px"><div><b>'+esc(x.nome||'Edital')+'</b> '+(id===d.ativoId?'<span style="border:1px solid var(--accent);border-radius:999px;padding:2px 7px;font-size:11px">ATIVO</span>':'')+'</div><div>'+(id!==d.ativoId?'<button class="btn btn-outline" data-ativar-edital-v10503="'+esc(id)+'" type="button">↔ Ativar</button>':'')+'</div></div>').join('')}
+ async function novo(){const u=user(),st=document.getElementById('statusEditaisV10503');if(!u)return;const nome=(prompt('Nome do novo edital:','Novo edital')||'').trim();if(!nome)return;st.textContent='Salvando edital atual...';const d=await garantir();await salvarAtual(d);const r=root(u.uid),id=r.child('editais').push().key;await r.child('editais/'+id).set({nome,criadoEm:firebase.database.ServerValue.TIMESTAMP,dados:{}});await r.child('ativoId').set(id);await gravarAtivos(u.uid,{});try{localStorage.removeItem('nova_v3_'+u.uid);localStorage.removeItem('nova_v3_ciclo_'+u.uid);localStorage.removeItem('nova_v3_ciclo_exec_'+u.uid);localStorage.removeItem('nova_v3_revisoes_motor_'+u.uid)}catch(_){}st.textContent='✅ Novo edital criado e ativado. Recarregando...';setTimeout(()=>location.reload(),500)}
+ async function ativar(id){const u=user(),st=document.getElementById('statusEditaisV10503');if(!u)return;const d=await garantir();if(id===d.ativoId)return;st.textContent='Trocando de edital...';await salvarAtual(d);const alvo=(d.editais||{})[id];await gravarAtivos(u.uid,alvo?.dados||{});await root(u.uid).child('ativoId').set(id);try{localStorage.removeItem('nova_v3_'+u.uid);localStorage.removeItem('nova_v3_ciclo_'+u.uid);localStorage.removeItem('nova_v3_ciclo_exec_'+u.uid);localStorage.removeItem('nova_v3_revisoes_motor_'+u.uid)}catch(_){}st.textContent='✅ Edital ativado. Recarregando...';setTimeout(()=>location.reload(),500)}
+ async function renomear(){const u=user();if(!u)return;const d=await garantir(),x=d.editais?.[d.ativoId];const nome=(prompt('Novo nome do edital ativo:',x?.nome||'Edital')||'').trim();if(!nome)return;await root(u.uid).child('editais/'+d.ativoId+'/nome').set(nome);await render()}
+ document.addEventListener('click',e=>{if(e.target.closest('#novoEditalV10503'))novo().catch(console.error);if(e.target.closest('#renomearEditalV10503'))renomear().catch(console.error);const b=e.target.closest('[data-ativar-edital-v10503]');if(b)ativar(b.dataset.ativarEditalV10503).catch(console.error);if(e.target.closest('[data-page="gerenciarEdital"]'))setTimeout(()=>render().catch(console.error),80)});
+ window.addEventListener('load',()=>setTimeout(()=>render().catch(console.error),900));
+})();
+</script>\n
 
 <script id="v10504-edital-ativo-sync">
 (function(){

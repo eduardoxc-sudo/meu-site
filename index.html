@@ -2602,6 +2602,28 @@ function v10422SessoesRef(){
  const u=auth.currentUser;
  return u?db.ref('usuarios/'+u.uid+'/estudo/sessoesV10422'):null;
 }
+function v10506LocalKey(){
+ const u=auth.currentUser;
+ return u?'nova_v10506_sessoes_manuais_'+u.uid:null;
+}
+function v10506LocalLer(){
+ const k=v10506LocalKey(); if(!k)return [];
+ try{
+   const a=JSON.parse(localStorage.getItem(k)||'[]');
+   return Array.isArray(a)?a:[];
+ }catch(_){return []}
+}
+function v10506LocalSalvar(reg){
+ const k=v10506LocalKey(); if(!k||!reg||!reg.id)return;
+ const a=v10506LocalLer().filter(x=>String(x.id)!==String(reg.id));
+ a.push(reg);
+ localStorage.setItem(k,JSON.stringify(a.slice(-200)));
+}
+function v10506LocalExcluir(id){
+ const k=v10506LocalKey(); if(!k)return;
+ localStorage.setItem(k,JSON.stringify(v10506LocalLer().filter(x=>String(x.id)!==String(id))));
+}
+
 function v10422FmtDataHora(ts){
  const d=new Date(Number(ts)||Date.now());
  return d.toLocaleDateString('pt-BR')+' • '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
@@ -2642,6 +2664,10 @@ async function v10422CarregarHistorico(){
  try{
    const s=await r.limitToLast(50).once('value'), arr=[];
    s.forEach(c=>arr.push({id:c.key,...(c.val()||{})}));
+   // V10.5.06: mescla o espelho local das sessões manuais.
+   // Assim o registro aparece imediatamente mesmo se outro render antigo sobrescrever a tela.
+   const ids=new Set(arr.map(x=>String(x.id)));
+   v10506LocalLer().forEach(x=>{if(x&&x.id&&!ids.has(String(x.id)))arr.push(x)});
    arr.sort((a,b)=>(Number(b.criadoEm)||0)-(Number(a.criadoEm)||0));
    if(!arr.length){box.innerHTML='<div class="placeholder">Nenhuma sessão registrada ainda.</div>';return;}
    const grupos={};
@@ -2693,6 +2719,7 @@ async function v10434ExcluirSessao(id){
      '\n\nSerá apagado somente este registro do Histórico de sessões.\nAs horas do edital atual NÃO serão alteradas.');
    if(!ok)return;
    await r.child(id).remove();
+   v10506LocalExcluir(id);
    await v10422CarregarHistorico();
  }catch(e){
    console.error('V10.4.34 excluir sessão:',e);
@@ -2726,6 +2753,8 @@ async function v10422AdicionarManual(){
      tipo:'manual',segundos,
      assuntoId:a.id,assuntoNome:a.nome||'',disciplina:a.disciplina||'',numero:a.numero||null
    });
+   // V10.5.06: mantém um espelho local do registro já confirmado na nuvem.
+   v10506LocalSalvar(sessaoSalva);
    v93Render();
    // Aguarda o Firebase confirmar o novo registro e só então redesenha o histórico.
    await v10422CarregarHistorico();

@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.08 • AUDITORIA E CORREÇÕES</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.09 • CORREÇÃO GERAL</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -6712,7 +6712,23 @@ html body :is(
       }
     }
 
-    // 4) compatibilidade com edital digitado antigo, somente se não houver Edital pronto
+    // 4) agenda real do Planejamento: fallback mais confiável quando o Edital pronto não está carregado
+    if(!payload){
+      try{
+        const snap=await db.ref('usuarios/'+u.uid+'/planejamento/agendaV102').once('value');
+        const d=snap.val()||{};
+        const itens=Array.isArray(d.itens)?d.itens:(Array.isArray(d)?d:[]);
+        if(itens.length) payload={assuntos:itens.map(a=>({id:a.id,disciplina:a.disciplina,nome:a.nome||a.titulo}))};
+      }catch(e){console.warn('V10.5.09 agenda verticalizado:',e)}
+    }
+    if(!payload){
+      try{
+        const itens=(typeof agendaV102!=='undefined'&&Array.isArray(agendaV102?.itens))?agendaV102.itens:[];
+        if(itens.length) payload={assuntos:itens.map(a=>({id:a.id,disciplina:a.disciplina,nome:a.nome||a.titulo}))};
+      }catch(_){}
+    }
+
+    // 5) compatibilidade com edital digitado antigo
     let grupos = normalizarAssuntos(payload);
     if(!Object.keys(grupos).length){
       try {
@@ -6986,34 +7002,104 @@ html body :is(
 
 <script id="v10503-editais-separados">
 (function(){
- const PATHS=[
-  'nova_app_v3/users/{uid}/app','nova_app_v3/users/{uid}/ciclo','nova_app_v3/users/{uid}/cicloExecucao','nova_app_v3/users/{uid}/revisoesMotor',
-  'usuarios/{uid}/editalProntoV100','usuarios/{uid}/planejamento/importacaoEditalV100','usuarios/{uid}/planejamento/agendaV102',
-  'usuarios/{uid}/questoesV94','usuarios/{uid}/estatisticasV93'
- ];
- const esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;','\'':'&#39;'}[c]));
- function user(){try{return auth.currentUser}catch(_){return null}}
- function root(uid){return db.ref('usuarios/'+uid+'/gerenciadorEditaisV10503')}
- function pth(t,uid){return t.replace('{uid}',uid)}
- async function lerAtivos(uid){const o={};for(const t of PATHS){const p=pth(t,uid);o[p]=(await db.ref(p).once('value')).val()??null}return o}
- async function gravarAtivos(uid,dados){const up={};for(const t of PATHS){const p=pth(t,uid);up[p]=(dados&&Object.prototype.hasOwnProperty.call(dados,p))?dados[p]:null}await db.ref().update(up)}
- async function garantir(){const u=user();if(!u)return null;const r=root(u.uid),s=await r.once('value');let d=s.val()||{};if(!d.ativoId){
-  const id=r.child('editais').push().key;
-  const dadosAtuais=await lerAtivos(u.uid);
-  d={ativoId:id,editais:{[id]:{
-    nome:(window.timerEditalV10423?.titulo||'PM-PE'),
-    criadoEm:Date.now(),
-    dados:dadosAtuais
-  }}};
-  await r.set(d)
-}return d}
- async function salvarAtual(d){const u=user();if(!u||!d?.ativoId)return;const dados=await lerAtivos(u.uid);await root(u.uid).child('editais/'+d.ativoId+'/dados').set(dados);await root(u.uid).child('editais/'+d.ativoId+'/salvoEm').set(firebase.database.ServerValue.TIMESTAMP)}
- async function render(){const box=document.getElementById('listaEditaisV10503');if(!box)return;const d=await garantir();if(!d){box.innerHTML='<div class="status-line">Faça login para gerenciar editais.</div>';return}const arr=Object.entries(d.editais||{});box.innerHTML=arr.map(([id,x])=>'<div style="border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:9px;display:flex;align-items:center;justify-content:space-between;gap:12px"><div><b>'+esc(x.nome||'Edital')+'</b> '+(id===d.ativoId?'<span style="border:1px solid var(--accent);border-radius:999px;padding:2px 7px;font-size:11px">ATIVO</span>':'')+'</div><div>'+(id!==d.ativoId?'<button class="btn btn-outline" data-ativar-edital-v10503="'+esc(id)+'" type="button">↔ Ativar</button>':'')+'</div></div>').join('')}
- async function novo(){const u=user(),st=document.getElementById('statusEditaisV10503');if(!u)return;const nome=(prompt('Nome do novo edital:','Novo edital')||'').trim();if(!nome)return;st.textContent='Salvando edital atual...';const d=await garantir();await salvarAtual(d);const r=root(u.uid),id=r.child('editais').push().key;await r.child('editais/'+id).set({nome,criadoEm:firebase.database.ServerValue.TIMESTAMP,dados:{}});await r.child('ativoId').set(id);await gravarAtivos(u.uid,{});try{localStorage.removeItem('nova_v3_'+u.uid);localStorage.removeItem('nova_v3_ciclo_'+u.uid);localStorage.removeItem('nova_v3_ciclo_exec_'+u.uid);localStorage.removeItem('nova_v3_revisoes_motor_'+u.uid)}catch(_){}st.textContent='✅ Novo edital criado e ativado. Recarregando...';setTimeout(()=>location.reload(),500)}
- async function ativar(id){const u=user(),st=document.getElementById('statusEditaisV10503');if(!u)return;const d=await garantir();if(id===d.ativoId)return;st.textContent='Trocando de edital...';await salvarAtual(d);const alvo=(d.editais||{})[id];await gravarAtivos(u.uid,alvo?.dados||{});await root(u.uid).child('ativoId').set(id);try{localStorage.removeItem('nova_v3_'+u.uid);localStorage.removeItem('nova_v3_ciclo_'+u.uid);localStorage.removeItem('nova_v3_ciclo_exec_'+u.uid);localStorage.removeItem('nova_v3_revisoes_motor_'+u.uid)}catch(_){}st.textContent='✅ Edital ativado. Recarregando...';setTimeout(()=>location.reload(),500)}
- async function renomear(){const u=user();if(!u)return;const d=await garantir(),x=d.editais?.[d.ativoId];const nome=(prompt('Novo nome do edital ativo:',x?.nome||'Edital')||'').trim();if(!nome)return;await root(u.uid).child('editais/'+d.ativoId+'/nome').set(nome);await render()}
- document.addEventListener('click',e=>{if(e.target.closest('#novoEditalV10503'))novo().catch(console.error);if(e.target.closest('#renomearEditalV10503'))renomear().catch(console.error);const b=e.target.closest('[data-ativar-edital-v10503]');if(b)ativar(b.dataset.ativarEditalV10503).catch(console.error);if(e.target.closest('[data-page="gerenciarEdital"]'))setTimeout(()=>render().catch(console.error),80)});
- window.addEventListener('load',()=>setTimeout(()=>render().catch(console.error),900));
+ const MAP={
+  app:'nova_app_v3/users/{uid}/app',
+  ciclo:'nova_app_v3/users/{uid}/ciclo',
+  cicloExecucao:'nova_app_v3/users/{uid}/cicloExecucao',
+  revisoesMotor:'nova_app_v3/users/{uid}/revisoesMotor',
+  editalPronto:'usuarios/{uid}/editalProntoV100',
+  importacao:'usuarios/{uid}/planejamento/importacaoEditalV100',
+  agenda:'usuarios/{uid}/planejamento/agendaV102',
+  questoes:'usuarios/{uid}/questoesV94',
+  estatisticas:'usuarios/{uid}/estatisticasV93'
+ };
+ const user=()=>((typeof auth!=='undefined'&&auth)?auth.currentUser:null);
+ const root=uid=>db.ref('usuarios/'+uid+'/editaisSeparadosV10509');
+ const path=(tpl,uid)=>tpl.replace('{uid}',uid);
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ async function lerAtivos(uid){
+   const out={};
+   for(const [slot,tpl] of Object.entries(MAP)){
+     try{out[slot]=(await db.ref(path(tpl,uid)).once('value')).val()??null}catch(e){out[slot]=null}
+   }
+   return out;
+ }
+ async function gravarAtivos(uid,dados){
+   const up={};
+   for(const [slot,tpl] of Object.entries(MAP)) up[path(tpl,uid)]=(dados&&Object.prototype.hasOwnProperty.call(dados,slot))?dados[slot]:null;
+   await db.ref().update(up);
+ }
+ function localKey(uid){return 'nova_v10509_editais_'+uid}
+ function localRead(uid){try{return JSON.parse(localStorage.getItem(localKey(uid))||'null')}catch(_){return null}}
+ function localWrite(uid,d){try{localStorage.setItem(localKey(uid),JSON.stringify(d))}catch(_){}}
+ async function garantir(){
+   const u=user(); if(!u)return null;
+   let d=null;
+   try{d=(await root(u.uid).once('value')).val()}catch(e){console.warn('V10.5.09 gerenciador cloud',e)}
+   if(!d)d=localRead(u.uid);
+   if(!d||!d.ativoId){
+     const id='ed_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);
+     const dados=await lerAtivos(u.uid);
+     d={ativoId:id,editais:{[id]:{nome:((typeof timerEditalV10423!=='undefined'&&timerEditalV10423?.titulo)?timerEditalV10423.titulo:'PM-PE'),criadoEm:Date.now(),dados}}};
+     localWrite(u.uid,d);
+     try{await root(u.uid).set(d)}catch(e){console.warn('V10.5.09 primeiro edital salvo localmente',e)}
+   }
+   localWrite(u.uid,d);
+   return d;
+ }
+ async function persistir(uid,d){localWrite(uid,d);try{await root(uid).set(d)}catch(e){console.warn('V10.5.09 persistência local ativa',e)}}
+ async function salvarAtual(d){
+   const u=user(); if(!u||!d?.ativoId)return;
+   d.editais=d.editais||{};
+   d.editais[d.ativoId]=d.editais[d.ativoId]||{nome:'Edital',criadoEm:Date.now()};
+   d.editais[d.ativoId].dados=await lerAtivos(u.uid);
+   d.editais[d.ativoId].salvoEm=Date.now();
+   await persistir(u.uid,d);
+ }
+ async function render(){
+   const box=document.getElementById('listaEditaisV10503'); if(!box)return;
+   const d=await garantir();
+   if(!d){box.innerHTML='<div class="status-line">Faça login para gerenciar editais.</div>';return}
+   const arr=Object.entries(d.editais||{});
+   box.innerHTML=arr.length?arr.map(([id,x])=>
+     '<div style="border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:9px;display:flex;align-items:center;justify-content:space-between;gap:12px">'+
+     '<div><b>'+esc(x.nome||'Edital')+'</b> '+(id===d.ativoId?'<span style="border:1px solid var(--accent);border-radius:999px;padding:2px 7px;font-size:11px">ATIVO</span>':'')+'</div>'+
+     '<div>'+(id!==d.ativoId?'<button class="btn btn-outline" data-ativar-edital-v10509="'+esc(id)+'" type="button">↔ Ativar</button>':'')+'</div></div>'
+   ).join(''):'<div class="status-line">Nenhum edital cadastrado.</div>';
+ }
+ async function novo(){
+   const u=user(),st=document.getElementById('statusEditaisV10503'); if(!u)return;
+   const nome=(prompt('Nome do novo edital:','Novo edital')||'').trim(); if(!nome)return;
+   if(st)st.textContent='Salvando edital atual...';
+   const d=await garantir(); await salvarAtual(d);
+   const id='ed_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);
+   d.editais[id]={nome,criadoEm:Date.now(),dados:{}};
+   d.ativoId=id; await persistir(u.uid,d); await gravarAtivos(u.uid,{});
+   ['nova_v3_'+u.uid,'nova_v3_ciclo_'+u.uid,'nova_v3_ciclo_exec_'+u.uid,'nova_v3_revisoes_motor_'+u.uid].forEach(k=>localStorage.removeItem(k));
+   if(st)st.textContent='✅ Novo edital criado e ativado.'; setTimeout(()=>location.reload(),350);
+ }
+ async function ativar(id){
+   const u=user(),st=document.getElementById('statusEditaisV10503'); if(!u)return;
+   const d=await garantir(); if(id===d.ativoId)return;
+   if(st)st.textContent='Trocando de edital...'; await salvarAtual(d);
+   const alvo=d.editais?.[id]; if(!alvo)return;
+   await gravarAtivos(u.uid,alvo.dados||{}); d.ativoId=id; await persistir(u.uid,d);
+   ['nova_v3_'+u.uid,'nova_v3_ciclo_'+u.uid,'nova_v3_ciclo_exec_'+u.uid,'nova_v3_revisoes_motor_'+u.uid].forEach(k=>localStorage.removeItem(k));
+   if(st)st.textContent='✅ Edital ativado.'; setTimeout(()=>location.reload(),350);
+ }
+ async function renomear(){
+   const u=user();if(!u)return;const d=await garantir(),x=d.editais?.[d.ativoId];
+   const nome=(prompt('Novo nome do edital ativo:',x?.nome||'Edital')||'').trim();if(!nome)return;
+   x.nome=nome;await persistir(u.uid,d);await render();
+ }
+ document.addEventListener('click',e=>{
+   if(e.target.closest('#novoEditalV10503'))novo().catch(console.error);
+   if(e.target.closest('#renomearEditalV10503'))renomear().catch(console.error);
+   const b=e.target.closest('[data-ativar-edital-v10509]');if(b)ativar(b.dataset.ativarEditalV10509).catch(console.error);
+   if(e.target.closest('[data-page="gerenciarEdital"]'))setTimeout(()=>render().catch(console.error),80);
+ });
+ window.v10509GerenciarRender=render;
+ window.addEventListener('load',()=>setTimeout(()=>render().catch(console.error),700));
 })();
 </script>\n
 
@@ -7058,7 +7144,7 @@ html body :is(
   }
 
   async function fonteAtiva(){
-    const u=window.auth?.currentUser;
+    const u=(typeof auth!=='undefined'&&auth)?auth.currentUser:null;
     if(!u)return {};
 
     // O app é o conteúdo efetivamente restaurado pelo "Meus Editais".
@@ -7081,8 +7167,17 @@ html body :is(
     }catch(e){console.warn('V10.5.04 planejamento',e)}
 
     try{
-      return normalizarEstado(window.estadoV2||{});
-    }catch(_){return {}}
+      const s=await db.ref('usuarios/'+u.uid+'/planejamento/agendaV102').once('value');
+      const d=s.val()||{}, itens=Array.isArray(d.itens)?d.itens:(Array.isArray(d)?d:[]);
+      const g={};
+      itens.forEach(a=>{const m=String(a?.disciplina||'').trim(),t=String(a?.nome||a?.titulo||'').trim();if(m&&t)(g[m]??=[]).push({id:String(a.id||''),titulo:t})});
+      if(Object.keys(g).length)return g;
+    }catch(e){console.warn('V10.5.09 agenda questões',e)}
+    try{
+      const g={};((typeof agendaV102!=='undefined'&&agendaV102?.itens)?agendaV102.itens:[]).forEach(a=>{const m=String(a?.disciplina||'').trim(),t=String(a?.nome||a?.titulo||'').trim();if(m&&t)(g[m]??=[]).push({id:String(a.id||''),titulo:t})});
+      if(Object.keys(g).length)return g;
+    }catch(_){}
+    try{return normalizarEstado((typeof estadoV2!=='undefined'&&estadoV2)?estadoV2:{})}catch(_){return {}}
   }
 
   let gruposAtivos={};
@@ -7135,6 +7230,65 @@ html body :is(
   }catch(_){}
 
   window.sincronizarQuestoesEditalAtivoV10504=sincronizar;
+})();
+</script>
+
+
+
+<script id="v10509-compat-globals">
+(function(){
+  // Ponte de compatibilidade: versões antigas consultavam window.*, enquanto o núcleo usa let/const globais.
+  try{window.auth=auth;window.db=db}catch(_){}
+  const expose=(nome,getter)=>{try{if(!Object.prototype.hasOwnProperty.call(window,nome))Object.defineProperty(window,nome,{configurable:true,get:getter})}catch(_){}};
+  expose('agendaV102',()=>typeof agendaV102!=='undefined'?agendaV102:null);
+  expose('estadoV2',()=>typeof estadoV2!=='undefined'?estadoV2:null);
+  expose('revisoesMotor',()=>typeof revisoesMotor!=='undefined'?revisoesMotor:null);
+  expose('REVISOES_MOTOR_REF',()=>typeof REVISOES_MOTOR_REF!=='undefined'?REVISOES_MOTOR_REF:null);
+  expose('planejamentoEstado',()=>typeof planejamentoEstado!=='undefined'?planejamentoEstado:null);
+})();
+</script>
+
+<script id="v10509-reparo-geral">
+(function(){
+ const $=id=>document.getElementById(id);
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function itens(){return (typeof agendaV102!=='undefined'&&Array.isArray(agendaV102?.itens))?agendaV102.itens:[]}
+ function concluido(a){return !!(a&&(a.concluidoEm||a.concluido===true||a.status==='concluido'))}
+ function preencherQuestoesLocal(){
+   const mat=$('qMateriaV10427'),ass=$('qAssuntoV10427');if(!mat||!ass)return;
+   const arr=itens();if(!arr.length)return;
+   const grupos={};arr.forEach(a=>{const m=String(a.disciplina||'').trim();if(m)(grupos[m]??=[]).push(a)});
+   if(mat.options.length<=1){
+     const atual=mat.value;mat.innerHTML='<option value="">Selecione a matéria</option>'+Object.keys(grupos).sort((a,b)=>a.localeCompare(b,'pt-BR')).map(m=>'<option value="'+esc(m)+'">'+esc(m)+'</option>').join('');
+     if(grupos[atual])mat.value=atual;
+   }
+   if(mat.value && ass.options.length<=1){
+     ass.innerHTML='<option value="">Selecione o assunto</option>'+(grupos[mat.value]||[]).map(a=>'<option value="'+esc(a.nome||a.titulo||'')+'">'+esc(a.nome||a.titulo||'')+'</option>').join('');
+   }
+ }
+ function desempenho(){
+   const arr=itens(), feitos=arr.filter(concluido);
+   const datas=new Set(feitos.map(a=>{const d=new Date(a.concluidoEm);return isNaN(d)?'':d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}).filter(Boolean));
+   if($('estatTopicosV10414'))$('estatTopicosV10414').textContent=feitos.length;
+   if($('estatDiasV10414'))$('estatDiasV10414').textContent=datas.size;
+   if($('statTopicosV92'))$('statTopicosV92').textContent=feitos.length;
+   if($('statDiasV92'))$('statDiasV92').textContent=datas.size;
+ }
+ function sequencia(){
+   const el=$('dashSeqV92');if(!el)return;
+   const ds=new Set(itens().filter(concluido).map(a=>{const d=new Date(a.concluidoEm);if(isNaN(d))return '';return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}).filter(Boolean));
+   if(!ds.size){el.textContent='0';return}
+   let d=new Date(),seq=0;
+   const iso=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+   if(!ds.has(iso(d)))d.setDate(d.getDate()-1);
+   while(ds.has(iso(d))){seq++;d.setDate(d.getDate()-1)}
+   el.textContent=seq;
+ }
+ function reparar(){preencherQuestoesLocal();desempenho();sequencia()}
+ document.addEventListener('change',e=>{if(e.target?.id==='qMateriaV10427'){const ass=$('qAssuntoV10427'),arr=itens().filter(a=>String(a.disciplina||'')===e.target.value);if(ass)ass.innerHTML='<option value="">Selecione o assunto</option>'+arr.map(a=>'<option value="'+esc(a.nome||a.titulo||'')+'">'+esc(a.nome||a.titulo||'')+'</option>').join('')}});
+ document.addEventListener('click',e=>{if(e.target.closest('[data-page]'))setTimeout(reparar,350)});
+ window.addEventListener('load',()=>{setTimeout(reparar,1200);setTimeout(reparar,2800)});
+ window.v10509Reparar=reparar;
 })();
 </script>
 

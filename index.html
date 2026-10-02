@@ -501,7 +501,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.43 • IMPORTAÇÃO VISUAL CORRIGIDA DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.45 • TROFÉU DE CONCLUSÃO DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -4093,6 +4093,142 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
   setTimeout(bind,1200);
+})();
+</script>
+
+
+<!-- V10.4.45 — TROFÉU DE CONCLUSÃO: camada isolada; não altera persistência/checklist -->
+<style id="v10444-trofeu-css">
+#v10444Victory{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;pointer-events:none;background:rgba(4,9,18,.22)}
+#v10444Victory.show{display:flex;animation:v10444Fade .25s ease}
+.v10444-box{min-width:min(88vw,390px);padding:24px 26px;border:1px solid rgba(250,204,21,.55);border-radius:20px;background:linear-gradient(145deg,#111c30,#0b1322);box-shadow:0 22px 70px rgba(0,0,0,.45);text-align:center;transform-origin:center;animation:v10444Pop .38s cubic-bezier(.2,.8,.2,1)}
+.v10444-trophy{font-size:64px;line-height:1;margin-bottom:8px;filter:drop-shadow(0 8px 18px rgba(250,204,21,.25))}
+.v10444-box strong{display:block;font-size:1.35rem;color:#fff}.v10444-box span{display:block;margin-top:7px;color:#b9c8dd;font-size:.92rem}
+@keyframes v10444Pop{0%{transform:scale(.72);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}@keyframes v10444Fade{from{opacity:0}to{opacity:1}}
+</style>
+<div id="v10444Victory" role="status" aria-live="polite"><div class="v10444-box"><div class="v10444-trophy">🏆</div><strong id="v10444VictoryTitle">Parabéns!</strong><span id="v10444VictoryText">Mais uma etapa concluída!</span></div></div>
+<script id="v10444-trofeu-js">
+(function(){
+ let timer=null;
+ function somSeguro(){
+   try{
+     const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+     const c=new AC(),g=c.createGain();g.connect(c.destination);g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.075,c.currentTime+.025);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.48);
+     [[523.25,0],[659.25,.11],[783.99,.22]].forEach(([f,d])=>{const o=c.createOscillator();o.type='sine';o.frequency.value=f;o.connect(g);o.start(c.currentTime+d);o.stop(c.currentTime+d+.22)});
+     setTimeout(()=>{try{c.close()}catch(e){}},900);
+   }catch(e){}
+ }
+ window.v10444Celebrar=function(tipo){
+   try{
+     const el=document.getElementById('v10444Victory');if(!el)return;
+     document.getElementById('v10444VictoryTitle').textContent='Parabéns!';
+     document.getElementById('v10444VictoryText').textContent=tipo==='revisao'?'Revisão concluída! Continue avançando.':'Mais uma etapa concluída! Continue avançando.';
+     el.classList.add('show');somSeguro();clearTimeout(timer);timer=setTimeout(()=>el.classList.remove('show'),2300);
+   }catch(e){}
+ };
+ // Observa somente o resultado visual já salvo. Não intercepta nem substitui a lógica do checklist.
+ const obs=new MutationObserver(ms=>{for(const m of ms){const t=(m.target?.textContent||'').trim();if(!t)continue;if(t.includes('Tópico concluído pelo checklist.')){window.v10444Celebrar('assunto');return}}});
+ function bind(){const st=document.getElementById('statusEstudoReal');if(st)obs.observe(st,{childList:true,subtree:true,characterData:true});}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
+})();
+</script>
+
+
+<!-- =========================================================
+ V10.4.45 — MOBILE: CARDS DO CICLO MAIS LARGOS E LEGÍVEIS
+ Somente layout responsivo. Não altera Firebase, checklist,
+ planejamento, histórico, revisões ou lógica de conclusão.
+========================================================== -->
+<style id="v10445-mobile-cards-largos">
+@media (max-width: 768px) {
+  /* Aproveita a largura útil da coluna do ciclo */
+  #page-ciclo .panel,
+  #page-ciclo .ciclo-card,
+  #page-ciclo .ciclo-semana,
+  #page-ciclo .dia-card,
+  #page-ciclo .ciclo-dia,
+  #page-ciclo .ciclo-item,
+  #page-ciclo .planejamento-hoje,
+  #page-ciclo .pendentes-hoje {
+    max-width: 100% !important;
+  }
+
+  /* Cards de assuntos/revisões */
+  #page-ciclo [class*="item"],
+  #page-ciclo [class*="assunto"],
+  #page-ciclo [class*="pendente"] {
+    min-width: 0 !important;
+  }
+
+  /* Título não fica espremido em uma coluna estreita */
+  #page-ciclo [class*="titulo"],
+  #page-ciclo [class*="nome"],
+  #page-ciclo strong,
+  #page-ciclo b {
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
+  /* O conteúdo textual pode ocupar todo o espaço restante */
+  #page-ciclo label,
+  #page-ciclo .ciclo-item > div,
+  #page-ciclo [class*="item"] > div {
+    min-width: 0;
+  }
+
+  /* Evita que grids antigos comprimam o card no celular */
+  #page-ciclo [style*="grid-template-columns"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  /* Checkbox continua confortável para toque */
+  #page-ciclo input[type="checkbox"] {
+    min-width: 22px;
+    min-height: 22px;
+    flex: 0 0 auto;
+  }
+}
+</style>
+
+<script id="v10445-mobile-card-fix">
+(function () {
+  function ajustarCardsMobile() {
+    if (!window.matchMedia('(max-width: 768px)').matches) return;
+    var raiz = document.getElementById('page-ciclo');
+    if (!raiz) return;
+
+    /* Corrige especificamente linhas que contêm checkbox + número + prioridade + título,
+       sem tocar em eventos ou dados. */
+    raiz.querySelectorAll('input[type="checkbox"]').forEach(function(cb){
+      var card = cb.closest('[class*="item"], [class*="card"], label');
+      if (!card) return;
+      card.style.width = '100%';
+      card.style.maxWidth = '100%';
+      card.style.minWidth = '0';
+      card.style.boxSizing = 'border-box';
+
+      var parent = card.parentElement;
+      if (parent) {
+        parent.style.minWidth = '0';
+        parent.style.maxWidth = '100%';
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(ajustarCardsMobile, 150);
+    setTimeout(ajustarCardsMobile, 700);
+  });
+  window.addEventListener('resize', ajustarCardsMobile);
+
+  var observer = new MutationObserver(function(){
+    clearTimeout(window.__v10445Timer);
+    window.__v10445Timer = setTimeout(ajustarCardsMobile, 60);
+  });
+  document.addEventListener('DOMContentLoaded', function(){
+    var raiz = document.getElementById('page-ciclo');
+    if (raiz) observer.observe(raiz, {childList:true, subtree:true});
+  });
 })();
 </script>
 

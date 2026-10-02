@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.95 • DASHBOARD DADOS REAIS</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.96 • QUESTÕES E REVISÕES</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -6085,6 +6085,178 @@ html body :is(
     const dash=document.getElementById('page-dashboard');
     if(dash && dash.classList.contains('active')) sync95();
   },2500);
+})();
+</script>
+
+
+<!-- V10.4.96 — QUESTÕES + REVISÕES usando a mesma base real do Edital/Ciclo -->
+<script id="v10496-questoes-revisoes-sync">
+(function(){
+  const $96=id=>document.getElementById(id);
+  const esc96=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const norm96=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+
+  function agenda96(){
+    try{return Array.isArray(agendaV102?.itens)?agendaV102.itens:[]}catch(_){return []}
+  }
+
+  function mapaEdital96(){
+    const mapa={};
+    try{
+      Object.entries(estadoV2?.editalVerticalizado||{}).forEach(([d,ts])=>{
+        mapa[d]=(ts||[]).map(t=>String(t?.titulo||'').trim()).filter(Boolean);
+      });
+    }catch(_){}
+
+    // Fallback: a agenda é a mesma base real que já fez o Dashboard mostrar 2/61.
+    agenda96().forEach(a=>{
+      const d=String(a?.disciplina||'').trim(), n=String(a?.nome||'').trim();
+      if(!d||!n)return;
+      if(!mapa[d])mapa[d]=[];
+      if(!mapa[d].some(x=>norm96(x)===norm96(n)))mapa[d].push(n);
+    });
+    return mapa;
+  }
+
+  function preencherQuestoes96(){
+    const mat=$96('qMateriaV10427'), ass=$96('qAssuntoV10427');
+    if(!mat||!ass)return;
+    const mapa=mapaEdital96(), atual=mat.value;
+    const mats=Object.keys(mapa).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+    mat.innerHTML='<option value="">Selecione a matéria</option>'+
+      mats.map(m=>'<option value="'+esc96(m)+'">'+esc96(m)+'</option>').join('');
+    if(mats.includes(atual))mat.value=atual;
+
+    const preencherAss=()=>{
+      const a=ass.value, ts=mapaEdital96()[mat.value]||[];
+      ass.innerHTML='<option value="">Selecione o assunto</option>'+
+        ts.map(t=>'<option value="'+esc96(t)+'">'+esc96(t)+'</option>').join('');
+      if(ts.includes(a))ass.value=a;
+    };
+    if(!mat.dataset.v10496){
+      mat.dataset.v10496='1';
+      mat.addEventListener('change',preencherAss);
+    }
+    preencherAss();
+  }
+
+  function isoBase96(v){
+    const x=String(v||'');
+    const m=x.match(/^(\d{4}-\d{2}-\d{2})/);
+    if(m)return m[1];
+    const d=new Date(v);
+    if(isNaN(d))return '';
+    try{return v104DateISO(d)}catch(_){return d.toISOString().slice(0,10)}
+  }
+
+  async function garantirMotor96(){
+    try{
+      if(!auth?.currentUser)return;
+      if(!revisoesMotor||typeof revisoesMotor!=='object')revisoesMotor={origens:{},atualizadoEm:null};
+      if(!revisoesMotor.origens||typeof revisoesMotor.origens!=='object')revisoesMotor.origens={};
+
+      let mudou=false;
+      agenda96().filter(a=>a?.concluidoEm&&a?.disciplina&&a?.nome).forEach(a=>{
+        const base=isoBase96(a.concluidoEm); if(!base)return;
+        const k=typeof revChave==='function'?revChave(a.disciplina,a.nome):norm96(a.disciplina)+'||'+norm96(a.nome);
+        let o=revisoesMotor.origens[k];
+        if(!o){
+          o=revisoesMotor.origens[k]={disciplina:a.disciplina,topico:a.nome,dataEstudo:base,revisoes:{},criadoEm:a.concluidoEm};
+          mudou=true;
+        }
+        if(!o.revisoes||typeof o.revisoes!=='object'){o.revisoes={};mudou=true}
+        [1,7,15,30].forEach(n=>{
+          const tipo='D'+n;
+          let dt='';
+          try{dt=revDataISO(base,n)}catch(_){}
+          if(!o.revisoes[tipo]){
+            o.revisoes[tipo]={dias:n,data:dt,concluida:false};
+            mudou=true;
+          }
+        });
+      });
+
+      if(mudou){
+        revisoesMotor.atualizadoEm=new Date().toISOString();
+        localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));
+        try{
+          if(!REVISOES_MOTOR_REF)REVISOES_MOTOR_REF=db.ref('nova_app_v3/users/'+auth.currentUser.uid+'/revisoesMotor');
+          await REVISOES_MOTOR_REF.set(revisoesMotor);
+        }catch(e){console.warn('V10.4.96 revisões Firebase',e)}
+      }
+    }catch(e){console.warn('V10.4.96 motor',e)}
+  }
+
+  // Substitui apenas o resumo do Dashboard. Não altera conclusão, agenda ou planejamento.
+  window.v10496ResumoRevisoes=function(){
+    let hoje='';
+    try{hoje=v87HojeISO()}catch(_){hoje=new Date().toISOString().slice(0,10)}
+    const atuais=new Set();
+    Object.entries(mapaEdital96()).forEach(([d,ts])=>ts.forEach(t=>atuais.add(norm96(d)+'||'+norm96(t))));
+    const itens=[], concluidas=[];
+
+    try{
+      Object.values(revisoesMotor?.origens||{}).forEach(o=>{
+        if(!o)return;
+        if(atuais.size && !atuais.has(norm96(o.disciplina)+'||'+norm96(o.topico)))return;
+        Object.entries(o.revisoes||{}).forEach(([tipo,r])=>{
+          if(!r?.data)return;
+          const original=String(r.data).slice(0,10);
+          let exibicao=original;
+          try{exibicao=v86ProximoDiaAtivo(original)}catch(_){}
+          const x={tipo,original,exibicao,disciplina:o.disciplina,topico:o.topico};
+          (r.concluida?concluidas:itens).push(x);
+        });
+      });
+    }catch(_){}
+
+    const hojeQtd=itens.filter(x=>x.exibicao===hoje).length;
+    const atrasadas=itens.filter(x=>x.exibicao<hoje).length;
+    const futuras=itens.filter(x=>x.exibicao>=hoje).sort((a,b)=>a.exibicao.localeCompare(b.exibicao));
+    return {hojeQtd,atrasadas,pendentes:itens.length,concluidas:concluidas.length,total:itens.length+concluidas.length,proxima:futuras[0]||null};
+  };
+
+  window.renderDashboardRevisoesV10496=function(){
+    if(!$96('dashRevisoesV91'))return;
+    const r=v10496ResumoRevisoes();
+    $96('dashRevHojeV91').textContent=r.hojeQtd;
+    $96('dashRevAtrasadasV91').textContent=r.atrasadas;
+    $96('dashRevPendentesV91').textContent=r.pendentes;
+    $96('dashRevConcluidasV91').textContent=r.concluidas;
+    $96('dashRevTotalV91').textContent=r.total;
+    let prox='Nenhuma pendente';
+    if(r.proxima){
+      try{prox=v86BR(r.proxima.exibicao)+' • '+r.proxima.tipo}catch(_){prox=r.proxima.exibicao+' • '+r.proxima.tipo}
+    }
+    $96('dashRevProximaV91').textContent=prox;
+    $96('dashRevStatusV91').textContent=r.atrasadas?'⚠️ Você tem '+r.atrasadas+' revisão(ões) atrasada(s).':
+      (r.hojeQtd?'📚 Há '+r.hojeQtd+' revisão(ões) para hoje.':'✓ Nenhuma revisão vencida hoje.');
+  };
+
+  async function sync96(){
+    preencherQuestoes96();
+    await garantirMotor96();
+    renderDashboardRevisoesV10496();
+  }
+  window.sincronizarQuestoesRevisoesV10496=sync96;
+
+  document.addEventListener('click',e=>{
+    if(e.target.closest('[data-page="questoes"]'))setTimeout(preencherQuestoes96,80);
+    if(e.target.closest('[data-page="dashboard"]')){
+      setTimeout(()=>sync96(),80);
+      setTimeout(()=>sync96(),500);
+    }
+  });
+
+  window.addEventListener('load',()=>{
+    [400,1200,2500,4500].forEach(ms=>setTimeout(()=>sync96(),ms));
+  });
+
+  // Mantém o painel correto mesmo se uma renderização antiga rodar depois.
+  setInterval(()=>{
+    const d=$96('page-dashboard');
+    if(d&&d.classList.contains('active'))renderDashboardRevisoesV10496();
+  },1800);
 })();
 </script>
 

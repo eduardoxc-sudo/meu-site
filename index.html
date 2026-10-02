@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.01 • REVISÕES DASHBOARD = CICLO</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.02 • GERENCIAR EDITAIS</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -1193,8 +1193,19 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <section class="page" id="page-gerenciarEdital">
 <div class="panel ge35-hero">
 <h2>⚙️ Gerenciar Edital</h2>
-<p class="panel-sub">Use esta área quando quiser apagar o edital atual e começar novamente do zero.</p>
+<p class="panel-sub">Crie, troque, renomeie ou exclua editais sem misturar os dados de um concurso com outro.</p>
+<div class="ge35-warning">📌 Cada edital mantém separadamente matérias, assuntos, Planejamento, Ciclo, revisões, Questões, progresso, horas e histórico de sessões.</div>
 <div class="ge35-warning">⚠️ A limpeza remove somente os dados ativos do edital. Arquivos históricos preservados não são apagados.</div>
+</div>
+<div class="panel" style="margin-top:16px" id="gerenciarMultiplosEditaisV10502">
+<h2>📚 Meus Editais</h2>
+<p class="panel-sub">O edital marcado como <b>ATIVO</b> é o que alimenta todas as abas do sistema.</p>
+<div class="actions" style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+<button class="btn btn-primary" id="btnNovoEditalV10502" type="button">➕ Novo Edital</button>
+<button class="btn btn-outline" id="btnRenomearEditalV10502" type="button">✏️ Renomear Edital Ativo</button>
+</div>
+<div id="listaEditaisV10502" style="margin-top:14px"></div>
+<div class="status-line" id="statusEditaisV10502"></div>
 </div>
 <div class="panel" style="margin-top:16px">
 <h2>🧹 Limpar edital atual</h2>
@@ -6749,6 +6760,122 @@ html body :is(
     const d=document.getElementById('page-dashboard');
     if(d && d.classList.contains('active')) render();
   },1800);
+})();
+</script>
+
+
+<script>
+// ========================= V10.5.02 — MÚLTIPLOS EDITAIS ISOLADOS =========================
+(function(){
+ const $e=id=>document.getElementById(id);
+ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const ROOT='editaisGerenciadosV10502';
+ function user(){return (typeof auth!=='undefined'&&auth.currentUser)?auth.currentUser:null;}
+ function root(){const u=user();return u?db.ref('usuarios/'+u.uid+'/'+ROOT):null;}
+ function paths(uid){return {
+   app:'nova_app_v3/users/'+uid+'/app',
+   planejamentoMotor:'nova_app_v3/users/'+uid+'/planejamento',
+   ciclo:'nova_app_v3/users/'+uid+'/ciclo',
+   cicloExecucao:'nova_app_v3/users/'+uid+'/cicloExecucao',
+   revisoesMotor:'nova_app_v3/users/'+uid+'/revisoesMotor',
+   editalPronto:'usuarios/'+uid+'/editalProntoV100',
+   importacaoPlanejamento:'usuarios/'+uid+'/planejamento/importacaoEditalV100',
+   agenda:'usuarios/'+uid+'/planejamento/agendaV102',
+   questoes:'usuarios/'+uid+'/questoesV94',
+   estatisticas:'usuarios/'+uid+'/estatisticasV93',
+   sessoesTimer:'usuarios/'+uid+'/estudo/sessoesV10422',
+   horasPorEdital:'usuarios/'+uid+'/estudo/horasPorEditalV10423'
+ };}
+ async function readActiveData(){
+   const u=user(); if(!u)return {};
+   const ps=paths(u.uid), out={};
+   for(const [k,path] of Object.entries(ps)){try{out[k]=(await db.ref(path).once('value')).val()??null;}catch(e){console.warn('snapshot',k,e);}}
+   return out;
+ }
+ async function clearActiveData(){
+   const u=user();if(!u)return;
+   const ps=paths(u.uid);
+   await Promise.all(Object.values(ps).map(path=>db.ref(path).remove()));
+   ['nova_v3_'+u.uid,'nova_v3_ciclo_'+u.uid,'nova_v3_ciclo_exec_'+u.uid,'nova_v3_revisoes_motor_'+u.uid].forEach(k=>localStorage.removeItem(k));
+ }
+ async function restoreData(data){
+   const u=user();if(!u)return;
+   const ps=paths(u.uid); data=data||{};
+   for(const [k,path] of Object.entries(ps)){
+     if(data[k]===null||typeof data[k]==='undefined') await db.ref(path).remove();
+     else await db.ref(path).set(data[k]);
+   }
+ }
+ async function ensure(){
+   const r=root();if(!r)return null;
+   let d=(await r.once('value')).val()||{};
+   if(!d.ativoId){
+     const id='edital_'+Date.now();
+     let nome='Edital atual';
+     try{if(typeof timerEditalV10423!=='undefined'&&timerEditalV10423.titulo)nome=timerEditalV10423.titulo;}catch(_){ }
+     await r.child('editais/'+id).set({nome,criadoEm:firebase.database.ServerValue.TIMESTAMP,atualizadoEm:firebase.database.ServerValue.TIMESTAMP});
+     await r.child('ativoId').set(id); d=(await r.once('value')).val()||{};
+   }
+   return d;
+ }
+ async function saveCurrent(){
+   const r=root();if(!r)return;
+   const d=await ensure(), id=d.ativoId;if(!id)return;
+   const dados=await readActiveData();
+   await r.child('editais/'+id).update({dados,atualizadoEm:firebase.database.ServerValue.TIMESTAMP});
+ }
+ async function render(){
+   const box=$e('listaEditaisV10502');if(!box)return;
+   const d=await ensure();if(!d){box.innerHTML='<div class="status-line">Faça login para gerenciar os editais.</div>';return;}
+   const ativo=d.ativoId, itens=d.editais||{};
+   box.innerHTML=Object.entries(itens).map(([id,x])=>{
+     const on=id===ativo;
+     return '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;margin:8px 0;border:1px solid var(--border);border-radius:12px;background:var(--panel2,rgba(255,255,255,.03))">'+
+       '<div><b>'+esc(x.nome||'Edital')+'</b>'+(on?' <span style="font-size:11px;font-weight:900;padding:3px 7px;border-radius:999px;border:1px solid var(--accent);color:var(--accent)">ATIVO</span>':'')+'</div>'+
+       '<div style="display:flex;gap:8px;flex-wrap:wrap">'+(!on?'<button class="btn btn-outline" data-v10502-trocar="'+esc(id)+'">🔄 Tornar ativo</button>':'')+(!on?'<button class="btn btn-danger" data-v10502-excluir="'+esc(id)+'">🗑️ Excluir</button>':'')+'</div></div>';
+   }).join('')||'<div class="status-line">Nenhum edital salvo.</div>';
+ }
+ async function novo(){
+   const nome=(prompt('Nome do novo edital:','Novo edital')||'').trim();if(!nome)return;
+   if(!confirm('Criar o edital “'+nome+'”?\n\nO edital atual será salvo completo e continuará disponível em Meus Editais. O novo edital começará vazio, sem misturar progresso, ciclo, revisões ou questões.'))return;
+   const st=$e('statusEditaisV10502');if(st)st.textContent='💾 Salvando o edital atual...';
+   try{
+     await saveCurrent(); const r=root(), id='edital_'+Date.now();
+     await clearActiveData();
+     await r.child('editais/'+id).set({nome,criadoEm:firebase.database.ServerValue.TIMESTAMP,atualizadoEm:firebase.database.ServerValue.TIMESTAMP,dados:{}});
+     await r.child('ativoId').set(id);
+     location.reload();
+   }catch(e){console.error('V10.5.02 novo edital',e);if(st)st.textContent='⚠️ Não foi possível criar o novo edital.';}
+ }
+ async function trocar(id){
+   const r=root(), d=await ensure(), alvo=d.editais&&d.editais[id];if(!r||!alvo||id===d.ativoId)return;
+   if(!confirm('Trocar para “'+(alvo.nome||'Edital')+'”?\n\nO edital atual será salvo antes da troca.'))return;
+   const st=$e('statusEditaisV10502');if(st)st.textContent='🔄 Salvando e trocando edital...';
+   try{await saveCurrent();await clearActiveData();await restoreData(alvo.dados||{});await r.child('ativoId').set(id);location.reload();}
+   catch(e){console.error('V10.5.02 trocar',e);if(st)st.textContent='⚠️ Não foi possível trocar o edital.';}
+ }
+ async function renomear(){
+   const r=root(),d=await ensure(),x=d.editais&&d.editais[d.ativoId];if(!r||!x)return;
+   const nome=(prompt('Novo nome do edital:',x.nome||'Edital')||'').trim();if(!nome)return;
+   await r.child('editais/'+d.ativoId+'/nome').set(nome);await render();
+   const st=$e('statusEditaisV10502');if(st)st.textContent='✅ Edital renomeado.';
+ }
+ async function excluir(id){
+   const r=root(),d=await ensure(),x=d.editais&&d.editais[id];if(!r||!x||id===d.ativoId)return;
+   if(!confirm('Excluir definitivamente o edital “'+(x.nome||'Edital')+'”?\n\nSerão apagados somente os dados salvos desse edital. O edital ativo não será alterado.'))return;
+   if(prompt('Para confirmar, digite exatamente: EXCLUIR')!=='EXCLUIR')return;
+   await r.child('editais/'+id).remove();await render();
+   const st=$e('statusEditaisV10502');if(st)st.textContent='✅ Edital excluído.';
+ }
+ function bind(){
+   const n=$e('btnNovoEditalV10502'),rn=$e('btnRenomearEditalV10502'),box=$e('listaEditaisV10502');
+   if(n&&!n.dataset.ok){n.dataset.ok='1';n.onclick=novo;}
+   if(rn&&!rn.dataset.ok){rn.dataset.ok='1';rn.onclick=renomear;}
+   if(box&&!box.dataset.ok){box.dataset.ok='1';box.addEventListener('click',e=>{const t=e.target.closest('[data-v10502-trocar]'),x=e.target.closest('[data-v10502-excluir]');if(t)trocar(t.dataset.v10502Trocar);if(x)excluir(x.dataset.v10502Excluir);});}
+   render().catch(console.error);
+ }
+ document.addEventListener('DOMContentLoaded',()=>setTimeout(bind,1200));setTimeout(bind,2500);
+ window.v10502SalvarEditalAtual=saveCurrent;
 })();
 </script>
 

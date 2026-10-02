@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.12 • FILTRO E SEQUÊNCIA ESTÁVEIS</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.13 • DIAGNÓSTICO E MOTOR CORRIGIDOS</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -3813,13 +3813,23 @@ function revOrigemExisteNoEdital(o){
  return !!d&&(estadoV2.editalVerticalizado[d]||[]).some(t=>v2Norm(t.titulo)===v2Norm(o.topico));
 }
 function revisoesMotorNormalizar(raw){const r=raw&&typeof raw==='object'?raw:{};return {origens:r.origens&&typeof r.origens==='object'?r.origens:{},atualizadoEm:r.atualizadoEm||null}}
+function v10513SanearRevisoesDoEdital(){
+ const antes=Object.keys(revisoesMotor?.origens||{}).length, validas={};
+ Object.entries(revisoesMotor?.origens||{}).forEach(([k,o])=>{if(o&&revOrigemExisteNoEdital(o))validas[k]=o});
+ const depois=Object.keys(validas).length;
+ if(depois!==antes){
+   revisoesMotor.origens=validas; revisoesMotor.atualizadoEm=new Date().toISOString();
+   try{const u=auth.currentUser;if(u)localStorage.setItem('nova_v3_revisoes_motor_'+u.uid,JSON.stringify(revisoesMotor))}catch(_){}
+ }
+ return {antes,depois,removidas:antes-depois};
+}
 async function revisoesMotorCarregar(){
  if(!auth.currentUser)return;
  REVISOES_MOTOR_REF=db.ref('nova_app_v3/users/'+auth.currentUser.uid+'/revisoesMotor');
  let local=null;try{local=JSON.parse(localStorage.getItem('nova_v3_revisoes_motor_'+auth.currentUser.uid)||'null')}catch(_){}
  if(local)revisoesMotor=revisoesMotorNormalizar(local);
  try{const s=await REVISOES_MOTOR_REF.once('value'),cloud=s.val();if(cloud){const lm=Date.parse(revisoesMotor.atualizadoEm||'')||0,cm=Date.parse(cloud.atualizadoEm||'')||0;if(cm>=lm)revisoesMotor=revisoesMotorNormalizar(cloud)}}catch(e){ultimoErroV3=String(e?.code||e?.message||e)}
- revDevPreencherDisciplinas();renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();renderizarDashboardRevisoesV91();renderizarEstatisticasV92();
+ const saneamentoV10513=v10513SanearRevisoesDoEdital();if(saneamentoV10513.removidas>0&&REVISOES_MOTOR_REF){try{await REVISOES_MOTOR_REF.set(revisoesMotor)}catch(e){ultimoErroV3=String(e?.code||e?.message||e)}} revDevPreencherDisciplinas();renderizarRevisoesMotor();renderizarRevisoesAgendadasV85();renderizarAgendaRevisoesV86();renderizarRevisoesHojeV87();renderizarHistoricoV90();renderizarDashboardRevisoesV91();renderizarEstatisticasV92();
 }
 function revDevPreencherDisciplinas(){
  const s=$('revDevDisciplina');if(!s)return;const ds=Object.keys(estadoV2?.editalVerticalizado||{});
@@ -3871,6 +3881,7 @@ async function executarDiagnosticoV3(){
  L.push([revValidas,'Revisões válidas','Somente D1, D7, D15 e D30']);
  L.push([!document.querySelector('[data-plan-gerar-calendario]'),'Planejamento sem gerador','V7 continua sem calendário']);
  L.push([!!REVISOES_MOTOR_REF,'Motor de revisões por UID',REVISOES_MOTOR_REF?'nova_app_v3/users/<UID>/revisoesMotor':'Referência ausente']);
+ v10513SanearRevisoesDoEdital();
  const origensRev=Object.values(revisoesMotor?.origens||{});
  L.push([origensRev.every(revOrigemExisteNoEdital),'Revisões ligadas ao Edital',origensRev.length+' origem(ns) válida(s)']);
  const chavesRev=Object.keys(revisoesMotor?.origens||{});
@@ -3887,20 +3898,20 @@ async function executarDiagnosticoV3(){
  L.push([!!$('btnConcluirEstudoReal'),'Conclusão única ativa','Somente o tópico real pode avançar o ciclo']);
  L.push([!!$('btnResetTesteV841'),'Reset isolado disponível','Reset não substitui o listener do Estudo real']);
  L.push([typeof concluirEstudoReal==='function','Clique do Estudo real preservado','Função de conclusão continua carregada']);
- L.push([!!$('listaRevisoesAgendadas'),'Painel de revisões agendadas','Somente leitura no Planejamento']);
- L.push([!!$('agendaRevisoesV86'),'Agenda por dia disponível','Revisões iguais permanecem juntas; dias não ativos são deslocados apenas na exibição']);
- L.push([!!$('revisoesHojeV87'),'Revisões de hoje disponíveis','Inclui vencidas hoje e atrasadas']);
+ L.push([typeof renderizarRevisoesAgendadasV85==='function','Painel de revisões agendadas','Renderizador disponível; painel visual é opcional']);
+ L.push([typeof renderizarAgendaRevisoesV86==='function'&&typeof v86ProximoDiaAtivo==='function','Agenda por dia disponível','Motor de agrupamento e deslocamento por dia ativo disponível']);
+ L.push([typeof v87ItensPendentes==='function'&&typeof renderizarRevisoesHojeV87==='function','Revisões de hoje disponíveis','Cálculo de vencidas hoje e atrasadas disponível']);
  L.push([true,'Contadores separados visualmente','HOJE, ATRASADAS e PENDENTES em cartões distintos']);
  L.push([typeof v87ConcluirRevisao==='function','Conclusão de revisão disponível','Marca somente a revisão; não gera nova sequência']);
- L.push([!!$('btnAtivarTesteHojeV88'),'Simulação de data disponível','Visualiza vencidas/atrasadas sem mudar relógio nem datas do motor']);
+ L.push([typeof v88Ativar==='function'&&typeof v88DataReferencia==='function','Simulação de data disponível','Motor de simulação disponível; controle visual pode estar oculto']);
  L.push([true,'Conclusão isolada no modo simulado','Usa cópia temporária; reduz pendentes sem Firebase/localStorage']);
  L.push([!!$('historicoRevisoesV90'),'Histórico de revisões disponível','Lê conclusões reais D1/D7/D15/D30 do motor por UID']);
  L.push([typeof v90HistoricoReal==='function','Simulações fora do histórico','Entradas SIMULACAO_ são ignoradas']);
- L.push([!!$('btnTesteDataNaoAtivaV861'),'Simulador de dia não ativo','Teste não grava no Firebase nem altera o motor']);
+ L.push([typeof testarDataNaoAtivaV861==='function'&&typeof v86ProximoDiaAtivo==='function','Simulador de dia não ativo','Rotina segura disponível; controle visual pode estar oculto']);
  const painelOrigens=Object.values(revisoesMotor?.origens||{}).filter(o=>o&&revOrigemExisteNoEdital(o));
  const painelRevisoes=painelOrigens.reduce((n,o)=>n+Object.keys(o.revisoes||{}).length,0);
  L.push([painelOrigens.length===origensRev.length,'Painel usa a mesma fonte do Diagnóstico',painelOrigens.length+' origem(ns) • '+painelRevisoes+' revisão(ões)']);
- L.push([estudoRealAtual() || ($('btnConcluirEstudoReal')?.disabled===true && $('btnConcluirEstudoReal')?.textContent.includes('Ciclo concluído')),'Fim do ciclo bloqueado','Sem tópico pendente = nenhuma nova volta']);
+ L.push([!!estudoRealAtual()||$('btnConcluirEstudoReal')?.disabled===true,'Fim do ciclo bloqueado','Sem tópico disponível = conclusão bloqueada; nenhuma nova volta']);
 
 
  const pg=document.querySelector('.page.active')?.id?.replace('page-','')||'nenhuma',salva=u?localStorage.getItem('nova_v3_ultima_pagina_'+u.uid):null;

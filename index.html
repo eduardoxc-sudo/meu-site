@@ -468,7 +468,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
 </style>
 
 <style id="v10466-visual-only">
-/* V10.4.66 — SOMENTE VISUAL. Nenhuma regra de negócio alterada. */
+/* V10.4.67 — SOMENTE VISUAL. Nenhuma regra de negócio alterada. */
 :root{--bg:#091321;--surface:#101d31;--card:#111f34;--border:#2b405d;--text:#f8fafc;--muted:#9db0ca;--primary:#31b9ff;--accent:#7048ff;--success:#20c77a;--danger:#ef3340}
 body{background:linear-gradient(180deg,#08111e 0%,#0a1524 100%)}
 #app{grid-template-columns:220px minmax(0,1fr)}
@@ -492,6 +492,76 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 @media(max-width:1000px){#app{grid-template-columns:190px minmax(0,1fr)}main{padding:24px 18px}}
 @media(max-width:800px){#app{display:block}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid rgba(255,255,255,.15)}.nav{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:18px 12px}.hero{padding:22px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
+
+<style id="v10467-ciclo-visual-only">
+/* V10.4.67 — SOMENTE VISUAL DA ÁREA CICLO.
+   Não altera Firebase, login, UID, planejamento, revisões, checklists,
+   drag/drop, IDs, handlers ou funções JavaScript. */
+
+/* Página Ciclo: acabamento inspirado no layout antigo, mantendo a estrutura atual */
+#pageCiclo .card,
+#page-ciclo .card,
+[data-page="ciclo"] .card {
+  border-radius: 16px;
+  border: 1px solid rgba(125, 163, 210, .24);
+  box-shadow: 0 10px 28px rgba(0,0,0,.12);
+}
+
+#pageCiclo h2, #page-ciclo h2, [data-page="ciclo"] h2 {
+  letter-spacing: -.025em;
+}
+
+#pageCiclo button,
+#page-ciclo button,
+[data-page="ciclo"] button {
+  border-radius: 10px;
+  min-height: 40px;
+  font-weight: 700;
+}
+
+#pageCiclo input,
+#pageCiclo select,
+#page-ciclo input,
+#page-ciclo select,
+[data-page="ciclo"] input,
+[data-page="ciclo"] select {
+  border-radius: 10px;
+}
+
+/* Mantém a Semana do ciclo exatamente em sua estrutura vertical atual.
+   Apenas uniformiza borda/raio; NÃO cria grade de 7 colunas. */
+#semanaCicloV104,
+#cicloSemanaV104,
+[id*="Semana"][id*="ciclo"],
+[id*="semana"][id*="Ciclo"] {
+  max-width: 100%;
+}
+
+/* Cards internos da configuração/ordem: melhor respiro visual */
+#pageCiclo .ciclo-grid > *,
+#page-ciclo .ciclo-grid > *,
+[data-page="ciclo"] .ciclo-grid > * {
+  min-width: 0;
+}
+
+/* Estado vazio mais limpo */
+#pageCiclo .empty,
+#page-ciclo .empty,
+[data-page="ciclo"] .empty {
+  border-radius: 12px;
+  padding: 22px;
+}
+
+/* Mobile: somente responsividade visual */
+@media (max-width: 900px) {
+  #pageCiclo .ciclo-grid,
+  #page-ciclo .ciclo-grid,
+  [data-page="ciclo"] .ciclo-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <section id="login">
@@ -527,7 +597,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.66 • REDESIGN VISUAL</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.67 • REDESIGN VISUAL</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">

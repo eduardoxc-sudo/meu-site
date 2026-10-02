@@ -501,7 +501,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.62 • CICLO PERSISTENTE APÓS LOGIN</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.63 • CICLO PERSISTENTE APÓS LOGIN</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -1340,9 +1340,36 @@ let cicloExec={indice:0,voltas:0,atualizadoEm:null};
 let CICLO_REF=null;
 let CICLO_EXEC_REF=null;
 let cicloSaveTimer=null;
-// V10.4.62 — impede sobrescrita do Ciclo durante a inicialização/login.
+// V10.4.63 — impede sobrescrita do Ciclo durante a inicialização/login.
 let cicloLoginCarregandoV10461=true;
 let cicloCloudLidoV10461=false;
+
+// V10.4.63 — último estado válido do Ciclo.
+// Se alguma rotina tardia tentar trocar a tela por um estado vazio,
+// restauramos a última configuração não vazia do próprio UID.
+let cicloUltimoValidoV10463=null;
+function cicloGuardarValidoV10463(){
+  if(Array.isArray(cicloEstado?.itens) && cicloEstado.itens.length){
+    cicloUltimoValidoV10463=JSON.parse(JSON.stringify(cicloEstado));
+    if(auth.currentUser){
+      localStorage.setItem('nova_v3_ciclo_backup_'+auth.currentUser.uid,JSON.stringify(cicloUltimoValidoV10463));
+    }
+  }
+}
+function cicloRecuperarValidoV10463(){
+  if(Array.isArray(cicloEstado?.itens) && cicloEstado.itens.length)return true;
+  let b=cicloUltimoValidoV10463;
+  if(!b && auth.currentUser){
+    try{b=JSON.parse(localStorage.getItem('nova_v3_ciclo_backup_'+auth.currentUser.uid)||'null')}catch(_){}
+  }
+  if(b && Array.isArray(b.itens) && b.itens.length){
+    cicloEstado=cicloNormalizar(b);
+    cicloEstado.atualizadoEm=b.atualizadoEm||cicloEstado.atualizadoEm||null;
+    cicloUltimoValidoV10463=JSON.parse(JSON.stringify(cicloEstado));
+    return true;
+  }
+  return false;
+}
 
 function cicloNomesEdital(){
   return Object.keys(estadoV2?.editalVerticalizado||{});
@@ -1354,7 +1381,7 @@ function cicloNormalizar(raw){
     itens:itens
       .filter(x=>x&&typeof x.nome==='string'&&x.nome.trim())
       .map(x=>({nome:x.nome.trim(),ativo:x.ativo!==false,minutos:Math.max(5,Math.min(600,Number(x.minutos)||50))})),
-    // V10.4.62: não perder a data usada para decidir entre cache local e Firebase.
+    // V10.4.63: não perder a data usada para decidir entre cache local e Firebase.
     atualizadoEm:typeof fonte.atualizadoEm==='string'?fonte.atualizadoEm:null
   };
 }
@@ -1362,7 +1389,7 @@ function cicloSincronizarComEdital(render=true){
   const nomes=cicloNomesEdital();
   const atuais=Array.isArray(cicloEstado?.itens)?cicloEstado.itens:[];
 
-  // V10.4.62 — sincronização NÃO DESTRUTIVA.
+  // V10.4.63 — sincronização NÃO DESTRUTIVA.
   // O Ciclo salvo pelo usuário é a fonte da configuração do Ciclo.
   // O carregamento tardio/temporário do Edital nunca pode remover disciplinas
   // que acabaram de voltar do Firebase. A sincronização automática apenas:
@@ -1401,6 +1428,7 @@ async function cicloCarregar(){
       const lm=Date.parse(cicloEstado.atualizadoEm||'')||0,cm=Date.parse(cloudNorm.atualizadoEm||'')||0;
       if(cloudNorm.itens.length || cm>=lm)cicloEstado=cloudNorm;
     }
+    cicloGuardarValidoV10463();
     cicloCloudLidoV10461=true;
   }catch(e){
     ultimoErroV3=String(e?.code||e?.message||e);
@@ -1413,14 +1441,14 @@ async function cicloCarregar(){
 function cicloPersistir(mensagem='Ciclo salvo.'){
   if(!auth.currentUser||!CICLO_REF)return Promise.resolve(false);
 
-  // V10.4.62: durante login/inicialização, nunca gravar estado vazio/temporário.
+  // V10.4.63: durante login/inicialização, nunca gravar estado vazio/temporário.
   // Isso evita apagar no Firebase o Ciclo que ainda está sendo recuperado.
   if(cicloLoginCarregandoV10461 || !cicloCloudLidoV10461){
-    console.warn('V10.4.62: salvamento bloqueado enquanto o Ciclo do UID está carregando.');
+    console.warn('V10.4.63: salvamento bloqueado enquanto o Ciclo do UID está carregando.');
     return Promise.resolve(false);
   }
   if(!Array.isArray(cicloEstado?.itens) || !cicloEstado.itens.length){
-    console.warn('V10.4.62: salvamento automático de Ciclo vazio bloqueado.');
+    console.warn('V10.4.63: salvamento automático de Ciclo vazio bloqueado.');
     return Promise.resolve(false);
   }
 
@@ -1431,15 +1459,18 @@ function cicloPersistir(mensagem='Ciclo salvo.'){
   localStorage.setItem('nova_v3_ciclo_'+auth.currentUser.uid,JSON.stringify(payload));
   clearTimeout(cicloSaveTimer);
   $('statusCiclo').textContent='Salvando...';
-  // V10.4.62: grava imediatamente no Firebase. Assim logout/reload não cancela
+  // V10.4.63: grava imediatamente no Firebase. Assim logout/reload não cancela
   // um setTimeout pendente e o ciclo volta corretamente no próximo login.
+  cicloGuardarValidoV10463();
   return CICLO_REF.set(payload)
-    .then(()=>{ $('statusCiclo').textContent=mensagem; return true; })
+    .then(()=>{ cicloGuardarValidoV10463(); $('statusCiclo').textContent=mensagem; return true; })
     .catch(e=>{ultimoErroV3=String(e?.code||e?.message||e);$('statusCiclo').textContent='Falha ao salvar o ciclo.';return false;});
 }
 function renderizarCicloSemSincronizarV10460(){
   const box=$('listaCiclo');if(!box)return;
+  cicloRecuperarValidoV10463();
   const itens=cicloEstado.itens||[];
+  cicloGuardarValidoV10463();
   const ativas=itens.filter(x=>x.ativo);
   $('cicloQtdAtivas').textContent=ativas.length;
   $('cicloQtdEdital').textContent=cicloNomesEdital().length || itens.length;
@@ -1462,7 +1493,9 @@ function renderizarCicloSemSincronizarV10460(){
 
 function renderizarCiclo(){
   const box=$('listaCiclo');if(!box)return;
+  cicloRecuperarValidoV10463();
   cicloSincronizarComEdital(false);
+  cicloGuardarValidoV10463();
   const itens=cicloEstado.itens||[];
   const ativas=itens.filter(x=>x.ativo);
   $('cicloQtdAtivas').textContent=ativas.length;
@@ -4693,6 +4726,27 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
     setTimeout(executar57,4000);
   });
   window.v10457NormalizarRevisoesADM=executar57;
+})();
+</script>
+
+
+<script id="v10463-ciclo-watchdog">
+(function(){
+  let ticks=0;
+  const t=setInterval(function(){
+    ticks++;
+    try{
+      if(auth?.currentUser && typeof cicloRecuperarValidoV10463==='function'){
+        const estavaVazio=!Array.isArray(cicloEstado?.itens)||!cicloEstado.itens.length;
+        if(estavaVazio && cicloRecuperarValidoV10463()){
+          if(typeof renderizarCicloSemSincronizarV10460==='function')renderizarCicloSemSincronizarV10460();
+        }else if(!estavaVazio && typeof cicloGuardarValidoV10463==='function'){
+          cicloGuardarValidoV10463();
+        }
+      }
+    }catch(e){console.warn('V10.4.63 proteção do Ciclo:',e)}
+    if(ticks>=30)clearInterval(t); // protege os primeiros ~30s após abrir
+  },1000);
 })();
 </script>
 

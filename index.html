@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.97 • DASHBOARD ESTÁVEL</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.98 • SEQUÊNCIA E QUESTÕES</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -6304,6 +6304,83 @@ html body :is(
         try{ window.renderDashboardRevisoesV10496(); }catch(_){}
       },30);
     }
+  });
+})();
+</script>
+
+
+
+<!-- V10.4.98 — DASHBOARD: SEQUÊNCIA + QUESTÕES, BASE V10.4.97 ESTÁVEL -->
+<script id="v10498-dashboard-sequencia-questoes">
+(function(){
+  /*
+    Patch localizado: NÃO altera Ciclo, agenda, revisões, planejamento ou registro de questões.
+    Apenas lê os dados já existentes e preenche os dois cards do Dashboard.
+  */
+  function setSomenteSeMudou(id, valor){
+    var el=document.getElementById(id);
+    if(el && el.textContent!==String(valor)) el.textContent=String(valor);
+  }
+
+  function atualizarSequencia498(){
+    try{
+      if(typeof v922DatasAtividadeReal!=='function' || typeof v922CalcularSequencia!=='function') return;
+      var datas=v922DatasAtividadeReal();
+      var seq=v922CalcularSequencia(datas,new Date());
+      setSomenteSeMudou('dashSeqV92', seq>0 ? seq : '—');
+    }catch(e){ console.warn('V10.4.98 sequência dashboard',e); }
+  }
+
+  function atualizarQuestoes498(){
+    try{
+      // Fonte oficial da aba Questões (V9.4), somente leitura.
+      if(typeof questoesV94==='undefined' || !questoesV94 || questoesV94.carregado!==true) return;
+      var total=Number(questoesV94.total)||0;
+      setSomenteSeMudou('dashQuestoesV92', total>0 ? total : '—');
+    }catch(e){ console.warn('V10.4.98 questões dashboard',e); }
+  }
+
+  function atualizar498(){
+    atualizarSequencia498();
+    atualizarQuestoes498();
+  }
+  window.atualizarDashboardSeqQuestoesV10498=atualizar498;
+
+  // Aproveita os renderizadores existentes, sem criar um segundo motor.
+  try{
+    var render94Anterior=window.v94Render;
+    if(typeof render94Anterior==='function'){
+      window.v94Render=function(){
+        var r=render94Anterior.apply(this,arguments);
+        atualizarQuestoes498();
+        return r;
+      };
+      try{ v94Render=window.v94Render; }catch(_){}
+    }
+  }catch(_){}
+
+  try{
+    var renderEstAnterior=window.renderizarEstatisticasV92;
+    if(typeof renderEstAnterior==='function'){
+      window.renderizarEstatisticasV92=function(){
+        var r=renderEstAnterior.apply(this,arguments);
+        atualizarSequencia498();
+        return r;
+      };
+      try{ renderizarEstatisticasV92=window.renderizarEstatisticasV92; }catch(_){}
+    }
+  }catch(_){}
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('[data-page="dashboard"]')){
+      setTimeout(atualizar498,80);
+      setTimeout(atualizar498,500);
+    }
+  });
+
+  window.addEventListener('load',function(){
+    // Dá tempo para Firebase carregar os dados oficiais já salvos.
+    [250,700,1500,3000].forEach(function(ms){setTimeout(atualizar498,ms);});
   });
 })();
 </script>

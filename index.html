@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.96 • QUESTÕES E REVISÕES</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.97 • DASHBOARD ESTÁVEL</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -6257,6 +6257,54 @@ html body :is(
     const d=$96('page-dashboard');
     if(d&&d.classList.contains('active'))renderDashboardRevisoesV10496();
   },1800);
+})();
+</script>
+
+
+<!-- V10.4.97 — FIX DEFINITIVO DO PISCAR NO DASHBOARD -->
+<script id="v10497-fix-piscar-dashboard">
+(function(){
+  /*
+    A V10.4.95 ainda chamava renderizarDashboardRevisoesV91() a cada 2,5 s.
+    A V10.4.96 chamava o novo resumo a cada 1,8 s.
+    Os dois renderizadores disputavam os mesmos campos: 0 -> 12 -> 0 -> 12.
+    A partir daqui existe UMA ÚNICA renderização: toda chamada antiga é
+    redirecionada para o resumo correto da V10.4.96.
+  */
+  function instalar97(){
+    if(typeof window.renderDashboardRevisoesV10496 !== 'function') return false;
+
+    try{
+      renderizarDashboardRevisoesV91 = function(){
+        return window.renderDashboardRevisoesV10496();
+      };
+      window.renderizarDashboardRevisoesV91 = renderizarDashboardRevisoesV91;
+    }catch(e){
+      window.renderizarDashboardRevisoesV91 = function(){
+        return window.renderDashboardRevisoesV10496();
+      };
+    }
+
+    // Renderiza imediatamente uma vez com a fonte correta.
+    try{ window.renderDashboardRevisoesV10496(); }catch(_){}
+    return true;
+  }
+
+  if(!instalar97()){
+    window.addEventListener('load',function(){
+      setTimeout(instalar97,50);
+      setTimeout(instalar97,500);
+    });
+  }
+
+  document.addEventListener('click',function(e){
+    if(e.target.closest('[data-page="dashboard"]')){
+      setTimeout(function(){
+        instalar97();
+        try{ window.renderDashboardRevisoesV10496(); }catch(_){}
+      },30);
+    }
+  });
 })();
 </script>
 

@@ -501,7 +501,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.55 • D1 DATA LOCAL CORRIGIDA</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.56 • D1 DATA LOCAL CORRIGIDA</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -2910,7 +2910,16 @@ function v104RevisoesDatas(){
    [1,7,15,30].forEach(n=>{
      const tipo='D'+n, chave=revChave(a.disciplina,a.nome);
      const gravada=revisoesMotor?.origens?.[chave]?.revisoes?.[tipo];
-     add(o,tipo,gravada||{data:revDataISO(base,n),concluida:false});
+     // V10.4.56: revisão PENDENTE sempre usa a data correta calculada
+     // pela data LOCAL real da conclusão. Isso neutraliza registros antigos
+     // do Firebase que ficaram +1 dia. Revisão já concluída preserva seu registro.
+     const correta=revDataISO(base,n);
+     add(o,tipo,(gravada&&gravada.concluida)?gravada:{
+       ...(gravada||{}),
+       dias:n,
+       data:correta,
+       concluida:false
+     });
    });
  });
  return out;
@@ -4395,7 +4404,7 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 </style>
 
 
-<!-- V10.4.55 — D1 usa a data LOCAL da conclusão (corrige virada UTC/Brasil) -->
+<!-- V10.4.56 — D1 usa a data LOCAL da conclusão (corrige virada UTC/Brasil) -->
 <script id="v10452-d1-core-fix">
 (function(){
  function baseISO(v){if(!v)return '';var txt=String(v);if(/^\d{4}-\d{2}-\d{2}$/.test(txt))return txt;var d=new Date(v);return isNaN(d)?'':v104DateISO(d)}
@@ -4414,5 +4423,95 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
  setTimeout(function(){reconstruir().catch(function(){})},2500);setTimeout(function(){reconstruir().catch(function(){})},4500);
 })();
 </script>
+
+<!-- V10.4.56 — migração automática de revisões antigas +1 dia -->
+<script id="v10456-migracao-revisoes-antigas">
+(function(){
+  function dataLocalConclusaoV10456(a){
+    if(!a || !a.concluidoEm) return '';
+    var d=new Date(a.concluidoEm);
+    if(!isNaN(d)) return v104DateISO(d);
+    var m=String(a.concluidoEm).match(/^(\d{4}-\d{2}-\d{2})/);
+    return m ? m[1] : '';
+  }
+
+  async function migrarV10456(){
+    if(!window.auth || !auth.currentUser || !REVISOES_MOTOR_REF) return false;
+    if(!revisoesMotor || !revisoesMotor.origens) revisoesMotor={origens:{},atualizadoEm:null};
+
+    var mudou=false;
+    (Array.isArray(agendaV102?.itens)?agendaV102.itens:[]).forEach(function(a){
+      if(!a || !a.concluidoEm || !a.disciplina || !a.nome) return;
+
+      var base=dataLocalConclusaoV10456(a);
+      if(!base) return;
+
+      var chave=revChave(a.disciplina,a.nome);
+      var o=revisoesMotor.origens[chave];
+
+      if(!o){
+        o=revisoesMotor.origens[chave]={
+          disciplina:a.disciplina,
+          topico:a.nome,
+          dataEstudo:base,
+          revisoes:{},
+          criadoEm:a.concluidoEm
+        };
+        mudou=true;
+      }
+
+      if(o.dataEstudo!==base){ o.dataEstudo=base; mudou=true; }
+      if(!o.revisoes || typeof o.revisoes!=='object'){ o.revisoes={}; mudou=true; }
+
+      [1,7,15,30].forEach(function(n){
+        var tipo='D'+n;
+        var correta=revDataISO(base,n);
+        var r=o.revisoes[tipo];
+
+        if(!r){
+          o.revisoes[tipo]={dias:n,data:correta,concluida:false};
+          mudou=true;
+          return;
+        }
+
+        // Não altera uma revisão que o usuário já concluiu.
+        if(!r.concluida && (r.data!==correta || Number(r.dias)!==n)){
+          r.data=correta;
+          r.dias=n;
+          mudou=true;
+        }
+      });
+    });
+
+    if(mudou){
+      revisoesMotor.atualizadoEm=new Date().toISOString();
+      localStorage.setItem('nova_v3_revisoes_motor_'+auth.currentUser.uid,JSON.stringify(revisoesMotor));
+      await REVISOES_MOTOR_REF.set(revisoesMotor);
+    }
+
+    if(typeof renderizarRevisoesMotor==='function') renderizarRevisoesMotor();
+    if(typeof renderizarRevisoesAgendadasV85==='function') renderizarRevisoesAgendadasV85();
+    if(typeof renderizarAgendaRevisoesV86==='function') renderizarAgendaRevisoesV86();
+    if(typeof renderizarRevisoesHojeV87==='function') renderizarRevisoesHojeV87();
+    if(typeof renderizarPlanejamentoHojeV103==='function') renderizarPlanejamentoHojeV103();
+    if(typeof v104RenderSemana==='function') v104RenderSemana();
+    if(typeof renderizarDashboardRevisoesV91==='function') renderizarDashboardRevisoesV91();
+    if(typeof renderizarEstatisticasV92==='function') renderizarEstatisticasV92();
+    return mudou;
+  }
+
+  // Executa após autenticação/Firebase carregarem e também ao entrar no Ciclo.
+  setTimeout(function(){migrarV10456().catch(console.error)},3000);
+  setTimeout(function(){migrarV10456().catch(console.error)},5500);
+  document.addEventListener('click',function(e){
+    if(e.target.closest && e.target.closest('[data-page="ciclo"]')){
+      setTimeout(function(){migrarV10456().catch(console.error)},300);
+    }
+  });
+
+  window.migrarRevisoesAntigasV10456=migrarV10456;
+})();
+</script>
+
 </body>
 </html>

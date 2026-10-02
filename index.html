@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.19 • GERENCIAR EDITAL AUTH CORRIGIDO</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.20 • HORAS DO EDITAL CORRIGIDAS</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -2478,6 +2478,7 @@ async function v93Finalizar(){
        numero:timerV93.numero
      });
      await v10422CarregarHistorico();
+     await v10520ReconciliarHorasEditalAtivo();
    }
  }catch(e){
    console.error('V10.4.22 salvar finalização:',e);
@@ -2783,6 +2784,7 @@ async function v10422AdicionarManual(){
    }
 
    v10422CarregarHistorico().catch(console.error);
+   await v10520ReconciliarHorasEditalAtivo();
    if(st)st.textContent='✅ '+v93Fmt(segundos)+' adicionados a '+(a.nome||'assunto')+' e registrados no Histórico de sessões.';
  }catch(e){
    console.error('V10.5.07 manual:',e);
@@ -2792,6 +2794,35 @@ async function v10422AdicionarManual(){
 function v10422AtualizarTimer(){
  v10422PopularAssuntos();
  v10422CarregarHistorico();
+ setTimeout(()=>v10520ReconciliarHorasEditalAtivo().catch(console.error),120);
+}
+
+/* V10.5.20 — CORREÇÃO SEGURA DO TOTAL DE HORAS DO EDITAL ATIVO
+   O contador do edital passa a ser reconciliado com as sessões que pertencem
+   aos assuntos do Planejamento atualmente carregado. Isso evita carregar horas
+   de outro edital e evita total duplicado após inclusão manual.
+   Não altera Ciclo, Planejamento, Revisões, Questões nem Progresso do Edital. */
+async function v10520ReconciliarHorasEditalAtivo(){
+  try{
+    const r=v10422SessoesRef();
+    if(!r || !Array.isArray(agendaV102?.itens) || !agendaV102.itens.length)return;
+    const ids=new Set(agendaV102.itens.map(a=>String(a.id)));
+    const s=await r.once('value');
+    let total=0;
+    s.forEach(c=>{
+      const x=c.val()||{};
+      if(ids.has(String(x.assuntoId||''))) total+=Math.max(0,Number(x.segundos)||0);
+    });
+    total=Math.max(0,Math.floor(total));
+    const atual=Math.max(0,Math.floor(Number(timerV93.totalSegundos)||0));
+    if(total!==atual){
+      timerV93.totalSegundos=total;
+      await v93Salvar({reconciliadoV10520:true,reconciliadoEmV10520:firebase.database.ServerValue.TIMESTAMP});
+    }
+    v93Render();
+  }catch(e){
+    console.warn('V10.5.20 reconciliação de horas: mantendo contador atual.',e);
+  }
 }
 
 

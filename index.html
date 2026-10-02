@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.00 • EDITAL VERTICALIZADO SINCRONIZADO</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.01 • REVISÕES DASHBOARD = CICLO</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -6647,6 +6647,108 @@ html body :is(
   // Após login/carregamento inicial, prepara os selects sem tocar no restante.
   setTimeout(()=>sincronizarQuestoes(true),1800);
   window.renderEditalVerticalizadoV10500 = renderVerticalizado;
+})();
+</script>
+
+
+<script id="v10501-revisoes-dashboard-mesma-fonte-ciclo">
+(function(){
+  /*
+    V10.5.01
+    O Dashboard agora usa EXATAMENTE a lista de revisões exibida na
+    "Semana do ciclo" (v104RevisoesDatas).
+    Corrige o caso em que o Dashboard dizia "1 revisão para hoje",
+    mas no Ciclo a D1 estava corretamente em 03/10.
+  */
+  function resumo(){
+    let hoje;
+    try { hoje = v104Hoje(); }
+    catch(_) { hoje = new Date().toISOString().slice(0,10); }
+
+    let lista = [];
+    try {
+      lista = (typeof v104RevisoesDatas === 'function' ? v104RevisoesDatas() : []) || [];
+    } catch(_) { lista = []; }
+
+    const pendentes = lista.filter(r => r && r.data && !r.concluida);
+    const concluidas = lista.filter(r => r && r.data && r.concluida);
+
+    const hojeItens = pendentes.filter(r => String(r.data).slice(0,10) === hoje);
+    const atrasadas = pendentes.filter(r => String(r.data).slice(0,10) < hoje);
+    const futuras = pendentes
+      .filter(r => String(r.data).slice(0,10) >= hoje)
+      .sort((a,b) => String(a.data).localeCompare(String(b.data)));
+
+    return {
+      hojeQtd: hojeItens.length,
+      atrasadas: atrasadas.length,
+      pendentes: pendentes.length,
+      concluidas: concluidas.length,
+      total: lista.length,
+      proxima: futuras[0] || null
+    };
+  }
+
+  function render(){
+    const box = document.getElementById('dashRevisoesV91');
+    if(!box) return;
+
+    const r = resumo();
+    const set = (id,v) => {
+      const el=document.getElementById(id);
+      if(el) el.textContent=v;
+    };
+
+    set('dashRevHojeV91', r.hojeQtd);
+    set('dashRevAtrasadasV91', r.atrasadas);
+    set('dashRevPendentesV91', r.pendentes);
+    set('dashRevConcluidasV91', r.concluidas);
+    set('dashRevTotalV91', r.total);
+
+    let prox='Nenhuma pendente';
+    if(r.proxima){
+      const d=String(r.proxima.data).slice(0,10);
+      try { prox=v86BR(d)+' • '+r.proxima.tipo; }
+      catch(_) { prox=d+' • '+r.proxima.tipo; }
+    }
+    set('dashRevProximaV91', prox);
+
+    const status=document.getElementById('dashRevStatusV91');
+    if(status){
+      status.textContent = r.atrasadas
+        ? '⚠️ Você tem '+r.atrasadas+' revisão(ões) atrasada(s).'
+        : r.hojeQtd
+          ? '📚 Há '+r.hojeQtd+' revisão(ões) para hoje.'
+          : '✓ Nenhuma revisão para hoje.';
+    }
+  }
+
+  // Redireciona todas as versões antigas para uma única fonte:
+  // a mesma usada visualmente no Ciclo.
+  window.v10501ResumoRevisoes = resumo;
+  window.renderDashboardRevisoesV10501 = render;
+  window.renderDashboardRevisoesV10496 = render;
+
+  try {
+    renderizarDashboardRevisoesV91 = render;
+    window.renderizarDashboardRevisoesV91 = render;
+  } catch(_) {
+    window.renderizarDashboardRevisoesV91 = render;
+  }
+
+  document.addEventListener('click', function(e){
+    if(e.target.closest?.('[data-page="dashboard"]')) setTimeout(render,100);
+  });
+
+  window.addEventListener('load', function(){
+    [300,900,1800,3500].forEach(ms=>setTimeout(render,ms));
+  });
+
+  // Mantém estável caso algum código legado tente atualizar os mesmos campos.
+  setInterval(function(){
+    const d=document.getElementById('page-dashboard');
+    if(d && d.classList.contains('active')) render();
+  },1800);
 })();
 </script>
 

@@ -501,7 +501,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.47 • TROFÉU DE CONCLUSÃO DEV</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.49 • TROFÉU DE CONCLUSÃO DEV</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -4097,7 +4097,7 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 </script>
 
 
-<!-- V10.4.47 — TROFÉU DE CONCLUSÃO: camada isolada; não altera persistência/checklist -->
+<!-- V10.4.49 — TROFÉU DE CONCLUSÃO: camada isolada; não altera persistência/checklist -->
 <style id="v10444-trofeu-css">
 #v10444Victory{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;pointer-events:none;background:rgba(4,9,18,.22)}
 #v10444Victory.show{display:flex;animation:v10444Fade .25s ease}
@@ -4135,7 +4135,7 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 
 
 <!-- =========================================================
- V10.4.47 — MOBILE: CARDS DO CICLO MAIS LARGOS E LEGÍVEIS
+ V10.4.49 — MOBILE: CARDS DO CICLO MAIS LARGOS E LEGÍVEIS
  Somente layout responsivo. Não altera Firebase, checklist,
  planejamento, histórico, revisões ou lógica de conclusão.
 ========================================================== -->
@@ -4234,7 +4234,7 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 
 
 <!-- =========================================================
- V10.4.47 — CORREÇÃO REAL DOS CARDS "PLANEJAMENTO DE HOJE"
+ V10.4.49 — CORREÇÃO REAL DOS CARDS "PLANEJAMENTO DE HOJE"
  No celular: checkbox + número + prioridade na 1ª linha;
  título/matéria/status ocupam 100% da largura na 2ª linha.
  Somente CSS. Não altera dados, Firebase ou checklist.
@@ -4310,7 +4310,7 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
 
 
 <!-- =========================================================
- V10.4.47 — PENDENTES DE HOJE: CORREÇÃO INDEPENDENTE DO VIEWPORT
+ V10.4.49 — PENDENTES DE HOJE: CORREÇÃO INDEPENDENTE DO VIEWPORT
  A coluna do Ciclo pode ser estreita mesmo em tela > 768px.
  Por isso esta regra não depende mais do @media.
 ========================================================== -->
@@ -4373,6 +4373,190 @@ setTimeout(()=>{if(auth.currentUser)v10439Init();},2400);
   line-height:1.35 !important;
 }
 </style>
+
+
+<!-- =========================================================
+ V10.4.49 — REVISÕES POR DIAS CORRIDOS
+ D1 = dia seguinte à conclusão; D7 = +7; D15 = +15; D30 = +30.
+ Corrige também revisões PENDENTES antigas que tenham sido
+ gravadas em data incorreta. Revisões já concluídas não são movidas.
+========================================================== -->
+<script id="v10448-revisoes-dias-corridos">
+(function(){
+  function isoAddDiasV10448(base, dias){
+    var p=String(base||'').slice(0,10).split('-').map(Number);
+    if(p.length!==3 || !p[0] || !p[1] || !p[2]) return '';
+    var d=new Date(p[0],p[1]-1,p[2],12,0,0,0);
+    d.setDate(d.getDate()+Number(dias||0));
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  /* Substitui o cálculo do motor: nunca permite D1 no mesmo dia. */
+  window.revDataISO = function(base,dias){
+    return isoAddDiasV10448(base,dias);
+  };
+
+  async function corrigirPendentesV10448(){
+    try{
+      if(!window.revisoesMotor || !revisoesMotor.origens) return false;
+      var mudou=false;
+
+      Object.values(revisoesMotor.origens).forEach(function(o){
+        if(!o || !o.dataEstudo || !o.revisoes) return;
+        Object.entries(o.revisoes).forEach(function(entry){
+          var tipo=entry[0], r=entry[1];
+          if(!r || r.concluida) return; // histórico concluído fica intacto
+
+          var dias=Number(r.dias || String(tipo).replace(/\D/g,''));
+          if(![1,7,15,30].includes(dias)) return;
+
+          var correta=isoAddDiasV10448(o.dataEstudo,dias);
+          if(correta && r.data!==correta){
+            r.data=correta;
+            r.dias=dias;
+            mudou=true;
+          }
+        });
+      });
+
+      if(!mudou) return false;
+
+      revisoesMotor.atualizadoEm=new Date().toISOString();
+      if(auth && auth.currentUser){
+        localStorage.setItem(
+          'nova_v3_revisoes_motor_'+auth.currentUser.uid,
+          JSON.stringify(revisoesMotor)
+        );
+      }
+      if(window.REVISOES_MOTOR_REF){
+        await REVISOES_MOTOR_REF.set(revisoesMotor);
+      }
+
+      if(typeof renderizarRevisoesMotor==='function') renderizarRevisoesMotor();
+      if(typeof renderizarRevisoesAgendadasV85==='function') renderizarRevisoesAgendadasV85();
+      if(typeof renderizarAgendaRevisoesV86==='function') renderizarAgendaRevisoesV86();
+      if(typeof renderizarRevisoesHojeV87==='function') renderizarRevisoesHojeV87();
+      if(typeof renderizarHistoricoV90==='function') renderizarHistoricoV90();
+      if(typeof renderizarDashboardRevisoesV91==='function') renderizarDashboardRevisoesV91();
+      if(typeof renderizarEstatisticasV92==='function') renderizarEstatisticasV92();
+      if(typeof renderizarPlanejamentoHojeV103==='function') renderizarPlanejamentoHojeV103();
+      if(typeof v104RenderSemana==='function') v104RenderSemana();
+      return true;
+    }catch(e){
+      console.error('V10.4.49: falha ao corrigir datas pendentes',e);
+      return false;
+    }
+  }
+
+  /* Depois que o motor terminar de carregar, corrige registros antigos. */
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(corrigirPendentesV10448,1200);
+    setTimeout(corrigirPendentesV10448,2600);
+  });
+
+  /* Também disponibiliza para chamadas internas/testes. */
+  window.corrigirPendentesV10448=corrigirPendentesV10448;
+})();
+</script>
+
+
+<!-- =========================================================
+ V10.4.49 — VISUAL DOS CARDS DE REVISÃO NO CICLO
+ Mantém toda a lógica da V10.4.49.
+ - revisão destacada como D1/D7/D15/D30
+ - remove apenas a seta azul decorativa dos cards de revisão
+========================================================== -->
+<style id="v10449-revisao-card-visual">
+#page-ciclo [data-revisao="1"],
+#page-ciclo .revisao-card,
+#page-ciclo .ciclo-revisao-item{
+  position:relative;
+  border-color:rgba(124,92,255,.45) !important;
+  background:linear-gradient(135deg,rgba(124,92,255,.10),rgba(10,18,32,.96)) !important;
+}
+#page-ciclo .rev-badge-v10449{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:2px 7px;
+  margin:0 0 5px 0;
+  border-radius:5px;
+  background:#7657ff;
+  color:#fff;
+  font-size:12px;
+  font-weight:800;
+  line-height:1.25;
+}
+#page-ciclo .rev-label-v10449{
+  display:block;
+  font-weight:700;
+  line-height:1.3;
+}
+</style>
+
+<script id="v10449-revisao-card-visual-js">
+(function(){
+  function decorarRevisoesV10449(){
+    var raiz=document.getElementById('page-ciclo');
+    if(!raiz) return;
+
+    raiz.querySelectorAll('div,article,label').forEach(function(card){
+      var txt=(card.innerText||'').trim();
+      if(!/(Revis[aã]o\s*(D)?(1|7|15|30)\b|Revis[aã]o pendente)/i.test(txt)) return;
+
+      var filhos=Array.from(card.children||[]);
+      if(!filhos.length) return;
+
+      /* Marca somente o menor card que contém a revisão. */
+      var temFilhoRevisao=filhos.some(function(f){
+        return /Revis[aã]o\s*(D)?(1|7|15|30)\b/i.test((f.innerText||'').trim());
+      });
+      if(temFilhoRevisao) return;
+
+      card.classList.add('ciclo-revisao-item');
+      card.setAttribute('data-revisao','1');
+
+      /* Remove somente botões/setas azuis decorativas dentro do card de revisão. */
+      card.querySelectorAll('button,a,span').forEach(function(el){
+        var t=(el.textContent||'').trim();
+        if(t==='▶' || t==='►' || t==='▸' || t==='→'){
+          el.style.display='none';
+        }
+      });
+
+      /* Cria badge visual a partir do texto já existente, sem alterar dados. */
+      var m=txt.match(/Revis[aã]o\s*(?:D)?(1|7|15|30)\b/i);
+      if(!m) return;
+      var d='D'+m[1];
+
+      if(!card.querySelector('.rev-badge-v10449')){
+        var badge=document.createElement('span');
+        badge.className='rev-badge-v10449';
+        badge.textContent=d;
+        var alvo=card.querySelector('strong,b') || card.firstElementChild;
+        if(alvo && alvo.parentNode) alvo.parentNode.insertBefore(badge,alvo);
+        else card.insertBefore(badge,card.firstChild);
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    setTimeout(decorarRevisoesV10449,500);
+    setTimeout(decorarRevisoesV10449,1500);
+  });
+
+  var obs=new MutationObserver(function(){
+    clearTimeout(window.__v10449t);
+    window.__v10449t=setTimeout(decorarRevisoesV10449,80);
+  });
+  document.addEventListener('DOMContentLoaded',function(){
+    var r=document.getElementById('page-ciclo');
+    if(r) obs.observe(r,{childList:true,subtree:true});
+  });
+
+  window.decorarRevisoesV10449=decorarRevisoesV10449;
+})();
+</script>
 
 </body>
 </html>

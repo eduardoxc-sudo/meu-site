@@ -501,7 +501,7 @@ textarea:focus,select:focus{border-color:var(--primary)}
   <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.52 • D1 MOTOR ORIGINAL CORRIGIDO</span></div>
+  <div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.4.53 • D1 VISUAL GARANTIDO</span></div>
   <section id="page-dashboard" class="page active">
     <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
     <div class="grid">
@@ -2886,11 +2886,31 @@ function v104NomeDia(iso){return new Intl.DateTimeFormat('pt-BR',{weekday:'short
 function v104Esc(s){return v2Escape(s)}
 function v104Hoje(){return v102HojeISO()}
 function v104RevisoesDatas(){
- const out=[];
+ const out=[], vistos=new Set();
+ function add(o,tipo,r){
+   if(!o||!r?.data)return;
+   const chave=revChave(o.disciplina,o.topico), id=chave+'|'+tipo;
+   if(vistos.has(id))return; vistos.add(id);
+   out.push({data:r.data,tipo,disciplina:o.disciplina,topico:o.topico,concluida:!!r.concluida,chave});
+ }
+ // 1) Revisões já gravadas no motor.
  Object.values(revisoesMotor?.origens||{}).forEach(o=>{
    if(!o||!revOrigemExisteNoEdital(o))return;
-   Object.entries(o.revisoes||{}).forEach(([tipo,r])=>{
-     if(r?.data)out.push({data:r.data,tipo,disciplina:o.disciplina,topico:o.topico,concluida:!!r.concluida,chave:revChave(o.disciplina,o.topico)});
+   Object.entries(o.revisoes||{}).forEach(([tipo,r])=>add(o,tipo,r));
+ });
+ // 2) GARANTIA: todo assunto concluído no Planejamento gera D1/D7/D15/D30
+ // imediatamente na Semana do ciclo, mesmo se Firebase/localStorage ainda não tiver
+ // terminado de sincronizar o motor. D1 = dia seguinte à data real da conclusão.
+ (Array.isArray(agendaV102?.itens)?agendaV102.itens:[]).forEach(a=>{
+   if(!a?.concluidoEm||!a.disciplina||!a.nome)return;
+   const m=String(a.concluidoEm).match(/^(\d{4}-\d{2}-\d{2})/);
+   const base=m?m[1]:v104DateISO(new Date(a.concluidoEm));
+   if(!base)return;
+   const o={disciplina:a.disciplina,topico:a.nome};
+   [1,7,15,30].forEach(n=>{
+     const tipo='D'+n, chave=revChave(a.disciplina,a.nome);
+     const gravada=revisoesMotor?.origens?.[chave]?.revisoes?.[tipo];
+     add(o,tipo,gravada||{data:revDataISO(base,n),concluida:false});
    });
  });
  return out;

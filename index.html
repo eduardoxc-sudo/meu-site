@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.30 • VERTICALIZADO PERSISTÊNCIA FIREBASE</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.31 • VERTICALIZADO MARCAR/DESMARCAR CORRIGIDO</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -7540,6 +7540,12 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
          await db.ref('nova_app_v3/users/'+u.uid+'/verticalizadoChecklistV10530').child(k).set(cb.checked ? true : null);
          salvou=true;
        }catch(er){ultimoErro=er;}
+       // V10.5.31 — mantém a cópia legada no MESMO estado.
+       // Antes, ao desmarcar, a cópia legada ainda guardava true e o login/F5 ressuscitava a marcação.
+       try{
+         await db.ref('usuarios/'+u.uid+'/editalVerticalizadoChecklistV10499').child(k).set(cb.checked ? true : null);
+         salvou=true;
+       }catch(er){ultimoErro=ultimoErro||er;}
        try{
          const mgr=db.ref('usuarios/'+u.uid+'/editaisSeparadosV10509');
          const aid=(await mgr.child('ativoId').once('value')).val()||'';
@@ -8045,6 +8051,11 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
      await db.ref('nova_app_v3/users/'+u+'/verticalizadoChecklistV10530').set(copia);
      ok=true;
    }catch(e){erros.push(e)}
+   // V10.5.31: espelha o estado completo também na cópia legada.
+   try{
+     await db.ref('usuarios/'+u+'/editalVerticalizadoChecklistV10499').set(copia);
+     ok=true;
+   }catch(e){erros.push(e)}
 
    const aid=await ativoId(u);
    if(aid){
@@ -8090,7 +8101,9 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
 </script>
 
 
-<!-- V10.5.30 — Persistência do Edital Verticalizado movida para a mesma árvore autenticada usada pelo app (nova_app_v3/users/{uid}).
-     Mantém leitura de legado e backup local; não altera Planejamento, Ciclo, Revisões, Timer, Questões ou drag & drop. -->
+<!-- V10.5.31 — Correção cirúrgica do DESMARCAR no Edital Verticalizado.
+     Causa: a cópia legada permanecia true e era mesclada novamente no F5/login.
+     Agora marcar/desmarcar sincroniza principal + legado + backup do edital + local.
+     Nenhuma regra de Planejamento, Ciclo, Revisões, Timer, Questões ou drag & drop foi alterada. -->
 </body>
 </html>

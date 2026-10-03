@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.28 • VERTICALIZADO PERSISTÊNCIA CORRIGIDA</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.29 • VERTICALIZADO CHECKBOX CORRIGIDO</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -7397,6 +7397,7 @@ body[data-v10512-page]:not([data-v10512-page="dashboard"]) #page-dashboard{displ
 body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:visible!important}
 </style>
 
+<!-- V10.5.29 — correção cirúrgica somente do checkbox Estudado do Edital Verticalizado. Demais funções preservadas. -->
 <script id="v10512-filtro-sequencia">
 (function(){
  const $=id=>document.getElementById(id);
@@ -7531,13 +7532,30 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
      try{
        const u=auth.currentUser;
        if(!u) throw new Error('Usuário não autenticado');
-       if(typeof window.v10526SalvarVerticalCanonico==='function'){
-         await window.v10526SalvarVerticalCanonico(marcados);
-       }else{
-         await db.ref('usuarios/'+u.uid+'/editalVerticalizadoChecklistV10499').set(marcados);
+       // V10.5.29 — grava somente o checkbox alterado, evitando conflito com o objeto legado inteiro.
+       let salvou=false, ultimoErro=null;
+       try{
+         await db.ref('usuarios/'+u.uid+'/editalVerticalizadoChecklistV10499').child(k).set(cb.checked ? true : null);
+         salvou=true;
+       }catch(er){ultimoErro=er;}
+       try{
+         const mgr=db.ref('usuarios/'+u.uid+'/editaisSeparadosV10509');
+         const aid=(await mgr.child('ativoId').once('value')).val()||'';
+         if(aid){
+           await mgr.child('editais/'+aid+'/dados/verticalizadoChecklist').child(k).set(cb.checked ? true : null);
+           await mgr.child('editais/'+aid+'/salvoEm').set(firebase.database.ServerValue.TIMESTAMP).catch(()=>{});
+           salvou=true;
+         }
+       }catch(er){ultimoErro=ultimoErro||er;}
+       if(!salvou)throw(ultimoErro||new Error('Nenhuma cópia do checklist pôde ser salva'));
+       if(typeof window.v10526LerVerticalCanonico==='function'){
+         const nuvem=await window.v10526LerVerticalCanonico();
+         marcados={...marcados,...nuvem};
+         if(!cb.checked)delete marcados[k];
        }
+       await render();
      }catch(err){
-       console.warn('V10.5.21 salvar checklist verticalizado:',err);
+       console.warn('V10.5.29 salvar checklist verticalizado:',err);
        marcados=antes;
        await render();
        if($('ev499Status'))$('ev499Status').textContent='⚠ Não foi possível salvar a marcação. Tente novamente.';

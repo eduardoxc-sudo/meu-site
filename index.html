@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.25 • PERSISTÊNCIA VALIDADA</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.26 • VERTICAL + SEQUÊNCIA CORRIGIDOS</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -2898,9 +2898,8 @@ function v922DiaAtivo(d){
  return ativos.includes(d.getDay());
 }
 function v922DatasAtividadeReal(){
- // V10.5.16: FONTE ÚNICA da sequência.
- // Antes esta função ignorava assuntos concluídos da agenda; outro renderizador
- // enxergava esses assuntos e mostrava 1, mas esta rotina rodava depois e voltava para 0.
+ // V10.5.26: sequência usa SOMENTE conclusão real de assunto original.
+ // Revisões D1/D7/D15/D30 não incrementam a sequência.
  const s=new Set();
  const addData=v=>{
    if(!v)return;
@@ -2911,16 +2910,9 @@ function v922DatasAtividadeReal(){
    if(!isNaN(d))s.add(v922IsoLocal(d));
  };
  try{
-   const origens=Object.values(revisoesMotor?.origens||{}).filter(o=>o&&revOrigemExisteNoEdital(o));
-   origens.forEach(o=>addData(o.dataEstudo));
- }catch(_){}
- try{
    const agenda=(typeof agendaV102!=='undefined'&&Array.isArray(agendaV102?.itens))?agendaV102.itens:[];
    agenda.filter(a=>a&&(a.concluidoEm||a.concluido===true||a.status==='concluido'))
          .forEach(a=>addData(a.concluidoEm||a.dataEstudo||a.data));
- }catch(_){}
- try{
-   v90HistoricoReal().forEach(x=>addData(x.concluidaEm));
  }catch(_){}
  return s;
 }
@@ -7533,7 +7525,11 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
      try{
        const u=auth.currentUser;
        if(!u) throw new Error('Usuário não autenticado');
-       await db.ref('usuarios/'+u.uid+'/editalVerticalizadoChecklistV10499').set(marcados);
+       if(typeof window.v10526SalvarVerticalCanonico==='function'){
+         await window.v10526SalvarVerticalCanonico(marcados);
+       }else{
+         await db.ref('usuarios/'+u.uid+'/editalVerticalizadoChecklistV10499').set(marcados);
+       }
      }catch(err){
        console.warn('V10.5.21 salvar checklist verticalizado:',err);
        marcados=antes;
@@ -7989,6 +7985,72 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
   try{auth.onAuthStateChanged(u=>{if(u){setTimeout(estabilizar,250);setTimeout(estabilizar,1400)}})}catch(_){}
   window.addEventListener('load',()=>setTimeout(estabilizar,1800));
   window.v10525Persistencia={concluirRevisao,reconciliarRevisoes,lerVertical,salvarVertical,estabilizar,vKey};
+})();
+</script>
+
+<!-- V10.5.26 — correção cirúrgica
+     - Verticalizado: o listener V10.5.12 era o primeiro em capture e bloqueava o V10.5.25.
+       Agora ele delega ao gravador canônico e aceita persistência em qualquer cópia válida.
+     - Sequência: revisões não incrementam sequência; somente assunto original concluído.
+     - Nenhuma regra de Planejamento, Timer, Questões, D1/D7/D15/D30 ou drag & drop foi alterada. -->
+<script id="v10526-vertical-sequencia">
+(function(){
+ const uid=()=>{try{return auth?.currentUser?.uid||''}catch(_){return ''}};
+ const mgr=u=>db.ref('usuarios/'+u+'/editaisSeparadosV10509');
+
+ async function ativoId(u){
+   try{return (await mgr(u).child('ativoId').once('value')).val()||''}catch(_){return ''}
+ }
+
+ window.v10526SalvarVerticalCanonico=async function(obj){
+   const u=uid(); if(!u)throw new Error('Usuário não autenticado');
+   const copia={};
+   Object.entries(obj||{}).forEach(([k,v])=>{if(v===true)copia[k]=true});
+   let ok=false, erros=[];
+
+   try{
+     await db.ref('usuarios/'+u+'/editalVerticalizadoChecklistV10499').set(copia);
+     ok=true;
+   }catch(e){erros.push(e)}
+
+   const aid=await ativoId(u);
+   if(aid){
+     try{
+       await mgr(u).child('editais/'+aid+'/dados/verticalizadoChecklist').set(copia);
+       ok=true;
+     }catch(e){erros.push(e)}
+   }
+   if(!ok)throw (erros[0]||new Error('Nenhuma cópia do checklist pôde ser salva'));
+   return true;
+ };
+
+ // Leitura/reconciliação: recupera marcações verdadeiras de qualquer cópia disponível.
+ window.v10526LerVerticalCanonico=async function(){
+   const u=uid(); if(!u)return {};
+   let a={},b={};
+   try{a=(await db.ref('usuarios/'+u+'/editalVerticalizadoChecklistV10499').once('value')).val()||{}}catch(_){}
+   const aid=await ativoId(u);
+   if(aid){try{b=(await mgr(u).child('editais/'+aid+'/dados/verticalizadoChecklist').once('value')).val()||{}}catch(_){}}
+   const out={...b,...a};
+   Object.keys(out).forEach(k=>{if(out[k]!==true)delete out[k]});
+   return out;
+ };
+
+ // Mantém o cache do renderizador V10.5.12 sincronizado no login/F5.
+ async function restaurar(){
+   try{
+     const dados=await window.v10526LerVerticalCanonico();
+     await db.ref('usuarios/'+uid()+'/editalVerticalizadoChecklistV10499').set(dados).catch(()=>{});
+     if(typeof window.renderEditalVerticalizadoV10512==='function'){
+       // o renderizador lê novamente sua fonte oficial ao abrir a aba
+       const btn=document.querySelector('[data-page="editalVerticalizadoAcompanhamento"]');
+       if(document.getElementById('page-editalVerticalizadoAcompanhamento')?.classList.contains('active')){
+         btn?.click?.();
+       }
+     }
+   }catch(e){console.warn('V10.5.26 restaurar verticalizado:',e)}
+ }
+ try{auth.onAuthStateChanged(u=>{if(u)setTimeout(restaurar,900)})}catch(_){}
 })();
 </script>
 

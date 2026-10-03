@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.29 • VERTICALIZADO CHECKBOX CORRIGIDO</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.30 • VERTICALIZADO PERSISTÊNCIA FIREBASE</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -7454,8 +7454,10 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
  async function lerChecklist(){
    try{
      const u=auth.currentUser;if(!u)return;
-     const s=await db.ref('usuarios/'+u.uid+'/editalVerticalizadoChecklistV10499').once('value');
-     marcados=s.val()||{};
+     const principal=await db.ref('nova_app_v3/users/'+u.uid+'/verticalizadoChecklistV10530').once('value');
+     const legado=await db.ref('usuarios/'+u.uid+'/editalVerticalizadoChecklistV10499').once('value').catch(()=>null);
+     const local=(()=>{try{return JSON.parse(localStorage.getItem('nova_v10530_vertical_'+u.uid)||'{}')}catch(_){return {}}})();
+     marcados={...(legado?.val?.()||{}),...local,...(principal.val()||{})};
    }catch(_){}
  }
  // V10.5.22 — Firebase não aceita . # $ [ ] / em nomes de chaves.
@@ -7535,7 +7537,7 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
        // V10.5.29 — grava somente o checkbox alterado, evitando conflito com o objeto legado inteiro.
        let salvou=false, ultimoErro=null;
        try{
-         await db.ref('usuarios/'+u.uid+'/editalVerticalizadoChecklistV10499').child(k).set(cb.checked ? true : null);
+         await db.ref('nova_app_v3/users/'+u.uid+'/verticalizadoChecklistV10530').child(k).set(cb.checked ? true : null);
          salvou=true;
        }catch(er){ultimoErro=er;}
        try{
@@ -7548,6 +7550,7 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
          }
        }catch(er){ultimoErro=ultimoErro||er;}
        if(!salvou)throw(ultimoErro||new Error('Nenhuma cópia do checklist pôde ser salva'));
+       try{localStorage.setItem('nova_v10530_vertical_'+u.uid,JSON.stringify(marcados))}catch(_){}
        if(typeof window.v10526LerVerticalCanonico==='function'){
          const nuvem=await window.v10526LerVerticalCanonico();
          marcados={...marcados,...nuvem};
@@ -8039,7 +8042,7 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
    let ok=false, erros=[];
 
    try{
-     await db.ref('usuarios/'+u+'/editalVerticalizadoChecklistV10499').set(copia);
+     await db.ref('nova_app_v3/users/'+u+'/verticalizadoChecklistV10530').set(copia);
      ok=true;
    }catch(e){erros.push(e)}
 
@@ -8057,11 +8060,13 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
  // Leitura/reconciliação: recupera marcações verdadeiras de qualquer cópia disponível.
  window.v10526LerVerticalCanonico=async function(){
    const u=uid(); if(!u)return {};
-   let a={},b={};
-   try{a=(await db.ref('usuarios/'+u+'/editalVerticalizadoChecklistV10499').once('value')).val()||{}}catch(_){}
+   let a={},b={},c={};
+   try{a=(await db.ref('nova_app_v3/users/'+u+'/verticalizadoChecklistV10530').once('value')).val()||{}}catch(_){}
+   try{c=(await db.ref('usuarios/'+u+'/editalVerticalizadoChecklistV10499').once('value')).val()||{}}catch(_){}
    const aid=await ativoId(u);
    if(aid){try{b=(await mgr(u).child('editais/'+aid+'/dados/verticalizadoChecklist').once('value')).val()||{}}catch(_){}}
-   const out=v10527Sanitizar({...b,...a});
+   let local={};try{local=JSON.parse(localStorage.getItem('nova_v10530_vertical_'+u)||'{}')}catch(_){}
+   const out=v10527Sanitizar({...c,...b,...local,...a});
    return out;
  };
 
@@ -8069,7 +8074,8 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
  async function restaurar(){
    try{
      const dados=await window.v10526LerVerticalCanonico();
-     await db.ref('usuarios/'+uid()+'/editalVerticalizadoChecklistV10499').set(dados).catch(()=>{});
+     await db.ref('nova_app_v3/users/'+uid()+'/verticalizadoChecklistV10530').set(dados).catch(()=>{});
+     try{localStorage.setItem('nova_v10530_vertical_'+uid(),JSON.stringify(dados))}catch(_){}
      if(typeof window.renderEditalVerticalizadoV10512==='function'){
        // o renderizador lê novamente sua fonte oficial ao abrir a aba
        const btn=document.querySelector('[data-page="editalVerticalizadoAcompanhamento"]');
@@ -8083,5 +8089,8 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
 })();
 </script>
 
+
+<!-- V10.5.30 — Persistência do Edital Verticalizado movida para a mesma árvore autenticada usada pelo app (nova_app_v3/users/{uid}).
+     Mantém leitura de legado e backup local; não altera Planejamento, Ciclo, Revisões, Timer, Questões ou drag & drop. -->
 </body>
 </html>

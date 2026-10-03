@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.26 • VERTICAL + SEQUÊNCIA CORRIGIDOS</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.27 • VERTICALIZADO FIREBASE CORRIGIDO</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -7520,6 +7520,12 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
      e.stopImmediatePropagation();
      const k=cb.dataset.ev10512Key;
      const antes={...marcados};
+     // V10.5.27: remove/migra chaves legadas proibidas pelo Firebase.
+     const limpo={};
+     Object.entries(marcados||{}).forEach(([kk,v])=>{
+       if(v===true)limpo[String(kk).replace(/[.#$\[\]\/]/g,c=>'%'+c.charCodeAt(0).toString(16).toUpperCase())]=true;
+     });
+     marcados=limpo;
      if(cb.checked)marcados[k]=true;else delete marcados[k];
      render();
      try{
@@ -8002,10 +8008,16 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
    try{return (await mgr(u).child('ativoId').once('value')).val()||''}catch(_){return ''}
  }
 
+ const v10527SafeKey=k=>String(k||'').replace(/[.#$\\[\\]\\/]/g,c=>'%'+c.charCodeAt(0).toString(16).toUpperCase());
+ const v10527Sanitizar=obj=>{
+   const out={};
+   Object.entries(obj||{}).forEach(([k,v])=>{if(v===true)out[v10527SafeKey(k)]=true});
+   return out;
+ };
  window.v10526SalvarVerticalCanonico=async function(obj){
    const u=uid(); if(!u)throw new Error('Usuário não autenticado');
-   const copia={};
-   Object.entries(obj||{}).forEach(([k,v])=>{if(v===true)copia[k]=true});
+   // V10.5.27: migra automaticamente qualquer chave legada inválida antes do .set().
+   const copia=v10527Sanitizar(obj);
    let ok=false, erros=[];
 
    try{
@@ -8031,8 +8043,7 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
    try{a=(await db.ref('usuarios/'+u+'/editalVerticalizadoChecklistV10499').once('value')).val()||{}}catch(_){}
    const aid=await ativoId(u);
    if(aid){try{b=(await mgr(u).child('editais/'+aid+'/dados/verticalizadoChecklist').once('value')).val()||{}}catch(_){}}
-   const out={...b,...a};
-   Object.keys(out).forEach(k=>{if(out[k]!==true)delete out[k]});
+   const out=v10527Sanitizar({...b,...a});
    return out;
  };
 

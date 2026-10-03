@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.24 • PERSISTÊNCIA ESTÁVEL</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.25 • PERSISTÊNCIA VALIDADA</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -7842,5 +7842,155 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
      1) impede saneamento de revisões antes do Edital terminar de carregar no login;
      2) remove corrida do render legado do Edital Verticalizado (0/0/piscada);
      3) nenhuma regra de D1/D7/D15/D30, Planejamento, Timer, Questões ou conclusão foi alterada. -->
+
+<!-- V10.5.25 — PERSISTÊNCIA VALIDADA
+     Correção isolada e monotônica para:
+     1) conclusão de revisão no Ciclo (Firebase principal + snapshot do edital ativo);
+     2) checklist do Edital Verticalizado (um único manipulador canônico, compatível com renderizadores legados);
+     3) reconciliação no login/F5 sem desmarcar dados já concluídos.
+     Não altera Planejamento, datas D1/D7/D15/D30, Timer, Questões, prioridades ou drag & drop. -->
+<script id="v10525-persistencia-validada">
+(function(){
+  const $=id=>document.getElementById(id);
+  const uid=()=>{try{return auth?.currentUser?.uid||''}catch(_){return ''}};
+  const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+  const keySafe=raw=>String(raw).replace(/[.#$\[\]\/]/g,c=>'%'+c.charCodeAt(0).toString(16).toUpperCase());
+  const vKey=(m,t)=>keySafe(norm(m)+'||'+norm(t));
+  const managerRef=u=>db.ref('usuarios/'+u+'/editaisSeparadosV10509');
+
+  async function ativoId(u){
+    try{return (await managerRef(u).child('ativoId').once('value')).val()||''}catch(_){return ''}
+  }
+
+  // ---------- REVISÕES: conclusão é monotônica (uma revisão concluída não volta a pendente) ----------
+  async function concluirRevisao(chave,tipo){
+    const u=uid(); if(!u||!chave||!tipo)throw new Error('Revisão/usuário inválido');
+    const base=db.ref('nova_app_v3/users/'+u+'/revisoesMotor');
+    const quando=new Date().toISOString();
+    const r=base.child('origens').child(chave).child('revisoes').child(tipo);
+
+    await r.transaction(atual=>{
+      atual=(atual&&typeof atual==='object')?atual:{};
+      if(atual.concluida===true)return atual;
+      return {...atual,concluida:true,concluidaEm:quando};
+    });
+    await base.child('atualizadoEm').set(quando);
+
+    const snap=await base.once('value');
+    const oficial=snap.val()||{origens:{},atualizadoEm:quando};
+    revisoesMotor=revisoesMotorNormalizar(oficial);
+    try{localStorage.setItem('nova_v3_revisoes_motor_'+u,JSON.stringify(revisoesMotor))}catch(_){}
+
+    const aid=await ativoId(u);
+    if(aid){
+      await managerRef(u).child('editais/'+aid+'/dados/revisoesMotor').set(oficial);
+      await managerRef(u).child('editais/'+aid+'/salvoEm').set(firebase.database.ServerValue.TIMESTAMP);
+    }
+    return oficial;
+  }
+
+  async function reconciliarRevisoes(){
+    const u=uid(); if(!u)return;
+    const mainRef=db.ref('nova_app_v3/users/'+u+'/revisoesMotor');
+    const aid=await ativoId(u);
+    let main=(await mainRef.once('value')).val()||null;
+    let backup=null;
+    if(aid) backup=(await managerRef(u).child('editais/'+aid+'/dados/revisoesMotor').once('value')).val()||null;
+    if(!main&&!backup)return;
+    const merged=JSON.parse(JSON.stringify(main||backup||{origens:{}}));
+    merged.origens=merged.origens||{};
+    // Recupera somente conclusões verdadeiras do snapshot; nunca transforma true em false.
+    Object.entries(backup?.origens||{}).forEach(([k,o])=>{
+      if(!merged.origens[k])merged.origens[k]=JSON.parse(JSON.stringify(o));
+      Object.entries(o?.revisoes||{}).forEach(([tipo,rv])=>{
+        if(rv?.concluida===true){
+          merged.origens[k].revisoes=merged.origens[k].revisoes||{};
+          merged.origens[k].revisoes[tipo]={...(merged.origens[k].revisoes[tipo]||rv),...rv,concluida:true};
+        }
+      });
+    });
+    merged.atualizadoEm=new Date().toISOString();
+    await mainRef.set(merged);
+    if(aid)await managerRef(u).child('editais/'+aid+'/dados/revisoesMotor').set(merged);
+    revisoesMotor=revisoesMotorNormalizar(merged);
+    try{localStorage.setItem('nova_v3_revisoes_motor_'+u,JSON.stringify(revisoesMotor))}catch(_){}
+  }
+
+  // Intercepta ANTES do listener antigo do grid, evitando gravação duplicada/race condition.
+  document.addEventListener('change',async function(e){
+    const cb=e.target?.closest?.('.ciclo-rev-check-v1046[data-rev-chave]');
+    if(!cb||!cb.checked)return;
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    cb.disabled=true;
+    try{
+      await concluirRevisao(decodeURIComponent(cb.dataset.revChave||''),cb.dataset.revTipo||'');
+      try{renderizarRevisoesMotor()}catch(_){} try{renderizarRevisoesAgendadasV85()}catch(_){}
+      try{renderizarAgendaRevisoesV86()}catch(_){} try{renderizarRevisoesHojeV87()}catch(_){}
+      try{renderizarHistoricoV90()}catch(_){} try{renderizarDashboardRevisoesV91()}catch(_){}
+      try{renderizarEstatisticasV92()}catch(_){} try{v104RenderSemana()}catch(_){}
+    }catch(err){console.error('V10.5.25 revisão:',err);cb.checked=false;cb.disabled=false;alert('Não foi possível salvar a revisão. Tente novamente.');}
+  },true);
+
+  // ---------- VERTICALIZADO: um manipulador canônico para TODAS as versões de checkbox ----------
+  let vMarcados={};
+  async function lerVertical(){
+    const u=uid();if(!u)return {};
+    const live=(await db.ref('usuarios/'+u+'/editalVerticalizadoChecklistV10499').once('value')).val()||{};
+    const aid=await ativoId(u);
+    let backup={};
+    if(aid)backup=(await managerRef(u).child('editais/'+aid+'/dados/verticalizadoChecklist').once('value')).val()||{};
+    // Checklist também é monotônico: recupera marcações verdadeiras de qualquer uma das duas cópias.
+    vMarcados={...backup,...live};
+    Object.keys(vMarcados).forEach(k=>{if(!vMarcados[k])delete vMarcados[k]});
+    return vMarcados;
+  }
+  async function salvarVertical(){
+    const u=uid();if(!u)throw new Error('Usuário não autenticado');
+    const copia={...vMarcados};
+    await db.ref('usuarios/'+u+'/editalVerticalizadoChecklistV10499').set(copia);
+    const aid=await ativoId(u);
+    if(aid){
+      await managerRef(u).child('editais/'+aid+'/dados/verticalizadoChecklist').set(copia);
+      await managerRef(u).child('editais/'+aid+'/salvoEm').set(firebase.database.ServerValue.TIMESTAMP);
+    }
+  }
+  function chaveCheckbox(cb){
+    return cb?.dataset?.ev10512Key||cb?.dataset?.ev10500Key||cb?.dataset?.ev499Key||'';
+  }
+  document.addEventListener('change',async function(e){
+    const cb=e.target?.closest?.('[data-ev10512-key],[data-ev10500-key],[data-ev499-key]');
+    if(!cb)return;
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+    const k=chaveCheckbox(cb);if(!k)return;
+    const antes={...vMarcados};
+    if(cb.checked)vMarcados[k]=true;else delete vMarcados[k];
+    try{
+      await salvarVertical();
+      // Confirma da nuvem antes de redesenhar.
+      await lerVertical();
+      if(typeof window.renderEditalVerticalizadoV10512==='function')await window.renderEditalVerticalizadoV10512();
+    }catch(err){
+      console.error('V10.5.25 verticalizado:',err);vMarcados=antes;cb.checked=!cb.checked;
+      const st=$('ev499Status');if(st)st.textContent='⚠ Não foi possível salvar a marcação. Tente novamente.';
+    }
+  },true);
+
+  async function estabilizar(){
+    if(!uid())return;
+    try{await reconciliarRevisoes()}catch(e){console.warn('V10.5.25 reconciliar revisões:',e)}
+    try{await lerVertical()}catch(e){console.warn('V10.5.25 ler verticalizado:',e)}
+    try{v104RenderSemana()}catch(_){}
+    try{renderizarDashboardRevisoesV91()}catch(_){}
+    try{renderizarEstatisticasV92()}catch(_){}
+    if(document.getElementById('page-editalVerticalizadoAcompanhamento')?.classList.contains('active')){
+      try{if(typeof window.renderEditalVerticalizadoV10512==='function')await window.renderEditalVerticalizadoV10512()}catch(_){}
+    }
+  }
+  try{auth.onAuthStateChanged(u=>{if(u){setTimeout(estabilizar,250);setTimeout(estabilizar,1400)}})}catch(_){}
+  window.addEventListener('load',()=>setTimeout(estabilizar,1800));
+  window.v10525Persistencia={concluirRevisao,reconciliarRevisoes,lerVertical,salvarVertical,estabilizar,vKey};
+})();
+</script>
+
 </body>
 </html>

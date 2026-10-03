@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.31 • VERTICALIZADO MARCAR/DESMARCAR CORRIGIDO</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.32 • REVISÕES MARCAR/DESMARCAR PERSISTENTE</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -3622,7 +3622,7 @@ function v104RenderSemana(){
      const numero=origem?.numero?String(origem.numero).padStart(2,'0'):'';
      const futura=r.data>hoje;
      const check=r.concluida
-       ? '<input class="ciclo-check-v1045" type="checkbox" checked disabled aria-label="Revisão concluída">'
+       ? '<input class="ciclo-check-v1045 ciclo-rev-check-v1046" type="checkbox" checked data-rev-chave="'+encodeURIComponent(r.chave||'')+'" data-rev-tipo="'+v104Esc(r.tipo)+'" aria-label="Desmarcar revisão '+v104Esc(r.tipo)+' de '+v104Esc(r.topico)+'">'
        : '<input class="ciclo-check-v1045 ciclo-rev-check-v1046" type="checkbox" '+(futura?'disabled title="Revisão liberada em '+v102FmtData(r.data)+'" ':'')+'data-rev-chave="'+encodeURIComponent(r.chave||'')+'" data-rev-tipo="'+v104Esc(r.tipo)+'" aria-label="Concluir revisão '+v104Esc(r.tipo)+' de '+v104Esc(r.topico)+'">';
      return '<div class="ciclo-card-v104 '+(r.concluida?'done':'')+'"><div class="linha">'+check+'<b>'+(numero?numero+' ':'')+'🔁 '+v104Esc(r.tipo)+'</b></div><strong>'+v104Esc(r.topico)+'</strong><small>'+v104Esc(r.disciplina)+(r.concluida?' • ✓ Revisão concluída':futura?' • Revisão futura':' • Revisão pendente')+'</small></div>';
    }).join('');
@@ -8105,5 +8105,67 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
      Causa: a cópia legada permanecia true e era mesclada novamente no F5/login.
      Agora marcar/desmarcar sincroniza principal + legado + backup do edital + local.
      Nenhuma regra de Planejamento, Ciclo, Revisões, Timer, Questões ou drag & drop foi alterada. -->
+
+
+<!-- V10.5.32 — Revisões: marcar/desmarcar persistente e sem ressurreição de estado antigo.
+     Corrige somente o checklist das revisões no Ciclo. Não altera Planejamento, datas D1/D7/D15/D30,
+     Timer, Questões, Verticalizado, prioridades ou drag & drop. -->
+<script id="v10532-revisoes-marcar-desmarcar">
+(function(){
+  const uid=()=>{try{return auth?.currentUser?.uid||''}catch(_){return ''}};
+  const mgr=u=>db.ref('usuarios/'+u+'/editaisSeparadosV10509');
+  async function ativoId(u){try{return (await mgr(u).child('ativoId').once('value')).val()||''}catch(_){return ''}}
+
+  async function salvarEstado(chave,tipo,concluida){
+    const u=uid(); if(!u||!chave||!tipo) throw new Error('Revisão/usuário inválido');
+    const base=db.ref('nova_app_v3/users/'+u+'/revisoesMotor');
+    const agora=new Date().toISOString();
+    const revRef=base.child('origens').child(chave).child('revisoes').child(tipo);
+    if(concluida){
+      await revRef.update({concluida:true,concluidaEm:agora});
+    }else{
+      await revRef.update({concluida:false,concluidaEm:null});
+    }
+    await base.child('atualizadoEm').set(agora);
+    const oficial=(await base.once('value')).val()||{origens:{},atualizadoEm:agora};
+    revisoesMotor=revisoesMotorNormalizar(oficial);
+    try{localStorage.setItem('nova_v3_revisoes_motor_'+u,JSON.stringify(revisoesMotor))}catch(_){}
+    const aid=await ativoId(u);
+    if(aid){
+      // Estado completo substitui o backup: false também é preservado e não volta como true no F5/login.
+      await mgr(u).child('editais/'+aid+'/dados/revisoesMotor').set(oficial);
+      await mgr(u).child('editais/'+aid+'/salvoEm').set(firebase.database.ServerValue.TIMESTAMP);
+    }
+  }
+
+  function redesenhar(){
+    try{renderizarRevisoesMotor()}catch(_){} try{renderizarRevisoesAgendadasV85()}catch(_){}
+    try{renderizarAgendaRevisoesV86()}catch(_){} try{renderizarRevisoesHojeV87()}catch(_){}
+    try{renderizarHistoricoV90()}catch(_){} try{renderizarDashboardRevisoesV91()}catch(_){}
+    try{renderizarEstatisticasV92()}catch(_){} try{renderizarPlanejamentoHojeV103()}catch(_){}
+    try{v104RenderSemana()}catch(_){}
+  }
+
+  // Captura antes dos listeners antigos. Agora tanto marcar quanto desmarcar é uma ação explícita do usuário.
+  document.addEventListener('change',async function(e){
+    const cb=e.target?.closest?.('.ciclo-rev-check-v1046[data-rev-chave]');
+    if(!cb)return;
+    e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+    const desejado=!!cb.checked;
+    cb.disabled=true;
+    try{
+      await salvarEstado(decodeURIComponent(cb.dataset.revChave||''),cb.dataset.revTipo||'',desejado);
+      redesenhar();
+    }catch(err){
+      console.error('V10.5.32 revisão:',err);
+      cb.checked=!desejado; cb.disabled=false;
+      alert('Não foi possível salvar a revisão. Tente novamente.');
+    }
+  },true);
+
+  window.v10532Revisoes={salvarEstado};
+})();
+</script>
+
 </body>
 </html>

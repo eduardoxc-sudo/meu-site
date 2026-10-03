@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.23 • REVISÃO LOGIN PERSISTENTE</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.24 • PERSISTÊNCIA ESTÁVEL</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -3877,7 +3877,12 @@ function revOrigemExisteNoEdital(o){
 }
 function revisoesMotorNormalizar(raw){const r=raw&&typeof raw==='object'?raw:{};return {origens:r.origens&&typeof r.origens==='object'?r.origens:{},atualizadoEm:r.atualizadoEm||null}}
 function v10513SanearRevisoesDoEdital(){
- const antes=Object.keys(revisoesMotor?.origens||{}).length, validas={};
+ const antes=Object.keys(revisoesMotor?.origens||{}).length;
+ // V10.5.24: durante o login o Edital pode ainda estar vazio por alguns ms.
+ // Nesse estado NÃO é seguro sanear, pois isso apagaria revisões válidas do Firebase.
+ const editalCarregado=estadoV2?.editalVerticalizado||{};
+ if(!Object.keys(editalCarregado).length)return {antes,depois:antes,removidas:0};
+ const validas={};
  Object.entries(revisoesMotor?.origens||{}).forEach(([k,o])=>{if(o&&revOrigemExisteNoEdital(o))validas[k]=o});
  const depois=Object.keys(validas).length;
  if(depois!==antes){
@@ -6689,7 +6694,7 @@ html body :is(
   async function marcar(k,valor){marcados[k]=!!valor;if(!valor)delete marcados[k];render();try{if(ref)await ref.set(marcados)}catch(err){console.warn('V10.4.99 salvar checklist',err)}}
   document.addEventListener('change',function(ev){if(ev.target.id==='ev499Filtro')render();var cb=ev.target.closest('[data-ev499-key]');if(cb)marcar(cb.dataset.ev499Key,cb.checked)});
   document.addEventListener('input',function(ev){if(ev.target.id==='ev499Busca')render()});
-  document.addEventListener('click',function(ev){if(ev.target.closest('[data-page="editalVerticalizadoAcompanhamento"]'))setTimeout(iniciar,40)});
+  /* V10.5.24: listener legado desativado. O render V10.5.12 abaixo é a fonte única da tela e evita o 0/0 piscando. */
   var antigaAtualizar=window.atualizarEditalV2;if(typeof antigaAtualizar==='function'){window.atualizarEditalV2=function(){var r=antigaAtualizar.apply(this,arguments);setTimeout(function(){if(document.getElementById('page-editalVerticalizadoAcompanhamento')?.classList.contains('active'))render()},0);return r}}
   window.renderEditalVerticalizadoV10499=render;
 })();
@@ -7833,216 +7838,9 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
 })();
 </script>
 
-<!-- V10.5.24 — PERSISTÊNCIA REFORÇADA: REVISÕES + EDITAL VERTICALIZADO
-     Correção isolada. Não altera Planejamento, Timer, Questões, prioridades,
-     drag & drop, numeração, D1/D7/D15/D30 ou regras de conclusão de assuntos. -->
-<script id="v10524-persistencia-revisoes-verticalizado">
-(function(){
-  const norm = v => String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .toLowerCase().replace(/\s+/g,' ').trim();
-  const safeKey = raw => String(raw||'').replace(/[.#$\[\]\/]/g,
-    c => '%'+c.charCodeAt(0).toString(16).toUpperCase());
-
-  function uid(){
-    try{
-      if(auth && auth.currentUser) return auth.currentUser.uid;
-      if(typeof usuarioAtualV3!=='undefined' && usuarioAtualV3) return usuarioAtualV3.uid;
-    }catch(_){}
-    return '';
-  }
-
-  /* =========================================================
-     1) REVISÕES
-     Mantém um registro independente das revisões concluídas.
-     Assim, se outra rotina reconstruir revisoesMotor no login,
-     as conclusões reais são reaplicadas antes de renderizar.
-     ========================================================= */
-  function revOverlayRef(u){
-    return db.ref('usuarios/'+u+'/revisoesConcluidasV10524');
-  }
-
-  async function guardarRevisaoConcluida(chave,tipo,concluidaEm){
-    const u=uid(); if(!u)return;
-    const k=safeKey(chave)+'__'+safeKey(tipo);
-    const dado={chave:String(chave),tipo:String(tipo),concluida:true,concluidaEm:concluidaEm||new Date().toISOString()};
-    try{
-      localStorage.setItem('nova_v10524_rev_'+u+'_'+k,JSON.stringify(dado));
-    }catch(_){}
-    await revOverlayRef(u).child(k).set(dado);
-  }
-
-  async function reaplicarRevisoesConcluidas(){
-    const u=uid(); if(!u || typeof revisoesMotor==='undefined')return false;
-    let dados={};
-    try{ dados=(await revOverlayRef(u).once('value')).val()||{}; }catch(e){
-      console.warn('V10.5.24 leitura revisões concluídas:',e);
-    }
-    let mudou=false;
-    Object.values(dados).forEach(d=>{
-      const rev=revisoesMotor?.origens?.[d?.chave]?.revisoes?.[d?.tipo];
-      if(rev && !rev.concluida){
-        rev.concluida=true;
-        rev.concluidaEm=d.concluidaEm||new Date().toISOString();
-        mudou=true;
-      }
-    });
-    if(mudou){
-      revisoesMotor.atualizadoEm=new Date().toISOString();
-      try{localStorage.setItem('nova_v3_revisoes_motor_'+u,JSON.stringify(revisoesMotor));}catch(_){}
-      try{
-        if(!REVISOES_MOTOR_REF) REVISOES_MOTOR_REF=db.ref('nova_app_v3/users/'+u+'/revisoesMotor');
-        await REVISOES_MOTOR_REF.set(revisoesMotor);
-      }catch(e){console.warn('V10.5.24 reaplicar revisões:',e)}
-    }
-    return mudou;
-  }
-
-  const concluirAnterior = window.v87ConcluirRevisao;
-  if(typeof concluirAnterior==='function'){
-    window.v87ConcluirRevisao = async function(chave,tipo){
-      const r = await concluirAnterior.apply(this,arguments);
-      try{
-        const rev=revisoesMotor?.origens?.[chave]?.revisoes?.[tipo];
-        if(rev?.concluida){
-          await guardarRevisaoConcluida(chave,tipo,rev.concluidaEm);
-        }
-      }catch(e){console.warn('V10.5.24 guardar revisão:',e)}
-      return r;
-    };
-    try{v87ConcluirRevisao=window.v87ConcluirRevisao}catch(_){}
-  }
-
-  /* =========================================================
-     2) EDITAL VERTICALIZADO
-     Fonte redundante por UID:
-       - caminho original (compatibilidade)
-       - caminho V10.5.24
-       - localStorage
-     No login/abertura, as fontes são mescladas; marcações true
-     nunca são apagadas por uma leitura vazia/atrasada.
-     ========================================================= */
-  function verticalRefOriginal(u){
-    return db.ref('usuarios/'+u+'/editalVerticalizadoChecklistV10499');
-  }
-  function verticalRefBackup(u){
-    return db.ref('usuarios/'+u+'/editalVerticalizadoChecklistV10524');
-  }
-  function verticalLocalKey(u){ return 'nova_v10524_vertical_'+u; }
-
-  function lerVerticalLocal(u){
-    try{
-      const x=JSON.parse(localStorage.getItem(verticalLocalKey(u))||'{}');
-      return x&&typeof x==='object'?x:{};
-    }catch(_){return {}}
-  }
-  function salvarVerticalLocal(u,d){
-    try{localStorage.setItem(verticalLocalKey(u),JSON.stringify(d||{}))}catch(_){}
-  }
-
-  async function lerVerticalMesclado(){
-    const u=uid(); if(!u)return {};
-    let a={},b={};
-    try{a=(await verticalRefOriginal(u).once('value')).val()||{}}catch(_){}
-    try{b=(await verticalRefBackup(u).once('value')).val()||{}}catch(_){}
-    const l=lerVerticalLocal(u);
-    const m=Object.assign({},l,a,b);
-    salvarVerticalLocal(u,m);
-    return m;
-  }
-
-  async function salvarVerticalMesclado(d){
-    const u=uid(); if(!u)throw new Error('Usuário não autenticado');
-    const atual=await lerVerticalMesclado();
-    const final=Object.assign({},atual,d||{});
-    // Respeita desmarcações feitas explicitamente na interface atual:
-    Object.keys(final).forEach(k=>{
-      if(d && Object.prototype.hasOwnProperty.call(d,k) && !d[k]) delete final[k];
-    });
-    salvarVerticalLocal(u,final);
-    await Promise.all([
-      verticalRefOriginal(u).set(final),
-      verticalRefBackup(u).set(final)
-    ]);
-    return final;
-  }
-
-  // Intercepta somente os checkboxes do verticalizado, antes dos listeners legados.
-  document.addEventListener('change',async function(e){
-    const cb=e.target?.closest?.('[data-ev10512-key],[data-ev499-key]');
-    if(!cb)return;
-    const u=uid(); if(!u)return;
-    const k=cb.dataset.ev10512Key || cb.dataset.ev499Key;
-    if(!k)return;
-
-    e.stopImmediatePropagation();
-
-    try{
-      let dados=await lerVerticalMesclado();
-      if(cb.checked) dados[k]=true;
-      else delete dados[k];
-      await salvarVerticalMesclado(dados);
-
-      // Mantém o visual atual sem alterar a estrutura da tela.
-      if(typeof window.renderEditalVerticalizadoV10512==='function'){
-        setTimeout(()=>window.renderEditalVerticalizadoV10512(),0);
-      }
-    }catch(err){
-      console.warn('V10.5.24 checklist verticalizado:',err);
-      cb.checked=!cb.checked;
-      const st=document.getElementById('ev499Status');
-      if(st)st.textContent='⚠ Não foi possível salvar a marcação.';
-    }
-  },true);
-
-  async function restaurarVerticalNaTela(){
-    const u=uid(); if(!u)return;
-    const dados=await lerVerticalMesclado();
-    // Sincroniza o caminho original para os renderizadores já existentes.
-    try{await verticalRefOriginal(u).set(dados)}catch(_){}
-    if(typeof window.renderEditalVerticalizadoV10512==='function'){
-      // O renderizador V10.5.12 fará a leitura oficial ao entrar na página.
-      const btn=document.querySelector('[data-page="editalVerticalizadoAcompanhamento"]');
-      if(document.getElementById('page-editalVerticalizadoAcompanhamento')?.classList.contains('active')){
-        try{btn?.click()}catch(_){}
-      }
-    }
-  }
-
-  async function restaurarTudo(){
-    try{
-      await reaplicarRevisoesConcluidas();
-      try{renderizarRevisoesMotor()}catch(_){}
-      try{renderizarRevisoesHojeV87()}catch(_){}
-      try{renderizarDashboardRevisoesV91()}catch(_){}
-      try{v104RenderSemana()}catch(_){}
-    }catch(e){console.warn('V10.5.24 restauração revisões:',e)}
-    try{await restaurarVerticalNaTela()}catch(e){console.warn('V10.5.24 restauração verticalizado:',e)}
-  }
-
-  try{
-    auth.onAuthStateChanged(u=>{
-      if(u){
-        setTimeout(restaurarTudo,450);
-        setTimeout(restaurarTudo,1600);
-      }
-    });
-  }catch(_){}
-
-  document.addEventListener('click',function(e){
-    if(e.target.closest?.('[data-page="ciclo"]')){
-      setTimeout(async()=>{
-        await reaplicarRevisoesConcluidas();
-        try{v104RenderSemana()}catch(_){}
-      },120);
-    }
-    if(e.target.closest?.('[data-page="editalVerticalizadoAcompanhamento"]')){
-      setTimeout(restaurarVerticalNaTela,80);
-    }
-  },true);
-
-  window.v10524RestaurarPersistencia=restaurarTudo;
-})();
-</script>
-
+<!-- V10.5.24 — correção conservadora
+     1) impede saneamento de revisões antes do Edital terminar de carregar no login;
+     2) remove corrida do render legado do Edital Verticalizado (0/0/piscada);
+     3) nenhuma regra de D1/D7/D15/D30, Planejamento, Timer, Questões ou conclusão foi alterada. -->
 </body>
 </html>

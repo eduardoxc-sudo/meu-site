@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.32 • REVISÕES MARCAR/DESMARCAR PERSISTENTE</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.33 • SEQUÊNCIA SOMENTE DIAS DE ESTUDO</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -8164,6 +8164,65 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
   },true);
 
   window.v10532Revisoes={salvarEstado};
+})();
+</script>
+
+
+<!-- V10.5.33 — Correção cirúrgica da Sequência.
+     A Sequência representa DIAS consecutivos de estudo de assuntos originais.
+     Revisões D1/D7/D15/D30, abrir o Ciclo, navegar entre abas, F5 e login NÃO incrementam.
+     Preserva V10.5.32 (marcar/desmarcar revisões), Planejamento, Timer, Questões,
+     Verticalizado, prioridades e drag & drop. -->
+<script id="v10533-sequencia-somente-estudo-original">
+(function(){
+  // Corrige uma rota antiga (v92Estatisticas) que ainda misturava datas de revisões
+  // concluídas nas datas usadas para calcular a Sequência do Dashboard.
+  const anterior = (typeof v92Estatisticas === 'function') ? v92Estatisticas : null;
+  if(anterior){
+    v92Estatisticas = function(){
+      const s = anterior.apply(this, arguments) || {};
+      try{
+        const datas = (typeof v922DatasAtividadeReal === 'function')
+          ? v922DatasAtividadeReal()
+          : new Set();
+        s.sequencia = (typeof v922CalcularSequencia === 'function')
+          ? v922CalcularSequencia(datas, new Date())
+          : 0;
+        // Dias de atividade também passa a significar dias de estudo original,
+        // sem transformar revisão em novo dia estudado.
+        s.diasAtividade = datas.size;
+      }catch(e){ console.warn('V10.5.33 sequência:', e); }
+      return s;
+    };
+  }
+
+  function atualizar(){
+    try{
+      if(typeof v922DatasAtividadeReal !== 'function' || typeof v922CalcularSequencia !== 'function') return;
+      const el=document.getElementById('dashSeqV92');
+      if(!el)return;
+      const valor=v922CalcularSequencia(v922DatasAtividadeReal(),new Date());
+      const txt=Number.isFinite(Number(valor))?String(Number(valor)):'0';
+      if(el.textContent!==txt)el.textContent=txt;
+    }catch(e){console.warn('V10.5.33 atualizar sequência:',e)}
+  }
+
+  // Recalcula após renderizações que podem passar pelo código estatístico antigo,
+  // mas sem criar/gravar qualquer atividade nova.
+  document.addEventListener('click',function(e){
+    if(e.target.closest?.('[data-page="dashboard"],[data-page="ciclo"]')){
+      queueMicrotask(atualizar);
+      setTimeout(atualizar,120);
+    }
+  },true);
+  document.addEventListener('change',function(e){
+    if(e.target.closest?.('.ciclo-rev-check-v1046[data-rev-chave]')){
+      queueMicrotask(atualizar);
+      setTimeout(atualizar,180);
+    }
+  },true);
+  window.addEventListener('load',()=>{setTimeout(atualizar,300);setTimeout(atualizar,1500)});
+  window.v10533AtualizarSequencia=atualizar;
 })();
 </script>
 

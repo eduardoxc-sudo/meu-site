@@ -7734,5 +7734,103 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
 })();
 </script>
 
+
+
+<!-- V10.5.23 — CORREÇÃO ISOLADA: revisão concluída persiste após logout/login -->
+<script id="v10523-revisao-login-persistente">
+(function(){
+  /*
+    Escopo desta correção:
+    - NÃO altera Planejamento, Ciclo, Timer, Questões, Edital ou regras D1/D7/D15/D30.
+    - Apenas fortalece a gravação da conclusão de uma revisão no Firebase.
+    - Também atualiza a cópia do edital ativo usada pelo gerenciador de múltiplos editais.
+  */
+  const antiga = window.v87ConcluirRevisao;
+
+  async function salvarSnapshotEditalAtivoV10523(uid, motor){
+    try{
+      const raiz = db.ref('usuarios/'+uid+'/editaisSeparadosV10509');
+      const snap = await raiz.child('ativoId').once('value');
+      const ativoId = snap.val();
+      if(!ativoId) return;
+      await raiz.child('editais/'+ativoId+'/dados/revisoesMotor').set(motor);
+      await raiz.child('editais/'+ativoId+'/salvoEm').set(firebase.database.ServerValue.TIMESTAMP);
+    }catch(e){
+      console.warn('V10.5.23 snapshot do edital ativo:',e);
+    }
+  }
+
+  window.v87ConcluirRevisao = async function(chave,tipo){
+    // Mantém exatamente o comportamento do modo de simulação.
+    if(typeof dataSimuladaV88!=='undefined' && dataSimuladaV88){
+      return antiga ? antiga(chave,tipo) : undefined;
+    }
+    if(!auth.currentUser) return;
+
+    const uid = auth.currentUser.uid;
+    if(!REVISOES_MOTOR_REF){
+      REVISOES_MOTOR_REF = db.ref('nova_app_v3/users/'+uid+'/revisoesMotor');
+    }
+
+    const origem = revisoesMotor?.origens?.[chave];
+    const rev = origem?.revisoes?.[tipo];
+    if(!rev || rev.concluida) return;
+
+    const concluidaEm = new Date().toISOString();
+    const anterior = {concluida:!!rev.concluida, concluidaEm:rev.concluidaEm};
+
+    // Atualização imediata na memória/local para a interface responder sem atraso.
+    rev.concluida = true;
+    rev.concluidaEm = concluidaEm;
+    revisoesMotor.atualizadoEm = concluidaEm;
+    try{
+      localStorage.setItem('nova_v3_revisoes_motor_'+uid,JSON.stringify(revisoesMotor));
+    }catch(_){}
+
+    try{
+      // Grava SOMENTE a revisão marcada. Evita que uma rotina paralela sobrescreva
+      // o motor inteiro com uma cópia antiga durante login/sincronização.
+      const revRef = REVISOES_MOTOR_REF.child('origens').child(chave).child('revisoes').child(tipo);
+      await revRef.update({concluida:true,concluidaEm:concluidaEm});
+      await REVISOES_MOTOR_REF.child('atualizadoEm').set(concluidaEm);
+
+      // Confirma o valor oficial do Firebase antes de finalizar.
+      const oficialSnap = await REVISOES_MOTOR_REF.once('value');
+      const oficial = oficialSnap.val();
+      if(oficial){
+        revisoesMotor = revisoesMotorNormalizar(oficial);
+        try{localStorage.setItem('nova_v3_revisoes_motor_'+uid,JSON.stringify(revisoesMotor));}catch(_){}
+      }
+
+      // Mantém a cópia do edital ativo alinhada com o mesmo estado.
+      await salvarSnapshotEditalAtivoV10523(uid,revisoesMotor);
+
+      try{renderizarRevisoesMotor();}catch(_){}
+      try{renderizarRevisoesAgendadasV85();}catch(_){}
+      try{renderizarAgendaRevisoesV86();}catch(_){}
+      try{renderizarRevisoesHojeV87();}catch(_){}
+      try{renderizarHistoricoV90();}catch(_){}
+      try{renderizarDashboardRevisoesV91();}catch(_){}
+      try{renderizarEstatisticasV92();}catch(_){}
+      try{renderizarPlanejamentoHojeV103();}catch(_){}
+      try{v104RenderSemana();}catch(_){}
+    }catch(e){
+      // Se Firebase realmente falhar, restaura somente a marcação tentada.
+      rev.concluida = anterior.concluida;
+      if(anterior.concluidaEm) rev.concluidaEm = anterior.concluidaEm;
+      else delete rev.concluidaEm;
+      try{localStorage.setItem('nova_v3_revisoes_motor_'+uid,JSON.stringify(revisoesMotor));}catch(_){}
+      ultimoErroV3 = String(e?.code||e?.message||e);
+      alert('Não foi possível salvar a conclusão da revisão. Tente novamente.');
+      try{v104RenderSemana();}catch(_){}
+      throw e;
+    }
+  };
+
+  // O código antigo chama v87ConcluirRevisao pelo nome global; garante que o novo
+  // comportamento também seja usado por checkboxes já existentes na Semana do Ciclo.
+  try{ v87ConcluirRevisao = window.v87ConcluirRevisao; }catch(_){}
+})();
+</script>
 </body>
 </html>

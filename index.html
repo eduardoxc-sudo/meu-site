@@ -909,7 +909,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.27 • VERTICALIZADO FIREBASE CORRIGIDO</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.28 • VERTICALIZADO PERSISTÊNCIA CORRIGIDA</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -8008,7 +8008,7 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
    try{return (await mgr(u).child('ativoId').once('value')).val()||''}catch(_){return ''}
  }
 
- const v10527SafeKey=k=>String(k||'').replace(/[.#$\\[\\]\\/]/g,c=>'%'+c.charCodeAt(0).toString(16).toUpperCase());
+ const v10527SafeKey=k=>String(k||'').replace(/[.#$\[\]\/]/g,c=>'%'+c.charCodeAt(0).toString(16).toUpperCase());
  const v10527Sanitizar=obj=>{
    const out={};
    Object.entries(obj||{}).forEach(([k,v])=>{if(v===true)out[v10527SafeKey(k)]=true});

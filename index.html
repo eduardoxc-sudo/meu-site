@@ -881,6 +881,9 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 #page-ciclo .ciclo-card-v104.atrasado-v10534{background:#681625!important;border:2px solid #ef4444!important;opacity:1!important}
 #page-ciclo .ciclo-card-v104.atrasado-v10534 strong,#page-ciclo .ciclo-card-v104.atrasado-v10534 small,#page-ciclo .ciclo-card-v104.atrasado-v10534 b{color:#fff!important}
 #page-ciclo .ciclo-card-v104.done{border-color:#15803d!important;background:rgba(16,120,75,.20)!important}
+#page-ciclo #cicloSemanaGridV104 .ciclo-card-v104.atrasado-v10534:not(.done){background:#681625!important;border:2px solid #ef4444!important;opacity:1!important}
+#page-ciclo #cicloSemanaGridV104 .ciclo-card-v104.atrasado-v10534:not(.done) strong,
+#page-ciclo #cicloSemanaGridV104 .ciclo-card-v104.atrasado-v10534:not(.done) small{color:#fff!important}
 </style>
 </head>
 <body>
@@ -915,7 +918,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.34 • SEQUÊNCIA SOMENTE DIAS DE ESTUDO</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.35 • CORES DOS ATRASADOS ESTÁVEIS</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -3614,6 +3617,20 @@ function v104AtivarDragDrop(){
    });
  });
 }
+// V10.5.35 — recalcula apenas a aparência dos cards, sem gravar dados.
+// Usa a data do próprio dia e o estado de conclusão exibido pelo renderizador.
+function v10535AtualizarCoresSemana(){
+ const grid=document.getElementById('cicloSemanaGridV104');
+ if(!grid)return;
+ const hoje=v104Hoje();
+ grid.querySelectorAll('.ciclo-dia-v104[data-dia]').forEach(dia=>{
+   const vencido=dia.dataset.dia<hoje;
+   dia.querySelectorAll('.ciclo-card-v104').forEach(card=>{
+     const concluido=card.classList.contains('done');
+     card.classList.toggle('atrasado-v10534',vencido&&!concluido);
+   });
+ });
+}
 function v104RenderSemana(){
  const grid=$('cicloSemanaGridV104'),periodo=$('cicloSemanaPeriodoV104'),st=$('cicloSemanaStatusV104');if(!grid)return;
  v104NormalizarBase();
@@ -3657,6 +3674,7 @@ function v104RenderSemana(){
      ch.checked=false;ch.disabled=false;
    }
  }));
+ v10535AtualizarCoresSemana();
  v104AtivarDragDrop();
  v104AtualizarBotoes();
  if(st)st.textContent=(itens.length||revs.length)?'Arraste um assunto e solte no dia desejado. A numeração é a mesma do Planejamento. Revisões ficam fixas.':'Monte o Planejamento para preencher o ciclo.';

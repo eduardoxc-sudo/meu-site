@@ -918,7 +918,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.35 • CORES DOS ATRASADOS ESTÁVEIS</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.36 • CORES DOS ATRASADOS CORRIGIDAS</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -8255,5 +8255,17 @@ body[data-v10512-page="ciclo"] #page-ciclo{display:block!important;visibility:vi
 })();
 </script>
 
+
+<style id="v10536-atrasados-prioridade-final">
+/* V10.5.36: somente cores. Prioridade acima dos estilos de tema posteriores. */
+html body #page-ciclo #cicloSemanaGridV104 .ciclo-dia-v104 .ciclo-card-v104.atrasado-v10534:not(.done) {
+  background:#681625 !important; background-color:#681625 !important;
+  border:2px solid #ef4444 !important; border-color:#ef4444 !important;
+  opacity:1 !important; color:#fff !important;
+}
+html body #page-ciclo #cicloSemanaGridV104 .ciclo-dia-v104 .ciclo-card-v104.atrasado-v10534:not(.done) :is(strong,small,b,span) {
+  color:#fff !important;
+}
+</style>
 </body>
 </html>

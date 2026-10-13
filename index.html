@@ -918,7 +918,7 @@ input,textarea,select{background:#13233a!important;border-color:#36506f!importan
 <div class="aside-bottom"><button class="btn btn-outline" id="btnSair">Terminar Sessão</button></div>
 </aside>
 <main>
-<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.36 • CORES DOS ATRASADOS CORRIGIDAS</span></div>
+<div class="top"><h1 id="pageTitle">Dashboard</h1><span class="version">NOVA V10.5.37 • ATRASADOS SEM PISCAR</span></div>
 <section class="page active" id="page-dashboard">
 <div class="hero"><h2>Olá, <span id="saudacaoNomeV3">Utilizador</span>! 👋</h2><p id="dataHoje"></p></div>
 <div class="grid">
@@ -3631,6 +3631,23 @@ function v10535AtualizarCoresSemana(){
    });
  });
 }
+// V10.5.37 — Observação isolada da grade do Ciclo.
+let v10537ObservadorSemana=null;
+function v10537ObservarSemana(){
+ const grid=document.getElementById('cicloSemanaGridV104');
+ if(!grid || typeof MutationObserver==='undefined')return;
+ if(v10537ObservadorSemana)v10537ObservadorSemana.disconnect();
+ let ocupado=false;
+ v10537ObservadorSemana=new MutationObserver(function(mudancas){
+   if(ocupado)return;
+   if(!mudancas.some(m=>m.type==='childList'||(m.type==='attributes'&&m.attributeName==='class')))return;
+   ocupado=true;
+   v10537ObservadorSemana.disconnect();
+   try{v10535AtualizarCoresSemana();}
+   finally{ocupado=false;v10537ObservadorSemana.observe(grid,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});}
+ });
+ v10537ObservadorSemana.observe(grid,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
+}
 function v104RenderSemana(){
  const grid=$('cicloSemanaGridV104'),periodo=$('cicloSemanaPeriodoV104'),st=$('cicloSemanaStatusV104');if(!grid)return;
  v104NormalizarBase();
@@ -3675,6 +3692,9 @@ function v104RenderSemana(){
    }
  }));
  v10535AtualizarCoresSemana();
+ // V10.5.37: reaplica estado visual depois de renderizações e atualizações de classe.
+ // Não escreve no Firebase e não interfere em eventos dos checklists.
+ v10537ObservarSemana();
  v104AtivarDragDrop();
  v104AtualizarBotoes();
  if(st)st.textContent=(itens.length||revs.length)?'Arraste um assunto e solte no dia desejado. A numeração é a mesma do Planejamento. Revisões ficam fixas.':'Monte o Planejamento para preencher o ciclo.';
